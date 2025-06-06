@@ -4,13 +4,13 @@
     <div
       class="fixed inset-0 min-h-screen bg-[url(/background/bg-milet-2.jpg)] bg-cover bg-left opacity-25"
     ></div>
-    <!-- 内容容器 -->
-    <div class="absolute inset-0 justify-center">
-      <div class="sticky top-0 md:max-w-[50%] mx-auto mb-5">
-        <Header />
-      </div>
+    <Header />
 
-      <main class="min-h-screen md:max-w-[50%] mx-auto px-5">
+    <!-- 内容容器 -->
+    <div class="absolute top-20 inset-0 t justify-center">
+      <main
+        class="min-h-screen md:max-w-[50%] mx-auto px-5 bg-[rgba(255,255,255,0.95)] shadow-[0_4px_20px_rgba(0,0,0,0.1)] rounded-xl"
+      >
         <h1 class="text-3xl font-bold text-center mb-4">milet</h1>
 
         <!-- 使用一个父div包裹所有p标签，并统一添加Tailwind样式 -->
