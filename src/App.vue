@@ -8,8 +8,9 @@
 
     <!-- 内容容器 -->
     <div class="absolute top-20 inset-0 t justify-center">
+      <!--url('@/assets/clean-gray-paper.png')-->
       <main
-        class="min-h-screen md:max-w-[50%] mx-auto px-5 bg-[#F5F9FF] shadow-[0_4px_20px_rgba(0,0,0,0.1)] rounded-xl"
+        class="min-h-screen md:max-w-[50%] mx-auto bg-[linear-gradient(to_bottom_right,white,#ebf8ff,#bee3f8)] bg-cover bg-center rounded-xl shadow"
       >
         <router-view />
       </main>
