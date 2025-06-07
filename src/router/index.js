@@ -11,7 +11,7 @@ const router = createRouter({
     {
       path: '/blogs',
       name: 'blog',
-      component: () => import('@/views/BlogView.vue'),
+      component: () => import('@/views/TWMainList.vue'),
     },
     {
       path: '/milet',
