@@ -9,12 +9,12 @@
     <!-- 内容容器 -->
     <div class="absolute top-20 inset-0 t justify-center">
       <main
-        class="min-h-screen md:max-w-[50%] mx-auto px-5 bg-[rgba(255,255,255,0.95)] shadow-[0_4px_20px_rgba(0,0,0,0.1)] rounded-xl"
+        class="min-h-screen md:max-w-[50%] mx-auto px-5 bg-[#F5F9FF] shadow-[0_4px_20px_rgba(0,0,0,0.1)] rounded-xl"
       >
         <h1 class="text-3xl font-bold text-center mb-4">milet</h1>
 
         <!-- 使用一个父div包裹所有p标签，并统一添加Tailwind样式 -->
-        <div class="flex flex-col space-y-4 text-base leading-relaxed mt-4">
+        <div class="flex flex-col space-y-4 leading-relaxed mt-4">
           <p>milet（ミレイ）・シンガーソングライター・東京出身</p>
           <p>
             思春期をカナダで過ごし、グローバルな存在感を放つソングライティングとハスキーかつ重厚感のある独特の唄声を兼ね揃えた女性シンガーソングライター。
@@ -47,9 +47,7 @@
         </div>
       </main>
 
-      <div class="bottom-10 md:max-w-[50%] mx-auto">
-        <Footer />
-      </div>
+      <Footer />
       <div class="fixed bottom-4 right-4 z-50">
         <TWUpToTop />
       </div>
