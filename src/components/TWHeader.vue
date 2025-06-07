@@ -5,34 +5,34 @@
   >
     <div class="md:max-w-[50%] w-full flex justify-between items-center mx-auto">
       <div>
-        <a href="/" class="flex gap-1 items-center">
+        <router-link :to="{ name: 'home' }" class="flex gap-1 items-center">
           <div class="h-6 flex items-center justify-center">
             <img src="@/assets/logo.png" alt="Logo" class="object-cover w-16 h-16" />
           </div>
           <h1 class="text-3xl font-bold">dl's notes</h1>
-        </a>
+        </router-link>
       </div>
       <nav>
         <ul class="flex gap-6">
           <li>
-            <a
-              href="/"
+            <router-link
+              :to="{ name: 'home' }"
               class="h-8 rounded-full px-3 text-current flex items-center justify-center cursor-pointer font-medium hover:bg-[#1C3E60] hover:shadow-[0_2px_6px_rgba(0,0,0,0.1)]"
-              >Home</a
+              >Home</router-link
             >
           </li>
           <li>
-            <a
-              href="/about"
-              class="h-8 rounded-full px-3 text-current flex items-center justify-center cursor-pointer font-medium hover:bg-[#1C3E60] hover:shadow-[0_2px_6px_rgba(0,0,0,0.1)]"
-              >blog</a
+            <router-link
+              :to="{ name: 'blog' }"
+              class="h-8 rounded-full px-3 text-current flex items-center justify-center cursor-pointer font-medium hover:bg-[#1C3E60] hover:shadow-[0_2px_6px_rgba(0,0,0,0.1)]'"
+              >blog</router-link
             >
           </li>
           <li>
-            <a
-              href="/milet"
+            <router-link
+              :to="{ name: 'milet' }"
               class="h-8 rounded-full px-3 text-current flex items-center justify-center cursor-pointer font-medium hover:bg-[#1C3E60] hover:shadow-[0_2px_6px_rgba(0,0,0,0.1)]"
-              >milet</a
+              >milet</router-link
             >
           </li>
         </ul>
