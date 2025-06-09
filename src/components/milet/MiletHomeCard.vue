@@ -4,7 +4,7 @@
     <div
       v-for="(item, idx) in cardDataL"
       :key="idx"
-      class="relative min-h-[300px] bg-white/70 border shadow-lg rounded-xl p-6"
+      class="relative bg-white/70 border shadow-lg rounded-xl p-6"
       :class="getCardClass(idx).tip"
     >
       <!-- 胶带标题 -->
@@ -16,11 +16,19 @@
       </div>
 
       <!-- 正文 -->
-      <div class="mt-4">
+      <div
+        class="relative mt-4 max-h-[200px] overflow-hidden cursor-pointer transition-[max-height_0.3s_ease] duration-300"
+        @click="cardClick"
+      >
         <p v-for="text in item.contents" class="mb-4 leading-relaxed">
           {{ text }}
         </p>
         <img v-show="item.img" :src="item.img" class="rounded-lg shadow-md mx-auto" />
+        <!-- 渐变遮罩层 
+         absolute bottom-0 left-0 w-full h-20 bg-gradient-to-t from-gray-300 via-white to-transparent-->
+        <div class="fade-mask flex justify-center items-center pointer-events-none">
+          <span></span>
+        </div>
       </div>
     </div>
   </div>
@@ -84,4 +92,33 @@ const cardClassList = [
 function getCardClass(idx) {
   return cardClassList[(idx + seed.value) % cardClassList.length]
 }
+
+const cardClick = (event) => {
+  const dom = event.currentTarget
+  dom.classList.toggle('max-h-[200px]')
+  dom.classList.toggle('overflow-hidden')
+  const mask = dom.querySelector('.fade-mask')
+  mask.classList.toggle('hidden')
+  // if (dom.classList.contains('max-h-[200px]')) {
+  //   mask.style.display = 'flex'
+  // } else {
+  //   mask.style.display = 'none'
+  // }
+}
 </script>
+
+<style scoped>
+.fade-mask {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 150px;
+  background: linear-gradient(
+    to top,
+    rgba(255, 255, 255, 0.98),
+    rgba(255, 255, 255, 0.027),
+    transparent
+  );
+}
+</style>
