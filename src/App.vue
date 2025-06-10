@@ -10,7 +10,7 @@
     <div class="absolute top-20 inset-0 t justify-center">
       <!--url('@/assets/clean-gray-paper.png')-->
       <main
-        class="min-h-screen md:max-w-[50%] mx-auto bg-[linear-gradient(to_bottom_right,white,#ebf8ff,#bee3f8)] bg-cover bg-center rounded-xl shadow"
+        class="min-h-screen md:max-w-[50%] mx-auto bg-[linear-gradient(to_bottom_right,white,#ebf8ff,#bee3f8)] bg-cover bg-center rounded-xl shadow pt-6"
       >
         <router-view />
       </main>
