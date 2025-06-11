@@ -2,7 +2,7 @@
   <!-- header -->
 
   <header
-    class="bg-[#2C75D1] text-white py-4 mx-auto fixed top-0 left-0 right-0 z-50 shadow-[0_2px_8px_rgba(0,0,0,0.1)] max-md:px-4"
+    class="bg-gradient-to-r from-[#2C75D1] to-[#599DFF] text-white py-4 px-6 fixed top-0 left-0 right-0 z-50 shadow-[0_2px_8px_rgba(0,0,0,0.1)] max-md:px-4 before:content-['']"
   >
     <div class="md:max-w-[50%] w-full flex justify-between items-center mx-auto">
       <div>
@@ -19,7 +19,8 @@
         @click="isMenuOpen = !isMenuOpen"
         aria-label="Toggle menu"
       >
-        <svg class="h-6 w-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+        <!-- 汉堡图标 -->
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16" />
         </svg>
       </button>
@@ -54,12 +55,12 @@
   <transition name="slide-down">
     <nav
       v-if="isMenuOpen"
-      class="md:hidden fixed bg-[#2C75D1] px-4 pb-4 pt-2 left-0 right-0 z-[999]"
+      class="md:hidden fixed w-full top-16 bg-white rounded-xl border border-blue-100 shadow-lg p-6 text-blue-800 z-40 transition-all duration-300"
     >
       <div class="relative">
-        <div class="absolute top-2 right-2">
-          <button @click="isMenuOpen = false" class="text-white">X</button>
-        </div>
+        <!-- <div class="absolute top-2 right-2">
+          <button @click="isMenuOpen = false" class="">X</button>
+        </div> -->
         <ul class="flex flex-col gap-4 pt-6">
           <li class="flex items-center justify-center">
             <router-link
@@ -85,14 +86,9 @@
               >milet</router-link
             >
           </li>
-          <li class="flex justify-center items-center">
-            <button
-              class="px-3 py-2 rounded-full"
-              title="切换语言"
-              @click="showLangSelect = !showLangSelect"
-            >
-              🌐language
-            </button>
+          <!-- 语言切换按钮 -->
+          <li class="flex justify-center items-center relative">
+            <LanguageSelect />
           </li>
         </ul>
       </div>
@@ -102,6 +98,7 @@
 
 <script setup>
 import { ref, onMounted, onBeforeUnmount } from 'vue'
+import LanguageSelect from '@/components/LanguageSelect.vue'
 
 const isMenuOpen = ref(false)
 

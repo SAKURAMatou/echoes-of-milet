@@ -12,36 +12,8 @@
     >
       🌐 Language
     </button> -->
-    <button
-      class="max-md:hidden fixed top-4 right-4 bg-white border border-blue-200 text-blue-800 px-3 py-2 rounded-full shadow-md hover:bg-blue-100 transition z-50"
-      title="切换语言"
-      @click="showLangSelect = !showLangSelect"
-    >
-      🌐
-    </button>
-    <div
-      v-if="showLangSelect"
-      class="fixed top-16 right-4 bg-white border border-blue-200 rounded-xl shadow-lg z-50 p-2"
-    >
-      <button
-        class="block w-full text-left px-4 py-2 hover:bg-blue-50 rounded"
-        @click="selectLang('zh')"
-      >
-        🇨🇳 中文
-      </button>
-      <button
-        class="block w-full text-left px-4 py-2 hover:bg-blue-50 rounded"
-        @click="selectLang('ja')"
-      >
-        🇯🇵 日本語
-      </button>
-      <button
-        class="block w-full text-left px-4 py-2 hover:bg-blue-50 rounded"
-        @click="selectLang('en')"
-      >
-        🇺🇸 English
-      </button>
-    </div>
+
+    <LanguageSelect />
 
     <!-- 内容容器 -->
     <div class="absolute top-20 inset-0 justify-center">
@@ -64,6 +36,8 @@
 import Header from '@/components/TWHeader.vue'
 import Footer from '@/components/TWFooter.vue'
 import TWUpToTop from '@/components//TWUpToTop.vue'
+
+import LanguageSelect from '@/components/LanguageSelect.vue'
 
 import { ref } from 'vue'
 const showLangSelect = ref(false)
