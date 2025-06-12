@@ -51,7 +51,7 @@ export default {
     // 挂载到全局
     app.config.globalProperties.$getConfigLang = getConfigLang
     app.config.globalProperties.$lang = langState
-    app.config.globalProperties.$setLang = setLang
+
     app.config.globalProperties.$toggleLang = toggleLang
   },
 }

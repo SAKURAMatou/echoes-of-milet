@@ -50,20 +50,12 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, getCurrentInstance, computed } from 'vue'
+const { appContext } = getCurrentInstance()
+const global = appContext.config.globalProperties
 
-const contentObj = ref({
-  zh: [
-    '作为一个普通的不能再普通的码农，虽然没有很强的技术，学习前端顺便创建了这个网站。',
-    '和大部分程序员一样，喜欢动漫，游戏。接触j-pop之后，开始追星。',
-    '为了追j-pop，2023年开始学习日语，下班之后去日语教室，一周2节课学完了标准日本语中级课程。之后又莫名其妙的情况下考过了N1',
-    '为了方便看live和追星，踏上了赴日之旅，从此人生走向不同赛道。',
-    '虽然赴日动机比较奇怪，结果而言，不得不在赴日的赛道竞争',
-  ],
-  jp: [],
-})
-const contentLanguaged = ref([])
-contentLanguaged.value = contentObj.value.zh
+const contentLanguaged = computed(() => global.$getConfigLang('homeview')['contents'])
+
 const currentParagraph = ref(0)
 
 onMounted(() => {
