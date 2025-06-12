@@ -3,7 +3,7 @@
     <div
       class="absolute top-4 -left-4 rotate-[-3deg] bg-yellow-200 text-yellow-900 px-4 py-1 rounded-full shadow font-semibold text-sm border border-yellow-400"
     >
-      🧷 milet活动轨迹
+      🧷 {{ $getConfigLang('miletHomeView')['title2'] }}
     </div>
 
     <div class="relative mt-12 border-l-4 border-dashed border-blue-400 pl-6">

@@ -34,7 +34,7 @@
           </button>
           <button
             class="block w-full text-left px-4 py-2 hover:bg-blue-50 rounded"
-            @click="selectLang('ja')"
+            @click="selectLang('jp')"
           >
             🇯🇵 日本語
           </button>
@@ -44,13 +44,16 @@
   </div>
 </template>
 <script setup>
-import { ref, onMounted, onBeforeUnmount } from 'vue'
+import { ref, onMounted, onBeforeUnmount, getCurrentInstance } from 'vue'
 
+const { appContext } = getCurrentInstance()
+const global = appContext.config.globalProperties
 const showLangSelect = ref(false)
 const selectLang = (lang) => {
   console.log(lang)
   showLangSelect.value = false
   //TODO 文字内容切换
+  global.$setLang(lang)
 }
 
 const menuWrapperLang = ref(null)

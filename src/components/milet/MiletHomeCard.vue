@@ -1,4 +1,7 @@
 <template>
+  <div class="m-4 px-4 py-1 font-semibold text-2xl">
+    ♥️ {{ $getConfigLang('miletHomeView')['title0'] }}
+  </div>
   <div class="max-w-3xl mx-auto p-6 space-y-10">
     <!-- 单个内容块 Start -->
     <div

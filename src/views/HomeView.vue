@@ -10,12 +10,14 @@
           <svg class="w-6 h-6 mr-2 text-yellow-500" fill="currentColor" viewBox="0 0 20 20">
             <path d="M9 12h2V8H9v4zm0 4h2v-2H9v2zm1-14a9 9 0 100 18 9 9 0 000-18z" />
           </svg>
-          <h2 class="text-lg font-bold">公告：关于本站的小故事</h2>
+          <h2 class="text-lg font-bold">{{ $getConfigLang('homeview')['announcement'] }}</h2>
         </div>
         <p class="leading-relaxed">
-          欢迎来到
-          <span class="font-semibold text-yellow-600">dl 的小站</span
-          >，一个普通的在日码农。这里记录生活片段、追星旅程与学习过程，希望你在这里也能找到共鸣。
+          {{ $getConfigLang('homeview')['announcement1'] }}
+          <span class="font-semibold text-yellow-600">
+            {{ $getConfigLang('homeview')['announcement2'] }}</span
+          >
+          {{ $getConfigLang('homeview')['announcement3'] }}
         </p>
       </div>
 

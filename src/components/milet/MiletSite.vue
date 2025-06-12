@@ -1,6 +1,8 @@
 <template>
   <!--  border border-yellow-400 rounded-full shadow bg-yellow-200 -->
-  <div class="px-4 py-1 font-semibold text-lg">🧷 milet官方网站</div>
+  <div class="px-4 py-1 font-semibold text-lg">
+    🌐 {{ $getConfigLang('miletHomeView')['title3'] }}
+  </div>
   <div class="grid grid-cols-1 md:grid-cols-2 gap-6 my-5 pb-10">
     <a
       v-for="(site, index) in miletSiteData"
