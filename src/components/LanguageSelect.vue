@@ -27,15 +27,15 @@
       >
         <ul class="text-blue-800 divide-y divide-blue-50 text-sm">
           <button
-            class="block w-full text-left px-4 py-2 hover:bg-blue-50 rounded"
-            :class="$lang.lang === 'zh' ? 'bg-[#00BFA6]' : ''"
+            class="block w-full text-left px-4 py-2 rounded"
+            :class="$lang.lang === 'zh' ? 'bg-[#00BFA6]' : 'hover:bg-blue-100'"
             @click="selectLang('zh')"
           >
             🇨🇳 中文
           </button>
           <button
-            class="block w-full text-left px-4 py-2 hover:bg-blue-50 rounded"
-            :class="$lang.lang === 'jp' ? 'bg-[#00BFA6]' : ''"
+            class="block w-full text-left px-4 py-2 rounded mt-1"
+            :class="$lang.lang === 'jp' ? 'bg-[#00BFA6]' : 'hover:bg-blue-100'"
             @click="selectLang('jp')"
           >
             🇯🇵 日本語
@@ -54,7 +54,7 @@ const showLangSelect = ref(false)
 const selectLang = (lang) => {
   showLangSelect.value = false
   //TODO 文字内容切换
-  global.$setLang(lang)
+  global.$toggleLang(lang)
 }
 
 const menuWrapperLang = ref(null)
