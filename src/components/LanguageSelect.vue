@@ -28,12 +28,14 @@
         <ul class="text-blue-800 divide-y divide-blue-50 text-sm">
           <button
             class="block w-full text-left px-4 py-2 hover:bg-blue-50 rounded"
+            :class="$lang.lang === 'zh' ? 'bg-[#00BFA6]' : ''"
             @click="selectLang('zh')"
           >
             🇨🇳 中文
           </button>
           <button
             class="block w-full text-left px-4 py-2 hover:bg-blue-50 rounded"
+            :class="$lang.lang === 'jp' ? 'bg-[#00BFA6]' : ''"
             @click="selectLang('jp')"
           >
             🇯🇵 日本語
@@ -50,7 +52,6 @@ const { appContext } = getCurrentInstance()
 const global = appContext.config.globalProperties
 const showLangSelect = ref(false)
 const selectLang = (lang) => {
-  console.log(lang)
   showLangSelect.value = false
   //TODO 文字内容切换
   global.$setLang(lang)
