@@ -26,47 +26,14 @@
   </div>
 </template>
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, onMounted, defineProps } from 'vue'
 
-const timelineDatas = ref({
-  jp: [],
-  zh: [
-    {
-      title: '🦮 2025年7月：5周年live的BD发售',
-      contents:
-        '虽然还没到发布那一天，但是已经下单了，网传live里发生了很多事，不知道有没有被收录进去。 还有发售日期7.23不是月底也很在意，武道馆BD都是月底发售，莫非要活动再开？',
-    },
-    {
-      title: '🦮 2025年5月：milet正式成为铲屎官',
-      contents: '',
-    },
-    {
-      title: '😭 2025年4月：宣布活动暂停',
-      contents: '有种天塌了的感觉',
-    },
-    {
-      title: '🎞️ 2025年2月：荧幕女主出道，首次女主演电影上映；同时发布发布双A面单曲',
-      contents: '首映当天去看了，故事虽然老套，但milet的演技和音乐都很棒，还有天杀的男主😡',
-    },
-    {
-      title: '🎞️ 2024年12月：日本唱片大奖-最佳歌手',
-      contents: '黑子可以闭嘴了',
-    },
-    {
-      title: ' 2024年11月：首次个人亚巡',
-      contents:
-        '特意回国去了上海场，幸好时间是周六，不然不一定能去。第一次在国内看live，可惜座位不行，完全看不到舞台',
-    },
-    {
-      title: '🪜 2024年下半年：stairs巡演',
-      contents:
-        'milet自身场次最多的巡演，幸好东京场还有票。在日本拿到信用卡已经是六七月份的事情了，只剩下东京场还有票，但也是天台。人生第一场live给米，milet还的是现场！！',
-    },
-    {
-      title: '🎉 2019年3月6日：主流媒体正式出道',
-      contents: '当年刚毕业，正忙毕设，完全不知道milet是谁',
-    },
-  ],
+//组件展示的数据从父组传值
+const props = defineProps({
+  timelineDataL: {
+    type: Array,
+    default: [],
+  },
 })
 
 const seed = ref(0)
@@ -74,9 +41,6 @@ onMounted(() => {
   seed.value = Math.floor(Math.random() * 6) + 5
 })
 
-const timelineDataL = computed(() => {
-  return timelineDatas.value.zh
-})
 // timeline样式自动选择
 
 const timelineClassList = [

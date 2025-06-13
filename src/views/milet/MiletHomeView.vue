@@ -1,7 +1,7 @@
 <template>
   <!-- <h1 class="text-3xl font-bold text-center mb-4">milet</h1> -->
 
-  <MiletHomeCard />
+  <MiletHomeCard v-if="!loading && miletDataL" :cardDataL="miletDataL.card" />
   <!-- <div class="w-32 h-2 mx-auto my-8 bg-yellow-200 rounded-full rotate-[-2deg] shadow-md"></div> -->
 
   <!-- <div
@@ -23,7 +23,7 @@
 
   <Divider1 />
   <!-- timeline -->
-  <MiletHomeTimeLine />
+  <MiletHomeTimeLine v-if="!loading && miletDataL" :timelineDataL="miletDataL.timeline" />
   <Divider1 />
   <!-- milet官方网站连接 -->
   <div class="mx-auto max-w-3xl space-y-10">
@@ -31,9 +31,32 @@
   </div>
 </template>
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, getCurrentInstance } from 'vue'
 import Divider1 from '@/components/Divider1.vue'
 import MiletSite from '@/components/milet/MiletSite.vue'
 import MiletHomeCard from '@/components/milet/MiletHomeCard.vue'
 import MiletHomeTimeLine from '@/components/milet/MiletHomeTimeLine.vue'
+
+const { appContext } = getCurrentInstance()
+const global = appContext.config.globalProperties
+
+const miletDatas = ref({})
+const loading = ref(true)
+
+//子组件的渲染
+onMounted(async () => {
+  try {
+    const res = await fetch('/data/milethome.json')
+    miletDatas.value = await res.json()
+  } catch (e) {
+    console.error('data fatch error'.e)
+  } finally {
+    loading.value = false
+  }
+})
+
+//根据语言选择对应的数据
+const miletDataL = computed(() => {
+  return miletDatas.value[global.$lang.lang]
+})
 </script>
