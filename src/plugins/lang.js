@@ -18,6 +18,7 @@ export const langConfig = {
       title1: '写真集 Album',
       title2: 'miletの活動軌跡',
       title3: 'miletの公式サイト',
+      title4: 'miletの公式SNS',
     },
   },
   zh: {
@@ -40,6 +41,7 @@ export const langConfig = {
       title1: '图集 Album',
       title2: ' milet活动轨迹',
       title3: 'milet官方网站',
+      title4: 'milet官方SNS',
     },
   },
 }
