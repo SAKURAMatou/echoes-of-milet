@@ -37,7 +37,7 @@
   </div>
 </template>
 <script setup>
-import { ref, onMounted, defineProps } from 'vue'
+import { ref, onMounted } from 'vue'
 
 const seed = ref(0)
 

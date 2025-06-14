@@ -26,7 +26,7 @@
   </div>
 </template>
 <script setup>
-import { ref, onMounted, defineProps } from 'vue'
+import { ref, onMounted } from 'vue'
 
 //组件展示的数据从父组传值
 const props = defineProps({

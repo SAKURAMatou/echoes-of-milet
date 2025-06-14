@@ -27,7 +27,7 @@
   <Divider1 />
   <!-- milet官方网站连接 -->
   <div class="mx-auto max-w-3xl space-y-10">
-    <MiletSite />
+    <MiletSite v-if="!loading && miletDataL" :miletSiteData="miletDataL.site" />
   </div>
 </template>
 <script setup>

@@ -5,7 +5,7 @@
   </div>
   <div class="grid grid-cols-1 md:grid-cols-2 gap-6 my-5 pb-10">
     <a
-      v-for="(site, index) in miletSiteData"
+      v-for="(site, index) in miletSiteData.siteList"
       :key="index"
       :href="site.link"
       :title="site.title"
@@ -27,20 +27,10 @@
   </div>
 </template>
 <script setup>
-import { ref } from 'vue'
-
-const miletSiteData = ref([
-  {
-    title: '官方网站',
-    description: 'milet的官方网站，包含最新资讯、音乐作品、演唱会信息等。',
-    link: 'https://milet.jp/',
-    oginImage: '/milet-img/milet-site-og-img.jpg',
+const props = defineProps({
+  miletSiteData: {
+    type: Object,
+    default: () => {},
   },
-  {
-    title: '官方fc',
-    description: 'milet的官方的fanclub，每月只要440日元就能查看会员专享。',
-    link: 'https://fc.milet.jp/',
-    oginImage: '/milet-img/milet-fc-og-img.png',
-  },
-])
+})
 </script>
