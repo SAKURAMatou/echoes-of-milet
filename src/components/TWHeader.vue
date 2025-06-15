@@ -69,18 +69,18 @@
           <button @click="isMenuOpen = false" class="">X</button>
         </div> -->
         <ul class="flex flex-col gap-4 pt-6">
-          <li class="flex items-center justify-center">
+          <li v-if="check" class="flex items-center justify-center menue-other">
             <router-link
               :to="{ name: 'home' }"
-              class="menue-other h-10 rounded-full px-3 text-current font-medium hover:bg-[#1C3E60] hover:shadow-[0_2px_6px_rgba(0,0,0,0.1)]"
+              class="h-10 rounded-full px-3 text-current font-medium hover:bg-[#1C3E60] hover:shadow-[0_2px_6px_rgba(0,0,0,0.1)]"
               @click="isMenuOpen = false"
               >Home</router-link
             >
           </li>
-          <li class="flex items-center justify-center">
+          <li v-if="check" class="flex items-center justify-center menue-other">
             <router-link
               :to="{ name: 'blog' }"
-              class="menue-other h-10 rounded-full px-3 text-current font-medium hover:bg-[#1C3E60] hover:shadow-[0_2px_6px_rgba(0,0,0,0.1)]"
+              class="h-10 rounded-full px-3 text-current font-medium hover:bg-[#1C3E60] hover:shadow-[0_2px_6px_rgba(0,0,0,0.1)]"
               @click="isMenuOpen = false"
               >blog</router-link
             >
@@ -126,14 +126,15 @@ onBeforeUnmount(() => {
 import { useRouter } from 'vue-router'
 
 const router = useRouter()
-
+const check = ref(true)
 function handleRouteChange(from, to) {
-  console.log('Navigating:', from.name, to.name)
   //进页面时候
   if (to.name.includes('milet')) {
     const elements = document.querySelectorAll('.menue-other')
+    console.log('Navigating:', from.name, to.name, elements)
     elements.forEach((element) => {
       element.style.display = 'none'
+      check.value = false
     })
   }
   //离开页面时候
