@@ -36,14 +36,14 @@
           <li>
             <router-link
               :to="{ name: 'home' }"
-              class="h-8 rounded-full px-3 text-current flex items-center justify-center cursor-pointer font-medium hover:bg-[#1C3E60] hover:shadow-[0_2px_6px_rgba(0,0,0,0.1)]"
+              class="menue-other h-8 rounded-full px-3 text-current flex items-center justify-center cursor-pointer font-medium hover:bg-[#1C3E60] hover:shadow-[0_2px_6px_rgba(0,0,0,0.1)]"
               >Home</router-link
             >
           </li>
           <li>
             <router-link
               :to="{ name: 'blog' }"
-              class="h-8 rounded-full px-3 text-current flex items-center justify-center cursor-pointer font-medium hover:bg-[#1C3E60] hover:shadow-[0_2px_6px_rgba(0,0,0,0.1)]'"
+              class="menue-other h-8 rounded-full px-3 text-current flex items-center justify-center cursor-pointer font-medium hover:bg-[#1C3E60] hover:shadow-[0_2px_6px_rgba(0,0,0,0.1)]'"
               >blog</router-link
             >
           </li>
@@ -72,7 +72,7 @@
           <li class="flex items-center justify-center">
             <router-link
               :to="{ name: 'home' }"
-              class="h-10 rounded-full px-3 text-current font-medium hover:bg-[#1C3E60] hover:shadow-[0_2px_6px_rgba(0,0,0,0.1)]"
+              class="menue-other h-10 rounded-full px-3 text-current font-medium hover:bg-[#1C3E60] hover:shadow-[0_2px_6px_rgba(0,0,0,0.1)]"
               @click="isMenuOpen = false"
               >Home</router-link
             >
@@ -80,7 +80,7 @@
           <li class="flex items-center justify-center">
             <router-link
               :to="{ name: 'blog' }"
-              class="h-10 rounded-full px-3 text-current font-medium hover:bg-[#1C3E60] hover:shadow-[0_2px_6px_rgba(0,0,0,0.1)]"
+              class="menue-other h-10 rounded-full px-3 text-current font-medium hover:bg-[#1C3E60] hover:shadow-[0_2px_6px_rgba(0,0,0,0.1)]"
               @click="isMenuOpen = false"
               >blog</router-link
             >
@@ -121,6 +121,34 @@ onMounted(() => {
 
 onBeforeUnmount(() => {
   window.removeEventListener('resize', handleResize)
+})
+
+import { useRouter } from 'vue-router'
+
+const router = useRouter()
+
+function handleRouteChange(from, to) {
+  console.log('Navigating:', from.name, to.name)
+  //进页面时候
+  if (to.name.includes('milet')) {
+    const elements = document.querySelectorAll('.menue-other')
+    elements.forEach((element) => {
+      element.style.display = 'none'
+    })
+  }
+  //离开页面时候
+
+  if (from.name && from.name.includes('milet') && !to.name.includes('milet')) {
+    return false
+  }
+
+  return true
+}
+
+router.beforeEach((to, from, next) => {
+  if (handleRouteChange(from, to)) {
+    next()
+  }
 })
 </script>
 
