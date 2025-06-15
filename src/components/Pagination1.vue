@@ -31,35 +31,11 @@
             ? ' border-[#187bcd] bg-[#187bcd] text-white'
             : 'text-current border-gray-200 hover:bg-blue-400',
         ]"
-        @click.prevent="handlePageChange(pageIndex)"
+        @click.prevent="handlePageChange(pageIndex, $event)"
       >
         {{ pageIndex }}
       </a>
     </li>
-
-    <!-- <li
-      class="block size-8 rounded border border-[#187bcd] bg-[#187bcd] text-center text-sm/8 font-medium text-white"
-    >
-      2
-    </li>
-
-    <li>
-      <a
-        href="#"
-        class="block size-8 rounded border border-gray-200 text-center text-sm/8 font-medium transition-colors hover:bg-blue-400"
-      >
-        3
-      </a>
-    </li>
-
-    <li>
-      <a
-        href="#"
-        class="block size-8 rounded border border-gray-200 text-center text-sm/8 font-medium transition-colors hover:bg-blue-400"
-      >
-        4
-      </a>
-    </li> -->
 
     <li>
       <a
@@ -94,11 +70,15 @@ const props = defineProps({
   },
   totalCount: {
     type: Number,
-    default: 10,
+    default: null,
   },
   pageSize: {
     type: Number,
     default: 6,
+  },
+  totalPages: {
+    type: Number,
+    default: null,
   },
 })
 
@@ -106,15 +86,53 @@ const props = defineProps({
 const emit = defineEmits(['pageChange'])
 //计算总页数
 const totalPages = computed(() => {
-  return Math.ceil(props.totalCount / props.pageSize)
+  if (props.totalCount && props.pageSize) {
+    return Math.ceil(props.totalCount / props.pageSize)
+  } else if (props.totalPages) {
+    const plist = []
+    if (props.totalPages > 11) {
+      const mid = Math.ceil(props.totalPages / 2)
+      plist.push(1)
+      plist.push('...')
+      for (let i = mid - 2; i <= mid + 2; i++) {
+        if (i > 1 && i < props.totalPages) {
+          plist.push(i)
+        }
+      }
+      plist.push('...')
+      plist.push(props.totalPages)
+    } else {
+      for (let i = 1; i <= props.totalPages; i++) {
+        plist.push(i)
+      }
+    }
+    return plist
+  } else {
+    return 0
+  }
 })
 
 //分页事件
-const handlePageChange = (page) => {
-  console.log('handlePageChange', page)
-
+const handlePageChange = (page, event) => {
   if (page < 1 || page > totalPages.value) return
+
+  // Get the previous sibling element
+
+  if (page === '...') {
+    const previousElement = event.target.closest('li').previousElementSibling?.querySelector('a')
+    let pretext = previousElement?.textContent
+    pretext = parseInt(pretext?.trim())
+    if (!isNaN(pretext)) {
+      if (pretext === 1) {
+        page = props.currentPage - 1
+      } else {
+        page = props.currentPage + 1
+      }
+    } else {
+      return
+    }
+  }
+  console.log('handlePageChange', page)
   emit('pageChange', page)
-  //   props.currentPage = page
 }
 </script>

@@ -48,7 +48,7 @@
       <!-- 分页组件 -->
       <div class="absolute bottom-6 right-0 left-0 w-full mx-auto">
         <div class="max-md:hidden">
-          <pagination_long />
+          <pagination_long :totalPages="12" :currentPage="1" />
         </div>
         <div class="md:hidden">
           <pagination_short />
