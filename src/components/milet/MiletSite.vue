@@ -3,7 +3,7 @@
     {{ $getConfigLang('miletHomeView')['title4'] }}
   </div>
   <div class="grid grid-cols-1 md:grid-cols-2 gap-6 p-5">
-    <div class="space-y-4">
+    <div class="space-y-2">
       <div>
         <a
           href="https://www.instagram.com/milet_music"
@@ -15,7 +15,12 @@
           />instagram</a
         >
       </div>
-      <div ref="insContainer"></div>
+      <div class="text-gray-400 text-sm p-2">
+        <span>
+          {{ $getConfigLang('miletsite')['tips1'] }}
+        </span>
+      </div>
+      <div ref="insContainer" class="md:max-h-[480px] md:overflow-hidden rounded-xl"></div>
     </div>
     <div>
       <div>
