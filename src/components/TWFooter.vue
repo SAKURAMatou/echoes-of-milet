@@ -1,5 +1,5 @@
 <template>
-  <footer class="min-h-[60px] px-5 mt-10 bg-[#2C75D1] text-white py-4 bottom-10">
+  <footer class="min-h-[60px] px-5 mt-2 bg-[#2C75D1] text-white py-4 bottom-10">
     <div class="grid grid-cols-3 justify-center items-start gap-x-5 mx-auto md:max-w-[50%] w-full">
       <div class="text-center col-span-2 justify-self-center">
         <p>© {{ nowYear }} ダイのブログ. All rights reserved</p>
