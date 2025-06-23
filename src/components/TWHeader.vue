@@ -5,13 +5,20 @@
     class="bg-gradient-to-r from-[#2C75D1] to-[#599DFF] text-white py-4 px-6 fixed top-0 left-0 right-0 z-50 shadow-[0_2px_8px_rgba(0,0,0,0.1)] max-md:px-4 before:content-['']"
   >
     <div class="md:max-w-[50%] w-full flex justify-between items-center mx-auto">
-      <div>
+      <div class="relative">
         <router-link :to="{ name: 'home' }" class="flex gap-1 items-center">
           <div class="h-6 flex items-center justify-center">
             <img src="@/assets/logo.png" alt="Logo" class="object-cover w-16 h-16" />
           </div>
           <h1 class="text-3xl font-bold">dml's notes</h1>
         </router-link>
+        <!-- 添加bate提醒 -->
+        <span
+          class="absolute top-0 right-0 bg-purple-300 text-white text-xs font-bold px-2 py-1 rounded-full -rotate-4"
+          style="transform: translate(50%, -50%)"
+        >
+          BETA
+        </span>
       </div>
 
       <button
@@ -29,21 +36,23 @@
           <li>
             <router-link
               :to="{ name: 'home' }"
-              class="h-8 rounded-full px-3 text-current flex items-center justify-center cursor-pointer font-medium hover:bg-[#1C3E60] hover:shadow-[0_2px_6px_rgba(0,0,0,0.1)]"
+              class="menue-other h-8 rounded-full px-3 text-current flex items-center justify-center cursor-pointer font-medium hover:bg-[#1C3E60] hover:shadow-[0_2px_6px_rgba(0,0,0,0.1)]"
               >Home</router-link
             >
           </li>
           <li>
             <router-link
               :to="{ name: 'blog' }"
-              class="h-8 rounded-full px-3 text-current flex items-center justify-center cursor-pointer font-medium hover:bg-[#1C3E60] hover:shadow-[0_2px_6px_rgba(0,0,0,0.1)]'"
+              class="menue-other h-8 rounded-full px-3 text-current flex items-center justify-center cursor-pointer font-medium hover:bg-[#1C3E60] hover:shadow-[0_2px_6px_rgba(0,0,0,0.1)]'"
               >blog</router-link
             >
           </li>
           <li>
             <router-link
               :to="{ name: 'milet' }"
-              class="h-8 rounded-full px-3 text-current flex items-center justify-center cursor-pointer font-medium hover:bg-[#1C3E60] hover:shadow-[0_2px_6px_rgba(0,0,0,0.1)]"
+              target="_blank"
+              rel="noopener noreferrer"
+              class="h-8 rounded-full px-3 text-current flex items-center justify-center cursor-pointer font-medium hover:bg-[#1C3E60] hover:shadow-[0_2px_6px_rgba(0,0,0,0.1)] milet-button"
               >milet</router-link
             >
           </li>
@@ -62,7 +71,7 @@
           <button @click="isMenuOpen = false" class="">X</button>
         </div> -->
         <ul class="flex flex-col gap-4 pt-6">
-          <li class="flex items-center justify-center">
+          <li v-if="check" class="flex items-center justify-center menue-other">
             <router-link
               :to="{ name: 'home' }"
               class="h-10 rounded-full px-3 text-current font-medium hover:bg-[#1C3E60] hover:shadow-[0_2px_6px_rgba(0,0,0,0.1)]"
@@ -70,7 +79,7 @@
               >Home</router-link
             >
           </li>
-          <li class="flex items-center justify-center">
+          <li v-if="check" class="flex items-center justify-center menue-other">
             <router-link
               :to="{ name: 'blog' }"
               class="h-10 rounded-full px-3 text-current font-medium hover:bg-[#1C3E60] hover:shadow-[0_2px_6px_rgba(0,0,0,0.1)]"
@@ -81,7 +90,9 @@
           <li class="flex items-center justify-center">
             <router-link
               :to="{ name: 'milet' }"
-              class="h-10 rounded-full px-3 text-current font-medium hover:bg-[#1C3E60] hover:shadow-[0_2px_6px_rgba(0,0,0,0.1)]"
+              target="_blank"
+              rel="noopener noreferrer"
+              class="h-10 rounded-full px-3 text-current font-medium hover:bg-[#1C3E60] hover:shadow-[0_2px_6px_rgba(0,0,0,0.1)] milet-button"
               @click="isMenuOpen = false"
               >milet</router-link
             >
@@ -114,6 +125,48 @@ onMounted(() => {
 
 onBeforeUnmount(() => {
   window.removeEventListener('resize', handleResize)
+})
+
+import { useRouter } from 'vue-router'
+
+const router = useRouter()
+const check = ref(true)
+function handleRouteChange(from, to) {
+  //进页面时候
+  if (to.name.includes('milet')) {
+    const elements = document.querySelectorAll('.menue-other')
+    // console.log('Navigating:', from.name, to.name, elements)
+    elements.forEach((element) => {
+      element.style.display = 'none'
+      check.value = false
+    })
+  }
+  //离开页面时候
+  //同一个页面不跳转
+  console.log(from.name, to.name)
+  if (from.name && to.name && from.name === to.name) {
+    return false
+  }
+  if (from.name && from.name.includes('milet') && to.name.includes('milet')) {
+    return false
+  }
+  if (!from.name && to.name.includes('milet')) {
+    //禁止再次点跳转按钮
+    const elements = document.querySelectorAll('.milet-button')
+    elements.forEach((element) => {
+      element.setAttribute('disabled', 'true')
+      element.style.pointerEvents = 'none'
+      element.style.opacity = '0.5'
+    })
+  }
+
+  return true
+}
+
+router.beforeEach((to, from, next) => {
+  if (handleRouteChange(from, to)) {
+    next()
+  }
 })
 </script>
 

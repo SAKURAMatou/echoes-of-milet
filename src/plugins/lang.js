@@ -20,6 +20,10 @@ export const langConfig = {
       title3: 'miletの公式サイト',
       title4: 'miletの公式SNS',
     },
+    miletsite: {
+      tips1:
+        'milet公式Insgramのいプロフィールを埋め込みたかったですが、Insgramのプライバシーポリシーの関係でビジネスアカウント（本人）でないと対応できないようで、諦めました。',
+    },
   },
   zh: {
     homeview: {
@@ -42,6 +46,10 @@ export const langConfig = {
       title2: ' milet活动轨迹',
       title3: 'milet官方网站',
       title4: 'milet官方SNS',
+    },
+    miletsite: {
+      tips1:
+        '原本想要添加milet官方INS的主页，但是INS的隐私策略问题，非企业账号（本人账号）太困难了，放弃。',
     },
   },
 }
