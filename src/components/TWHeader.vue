@@ -50,7 +50,9 @@
           <li>
             <router-link
               :to="{ name: 'milet' }"
-              class="h-8 rounded-full px-3 text-current flex items-center justify-center cursor-pointer font-medium hover:bg-[#1C3E60] hover:shadow-[0_2px_6px_rgba(0,0,0,0.1)]"
+              target="_blank"
+              rel="noopener noreferrer"
+              class="h-8 rounded-full px-3 text-current flex items-center justify-center cursor-pointer font-medium hover:bg-[#1C3E60] hover:shadow-[0_2px_6px_rgba(0,0,0,0.1)] milet-button"
               >milet</router-link
             >
           </li>
@@ -88,7 +90,9 @@
           <li class="flex items-center justify-center">
             <router-link
               :to="{ name: 'milet' }"
-              class="h-10 rounded-full px-3 text-current font-medium hover:bg-[#1C3E60] hover:shadow-[0_2px_6px_rgba(0,0,0,0.1)]"
+              target="_blank"
+              rel="noopener noreferrer"
+              class="h-10 rounded-full px-3 text-current font-medium hover:bg-[#1C3E60] hover:shadow-[0_2px_6px_rgba(0,0,0,0.1)] milet-button"
               @click="isMenuOpen = false"
               >milet</router-link
             >
@@ -131,16 +135,29 @@ function handleRouteChange(from, to) {
   //进页面时候
   if (to.name.includes('milet')) {
     const elements = document.querySelectorAll('.menue-other')
-    console.log('Navigating:', from.name, to.name, elements)
+    // console.log('Navigating:', from.name, to.name, elements)
     elements.forEach((element) => {
       element.style.display = 'none'
       check.value = false
     })
   }
   //离开页面时候
-
-  if (from.name && from.name.includes('milet') && !to.name.includes('milet')) {
+  //同一个页面不跳转
+  console.log(from.name, to.name)
+  if (from.name && to.name && from.name === to.name) {
     return false
+  }
+  if (from.name && from.name.includes('milet') && to.name.includes('milet')) {
+    return false
+  }
+  if (!from.name && to.name.includes('milet')) {
+    //禁止再次点跳转按钮
+    const elements = document.querySelectorAll('.milet-button')
+    elements.forEach((element) => {
+      element.setAttribute('disabled', 'true')
+      element.style.pointerEvents = 'none'
+      element.style.opacity = '0.5'
+    })
   }
 
   return true
