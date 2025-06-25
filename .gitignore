@@ -31,3 +31,5 @@ coverage
 public
 test1.html
 test2.html
+.env
+.env.development

@@ -13,4 +13,13 @@ export default defineConfig({
       '@': fileURLToPath(new URL('./src', import.meta.url)),
     },
   },
+  server: {
+    proxy: {
+      '/apihost': {
+        target: 'https://api.miles-dml.org',
+        changeOrigin: true, // 伪装成目标源的请求头 origin
+        rewrite: (path) => path.replace(/^\/apihost/, ''), // 去掉路径中的 `/api` 前缀
+      },
+    },
+  },
 })
