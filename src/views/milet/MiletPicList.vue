@@ -17,7 +17,7 @@
 
     <div class="image-gallery grid grid-cols-1 md:grid-cols-2 gap-6 mb-4" id="gallery">
       <!--  :data-pswp-width="1600"
-      :data-pswp-height="900" -->
+      :data-pswp-height="900"    target="_blank"-->
       <div
         v-for="(img, index) in imgList"
         :key="index"
@@ -25,14 +25,13 @@
       >
         <a
           :href="img.link"
+          :data-pswp-src="img.link"
           class="image-item pswp-gallery__item"
           :data-pswp-width="img.w"
           :data-pswp-height="img.h"
-          target="_blank"
           rel="noopener"
+          target="_blank"
         >
-          <!-- v-lazy="img.src" -->
-          <!-- loading="lazy" -->
           <img
             v-lazy="img.link"
             loading="lazy"
@@ -113,13 +112,15 @@ const setupLazyAndLightbox = () => {
     lightbox.destroy()
     lightbox = null
   }
-  //等待懒加载渲染完整之后再初始化lightbox
+
+  // 等待所有图片懒加载完成后再初始化 lightbox
   let loadedCount = 0
   const total = imgList.value.length
 
   const tryInit = () => {
     loadedCount++
     if (loadedCount >= total) {
+      // 确保 DOM 已经渲染并且图片都加载完成
       lightbox = new PhotoSwipeLightbox({
         gallery: '#gallery',
         children: '.image-wrapper a',
@@ -131,11 +132,12 @@ const setupLazyAndLightbox = () => {
     }
   }
 
-  $Lazyload.$once?.('loaded', tryInit)
+  // 监听每个图片的加载事件
   document.querySelectorAll('.image-wrapper img').forEach((img) => {
-    console.log('.image-wrapper img')
     if (img.complete) {
       tryInit()
+    } else {
+      img.addEventListener('load', tryInit, { once: true })
     }
   })
 }
@@ -143,6 +145,7 @@ const setupLazyAndLightbox = () => {
 onUnmounted(() => {
   if (lightbox) {
     lightbox.destroy()
+    lightbox = null
   }
 })
 

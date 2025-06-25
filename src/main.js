@@ -12,6 +12,7 @@ const app = createApp(App)
 app.use(router)
 app.use(VueLazyLoad, {
   loading: loadingImg,
+  error: './assets/default_images_list.svg',
 })
 app.use(langPlugin)
 
