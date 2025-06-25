@@ -143,7 +143,7 @@ function handleRouteChange(from, to) {
   }
   //离开页面时候
   //同一个页面不跳转
-  console.log(from.name, to.name)
+  // console.log(from.name, to.name)
   if (from.name && to.name && from.name === to.name) {
     return false
   }
@@ -151,7 +151,6 @@ function handleRouteChange(from, to) {
     return false
   }
   if (!from.name && to.name.includes('milet')) {
-    //禁止再次点跳转按钮
     const elements = document.querySelectorAll('.milet-button')
     elements.forEach((element) => {
       element.setAttribute('disabled', 'true')

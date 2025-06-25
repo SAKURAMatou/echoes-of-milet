@@ -75,7 +75,7 @@ let lightbox = null
 
 const { appContext } = getCurrentInstance() // 拿到组件上下文实例
 const $Lazyload = appContext.config.globalProperties?.$Lazyload
-console.log(appContext, $Lazyload)
+// console.log(appContext, $Lazyload)
 onMounted(async () => {
   loadPage()
 })
