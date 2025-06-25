@@ -63,6 +63,10 @@ const props = defineProps({
     type: Number,
     default: 6,
   },
+  totalPages: {
+    type: Number,
+    default: null,
+  },
 })
 
 const emit = defineEmits(['pageChange'])

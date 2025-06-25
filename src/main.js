@@ -5,11 +5,14 @@ import App from './App.vue'
 import router from './router'
 import VueLazyLoad from 'vue3-lazyload'
 import langPlugin from './plugins/LangPlugin'
+import loadingImg from './assets/loading.gif'
 
 const app = createApp(App)
 
 app.use(router)
-app.use(VueLazyLoad)
+app.use(VueLazyLoad, {
+  loading: loadingImg,
+})
 app.use(langPlugin)
 
 app.mount('#app')

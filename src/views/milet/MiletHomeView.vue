@@ -36,6 +36,7 @@ import Divider1 from '@/components/Divider1.vue'
 import MiletSite from '@/components/milet/MiletSite.vue'
 import MiletHomeCard from '@/components/milet/MiletHomeCard.vue'
 import MiletHomeTimeLine from '@/components/milet/MiletHomeTimeLine.vue'
+import axiosInstance from '@/AxiosUtil'
 
 const { appContext } = getCurrentInstance()
 const global = appContext.config.globalProperties
@@ -46,10 +47,14 @@ const loading = ref(true)
 //子组件的渲染
 onMounted(async () => {
   try {
-    const res = await fetch('/data/milethome.json')
-    miletDatas.value = await res.json()
+    const res = await axiosInstance.post(import.meta.env.VITE_URL_API_MILET_HOME)
+
+    const resJson = res.data
+    if (resJson.code === 200) {
+      miletDatas.value = resJson.data
+    }
   } catch (e) {
-    console.error('data fatch error'.e)
+    console.error('data fatch error', e)
   } finally {
     loading.value = false
   }
