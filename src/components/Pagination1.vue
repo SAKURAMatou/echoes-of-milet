@@ -86,30 +86,30 @@ const props = defineProps({
 const emit = defineEmits(['pageChange'])
 //计算总页数
 const totalPages = computed(() => {
+  let total = 1
   if (props.totalCount && props.pageSize) {
-    return Math.ceil(props.totalCount / props.pageSize)
+    total = Math.ceil(props.totalCount / props.pageSize)
   } else if (props.totalPages) {
-    const plist = []
-    if (props.totalPages > 11) {
-      const mid = Math.ceil(props.totalPages / 2)
-      plist.push(1)
-      plist.push('...')
-      for (let i = mid - 2; i <= mid + 2; i++) {
-        if (i > 1 && i < props.totalPages) {
-          plist.push(i)
-        }
-      }
-      plist.push('...')
-      plist.push(props.totalPages)
-    } else {
-      for (let i = 1; i <= props.totalPages; i++) {
+    total = props.totalPages
+  }
+  const plist = []
+  if (total > 11) {
+    const mid = Math.ceil(total / 2)
+    plist.push(1)
+    plist.push('...')
+    for (let i = mid - 2; i <= mid + 2; i++) {
+      if (i > 1 && i < total) {
         plist.push(i)
       }
     }
-    return plist
+    plist.push('...')
+    plist.push(total)
   } else {
-    return 0
+    for (let i = 1; i <= total; i++) {
+      plist.push(i)
+    }
   }
+  return plist
 })
 
 //分页事件

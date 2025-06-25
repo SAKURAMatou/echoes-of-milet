@@ -73,7 +73,13 @@ const emit = defineEmits(['pageChange'])
 
 //计算总页数
 const totalPages = computed(() => {
-  return Math.ceil(props.totalCount / props.pageSize)
+  let total = 1
+  if (props.totalPages) {
+    total = props.totalPages
+  } else if (props.totalCount && props.pageSize) {
+    total = Math.ceil(props.totalCount / props.pageSize)
+  }
+  return total
 })
 
 //分页事件
