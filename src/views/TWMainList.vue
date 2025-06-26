@@ -24,34 +24,47 @@
       <div class="h-full pb-8">
         <!-- 右侧内容列表 -->
 
-        <div
-          v-for="item in dataList"
-          :key="item.fname.replace(".html")"
-          class="rounded-lg md:flex shadow-sm hover:shadow-md transition-shadow p-4 gap-4 mb-6"
-        >
-          <div class="w-full md:w-1/3">
-            <!-- 封面图片 -->
-            <img
-              src="@/assets/default_images_list.svg"
-              alt="封面图片"
-              class="aspect-[4/3] object-cover rounded-lg"
-            />
-          </div>
-          <div class="flex flex-col justify-center md:w-2/3 max-md:my-2">
-            <!-- 图片右侧文章概要 -->
-            <h2 class="text-xl font-semibold mb-2 text-gray-800">{{ item.title }}</h2>
-            <p class="text-gray-600 leading-relaxed line-clamp-3">{{ item.summery }}</p>
-            <span class="text-sm text-gray-500">{{ item.tagName }}</span> <span class="text-sm text-gray-500"> {{ item.date }}</span>
-          </div>
+        <div v-for="(item, index) in dataList" :key="index">
+          <router-link
+            :to="{ name: 'blogDetail', params: { id: item.fname } }"
+            class="rounded-lg md:flex shadow-sm hover:shadow-md transition-shadow p-4 gap-4 mb-6"
+          >
+            <div class="w-full md:w-1/3">
+              <!-- 封面图片    :src="getImageUrl(item.imglink)" -->
+              <img
+                v-lazy="getImageUrl(item.imglink)"
+                loading="lazy"
+                alt="封面图片"
+                class="aspect-[4/3] object-cover rounded-lg"
+              />
+            </div>
+            <div class="flex flex-col justify-center md:w-2/3 max-md:my-2">
+              <!-- 图片右侧文章概要 -->
+              <h2 class="text-xl font-semibold mb-2 text-gray-800">{{ item.title }}</h2>
+              <div class="flex justify-between items-center py-2">
+                <span class="text-sm text-gray-500">{{ item.tagName }}</span>
+                <span class="text-sm text-gray-500"> {{ item.date }}</span>
+              </div>
+              <p class="text-gray-600 leading-relaxed line-clamp-3">{{ item.summery }}</p>
+            </div>
+          </router-link>
         </div>
       </div>
       <!-- 分页组件 -->
       <div class="absolute bottom-6 right-0 left-0 w-full mx-auto">
         <div class="max-md:hidden">
-          <pagination_long :totalPages="totalPages" :currentPage="currentPage" @pageChange="pageChange" />
+          <pagination_long
+            :totalPages="totalPages"
+            :currentPage="currentPage"
+            @pageChange="pageChange"
+          />
         </div>
         <div class="md:hidden">
-          <pagination_short :totalPages="totalPages" :currentPage="currentPage" @pageChange="pageChange"/>
+          <pagination_short
+            :totalPages="totalPages"
+            :currentPage="currentPage"
+            @pageChange="pageChange"
+          />
         </div>
       </div>
     </div>
@@ -62,6 +75,7 @@ import { ref, onMounted } from 'vue'
 import pagination_long from '@/components/Pagination1.vue'
 import pagination_short from '@/components/Pagination2.vue'
 import axiosInstance from '@/AxiosUtil'
+import defaultBlogView from '@/assets/default_images_list.svg'
 //tag列表data
 const tags = ref([
   { id: 'TAG_1', name: '技术' },
@@ -87,27 +101,34 @@ const loadPage = async () => {
   // const resData = res.data
   if (resData.code === 200) {
     dataList.value = resData.data
-    totalPages.value=resData.maxPage
+    totalPages.value = resData.maxPage
   }
 }
 
 const selecteAct = (tagid) => {
   if (selectedTag.value === tagid) {
-     selectedTag.value = '0' // 如果当前选中的tag被点击，则取消选择
+    selectedTag.value = '0' // 如果当前选中的tag被点击，则取消选择
   } else {
-     selectedTag.value = tagid// 否则设置为当前点击的tag
+    selectedTag.value = tagid // 否则设置为当前点击的tag
   }
   loadPage()
 }
 
-const pageChange=(page)=>{
-if (page != currentPage.value) {
+const pageChange = (page) => {
+  if (page != currentPage.value) {
     currentPage.value = page
     loadPage()
   }
 }
 
-onMounted(()=>{
+onMounted(() => {
   loadPage()
 })
+// 计算图片URL，避免在模板中直接使用环境变量
+const getImageUrl = (imglink) => {
+  if (imglink) {
+    return import.meta.env.VITE_BASE_API_URI + import.meta.env.VITE_URL_STATIC_BLOG_I + imglink
+  }
+  return defaultBlogView
+}
 </script>
