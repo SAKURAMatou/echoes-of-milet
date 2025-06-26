@@ -25,8 +25,8 @@
         <!-- 右侧内容列表 -->
 
         <div
-          v-for="item in filteredList"
-          :key="item.id"
+          v-for="item in dataList"
+          :key="item.fname.replace(".html")"
           class="rounded-lg md:flex shadow-sm hover:shadow-md transition-shadow p-4 gap-4 mb-6"
         >
           <div class="w-full md:w-1/3">
@@ -40,62 +40,74 @@
           <div class="flex flex-col justify-center md:w-2/3 max-md:my-2">
             <!-- 图片右侧文章概要 -->
             <h2 class="text-xl font-semibold mb-2 text-gray-800">{{ item.title }}</h2>
-            <p class="text-gray-600 leading-relaxed line-clamp-3">{{ item.content }}</p>
-            <span class="text-sm text-gray-500">标签: {{ item.tag }}</span>
+            <p class="text-gray-600 leading-relaxed line-clamp-3">{{ item.summery }}</p>
+            <span class="text-sm text-gray-500">{{ item.tagName }}</span> <span class="text-sm text-gray-500"> {{ item.date }}</span>
           </div>
         </div>
       </div>
       <!-- 分页组件 -->
       <div class="absolute bottom-6 right-0 left-0 w-full mx-auto">
         <div class="max-md:hidden">
-          <pagination_long :totalPages="12" :currentPage="1" />
+          <pagination_long :totalPages="totalPages" :currentPage="currentPage" @pageChange="pageChange" />
         </div>
         <div class="md:hidden">
-          <pagination_short />
+          <pagination_short :totalPages="totalPages" :currentPage="currentPage" @pageChange="pageChange"/>
         </div>
       </div>
     </div>
   </div>
 </template>
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, onMounted } from 'vue'
 import pagination_long from '@/components/Pagination1.vue'
 import pagination_short from '@/components/Pagination2.vue'
+import axiosInstance from '@/AxiosUtil'
 //tag列表data
 const tags = ref([
-  { id: 1, name: '日常' },
-  { id: 2, name: '随记' },
-  { id: 3, name: '技术' },
-  { id: 4, name: '日语' },
+  { id: 'TAG_1', name: '技术' },
+  { id: 'TAG_2', name: '随记' },
+  { id: 'TAG_3', name: '日语' },
+  { id: 'TAG_4', name: '其他' },
 ])
 
-const dataList = ref([
-  { id: 1, title: '标题1', content: '内容1', tag: '日常', tagId: 1 },
-  { id: 2, title: '标题2', content: '内容2', tag: '随记', tagId: 2 },
-  { id: 3, title: '标题3', content: '内容3', tag: '技术', tagId: 3 },
-  { id: 4, title: '标题4', content: '内容4', tag: '日语', tagId: 4 },
-  { id: 5, title: '标题5', content: '内容1', tag: '日常', tagId: 1 },
-  { id: 6, title: '标题6', content: '内容2', tag: '随记', tagId: 2 },
-  { id: 7, title: '标题7', content: '内容3', tag: '技术', tagId: 3 },
-  { id: 8, title: '标题8', content: '内容4', tag: '日语', tagId: 4 },
-])
+const dataList = ref([])
+const currentPage = ref(1)
+const totalPages = ref(1)
+const selectedTag = ref('0')
 
-const selectedTag = ref(0)
-
-const filteredList = computed(() => {
-  // 如果没有选中tag，则返回所有数据
-  if (selectedTag.value === 0) {
-    return dataList.value
+const loadPage = async () => {
+  let url
+  //根据是选择了标签，请求不同的连接
+  if (selectedTag.value === '0') {
+    url = import.meta.env.VITE_URL_API_BLOG_LIST + currentPage.value
+  } else {
+    url = `${import.meta.env.VITE_URL_API_BLOG_PAGE}${selectedTag.value}/current/${currentPage.value}`
   }
-  // 否则过滤出选中tag的数据
-  return dataList.value.filter((item) => item.tagId === selectedTag.value)
-})
+  const resData = await axiosInstance.post(url)
+  // const resData = res.data
+  if (resData.code === 200) {
+    dataList.value = resData.data
+    totalPages.value=resData.maxPage
+  }
+}
 
 const selecteAct = (tagid) => {
   if (selectedTag.value === tagid) {
-    return (selectedTag.value = 0) // 如果当前选中的tag被点击，则取消选择
+     selectedTag.value = '0' // 如果当前选中的tag被点击，则取消选择
   } else {
-    return (selectedTag.value = tagid) // 否则设置为当前点击的tag
+     selectedTag.value = tagid// 否则设置为当前点击的tag
+  }
+  loadPage()
+}
+
+const pageChange=(page)=>{
+if (page != currentPage.value) {
+    currentPage.value = page
+    loadPage()
   }
 }
+
+onMounted(()=>{
+  loadPage()
+})
 </script>

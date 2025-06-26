@@ -85,10 +85,10 @@ const loading = ref(false)
  */
 const loadPage = async () => {
   loading.value = true
-  const res = await axiosInstance.post(
+  const resData = await axiosInstance.post(
     import.meta.env.VITE_URL_API_MILET_PICLIST + currentPage.value,
   )
-  const resData = res.data
+  // const resData = res.data
 
   if (resData.code === 200) {
     imgList.value = resData.data

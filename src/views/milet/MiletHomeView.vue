@@ -47,9 +47,9 @@ const loading = ref(true)
 //子组件的渲染
 onMounted(async () => {
   try {
-    const res = await axiosInstance.post(import.meta.env.VITE_URL_API_MILET_HOME)
+    const resJson = await axiosInstance.post(import.meta.env.VITE_URL_API_MILET_HOME)
 
-    const resJson = res.data
+    // const resJson = res.data
     if (resJson.code === 200) {
       miletDatas.value = resJson.data
     }
