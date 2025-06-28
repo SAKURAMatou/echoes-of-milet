@@ -6,11 +6,15 @@
       id="tips"
     >
       <div class="flex items-center mb-3">
-        <svg class="w-6 h-6 mr-2 text-yellow-500" fill="currentColor" viewBox="0 0 20 20">
+        <svg
+          class="w-6 h-6 flex-shrink-0 mr-2 text-yellow-500"
+          fill="currentColor"
+          viewBox="0 0 20 20"
+        >
           <path d="M9 12h2V8H9v4zm0 4h2v-2H9v2zm1-14a9 9 0 100 18 9 9 0 000-18z" />
         </svg>
-        <h2 class="text-lg font-bold">
-          提示：本站图片部分来自网络、MV；尽可能避免fc图片外泄，可能会有漏网之鱼
+        <h2 class="text-lg font-bold flex-1">
+          {{ $getConfigLang('miletPic')['tip'] }}
         </h2>
       </div>
     </div>
@@ -77,6 +81,7 @@ const { appContext } = getCurrentInstance() // 拿到组件上下文实例
 const $Lazyload = appContext.config.globalProperties?.$Lazyload
 // console.log(appContext, $Lazyload)
 onMounted(async () => {
+  document.title = 'milet photo album'
   loadPage()
 })
 const loading = ref(false)

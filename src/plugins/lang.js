@@ -3,7 +3,7 @@ export const langConfig = {
     homeview: {
       announcement: '公告：本サイトのエピソード',
       announcement1: 'いらっしゃります,',
-      announcement2: 'dlのサイトへ。',
+      announcement2: 'dmlのサイトへ。',
       announcement3: '普通な普通なプログラマーとして、ここで生活や推し活を記録してる。',
       contents: [
         '普通のエンジニアとして、特別に優れた技術があるわけではありませんが、フロントエンドの勉強の一環として、このサイトを作ってみました。',
@@ -24,12 +24,15 @@ export const langConfig = {
       tips1:
         'milet公式Insgramのいプロフィールを埋め込みたかったですが、Insgramのプライバシーポリシーの関係でビジネスアカウント（本人）でないと対応できないようで、諦めました。',
     },
+    miletPic: {
+      tip: '当サイトに掲載している画像の一部は、インタネットやMVから引用しています。FCの限定画像についてはできるだけ掲載しないように気を付けていますが、もし見落としがあったらごめんなさい！！',
+    },
   },
   zh: {
     homeview: {
       announcement: '公告：关于本站的小故事',
       announcement1: '欢迎来到',
-      announcement2: 'dl 的小站',
+      announcement2: 'dml 的小站',
       announcement3:
         '，一个普通的在日码农。这里记录生活片段、追星旅程与学习过程，希望你在这里也能找到共鸣。',
       contents: [
@@ -50,6 +53,9 @@ export const langConfig = {
     miletsite: {
       tips1:
         '原本想要添加milet官方INS的主页，但是INS的隐私策略问题，非企业账号（本人账号）太困难了，放弃。',
+    },
+    miletPic: {
+      tip: '提示：本站图片部分来自网络、MV；尽可能避免fc图片外泄，可能会有漏网之鱼',
     },
   },
 }
