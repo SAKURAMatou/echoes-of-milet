@@ -27,6 +27,7 @@
         <div v-for="(item, index) in dataList" :key="index">
           <router-link
             :to="{ name: 'blogDetail', params: { id: item.fname } }"
+            target="_blank"
             class="rounded-lg md:flex shadow-sm hover:shadow-md transition-shadow p-4 gap-4 mb-6"
           >
             <div class="w-full md:w-1/3">
