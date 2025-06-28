@@ -11,10 +11,13 @@ axiosInstance.interceptors.response.use(
       // 请求成功，返回数据（可以进一步处理 response.data）
       return response.data
     } else {
+      console.error(response)
       return Promise.reject(new Error(`HTTP 状态错误：${status}`))
     }
   },
-  (error) => {},
+  (error) => {
+    console.error(error)
+  },
 )
 
 export default axiosInstance
