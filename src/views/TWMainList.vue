@@ -99,7 +99,7 @@ const loadPage = async () => {
   }
   const resData = await axiosInstance.post(url)
   // const resData = res.data
-  if (resData.code === 200) {
+  if (resData && resData.code === 200) {
     dataList.value = resData.data
     totalPages.value = resData.maxPage
   }
