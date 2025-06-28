@@ -24,7 +24,7 @@
       :data-pswp-height="900"    target="_blank"-->
       <div
         v-for="(img, index) in imgList"
-        :key="index"
+        :key="img.link"
         class="rounded-xl p-6 max-w-lg image-wrapper"
       >
         <a
@@ -36,12 +36,7 @@
           rel="noopener"
           target="_blank"
         >
-          <img
-            v-lazy="img.link"
-            loading="lazy"
-            :alt="'Image ' + index"
-            class="preview-image object-contain rounded-lg"
-          />
+          <LazyImage :src="img.link" :alt="'Image ' + index" />
         </a>
       </div>
     </div>
@@ -71,15 +66,16 @@ import 'photoswipe/style.css'
 import pagination_long from '@/components/Pagination1.vue'
 import pagination_short from '@/components/Pagination2.vue'
 import axiosInstance from '@/AxiosUtil'
+import LazyImage from '@/components/LazyImage.vue'
 
 const imgList = ref([])
 const currentPage = ref(1)
 const totalPages = ref(1)
 let lightbox = null
 
-const { appContext } = getCurrentInstance() // 拿到组件上下文实例
-const $Lazyload = appContext.config.globalProperties?.$Lazyload
-// console.log(appContext, $Lazyload)
+// const instance = getCurrentInstance()
+// const lazyload = instance?.appContext.config.globalProperties.$Lazyload
+
 onMounted(async () => {
   document.title = 'milet photo album'
   loadPage()
@@ -106,7 +102,9 @@ const loadPage = async () => {
   }
   await nextTick()
   setupLazyAndLightbox()
-  loading.value = false
+  // const lazyload = getCurrentInstance()?.appContext.config.globalProperties.$Lazyload
+  // console.log(lazyload, lazyload?.lazyLoadHandler)
+  // lazyload?.lazyLoadHandler?.()
 }
 
 /**
@@ -119,6 +117,7 @@ const setupLazyAndLightbox = () => {
   }
 
   // 等待所有图片懒加载完成后再初始化 lightbox
+  const imgs = document.querySelectorAll('.image-wrapper img')
   let loadedCount = 0
   const total = imgList.value.length
 
@@ -134,11 +133,13 @@ const setupLazyAndLightbox = () => {
         showHideAnimationType: 'zoom',
       })
       lightbox.init()
+      loading.value = false
+      // $Lazyload.lazyLoadHandler()
     }
   }
 
   // 监听每个图片的加载事件
-  document.querySelectorAll('.image-wrapper img').forEach((img) => {
+  imgs.forEach((img) => {
     if (img.complete) {
       tryInit()
     } else {
