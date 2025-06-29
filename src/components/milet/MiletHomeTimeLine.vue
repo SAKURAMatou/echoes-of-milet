@@ -12,7 +12,12 @@
         class="absolute -top-4 left-[-12px] w-0 h-0 border-l-[10px] border-l-transparent border-r-[10px] border-r-transparent border-b-[14px] border-b-blue-400"
       ></div>
       <!-- Timeline item 1 -->
-      <div v-for="(item, index) in timelineDataL" :key="index" class="mb-10 relative">
+      <div
+        v-for="(item, index) in timelineDataL"
+        :key="index"
+        @click="openBlog(item.bloglink)"
+        :class="[item.bloglink ? 'cursor-pointer' : '', 'mb-10', 'relative']"
+      >
         <div
           :class="timelineClass(index).dot"
           class="absolute left-[-36px] top-1/2 -translate-y-1/2 w-5 h-5 rounded-full border-4 border-white shadow"
@@ -27,7 +32,9 @@
 </template>
 <script setup>
 import { ref, onMounted } from 'vue'
+import { useRouter } from 'vue-router'
 
+const router = useRouter()
 //组件展示的数据从父组传值
 const props = defineProps({
   timelineDataL: {
@@ -53,5 +60,14 @@ const timelineClassList = [
 ]
 const timelineClass = (index) => {
   return timelineClassList[(index + seed.value) % timelineClassList.length]
+}
+
+const openBlog = (bloglink) => {
+  // console.log(bloglink)
+  if (bloglink && bloglink.endsWith('.html')) {
+    // window.open('/blogdetail/' + bloglink, '_blank')
+    window.open(router.resolve({ name: 'blogDetail', params: { id: bloglink } }).href, '_blank')
+    // router.push({ name: 'blogDetail', params: { id: bloglink } })
+  }
 }
 </script>
