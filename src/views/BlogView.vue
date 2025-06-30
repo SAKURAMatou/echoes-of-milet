@@ -1,6 +1,7 @@
 <template>
   <div class="p-6">
-    <div class="prose max-w-none prose-slate dark:prose-invert prose-lg">
+    <!-- dark:prose-invert -->
+    <div class="prose max-w-none prose-slate prose-lg">
       <div class="p-2">
         <h1 class="text-center">{{ metaInfo.title }}</h1>
         <div class="flex justify-between items-center">
