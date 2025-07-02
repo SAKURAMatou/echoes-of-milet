@@ -30,19 +30,26 @@ onMounted(async () => {
     // blogContent.value = resData
     container.innerHTML = resData
     // 找到那个唯一的源信息 <h2>
-    const metaH2 = container.querySelector('h2[id^="title"]')
-    const meta = {}
-    if (metaH2) {
-      const lines = metaH2.textContent
-        .split('\n')
-        .map((line) => line.trim())
-        .filter((line) => line.includes(':'))
-      for (const line of lines) {
-        const [key, ...rest] = line.split(':')
-        meta[key.trim()] = rest.join(':').trim()
+    // const metaH2 = container.querySelector('h2[id^="title"]')
+    // const meta = {}
+    // if (metaH2) {
+    //   const lines = metaH2.textContent
+    //     .split('\n')
+    //     .map((line) => line.trim())
+    //     .filter((line) => line.includes(':'))
+    //   for (const line of lines) {
+    //     const [key, ...rest] = line.split(':')
+    //     meta[key.trim()] = rest.join(':').trim()
+    //   }
+    //   metaInfo.value = meta
+    //   metaH2.remove()
+    // }
+    const metaDiv = container.querySelector('#title-matter')
+    if (metaDiv) {
+      const mateStr = metaDiv.getAttribute('data')
+      if (mateStr) {
+        metaInfo.value = JSON.parse(mateStr)
       }
-      metaInfo.value = meta
-      metaH2.remove()
     }
     blogContent.value = container.innerHTML
   }
