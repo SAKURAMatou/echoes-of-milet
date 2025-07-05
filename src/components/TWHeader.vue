@@ -31,19 +31,50 @@
           <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16" />
         </svg>
       </button>
+      <!-- pc版菜单 -->
       <nav class="max-md:hidden">
         <ul class="flex gap-6">
           <li>
+            <div
+              class="menue-other relative rounded-full hover:bg-[#336FCC] hover:shadow-[0_2px_6px_rgba(0,0,0,0.1)]"
+            >
+              <input
+                type="text"
+                class="rounded-full h-10 px-5 pr-10 text-sm focus:outline-none transition-all duration-300 ease-in-out w-12 focus:w-64 focus:bg-[#336FCC] focus:shadow-[0_2px_6px_rgba(0,0,0,0.1)]"
+                placeholder="Search..."
+                v-model="searchContent"
+                onfocus="this.classList.remove('w-12'); this.classList.add('w-64');"
+                onblur="if(this.value === '') { this.classList.remove('w-64'); this.classList.add('w-12'); }"
+                @keyup.enter="searchEvent"
+              />
+              <button
+                type="submit"
+                class="absolute right-0 top-0 mt-3 mr-4"
+                @click.prevent="searchEvent"
+              >
+                <svg
+                  class="h-4 w-4 fill-current"
+                  xmlns="http://www.w3.org/2000/svg"
+                  viewBox="0 0 20 20"
+                >
+                  <path
+                    d="M12.9 14.32a8 8 0 1 1 1.41-1.41l5.35 5.33-1.42 1.42-5.33-5.34zM8 14A6 6 0 1 0 8 2a6 6 0 0 0 0 12z"
+                  ></path>
+                </svg>
+              </button>
+            </div>
+          </li>
+          <li>
             <router-link
               :to="{ name: 'home' }"
-              class="menue-other h-8 rounded-full px-3 text-current flex items-center justify-center cursor-pointer font-medium hover:bg-[#1C3E60] hover:shadow-[0_2px_6px_rgba(0,0,0,0.1)]"
+              class="menue-other h-8 rounded-full px-3 text-current flex items-center justify-center cursor-pointer font-medium hover:bg-[#336FCC] hover:shadow-[0_2px_6px_rgba(0,0,0,0.1)]"
               >Home</router-link
             >
           </li>
           <li>
             <router-link
               :to="{ name: 'blog' }"
-              class="menue-other h-8 rounded-full px-3 text-current flex items-center justify-center cursor-pointer font-medium hover:bg-[#1C3E60] hover:shadow-[0_2px_6px_rgba(0,0,0,0.1)]'"
+              class="menue-other h-8 rounded-full px-3 text-current flex items-center justify-center cursor-pointer font-medium hover:bg-[#336FCC] hover:shadow-[0_2px_6px_rgba(0,0,0,0.1)]'"
               >blog</router-link
             >
           </li>
@@ -52,7 +83,7 @@
               :to="{ name: 'milet' }"
               target="_blank"
               rel="noopener noreferrer"
-              class="h-8 rounded-full px-3 text-current flex items-center justify-center cursor-pointer font-medium hover:bg-[#1C3E60] hover:shadow-[0_2px_6px_rgba(0,0,0,0.1)] milet-button"
+              class="h-8 rounded-full px-3 text-current flex items-center justify-center cursor-pointer font-medium hover:bg-[#336FCC] hover:shadow-[0_2px_6px_rgba(0,0,0,0.1)] milet-button"
               >milet</router-link
             >
           </li>
@@ -74,7 +105,7 @@
           <li v-if="check" class="flex items-center justify-center menue-other">
             <router-link
               :to="{ name: 'home' }"
-              class="h-10 rounded-full px-3 text-current font-medium hover:bg-[#1C3E60] hover:shadow-[0_2px_6px_rgba(0,0,0,0.1)]"
+              class="h-10 rounded-full px-3 text-current font-medium hover:bg-[#336FCC] hover:shadow-[0_2px_6px_rgba(0,0,0,0.1)]"
               @click="isMenuOpen = false"
               >Home</router-link
             >
@@ -82,7 +113,7 @@
           <li v-if="check" class="flex items-center justify-center menue-other">
             <router-link
               :to="{ name: 'blog' }"
-              class="h-10 rounded-full px-3 text-current font-medium hover:bg-[#1C3E60] hover:shadow-[0_2px_6px_rgba(0,0,0,0.1)]"
+              class="h-10 rounded-full px-3 text-current font-medium hover:bg-[#336FCC] hover:shadow-[0_2px_6px_rgba(0,0,0,0.1)]"
               @click="isMenuOpen = false"
               >blog</router-link
             >
@@ -92,7 +123,7 @@
               :to="{ name: 'milet' }"
               target="_blank"
               rel="noopener noreferrer"
-              class="h-10 rounded-full px-3 text-current font-medium hover:bg-[#1C3E60] hover:shadow-[0_2px_6px_rgba(0,0,0,0.1)] milet-button"
+              class="h-10 rounded-full px-3 text-current font-medium hover:bg-[#336FCC] hover:shadow-[0_2px_6px_rgba(0,0,0,0.1)] milet-button"
               @click="isMenuOpen = false"
               >milet</router-link
             >
@@ -109,10 +140,12 @@
 
 <script setup>
 import { ref, onMounted, onBeforeUnmount } from 'vue'
+import { useRouter } from 'vue-router'
 import LanguageSelect from '@/components/LanguageSelect.vue'
+import eventBus from '@/plugins/event-bus'
 
 const isMenuOpen = ref(false)
-
+const searchContent = ref(null)
 function handleResize() {
   if (window.innerWidth >= 768) {
     isMenuOpen.value = false
@@ -127,36 +160,33 @@ onBeforeUnmount(() => {
   window.removeEventListener('resize', handleResize)
 })
 
-import { useRouter } from 'vue-router'
-
 const router = useRouter()
 const check = ref(true)
 function handleRouteChange(from, to) {
   //进页面时候
   if (to.name.includes('milet')) {
     const elements = document.querySelectorAll('.menue-other')
-    // console.log('Navigating:', from.name, to.name, elements)
+
     elements.forEach((element) => {
       element.style.display = 'none'
       check.value = false
     })
+    const elements1 = document.querySelectorAll('.milet-button')
+    elements1.forEach((element) => {
+      element.setAttribute('disabled', 'true')
+      element.style.pointerEvents = 'none'
+      element.style.opacity = '0.5'
+    })
   }
-  //离开页面时候
   //同一个页面不跳转
-  // console.log(from.name, to.name)
   if (from.name && to.name && from.name === to.name) {
     return false
   }
   if (from.name && from.name.includes('milet') && to.name.includes('milet')) {
     return false
   }
-  if (!from.name && to.name.includes('milet')) {
-    const elements = document.querySelectorAll('.milet-button')
-    elements.forEach((element) => {
-      element.setAttribute('disabled', 'true')
-      element.style.pointerEvents = 'none'
-      element.style.opacity = '0.5'
-    })
+  if (from.name && from.name.includes('milet') && to.name.includes('home')) {
+    return false
   }
 
   return true
@@ -167,6 +197,16 @@ router.beforeEach((to, from, next) => {
     next()
   }
 })
+
+// const emit = defineEmits(['onSearch'])
+const searchEvent = () => {
+  if (!searchContent.value) {
+    return
+  }
+  console.log(searchContent.value)
+  // emit('onSearch', searchContent.value)
+  eventBus.emit('search', '关键词abc')
+}
 </script>
 
 <style scoped>

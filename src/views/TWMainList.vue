@@ -72,11 +72,12 @@
   </div>
 </template>
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, onBeforeUnmount } from 'vue'
 import pagination_long from '@/components/Pagination1.vue'
 import pagination_short from '@/components/Pagination2.vue'
 import axiosInstance from '@/AxiosUtil'
 import defaultBlogView from '@/assets/default_images_list.svg'
+import eventBus from '@/plugins/event-bus'
 //tag列表data
 const tags = ref([
   { id: 'TAG_1', name: '技术' },
@@ -90,7 +91,7 @@ const currentPage = ref(1)
 const totalPages = ref(1)
 const selectedTag = ref('0')
 
-const loadPage = async () => {
+const loadPage = async (keyword) => {
   let url
   //根据是选择了标签，请求不同的连接
   if (selectedTag.value === '0') {
@@ -98,11 +99,15 @@ const loadPage = async () => {
   } else {
     url = `${import.meta.env.VITE_URL_API_BLOG_PAGE}${selectedTag.value}/current/${currentPage.value}`
   }
-  const resData = await axiosInstance.post(url)
-  // const resData = res.data
-  if (resData && resData.code === 200) {
-    dataList.value = resData.data
-    totalPages.value = resData.maxPage
+  if (!keyword) {
+    const resData = await axiosInstance.post(url)
+    // const resData = res.data
+    if (resData && resData.code === 200) {
+      dataList.value = resData.data
+      totalPages.value = resData.maxPage
+    }
+  } else {
+    //TODO
   }
 }
 
@@ -122,9 +127,6 @@ const pageChange = (page) => {
   }
 }
 
-onMounted(() => {
-  loadPage()
-})
 // 计算图片URL，避免在模板中直接使用环境变量
 const getImageUrl = (imglink) => {
   if (imglink) {
@@ -132,4 +134,17 @@ const getImageUrl = (imglink) => {
   }
   return defaultBlogView
 }
+
+const handleSearch = (keyword) => {
+  console.log('blog list search,', keyword)
+}
+
+onMounted(() => {
+  eventBus.on('search', handleSearch)
+  loadPage()
+})
+
+onBeforeUnmount(() => {
+  eventBus.off('search', handleSearch)
+})
 </script>
