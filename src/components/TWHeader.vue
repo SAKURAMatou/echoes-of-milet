@@ -36,7 +36,7 @@
         <ul class="flex gap-6">
           <li>
             <div
-              class="menue-other relative rounded-full hover:bg-[#336FCC] hover:shadow-[0_2px_6px_rgba(0,0,0,0.1)]"
+              class="menue-other hidden relative rounded-full hover:bg-[#336FCC] hover:shadow-[0_2px_6px_rgba(0,0,0,0.1)]"
             >
               <input
                 type="text"

@@ -88,6 +88,7 @@ const loadPage = async () => {
   loading.value = true
   const resData = await axiosInstance.post(
     import.meta.env.VITE_URL_API_MILET_PICLIST + currentPage.value,
+    JSON.stringify({ tag: null }),
   )
   // const resData = res.data
 
