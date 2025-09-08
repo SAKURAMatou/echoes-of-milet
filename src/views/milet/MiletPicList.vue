@@ -36,7 +36,10 @@
           rel="noopener"
           target="_blank"
         >
-          <LazyImage :src="img.link" :alt="'Image ' + index" />
+          <LazyImage
+            :src="img.prelink && img.prelink != '' ? img.prelink : img.link"
+            :alt="'Image ' + index"
+          />
         </a>
       </div>
     </div>
@@ -102,6 +105,8 @@ const loadPage = async () => {
     )
   }
   await nextTick()
+  // 确保页面滚动到顶部
+  window.scrollTo({ top: 0, behavior: 'smooth' })
   setupLazyAndLightbox()
   // const lazyload = getCurrentInstance()?.appContext.config.globalProperties.$Lazyload
   // console.log(lazyload, lazyload?.lazyLoadHandler)
