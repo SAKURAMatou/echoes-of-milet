@@ -2,7 +2,7 @@
   <div class="relative min-h-screen">
     <!-- 背景图片透明化div -->
     <div
-      class="fixed inset-0 min-h-screen bg-[url(/background/bg-milet-2.jpg)] bg-cover bg-left opacity-25"
+      class="fixed inset-0 min-h-screen bg-[url(/background/bg-milet-2.webp)] bg-cover bg-left opacity-25"
     ></div>
     <Header />
     <!-- 语言选择 -->
