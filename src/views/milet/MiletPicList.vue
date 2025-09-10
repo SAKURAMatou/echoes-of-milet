@@ -98,11 +98,14 @@ const loadPage = async () => {
   if (resData.code === 200) {
     imgList.value = resData.data
     totalPages.value = resData.maxPage
-    imgList.value.map(
-      (img) =>
-        (img.link =
-          import.meta.env.VITE_BASE_API_URI + import.meta.env.VITE_URL_STATIC_MILET_I + img.link),
-    )
+    imgList.value.forEach((img) => {
+      img.link =
+        import.meta.env.VITE_BASE_API_URI + import.meta.env.VITE_URL_STATIC_MILET_I + img.link
+      if (img.prelink && img.prelink != '') {
+        img.prelink =
+          import.meta.env.VITE_BASE_API_URI + import.meta.env.VITE_URL_STATIC_MILET_I + img.prelink
+      }
+    })
   }
   await nextTick()
   // 确保页面滚动到顶部
