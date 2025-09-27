@@ -19,7 +19,7 @@
       </div>
     </div>
 
-    <div class="image-gallery grid grid-cols-1 md:grid-cols-2 gap-6 mb-4" id="gallery">
+    <div class="image-gallery gallery grid grid-cols-1 md:grid-cols-2 gap-6 mb-4" id="gallery">
       <!--  :data-pswp-width="1600"
       :data-pswp-height="900"    target="_blank"-->
       <div
@@ -27,32 +27,35 @@
         :key="img.link"
         class="rounded-xl p-6 max-w-lg image-wrapper"
       >
+        <!-- :data-pswp-width="img.w"
+          :data-pswp-height="img.h" rel="noopener" -->
         <a
+          data-fancybox="gallery"
           :href="img.link"
-          :data-pswp-src="img.link"
+          :data-width="img.w"
+          :data-height="img.h"
           class="image-item pswp-gallery__item"
-          :data-pswp-width="img.w"
-          :data-pswp-height="img.h"
-          rel="noopener"
-          target="_blank"
+          :data-caption="'Caption #' + index"
+          :data-download-src="img.link"
         >
           <LazyImage
             :src="img.prelink && img.prelink != '' ? img.prelink : img.link"
             :alt="'Image ' + index"
+            :downloadSrc="img.link"
           />
         </a>
       </div>
     </div>
     <!-- 分页组件 -->
     <div class="absolute bottom-6 right-0 left-0 w-full mx-auto pt-2">
-      <div class="max-md:hidden" v-if="!loading">
+      <div class="max-md:hidden">
         <pagination_long
           :totalPages="totalPages"
           :currentPage="currentPage"
           @pageChange="pageChange"
         />
       </div>
-      <div class="md:hidden" v-if="!loading">
+      <div class="md:hidden">
         <pagination_short
           :totalPages="totalPages"
           :currentPage="currentPage"
@@ -64,17 +67,17 @@
 </template>
 <script setup>
 import { onMounted, ref, onUnmounted, nextTick, getCurrentInstance } from 'vue'
-import PhotoSwipeLightbox from 'photoswipe/lightbox'
-import 'photoswipe/style.css'
+
 import pagination_long from '@/components/Pagination1.vue'
 import pagination_short from '@/components/Pagination2.vue'
 import axiosInstance from '@/AxiosUtil'
 import LazyImage from '@/components/LazyImage.vue'
+import { Fancybox } from '@fancyapps/ui'
+import '@fancyapps/ui/dist/fancybox/fancybox.css'
 
 const imgList = ref([])
 const currentPage = ref(1)
 const totalPages = ref(1)
-let lightbox = null
 
 // const instance = getCurrentInstance()
 // const lazyload = instance?.appContext.config.globalProperties.$Lazyload
@@ -99,11 +102,9 @@ const loadPage = async () => {
     imgList.value = resData.data
     totalPages.value = resData.maxPage
     imgList.value.forEach((img) => {
-      img.link =
-        import.meta.env.VITE_BASE_API_URI + import.meta.env.VITE_URL_STATIC_MILET_I + img.link
+      img.link = '/apihost' + import.meta.env.VITE_URL_STATIC_MILET_I + img.link
       if (img.prelink && img.prelink != '') {
-        img.prelink =
-          import.meta.env.VITE_BASE_API_URI + import.meta.env.VITE_URL_STATIC_MILET_I + img.prelink
+        img.prelink = '/apihost' + import.meta.env.VITE_URL_STATIC_MILET_I + img.prelink
       }
     })
   }
@@ -111,57 +112,40 @@ const loadPage = async () => {
   // 确保页面滚动到顶部
   window.scrollTo({ top: 0, behavior: 'smooth' })
   setupLazyAndLightbox()
-  // const lazyload = getCurrentInstance()?.appContext.config.globalProperties.$Lazyload
-  // console.log(lazyload, lazyload?.lazyLoadHandler)
-  // lazyload?.lazyLoadHandler?.()
 }
 
 /**
  * lightbox加载
  */
 const setupLazyAndLightbox = () => {
-  if (lightbox) {
-    lightbox.destroy()
-    lightbox = null
-  }
-
-  // 等待所有图片懒加载完成后再初始化 lightbox
-  const imgs = document.querySelectorAll('.image-wrapper img')
-  let loadedCount = 0
-  const total = imgList.value.length
-
-  const tryInit = () => {
-    loadedCount++
-    if (loadedCount >= total) {
-      // 确保 DOM 已经渲染并且图片都加载完成
-      lightbox = new PhotoSwipeLightbox({
-        gallery: '#gallery',
-        children: '.image-wrapper a',
-        pswpModule: () => import('photoswipe'),
-        preloadFirstSlide: true,
-        showHideAnimationType: 'zoom',
-      })
-      lightbox.init()
-      loading.value = false
-      // $Lazyload.lazyLoadHandler()
-    }
-  }
-
-  // 监听每个图片的加载事件
-  imgs.forEach((img) => {
-    if (img.complete) {
-      tryInit()
-    } else {
-      img.addEventListener('load', tryInit, { once: true })
-    }
+  //先解除旧绑定
+  Fancybox.destroy()
+  //再绑定新数据
+  Fancybox.bind("[data-fancybox='gallery']", {
+    Carousel: {
+      Toolbar: {
+        display: {
+          left: ['counter'],
+          middle: [],
+          right: ['download', 'thumbs', 'close'],
+        },
+      },
+    },
+    on: {
+      'Carousel.ready': (fancybox, slide) => {
+        const downloadBtn = fancybox.Toolbar?.querySelector('[data-fancybox-download]')
+        if (downloadBtn) {
+          console.log('downloadBtn', downloadBtn)
+          downloadBtn.setAttribute('download', '')
+        }
+        // console.log('ready,Carousel:', fancybox, slide)
+      },
+    },
   })
 }
 
 onUnmounted(() => {
-  if (lightbox) {
-    lightbox.destroy()
-    lightbox = null
-  }
+  Fancybox.destroy()
 })
 
 const pageChange = (page) => {
