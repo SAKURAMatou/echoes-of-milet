@@ -102,9 +102,11 @@ const loadPage = async () => {
     imgList.value = resData.data
     totalPages.value = resData.maxPage
     imgList.value.forEach((img) => {
-      img.link = '/apihost' + import.meta.env.VITE_URL_STATIC_MILET_I + img.link
+      img.link =
+        import.meta.env.VITE_BASE_API_URI + import.meta.env.VITE_URL_STATIC_MILET_I + img.link
       if (img.prelink && img.prelink != '') {
-        img.prelink = '/apihost' + import.meta.env.VITE_URL_STATIC_MILET_I + img.prelink
+        img.prelink =
+          import.meta.env.VITE_BASE_API_URI + import.meta.env.VITE_URL_STATIC_MILET_I + img.prelink
       }
     })
   }
