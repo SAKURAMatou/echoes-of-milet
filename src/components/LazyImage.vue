@@ -48,7 +48,7 @@ function downloadEvent(e) {
   e.preventDefault() //阻止外层a标签的跳转
 
   const a = document.createElement('a')
-  a.href = props.downloadSrc
+  a.href = props.downloadSrc + '?download=true'
   a.download = ''
   document.body.appendChild(a)
   a.click()
