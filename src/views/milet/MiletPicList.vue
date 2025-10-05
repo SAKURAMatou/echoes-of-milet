@@ -46,8 +46,12 @@
         </a>
       </div>
     </div>
+    <!-- 自动翻页的锚点元素 -->
+    <div ref="observerTarget" class="w-[100%] p-[20] text-center" v-if="!isLastPage">
+      <p>loading...</p>
+    </div>
     <!-- 分页组件 -->
-    <div class="absolute bottom-6 right-0 left-0 w-full mx-auto pt-2">
+    <!-- <div class="absolute bottom-6 right-0 left-0 w-full mx-auto pt-2">
       <div class="max-md:hidden">
         <pagination_long
           :totalPages="totalPages"
@@ -62,14 +66,14 @@
           @pageChange="pageChange"
         />
       </div>
-    </div>
+    </div> -->
   </div>
 </template>
 <script setup>
 import { onMounted, ref, onUnmounted, nextTick, getCurrentInstance } from 'vue'
 
-import pagination_long from '@/components/Pagination1.vue'
-import pagination_short from '@/components/Pagination2.vue'
+// import pagination_long from '@/components/Pagination1.vue'
+// import pagination_short from '@/components/Pagination2.vue'
 import axiosInstance from '@/AxiosUtil'
 import LazyImage from '@/components/LazyImage.vue'
 import { Fancybox } from '@fancyapps/ui'
@@ -81,17 +85,31 @@ const totalPages = ref(1)
 
 // const instance = getCurrentInstance()
 // const lazyload = instance?.appContext.config.globalProperties.$Lazyload
+//页面自动翻页相关参数
+const isLastPage = ref(true)
+const observerTarget = ref(null)
 
 onMounted(async () => {
   document.title = 'milet photo album'
-  loadPage()
+  await loadPage()
+
+  //页面自动翻页监听事件
+  const observer = new IntersectionObserver((observerTarget) => {
+    if (observerTarget[0].isIntersecting) {
+      console.log('滚动到页面底部，加载下一页')
+      delayfatchData()
+    }
+  })
+
+  if (observerTarget.value) {
+    observer.observe(observerTarget.value)
+  }
 })
-const loading = ref(false)
+
 /**
  * 加载数据
  */
 const loadPage = async () => {
-  loading.value = true
   const resData = await axiosInstance.post(
     import.meta.env.VITE_URL_API_MILET_PICLIST + currentPage.value,
     JSON.stringify({ tag: null }),
@@ -99,21 +117,28 @@ const loadPage = async () => {
   // const resData = res.data
 
   if (resData.code === 200) {
-    imgList.value = resData.data
+    // imgList.value = resData.data
+    const resImgList = resData.data
     totalPages.value = resData.maxPage
-    imgList.value.forEach((img) => {
+    resImgList.forEach((img) => {
       img.link =
         import.meta.env.VITE_BASE_API_URI + import.meta.env.VITE_URL_STATIC_MILET_I + img.link
       if (img.prelink && img.prelink != '') {
         img.prelink =
           import.meta.env.VITE_BASE_API_URI + import.meta.env.VITE_URL_STATIC_MILET_I + img.prelink
       }
+      // img.link = '/apihost' + import.meta.env.VITE_URL_STATIC_MILET_I + img.link
+      // if (img.prelink && img.prelink != '') {
+      //   img.prelink = '/apihost' + import.meta.env.VITE_URL_STATIC_MILET_I + img.prelink
+      // }
     })
+    imgList.value.push(...resImgList)
   }
+  isLastPage.value = currentPage.value >= totalPages.value
+  setupLazyAndLightbox()
   await nextTick()
   // 确保页面滚动到顶部
-  window.scrollTo({ top: 0, behavior: 'smooth' })
-  setupLazyAndLightbox()
+  // window.scrollTo({ top: 0, behavior: 'smooth' })
 }
 
 /**
@@ -137,7 +162,7 @@ const setupLazyAndLightbox = () => {
       'Carousel.ready': (fancybox, slide) => {
         const downloadBtn = fancybox.Toolbar?.querySelector('[data-fancybox-download]')
         if (downloadBtn) {
-          console.log('downloadBtn', downloadBtn)
+          // console.log('downloadBtn', downloadBtn)
           downloadBtn.setAttribute('download', '')
         }
         // console.log('ready,Carousel:', fancybox, slide)
@@ -150,12 +175,32 @@ onUnmounted(() => {
   Fancybox.destroy()
 })
 
-const pageChange = (page) => {
-  if (page != currentPage.value) {
-    currentPage.value = page
-    loadPage()
+// const pageChange = (page) => {
+//   if (page != currentPage.value) {
+//     currentPage.value = page
+//     loadPage()
+//   }
+// }
+
+//节流函数,用于自动翻页，限制频繁触发
+const throttle = (fn, delay) => {
+  let lastCall = 0
+  return function () {
+    const now = Date.now()
+    if (now - lastCall > delay) {
+      lastCall = now
+      fn.apply(this)
+    }
   }
 }
+
+const delayfatchData = throttle(() => {
+  if (!isLastPage.value) {
+    console.log('load more data,page:', currentPage.value + 1)
+    currentPage.value += 1
+    loadPage()
+  }
+}, 1500)
 </script>
 
 <style scoped></style>
