@@ -20,6 +20,7 @@
             class="absolute bottom-0 left-0 w-full h-24 bg-gradient-to-t from-white to-transparent"
           ></div>
         </div>
+        瞬
         <div class="md:pr-12 animate-fadein md:w-full max-md:px-8 max-md:-mt-38 max-md:z-10">
           <h1 class="font-serif text-[5rem] leading-tight text-[#1a2c50] mb-5 md:text-5xl">
             Inside <br />
@@ -29,7 +30,9 @@
           <p class="text-[1.1rem] leading-8 text-[#586776] mb-10 pl-5 border-l-4 border-[#a9cce3]">
             “I want to be someone who can snuggle up to your ordinary days.” <br />
             沉浸在 milet 深邃而空灵的歌声里，<br />
-            记录关于她的每一个感动瞬间。
+            记录关于她的每一个感动间。<br />
+            milet の深くて空霊的な歌声に浸りながら、<br />
+            彼女に心を動かされた瞬間のすべてを記していく。
           </p>
 
           <router-link
