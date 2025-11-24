@@ -6,23 +6,13 @@ const router = createRouter({
     {
       path: '/',
       name: 'home',
-      component: () => import('@/views/HomeView.vue'),
+      component: () => import('@/views/MiletSiteHome.vue'),
     },
-    {
-      path: '/blogs',
-      name: 'blog',
-      component: () => import('@/views/TWMainList.vue'),
-    },
-    {
-      path: '/blogdetail/:id',
-      name: 'blogDetail',
-      component: () => import('@/views/BlogView.vue'),
-    },
+
     //父路由指定视图的话，默认会把子路由的组件渲染到父路由的默认插槽中，单独显示子路由页面的话，需要忽略父路由的视图
     {
       path: '/milet',
-
-      // component: () => import('@/views/milet/MiletHomeView.vue'),
+      component: () => import('@/views/LayoutApp.vue'),
       children: [
         { path: '', name: 'milet', component: () => import('@/views/milet/MiletHomeView.vue') },
         {

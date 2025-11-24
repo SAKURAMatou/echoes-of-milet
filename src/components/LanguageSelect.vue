@@ -6,7 +6,11 @@
       title="切换语言"
       @click="showLangSelect = !showLangSelect"
     >
-      <span class="md:hidden font-semibold"> 🌐Language </span>
+      <span
+        class="md:hidden font-['Montserrat','sans-serif'] text-[14px] font-medium text-[#546e7a]"
+      >
+        🌐Language
+      </span>
       <span class="max-md:hidden"> 🌐 </span>
       <svg
         class="w-4 h-4 ml-2 transition-transform"

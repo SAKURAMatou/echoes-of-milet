@@ -1,28 +1,24 @@
 <template>
   <!-- header -->
 
+  <!--  class="bg-gradient-to-r from-[#2C75D1] to-[#599DFF] text-white py-4 px-6 fixed top-0 left-0 right-0 z-50 shadow-[0_2px_8px_rgba(0,0,0,0.1)] 
+    max-md:px-4 before:content-['']" -->
   <header
-    class="bg-gradient-to-r from-[#2C75D1] to-[#599DFF] text-white py-4 px-6 fixed top-0 left-0 right-0 z-50 shadow-[0_2px_8px_rgba(0,0,0,0.1)] max-md:px-4 before:content-['']"
+    class="fixed top-0 left-0 right-0 w-full z-50 py-2 px-[8%] flex justify-between items-center max-md:px-4 bg-gradient-to-r from-[rgba(225,245,254,0.98)] to-[rgba(255,255,255,0.9)] border-b border-[rgba(255,255,255,0.8)] shadow-[0_4px_20px_rgba(137,207,240,0.15)]"
   >
-    <div class="md:max-w-[50%] w-full flex justify-between items-center mx-auto">
-      <div class="relative">
+    <div class="w-full flex justify-between items-center mx-auto">
+      <div class="max-md:w-full flex items-center justify-center">
         <router-link :to="{ name: 'home' }" class="flex gap-1 items-center">
-          <div class="h-6 flex items-center justify-center">
-            <img src="@/assets/logo.png" alt="Logo" class="object-cover w-16 h-16" />
+          <div class="logo">
+            Echoes
+            <span class="italic text-[#5dade2] mx-[6px] text-[28px]">of</span>
+            milet
           </div>
-          <h1 class="text-3xl font-bold">dml's notes</h1>
         </router-link>
-        <!-- 添加bate提醒 -->
-        <span
-          class="absolute top-0 right-0 bg-purple-300 text-white text-xs font-bold px-2 py-1 rounded-full -rotate-4"
-          style="transform: translate(50%, -50%)"
-        >
-          BETA
-        </span>
       </div>
 
       <button
-        class="md:hidden flex items-center px-3 py-2 border rounded text-white border-white"
+        class="md:hidden flex items-center px-3 py-2 border rounded text-[#546e7a] border-white"
         @click="isMenuOpen = !isMenuOpen"
         aria-label="Toggle menu"
       >
@@ -67,25 +63,36 @@
           <li>
             <router-link
               :to="{ name: 'home' }"
-              class="menue-other h-8 rounded-full px-3 text-current flex items-center justify-center cursor-pointer font-medium hover:bg-[#336FCC] hover:shadow-[0_2px_6px_rgba(0,0,0,0.1)]"
-              >Home</router-link
-            >
+              class="menue-other group relative font-['Montserrat','sans-serif'] text-[14px] font-medium text-[#546e7a] uppercase tracking-[1.5px] transition-colors duration-300 hover:text-[#1a2c50]"
+              >Home
+              <span
+                class="absolute left-0 -bottom-[6px] h-[2px] w-0 bg-[#1a2c50] transition-all duration-300 group-hover:w-full"
+              ></span
+            ></router-link>
           </li>
+
           <li>
-            <router-link
-              :to="{ name: 'blog' }"
-              class="menue-other h-8 rounded-full px-3 text-current flex items-center justify-center cursor-pointer font-medium hover:bg-[#336FCC] hover:shadow-[0_2px_6px_rgba(0,0,0,0.1)]'"
-              >blog</router-link
-            >
-          </li>
-          <li>
+            <!-- 新标签页跳转
+            target="_blank"
+              rel="noopener noreferrer" -->
             <router-link
               :to="{ name: 'milet' }"
-              target="_blank"
-              rel="noopener noreferrer"
-              class="h-8 rounded-full px-3 text-current flex items-center justify-center cursor-pointer font-medium hover:bg-[#336FCC] hover:shadow-[0_2px_6px_rgba(0,0,0,0.1)] milet-button"
-              >milet</router-link
-            >
+              class="menue-other group relative font-['Montserrat','sans-serif'] text-[14px] font-medium text-[#546e7a] tracking-[1.5px] transition-colors duration-300 hover:text-[#1a2c50]"
+              >milet
+              <span
+                class="absolute left-0 -bottom-[6px] h-[2px] w-0 bg-[#1a2c50] transition-all duration-300 group-hover:w-full"
+              ></span>
+            </router-link>
+          </li>
+          <li>
+            <router-link
+              :to="{ name: 'miletPicAlbum' }"
+              class="menue-other group relative font-['Montserrat','sans-serif'] text-[14px] font-medium text-[#546e7a] uppercase tracking-[1.5px] transition-colors duration-300 hover:text-[#1a2c50]"
+              >gallery
+              <span
+                class="absolute left-0 -bottom-[6px] h-[2px] w-0 bg-[#1a2c50] transition-all duration-300 group-hover:w-full"
+              ></span>
+            </router-link>
           </li>
         </ul>
       </nav>
@@ -102,31 +109,39 @@
           <button @click="isMenuOpen = false" class="">X</button>
         </div> -->
         <ul class="flex flex-col gap-4 pt-6">
-          <li v-if="check" class="flex items-center justify-center menue-other">
+          <li class="flex items-center justify-center menue-other">
             <router-link
               :to="{ name: 'home' }"
-              class="h-10 rounded-full px-3 text-current font-medium hover:bg-[#336FCC] hover:shadow-[0_2px_6px_rgba(0,0,0,0.1)]"
               @click="isMenuOpen = false"
-              >Home</router-link
-            >
+              class="menue-other group relative font-['Montserrat','sans-serif'] text-[14px] font-medium text-[#546e7a] uppercase tracking-[1.5px] transition-colors duration-300 hover:text-[#1a2c50]"
+              >Home
+              <span
+                class="absolute left-0 -bottom-[6px] h-[2px] w-0 bg-[#1a2c50] transition-all duration-300 group-hover:w-full"
+              ></span
+            ></router-link>
           </li>
-          <li v-if="check" class="flex items-center justify-center menue-other">
-            <router-link
-              :to="{ name: 'blog' }"
-              class="h-10 rounded-full px-3 text-current font-medium hover:bg-[#336FCC] hover:shadow-[0_2px_6px_rgba(0,0,0,0.1)]"
-              @click="isMenuOpen = false"
-              >blog</router-link
-            >
-          </li>
+
           <li class="flex items-center justify-center">
             <router-link
               :to="{ name: 'milet' }"
-              target="_blank"
-              rel="noopener noreferrer"
-              class="h-10 rounded-full px-3 text-current font-medium hover:bg-[#336FCC] hover:shadow-[0_2px_6px_rgba(0,0,0,0.1)] milet-button"
               @click="isMenuOpen = false"
-              >milet</router-link
-            >
+              class="menue-other group relative font-['Montserrat','sans-serif'] text-[14px] font-medium text-[#546e7a] tracking-[1.5px] transition-colors duration-300 hover:text-[#1a2c50]"
+              >milet
+              <span
+                class="absolute left-0 -bottom-[6px] h-[2px] w-0 bg-[#1a2c50] transition-all duration-300 group-hover:w-full"
+              ></span
+            ></router-link>
+          </li>
+          <li class="flex items-center justify-center menue-other">
+            <router-link
+              :to="{ name: 'miletPicAlbum' }"
+              class="menue-other group relative font-['Montserrat','sans-serif'] text-[14px] font-medium text-[#546e7a] uppercase tracking-[1.5px] transition-colors duration-300 hover:text-[#1a2c50]"
+              @click="isMenuOpen = false"
+              >gallery
+              <span
+                class="absolute left-0 -bottom-[6px] h-[2px] w-0 bg-[#1a2c50] transition-all duration-300 group-hover:w-full"
+              ></span
+            ></router-link>
           </li>
           <!-- 语言切换按钮 -->
           <li class="flex justify-center items-center relative">
@@ -192,11 +207,12 @@ function handleRouteChange(from, to) {
   return true
 }
 
-router.beforeEach((to, from, next) => {
-  if (handleRouteChange(from, to)) {
-    next()
-  }
-})
+// router.beforeEach((to, from, next) => {
+//   // if (handleRouteChange(from, to)) {
+//   //   next()
+//   // }
+//   next()
+// })
 
 // const emit = defineEmits(['onSearch'])
 const searchEvent = () => {
@@ -223,5 +239,19 @@ const searchEvent = () => {
 .slide-down-leave-from {
   transform: translateY(0);
   opacity: 1;
+}
+.logo {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 32px; /* 稍微调大一点 */
+  font-weight: 600;
+  color: #1a2c50; /* 深海军蓝 */
+  letter-spacing: 1px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+}
+
+.router-link-exact-active span {
+  width: 100%;
 }
 </style>
