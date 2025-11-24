@@ -79,12 +79,12 @@
             >
           </li>
           <li>
-            <router-link
-              :to="{ name: 'milet' }"
+            <a
+              href="https://miles-dml.org"
               target="_blank"
               rel="noopener noreferrer"
               class="h-8 rounded-full px-3 text-current flex items-center justify-center cursor-pointer font-medium hover:bg-[#336FCC] hover:shadow-[0_2px_6px_rgba(0,0,0,0.1)] milet-button"
-              >milet</router-link
+              >milet</a
             >
           </li>
         </ul>
@@ -119,13 +119,13 @@
             >
           </li>
           <li class="flex items-center justify-center">
-            <router-link
-              :to="{ name: 'milet' }"
+            <a
+              href="https://miles-dml.org"
               target="_blank"
               rel="noopener noreferrer"
               class="h-10 rounded-full px-3 text-current font-medium hover:bg-[#336FCC] hover:shadow-[0_2px_6px_rgba(0,0,0,0.1)] milet-button"
               @click="isMenuOpen = false"
-              >milet</router-link
+              >milet</a
             >
           </li>
           <!-- 语言切换按钮 -->
@@ -192,11 +192,11 @@ function handleRouteChange(from, to) {
   return true
 }
 
-router.beforeEach((to, from, next) => {
-  if (handleRouteChange(from, to)) {
-    next()
-  }
-})
+// router.beforeEach((to, from, next) => {
+//   if (handleRouteChange(from, to)) {
+//     next()
+//   }
+// })
 
 // const emit = defineEmits(['onSearch'])
 const searchEvent = () => {
