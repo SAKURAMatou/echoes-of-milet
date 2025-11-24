@@ -22,10 +22,31 @@
         @click="isMenuOpen = !isMenuOpen"
         aria-label="Toggle menu"
       >
-        <!-- 汉堡图标 -->
-        <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16" />
-        </svg>
+        <div class="relative w-6 h-6">
+          <!-- 汉堡菜单图标 -->
+          <svg
+            class="absolute w-6 h-6 transition-all duration-300 ease-in-out"
+            :class="isMenuOpen ? 'opacity-0 rotate-90' : 'opacity-100 rotate-0'"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            viewBox="0 0 24 24"
+          >
+            <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16" />
+          </svg>
+
+          <!-- 关闭图标 -->
+          <svg
+            class="absolute w-6 h-6 transition-all duration-300 ease-in-out"
+            :class="isMenuOpen ? 'opacity-100 rotate-0' : 'opacity-0 -rotate-90'"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            viewBox="0 0 24 24"
+          >
+            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </div>
       </button>
       <!-- pc版菜单 -->
       <nav class="max-md:hidden">
