@@ -20,7 +20,7 @@
             class="absolute bottom-0 left-0 w-full h-24 bg-gradient-to-t from-white to-transparent"
           ></div>
         </div>
-        瞬
+
         <div class="md:pr-12 animate-fadein md:w-full max-md:px-8 max-md:-mt-38 max-md:z-10">
           <h1 class="font-serif text-[5rem] leading-tight text-[#1a2c50] mb-5 md:text-5xl">
             Inside <br />

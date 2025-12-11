@@ -16,7 +16,7 @@ export default defineConfig({
   server: {
     proxy: {
       '/apihost': {
-        target: 'https://api.miles-dml.org',
+        target: 'http://localhost:8787',
         changeOrigin: true, // 伪装成目标源的请求头 origin
         rewrite: (path) => path.replace(/^\/apihost/, ''), // 去掉路径中的 `/api` 前缀
       },
