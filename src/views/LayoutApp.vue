@@ -16,7 +16,7 @@
     <LanguageSelect class="max-md:hidden" />
 
     <!-- 左侧菜单栏 -->
-    <SideMenuLeft class="sticky top-20 z-[100]" />
+    <SideMenuLeft class="max-md:hidden sticky top-20 z-[100]" />
 
     <!-- 内容容器 -->
     <div class="absolute top-20 inset-0 justify-center">
