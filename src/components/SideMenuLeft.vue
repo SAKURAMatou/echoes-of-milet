@@ -37,13 +37,13 @@
                 <!-- active “tape underline” -->
                 <span
                   v-if="isActiveRoute(item)"
-                  class="absolute -bottom-2 left-0 h-[3px] w-[calc(100%+18px)] rounded-full"
+                  class="absolute -bottom-2 left-0 mb-1 h-[3px] w-[calc(100%+18px)] rounded-full"
                   :class="getColor(item.color).underline"
                   aria-hidden="true"
                 />
               </div>
 
-              <span class="block mt-1.5 text-xs text-slate-500/80 font-['Montserrat','sans-serif']">
+              <span class="block mt-1 text-xs text-slate-500/80 font-['Montserrat','sans-serif']">
                 {{ item.sub || '— explore' }}
               </span>
             </div>
