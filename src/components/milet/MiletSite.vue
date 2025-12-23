@@ -1,5 +1,5 @@
 <template>
-  <div class="px-4 py-1 font-semibold text-lg">
+  <div id="sns" class="px-4 py-1 font-semibold text-lg">
     {{ $getConfigLang('miletHomeView')['title4'] }}
   </div>
   <div class="grid grid-cols-1 md:grid-cols-2 gap-6 p-5">
@@ -38,7 +38,7 @@
     </div>
   </div>
   <!--  border border-yellow-400 rounded-full shadow bg-yellow-200 -->
-  <div class="px-4 py-1 font-semibold text-lg">
+  <div id="website" class="px-4 py-1 font-semibold text-lg">
     🌐 {{ $getConfigLang('miletHomeView')['title3'] }}
   </div>
   <div class="grid grid-cols-1 md:grid-cols-2 gap-6 p-5">

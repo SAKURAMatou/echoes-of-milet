@@ -1,7 +1,7 @@
 <template>
   <!-- <h1 class="text-3xl font-bold text-center mb-4">milet</h1> -->
 
-  <MiletHomeCard v-if="!loading && miletDataL" :cardDataL="miletDataL.card" />
+  <MiletHomeCard id="introduction" v-if="!loading && miletDataL" :cardDataL="miletDataL.card" />
   <!-- <div class="w-32 h-2 mx-auto my-8 bg-yellow-200 rounded-full rotate-[-2deg] shadow-md"></div> -->
 
   <!-- <div
@@ -9,7 +9,7 @@
   ></div> -->
   <Divider1 />
 
-  <div class="relative w-full px-4 my-10">
+  <div id="gallery" class="relative w-full px-4 my-10">
     <RouterLink :to="{ name: 'miletPicAlbum' }" target="_blank">
       <button
         class="w-full bg-gradient-to-r from-pink-200 via-yellow-100 to-blue-100 text-blue-800 font-semibold py-3 rounded-xl shadow-md border border-yellow-300 transition duration-300 cursor-pointer"
@@ -23,7 +23,12 @@
 
   <Divider1 />
   <!-- timeline -->
-  <MiletHomeTimeLine v-if="!loading && miletDataL" :timelineDataL="miletDataL.timeline" />
+
+  <MiletHomeTimeLine
+    id="timeline"
+    v-if="!loading && miletDataL"
+    :timelineDataL="miletDataL.timeline"
+  />
   <Divider1 />
   <!-- milet官方网站连接 -->
   <div class="mx-auto max-w-3xl">

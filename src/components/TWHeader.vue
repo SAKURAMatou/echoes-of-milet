@@ -49,7 +49,7 @@
         </div>
       </button>
       <!-- pc版菜单 -->
-      <nav class="max-md:hidden">
+      <nav style="display: none" class="max-md:hidden">
         <ul class="flex gap-6">
           <li>
             <div

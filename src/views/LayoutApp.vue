@@ -15,11 +15,15 @@
 
     <LanguageSelect class="max-md:hidden" />
 
+    <!-- 左侧菜单栏 -->
+    <SideMenuLeft class="sticky top-20 z-[100]" />
+
     <!-- 内容容器 -->
     <div class="absolute top-20 inset-0 justify-center">
       <!--url('@/assets/clean-gray-paper.png')-->
+
       <main
-        class="min-h-screen md:max-w-[50%] mx-auto bg-[linear-gradient(to_bottom_right,white,#ebf8ff,#bee3f8)] bg-cover bg-center rounded-xl shadow pt-6"
+        class="min-h-screen md:max-w-[55%] mx-auto bg-[linear-gradient(to_bottom_right,white,#ebf8ff,#bee3f8)] bg-cover bg-center rounded-xl shadow pt-6"
       >
         <router-view />
       </main>
@@ -34,8 +38,8 @@
 </template>
 
 <script setup>
-import Footer from '@/components/TWFooter.vue'
 import TWUpToTop from '@/components//TWUpToTop.vue'
+import SideMenuLeft from '@/components/SideMenuLeft.vue'
 
 import LanguageSelect from '@/components/LanguageSelect.vue'
 
