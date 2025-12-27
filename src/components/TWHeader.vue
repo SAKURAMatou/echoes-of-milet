@@ -4,7 +4,7 @@
   <!--  class="bg-gradient-to-r from-[#2C75D1] to-[#599DFF] text-white py-4 px-6 fixed top-0 left-0 right-0 z-50 shadow-[0_2px_8px_rgba(0,0,0,0.1)] 
     max-md:px-4 before:content-['']" -->
   <header
-    class="fixed top-0 left-0 right-0 w-full z-50 py-2 px-[8%] flex justify-between items-center max-md:px-4 bg-gradient-to-r from-[rgba(225,245,254,0.98)] to-[rgba(255,255,255,0.9)] border-b border-[rgba(255,255,255,0.8)] shadow-[0_4px_20px_rgba(137,207,240,0.15)]"
+    class="fixed top-0 left-0 right-0 w-full z-50 py-2 px-[4%] flex justify-between items-center max-md:px-4 bg-gradient-to-r from-[rgba(225,245,254,0.98)] to-[rgba(255,255,255,0.9)] border-b border-[rgba(255,255,255,0.8)] shadow-[0_4px_20px_rgba(137,207,240,0.15)]"
   >
     <div class="w-full flex justify-between items-center mx-auto">
       <div class="max-md:w-full flex items-center justify-center">

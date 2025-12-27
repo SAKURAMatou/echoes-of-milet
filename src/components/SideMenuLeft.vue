@@ -1,5 +1,5 @@
 <template>
-  <aside class="max-w-[310px]">
+  <aside class="max-w-[310px] pl-[2%]">
     <div class="pl-11 pr-6 py-6">
       <div class="text-xs tracking-[.18em] text-slate-500/80 mb-3 select-none">MENU</div>
 
@@ -10,10 +10,10 @@
           <router-link
             :to="{ name: item.routerName }"
             role="button"
-            class="relative block select-none rounded-2xl border bg-white/85 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md active:translate-y-0 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-offset-2 focus-visible:ring-offset-white"
-            :exact-active-class="`${getColor(item.color).wash} ${getColor(item.color).focus} is-exact-active`"
+            class="relative block select-none rounded-2xl border shadow-sm transition hover:-translate-y-0.5 hover:shadow-md active:translate-y-0 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-offset-2 focus-visible:ring-offset-white"
+            :exact-active-class="`${getColor(item.color).stroke} ${getColor(item.color).focus}  is-exact-active`"
             :aria-current="isActiveRoute(item) ? 'page' : false"
-            :class="[getColor(item.color).stroke, 'clip-sticker']"
+            :class="[getColor(item.color).chip, getColor(item.color).wash, 'clip-sticker']"
           >
             <!-- left dot -->
             <span
@@ -76,7 +76,7 @@
 
       <!-- Optional: active hint -->
       <div class="mt-6 text-xs text-slate-500/70">
-        当前：<span class="text-slate-700">{{ activeItem?.label }}</span>
+        CURRENT：<span class="text-slate-700">{{ activeItem?.label }}</span>
       </div>
     </div>
   </aside>
