@@ -39,7 +39,6 @@
 
 <script setup>
 import TWUpToTop from '@/components//TWUpToTop.vue'
-import SideMenuLeft from '@/components/SideMenuLeft.vue'
 import SideMenuLeftSvg from '@/components/menu/SideMenuLeftSvg.vue'
 
 import LanguageSelect from '@/components/LanguageSelect.vue'
