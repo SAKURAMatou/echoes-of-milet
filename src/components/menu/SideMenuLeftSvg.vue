@@ -1,58 +1,60 @@
 <template>
-  <aside class="max-w-[310px] pl-[2%]">
-    <div class="pl-11 pr-6 py-6">
+  <aside class="max-w-[310px] pl-[1.5%]">
+    <div class="pl-6 pr-6 py-6">
       <div class="text-xs tracking-[.18em] text-slate-500/80 mb-3 select-none">MENU</div>
 
       <nav aria-label="Primary" class="flex flex-col gap-4">
-        <div v-for="item in menu" :key="item.key" class="group">
+        <div v-for="(item, index) in menu" :key="item.key" class="group">
           <!-- Sticker -->
-          <!-- :href="$router.resolve({ name: item.routerName }).href" -->
+
           <router-link
             :to="{ name: item.routerName }"
-            role="button"
-            class="relative block select-none rounded-2xl border shadow-sm transition hover:-translate-y-0.5 hover:shadow-md active:translate-y-0 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-offset-2 focus-visible:ring-offset-white"
-            :exact-active-class="`${getColor(item.color).stroke} ${getColor(item.color).focus}  is-exact-active`"
+            class="menu-link relative block focus-visible:outline-none"
             :aria-current="isActiveRoute(item) ? 'page' : false"
-            :class="[getColor(item.color).chip, getColor(item.color).wash, 'clip-sticker']"
+            :class="{ 'is-active': isActiveRoute(item) }"
           >
-            <!-- left dot -->
-            <span
-              class="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 rounded-full border border-slate-200 bg-white"
-              aria-hidden="true"
+            <!-- hover:-translate-y-0.5 -->
+            <StickerSVG
+              :path="BOTTOM_WIDE_STATIONERY_PATH"
+              :active="isActiveRoute(item)"
+              class="select-none transition"
+              :style="{
+                '--sticker-bg': getBgColor(item.color),
+                '--sticker-border': getBorderColor(item.color),
+              }"
             >
-              <span
-                class="absolute left-1/2 top-1/2 h-2.5 w-2.5 -translate-x-1/2 -translate-y-1/2 rounded-full"
-                :class="getColor(item.color).dot"
-              />
-            </span>
-
-            <div class="pl-12 pr-4 py-3">
-              <div class="relative inline-flex items-baseline gap-2">
+              <!-- 原有内容基本不动 -->
+              <div class="pl-12 pr-4 py-3">
+                <!-- 左侧圆点 -->
                 <span
-                  class="font-['Montserrat','sans-serif'] text-[14px] font-medium text-[#546e7a] uppercase"
+                  class="absolute left-5 top-1/2 -translate-y-1/2 h-5 w-5 rounded-full border border-slate-200 bg-white"
                 >
-                  {{ item.label }}
+                  <span
+                    class="absolute left-1/2 top-1/2 h-2.5 w-2.5 -translate-x-1/2 -translate-y-1/2 rounded-full"
+                    :class="getColor(item.color).dot"
+                  />
                 </span>
 
-                <!-- active “tape underline” -->
-                <span
-                  v-if="isActiveRoute(item)"
-                  class="absolute -bottom-2 left-0 mb-1 h-[3px] w-[calc(100%+18px)] rounded-full"
-                  :class="getColor(item.color).underline"
-                  aria-hidden="true"
-                />
+                <div class="relative inline-flex items-baseline gap-2">
+                  <span
+                    class="font-['Montserrat','sans-serif'] text-[14px] font-medium text-[#546e7a] uppercase"
+                  >
+                    {{ item.label }}
+                  </span>
+
+                  <!-- active underline -->
+                  <span
+                    v-if="isActiveRoute(item)"
+                    class="absolute -bottom-2 left-0 h-[3px] w-[calc(100%+18px)] rounded-full"
+                    :class="getColor(item.color).underline"
+                  />
+                </div>
+
+                <span class="block mt-2 text-xs text-slate-500/80 font-['Montserrat','sans-serif']">
+                  {{ item.sub || '— explore' }}
+                </span>
               </div>
-
-              <span class="block mt-1 text-xs text-slate-500/80 font-['Montserrat','sans-serif']">
-                {{ item.sub || '— explore' }}
-              </span>
-            </div>
-
-            <!-- tiny corner fold for personality -->
-            <span
-              class="pointer-events-none absolute -right-1 -top-1 h-7 w-7 rotate-3 rounded-bl-2xl rounded-tr-2xl border border-slate-200 bg-white/70"
-              aria-hidden="true"
-            />
+            </StickerSVG>
           </router-link>
 
           <!-- Submenu chips -->
@@ -85,6 +87,7 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { useRoute } from 'vue-router'
+import StickerSVG from './StickerSVG.vue'
 
 type MenuItem = {
   key: string
@@ -95,7 +98,45 @@ type MenuItem = {
   routerName?: string
   children?: { key: string; label: string; href?: string }[]
 }
+// const CHARACTER_STATIONERY_PATH = `
+//   M14,14
+//   Q16,10 22,10
+//   L286,10
+//   Q300,12 296,24
+//   L302,70
+//   Q300,82 282,84
+//   L30,86
+//   Q16,84 14,72
+//   Z
+// `
+// const STATIONERY_CUT_PATH = `
+//   M16,12
+//   Q20,8 26,10
+//   L298,12
+//   Q304,14 302,20
+//   L300,78
+//   Q298,84 288,82
+//   L22,84
+//   Q14,82 16,74
+//   Z
+// `
+const BOTTOM_WIDE_STATIONERY_PATH = `
+    M316,12
+  Q312,8 306,10
+  L16,12
+  Q10,14 12,20
+  L14,78
+  Q16,84 26,82
+  L310,84
+  Q318,82 316,74
+  Z
+`
 
+// const PATHS = [
+//   CHARACTER_STATIONERY_PATH, // 主入口
+//   STATIONERY_CUT_PATH, // 次入口
+//   BOTTOM_WIDE_STATIONERY_PATH, // 底部宽贴纸
+// ]
 const menu: MenuItem[] = [
   {
     key: 'home',
@@ -125,6 +166,28 @@ const menu: MenuItem[] = [
     routerName: 'miletPicAlbum',
   },
 ]
+
+function getBgColor(color: MenuItem['color']) {
+  return {
+    pink: '#fdf2f8',
+    teal: '#f0fdfa',
+    sky: '#f0f9ff',
+    green: '#f0fdf4',
+    amber: '#fffbeb',
+    violet: '#f5f3ff',
+  }[color]
+}
+
+function getBorderColor(color: MenuItem['color']) {
+  return {
+    pink: '#f9a8d4',
+    teal: '#5eead4',
+    sky: '#7dd3fc',
+    green: '#86efac',
+    amber: '#fcd34d',
+    violet: '#c4b5fd',
+  }[color]
+}
 
 /**
  * Tailwind is static-analysis based; to keep classes safelisted without config,
@@ -193,8 +256,24 @@ const activeItem = computed(() => menu.find((m) => m.routerName === route.name))
 </script>
 
 <style scoped>
-/* “贴纸”不规则轮廓：与之前 mock 的感觉接近 */
-.clip-sticker {
-  clip-path: polygon(3% 12%, 96% 2%, 100% 86%, 0% 100%);
+.menu-link:hover {
+  transform: translateY(-0.7px);
+}
+
+.menu-link:hover path {
+  stroke-opacity: 0.7;
+}
+.menu-link.is-active {
+  transform: translateY(1px);
+}
+.menu-link.is-active path {
+  filter: drop-shadow(0 0.5px 1px rgba(0, 0, 0, 0.12));
+}
+.menu-link.is-active path {
+  stroke-opacity: 0.35;
+  stroke-width: 1;
+}
+.menu-link.is-active {
+  --sticker-bg: var(--sticker-bg-active);
 }
 </style>

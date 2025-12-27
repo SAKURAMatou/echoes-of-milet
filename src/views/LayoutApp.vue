@@ -16,7 +16,7 @@
     <LanguageSelect class="max-md:hidden" />
 
     <!-- 左侧菜单栏 -->
-    <SideMenuLeft class="max-md:hidden sticky top-20 z-[100]" />
+    <SideMenuLeftSvg class="max-md:hidden sticky top-20 z-[100]" />
 
     <!-- 内容容器 -->
     <div class="absolute top-20 inset-0 justify-center">
@@ -40,6 +40,7 @@
 <script setup>
 import TWUpToTop from '@/components//TWUpToTop.vue'
 import SideMenuLeft from '@/components/SideMenuLeft.vue'
+import SideMenuLeftSvg from '@/components/menu/SideMenuLeftSvg.vue'
 
 import LanguageSelect from '@/components/LanguageSelect.vue'
 
