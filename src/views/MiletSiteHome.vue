@@ -1,4 +1,5 @@
 <template>
+  <Header />
   <div
     class="min-h-screen bg-gradient-to-b from-[#FFFFFF] to-[#F0F9FF] font-montserrat text-[#2c3e50] relative overflow-x-hidden"
   >
@@ -51,7 +52,9 @@
     </section>
   </div>
 </template>
-
+<script setup>
+import Header from '@/components/TWHeader.vue'
+</script>
 <!-- Tailwind 动画 -->
 <style>
 @keyframes fadein {

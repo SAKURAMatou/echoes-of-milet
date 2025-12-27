@@ -49,7 +49,7 @@
         </div>
       </button>
       <!-- pc版菜单 -->
-      <nav style="display: none" class="max-md:hidden">
+      <!-- <nav style="display: none" class="max-md:hidden">
         <ul class="flex gap-6">
           <li>
             <div
@@ -93,9 +93,7 @@
           </li>
 
           <li>
-            <!-- 新标签页跳转
-            target="_blank"
-              rel="noopener noreferrer" -->
+           
             <router-link
               :to="{ name: 'milet' }"
               class="menue-other group relative font-['Montserrat','sans-serif'] text-[14px] font-medium text-[#546e7a] tracking-[1.5px] transition-colors duration-300 hover:text-[#1a2c50]"
@@ -116,7 +114,7 @@
             </router-link>
           </li>
         </ul>
-      </nav>
+      </nav> -->
     </div>
   </header>
   <!-- 移动端弹出菜单 -->

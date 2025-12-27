@@ -1,4 +1,5 @@
 <template>
+  <Header />
   <div class="relative min-h-screen">
     <!-- 背景图片透明化div -->
     <div
@@ -16,7 +17,7 @@
     <LanguageSelect class="max-md:hidden" />
 
     <!-- 左侧菜单栏 -->
-    <SideMenuLeftSvg class="max-md:hidden sticky top-20 z-[100]" />
+    <SideMenuLeftSvg class="sticky top-20 z-[100]" />
 
     <!-- 内容容器 -->
     <div class="absolute top-20 inset-0 justify-center">
@@ -38,6 +39,7 @@
 </template>
 
 <script setup>
+import Header from '@/components/TWHeader.vue'
 import TWUpToTop from '@/components//TWUpToTop.vue'
 import SideMenuLeftSvg from '@/components/menu/SideMenuLeftSvg.vue'
 
