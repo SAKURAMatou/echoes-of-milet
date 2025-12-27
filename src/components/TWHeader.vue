@@ -18,8 +18,9 @@
       </div>
 
       <button
+        v-if="showHanbor"
         class="md:hidden flex items-center px-3 py-2 border rounded text-[#546e7a] border-white"
-        @click="isMenuOpen = !isMenuOpen"
+        @click="toggleMenu"
         aria-label="Toggle menu"
       >
         <div class="relative w-6 h-6">
@@ -118,15 +119,12 @@
     </div>
   </header>
   <!-- 移动端弹出菜单 -->
-  <transition name="slide-down">
+  <!-- <transition name="slide-down">
     <nav
-      v-if="isMenuOpen"
+      v-if="false"
       class="md:hidden fixed w-full top-16 bg-white rounded-xl border border-blue-100 shadow-lg p-6 text-blue-800 z-40 transition-all duration-300"
     >
       <div class="relative">
-        <!-- <div class="absolute top-2 right-2">
-          <button @click="isMenuOpen = false" class="">X</button>
-        </div> -->
         <ul class="flex flex-col gap-4 pt-6">
           <li class="flex items-center justify-center menue-other">
             <router-link
@@ -162,78 +160,42 @@
               ></span
             ></router-link>
           </li>
-          <!-- 语言切换按钮 -->
+          
           <li class="flex justify-center items-center relative">
             <LanguageSelect />
           </li>
         </ul>
       </div>
     </nav>
-  </transition>
+  </transition> -->
 </template>
 
-<script setup>
-import { ref, onMounted, onBeforeUnmount } from 'vue'
+<script setup lang="ts">
+import { ref } from 'vue'
 import { useRouter } from 'vue-router'
-import LanguageSelect from '@/components/LanguageSelect.vue'
+
 import eventBus from '@/plugins/event-bus'
 
 const isMenuOpen = ref(false)
 const searchContent = ref(null)
-function handleResize() {
-  if (window.innerWidth >= 768) {
-    isMenuOpen.value = false
-  }
-}
+// function handleResize() {
+//   if (window.innerWidth >= 768) {
+//     isMenuOpen.value = false
+//   }
+// }
 
-onMounted(() => {
-  window.addEventListener('resize', handleResize)
-})
-
-onBeforeUnmount(() => {
-  window.removeEventListener('resize', handleResize)
-})
-
-const router = useRouter()
-const check = ref(true)
-function handleRouteChange(from, to) {
-  //进页面时候
-  if (to.name.includes('milet')) {
-    const elements = document.querySelectorAll('.menue-other')
-
-    elements.forEach((element) => {
-      element.style.display = 'none'
-      check.value = false
-    })
-    const elements1 = document.querySelectorAll('.milet-button')
-    elements1.forEach((element) => {
-      element.setAttribute('disabled', 'true')
-      element.style.pointerEvents = 'none'
-      element.style.opacity = '0.5'
-    })
-  }
-  //同一个页面不跳转
-  if (from.name && to.name && from.name === to.name) {
-    return false
-  }
-  if (from.name && from.name.includes('milet') && to.name.includes('milet')) {
-    return false
-  }
-  if (from.name && from.name.includes('milet') && to.name.includes('home')) {
-    return false
-  }
-
-  return true
-}
-
-// router.beforeEach((to, from, next) => {
-//   // if (handleRouteChange(from, to)) {
-//   //   next()
-//   // }
-//   next()
+// onMounted(() => {
+//   window.addEventListener('resize', handleResize)
 // })
 
-// const emit = defineEmits(['onSearch'])
+// onBeforeUnmount(() => {
+//   window.removeEventListener('resize', handleResize)
+// })
+
+// const router = useRouter()
+// const check = ref(true)
+
+const emit = defineEmits(['openMenu', 'closeMenu'])
 const searchEvent = () => {
   if (!searchContent.value) {
     return
@@ -242,23 +204,21 @@ const searchEvent = () => {
   // emit('onSearch', searchContent.value)
   eventBus.emit('search', '关键词abc')
 }
+
+const toggleMenu = () => {
+  isMenuOpen.value = !isMenuOpen.value
+  emit(isMenuOpen.value ? 'openMenu' : 'closeMenu')
+}
+const closeMenu = () => {
+  isMenuOpen.value = false
+}
+defineExpose({
+  closeMenu,
+})
+const prop = defineProps({ showHanbor: Boolean })
 </script>
 
 <style scoped>
-.slide-down-enter-active,
-.slide-down-leave-active {
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-}
-.slide-down-enter-from,
-.slide-down-leave-to {
-  transform: translateY(-100%);
-  opacity: 0;
-}
-.slide-down-enter-to,
-.slide-down-leave-from {
-  transform: translateY(0);
-  opacity: 1;
-}
 .logo {
   font-family: 'Cormorant Garamond', serif;
   font-size: 32px; /* 稍微调大一点 */
@@ -268,9 +228,5 @@ const searchEvent = () => {
   cursor: pointer;
   display: flex;
   align-items: center;
-}
-
-.router-link-exact-active span {
-  width: 100%;
 }
 </style>

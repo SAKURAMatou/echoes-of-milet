@@ -1,109 +1,108 @@
 <template>
-  <aside class="max-w-[310px] pl-[1.5%]">
-    <div class="pl-6 pr-6 py-6">
-      <div class="text-xs tracking-[.18em] text-slate-500/80 mb-3 select-none">MENU</div>
+  <div>
+    <div class="text-xs tracking-[.18em] text-slate-500/80 mb-3 select-none">MENU</div>
 
-      <nav aria-label="Primary" class="flex flex-col gap-4">
-        <transition-group
-          tag="nav"
-          aria-label="Primary"
-          class="flex flex-col gap-4"
-          name="menu-stagger"
-          appear
+    <nav aria-label="Primary" class="flex flex-col gap-4">
+      <transition-group
+        tag="nav"
+        aria-label="Primary"
+        class="flex flex-col gap-4"
+        name="menu-stagger"
+        appear
+      >
+        <div
+          v-for="(item, index) in menu"
+          :key="item.key"
+          class="group"
+          :style="{ '--d': `${index * 120}ms` }"
         >
-          <div
-            v-for="(item, index) in menu"
-            :key="item.key"
-            class="group"
-            :style="{ '--d': `${index * 120}ms` }"
+          <!-- Sticker -->
+
+          <router-link
+            :to="{ name: item.routerName }"
+            class="menu-link relative block focus-visible:outline-none"
+            :aria-current="isActiveRoute(item) ? 'page' : false"
+            :class="{ 'is-active': isActiveRoute(item) }"
+            @click="onMenuItemClick"
           >
-            <!-- Sticker -->
-
-            <router-link
-              :to="{ name: item.routerName }"
-              class="menu-link relative block focus-visible:outline-none"
-              :aria-current="isActiveRoute(item) ? 'page' : false"
-              :class="{ 'is-active': isActiveRoute(item) }"
+            <!-- hover:-translate-y-0.5 -->
+            <StickerSVG
+              :path="BOTTOM_WIDE_STATIONERY_PATH"
+              :active="isActiveRoute(item)"
+              class="select-none transition"
+              :style="{
+                '--sticker-bg': getBgColor(item.color),
+                '--sticker-border': getBorderColor(item.color),
+              }"
             >
-              <!-- hover:-translate-y-0.5 -->
-              <StickerSVG
-                :path="BOTTOM_WIDE_STATIONERY_PATH"
-                :active="isActiveRoute(item)"
-                class="select-none transition"
-                :style="{
-                  '--sticker-bg': getBgColor(item.color),
-                  '--sticker-border': getBorderColor(item.color),
-                }"
-              >
-                <!-- 原有内容基本不动 -->
-                <div class="pl-12 pr-4 py-3">
-                  <!-- 左侧圆点 -->
+              <!-- 原有内容基本不动 -->
+              <div class="pl-12 pr-4 py-3">
+                <!-- 左侧圆点 -->
+                <span
+                  class="absolute left-5 top-1/2 -translate-y-1/2 h-5 w-5 rounded-full border border-slate-200 bg-white"
+                >
                   <span
-                    class="absolute left-5 top-1/2 -translate-y-1/2 h-5 w-5 rounded-full border border-slate-200 bg-white"
+                    class="absolute left-1/2 top-1/2 h-2.5 w-2.5 -translate-x-1/2 -translate-y-1/2 rounded-full"
+                    :class="getColor(item.color).dot"
+                  />
+                </span>
+
+                <div class="relative inline-flex items-baseline gap-2">
+                  <span
+                    class="font-['Montserrat','sans-serif'] text-[14px] font-medium text-[#546e7a] uppercase"
                   >
-                    <span
-                      class="absolute left-1/2 top-1/2 h-2.5 w-2.5 -translate-x-1/2 -translate-y-1/2 rounded-full"
-                      :class="getColor(item.color).dot"
-                    />
+                    {{ item.label }}
                   </span>
 
-                  <div class="relative inline-flex items-baseline gap-2">
-                    <span
-                      class="font-['Montserrat','sans-serif'] text-[14px] font-medium text-[#546e7a] uppercase"
-                    >
-                      {{ item.label }}
-                    </span>
-
-                    <!-- active underline -->
-                    <span
-                      v-if="isActiveRoute(item)"
-                      class="absolute -bottom-2 left-0 h-[3px] w-[calc(100%+18px)] rounded-full"
-                      :class="getColor(item.color).underline"
-                    />
-                  </div>
-
+                  <!-- active underline -->
                   <span
-                    class="block mt-2 text-xs text-slate-500/80 font-['Montserrat','sans-serif']"
-                  >
-                    {{ item.sub || '— explore' }}
-                  </span>
+                    v-if="isActiveRoute(item)"
+                    class="absolute -bottom-2 left-0 h-[3px] w-[calc(100%+18px)] rounded-full"
+                    :class="getColor(item.color).underline"
+                  />
                 </div>
-              </StickerSVG>
-            </router-link>
 
-            <!-- Submenu chips -->
-            <div
-              v-if="isActiveRoute(item) && item.children?.length"
-              class="mt-3 flex flex-wrap gap-2 pl-2 font-['Montserrat','sans-serif']"
-              :aria-label="`${item.label} submenu`"
+                <span class="block mt-2 text-xs text-slate-500/80 font-['Montserrat','sans-serif']">
+                  {{ item.sub || '— explore' }}
+                </span>
+              </div>
+            </StickerSVG>
+          </router-link>
+
+          <!-- Submenu chips -->
+          <div
+            v-if="isActiveRoute(item) && item.children?.length"
+            class="mt-3 flex flex-wrap gap-2 pl-2 font-['Montserrat','sans-serif']"
+            :aria-label="`${item.label} submenu`"
+          >
+            <a
+              v-for="ch in item.children"
+              :key="ch.key"
+              :href="ch.href || '#'"
+              class="font-['Montserrat','sans-serif'] inline-flex h-7 items-center rounded-full border bg-white/90 px-3 text-xs text-slate-700 shadow-[0_1px_0_rgba(255,255,255,.7)_inset] transition hover:-translate-y-0.5 hover:shadow-sm focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-offset-2 focus-visible:ring-offset-white"
+              :class="[getColor(item.color).chip, getColor(item.color).focus]"
             >
-              <a
-                v-for="ch in item.children"
-                :key="ch.key"
-                :href="ch.href || '#'"
-                class="font-['Montserrat','sans-serif'] inline-flex h-7 items-center rounded-full border bg-white/90 px-3 text-xs text-slate-700 shadow-[0_1px_0_rgba(255,255,255,.7)_inset] transition hover:-translate-y-0.5 hover:shadow-sm focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-offset-2 focus-visible:ring-offset-white"
-                :class="[getColor(item.color).chip, getColor(item.color).focus]"
-              >
-                {{ ch.label }}
-              </a>
-            </div>
+              {{ ch.label }}
+            </a>
           </div>
-        </transition-group>
-      </nav>
+        </div>
+      </transition-group>
+    </nav>
 
-      <!-- Optional: active hint -->
-      <div class="mt-6 text-xs text-slate-500/70">
-        CURRENT：<span class="text-slate-700">{{ activeItem?.label }}</span>
-      </div>
+    <!-- Optional: active hint -->
+    <div class="mt-6 text-xs text-slate-500/70">
+      CURRENT：<span class="text-slate-700">{{ activeItem?.label }}</span>
     </div>
-  </aside>
+    <div class="flex items-center mt-6 relative">
+      <LanguageSelect />
+    </div>
+  </div>
 </template>
-
 <script setup lang="ts">
-import { computed } from 'vue'
-import { useRoute } from 'vue-router'
 import StickerSVG from './StickerSVG.vue'
-
+import { computed, ref } from 'vue'
+import { useRoute } from 'vue-router'
+import LanguageSelect from '@/components/LanguageSelect.vue'
 type MenuItem = {
   key: string
   label: string
@@ -247,8 +246,12 @@ function isActiveRoute(item: MenuItem) {
 }
 
 const activeItem = computed(() => menu.find((m) => m.routerName === route.name))
-</script>
+const emit = defineEmits(['closeMenuItem'])
 
+function onMenuItemClick() {
+  emit('closeMenuItem')
+}
+</script>
 <style scoped>
 .menu-link:hover {
   transform: translateY(-0.7px);

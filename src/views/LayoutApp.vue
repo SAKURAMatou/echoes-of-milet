@@ -1,5 +1,10 @@
 <template>
-  <Header />
+  <Header
+    :showHanbor="true"
+    ref="headerRef"
+    @openMenu="menuOpen = true"
+    @closeMenu="menuOpen = false"
+  />
   <div class="relative min-h-screen">
     <!-- 背景图片透明化div -->
     <div
@@ -17,7 +22,7 @@
     <LanguageSelect class="max-md:hidden" />
 
     <!-- 左侧菜单栏 -->
-    <SideMenuLeftSvg class="sticky top-20 z-[100]" />
+    <SideMenuLeft :menuOpen="menuOpen" @closeMenu="menuClick" />
 
     <!-- 内容容器 -->
     <div class="absolute top-20 inset-0 justify-center">
@@ -41,13 +46,19 @@
 <script setup>
 import Header from '@/components/TWHeader.vue'
 import TWUpToTop from '@/components//TWUpToTop.vue'
-import SideMenuLeftSvg from '@/components/menu/SideMenuLeftSvg.vue'
+import SideMenuLeft from '@/components/menu/SideMenuLeft.vue'
 
 import LanguageSelect from '@/components/LanguageSelect.vue'
 
 import { ref } from 'vue'
 const showLangSelect = ref(false)
+const menuOpen = ref(false)
+const headerRef = ref(null)
 
+const menuClick = () => {
+  menuOpen.value = false
+  headerRef.value.closeMenu()
+}
 const selectLang = (lang) => {
   // console.log(lang)
   showLangSelect.value = !showLangSelect.value
