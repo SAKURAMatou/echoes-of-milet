@@ -20,6 +20,11 @@ const router = createRouter({
           name: 'miletPicAlbum',
           component: () => import('@/views/milet/MiletPicList.vue'),
         },
+        {
+          path: 'timeline',
+          name: 'miletTimeLine',
+          component: () => import('@/views/milet/MiletTimeLineAll.vue'),
+        },
       ],
     },
     // {

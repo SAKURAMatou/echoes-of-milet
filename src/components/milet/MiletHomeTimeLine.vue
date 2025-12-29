@@ -27,6 +27,13 @@
           {{ item.contents }}
         </p>
       </div>
+      <!-- More按钮 -->
+    </div>
+    <div
+      class="mt-8 bg-gradient-to-r from-white via-gray-50 to-white border border-gray-200 rounded-lg p-4 text-center hover:shadow-md transition-shadow cursor-pointer"
+      @click="goToTimeLine"
+    >
+      <span class="text-gray-600 font-semibold">More →</span>
     </div>
   </div>
 </template>
@@ -69,5 +76,9 @@ const openBlog = (bloglink) => {
     window.open(router.resolve({ name: 'blogDetail', params: { id: bloglink } }).href, '_blank')
     // router.push({ name: 'blogDetail', params: { id: bloglink } })
   }
+}
+
+const goToTimeLine = () => {
+  router.push({ name: 'miletTimeLine' })
 }
 </script>

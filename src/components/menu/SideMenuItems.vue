@@ -152,6 +152,13 @@ const menu: MenuItem[] = [
     ],
   },
   {
+    key: 'timeline',
+    label: 'TIMELINE',
+    sub: '— milet history',
+    color: 'amber',
+    routerName: 'miletTimeLine',
+  },
+  {
     key: 'gallery',
     label: 'GALLERY',
     sub: '— visual stories',
