@@ -22,9 +22,11 @@
           :class="timelineClass(index).dot"
           class="absolute left-[-36px] top-1/2 -translate-y-1/2 w-5 h-5 rounded-full border-4 border-white shadow"
         ></div>
-        <h3 class="text-lg font-bold" :class="timelineClass(index).title">{{ item.title }}</h3>
+        <h3 class="text-lg font-bold" :class="timelineClass(index).title">
+          {{ item.timeline_title }}
+        </h3>
         <p class="text-sm text-gray-600 mt-1">
-          {{ item.contents }}
+          {{ item.timeline_body }}
         </p>
       </div>
       <!-- More按钮 -->
@@ -33,7 +35,7 @@
       class="mt-8 bg-gradient-to-r from-white via-gray-50 to-white border border-gray-200 rounded-lg p-4 text-center hover:shadow-md transition-shadow cursor-pointer"
       @click="goToTimeLine"
     >
-      <span class="text-gray-600 font-semibold">More →</span>
+      <span v-if="timelineDataL.length > 0" class="text-gray-600 font-semibold">More →</span>
     </div>
   </div>
 </template>
