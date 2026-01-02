@@ -42,6 +42,11 @@ const menu: MenuItem[] = [
     sub: '— releases',
     color: 'violet',
     routerName: 'miletRelease',
+    children: [
+      { key: 'albums', label: 'albums', href: '#chapter-albums' },
+      { key: 'EP / Single', label: 'EP / Single', href: '#chapter-ep-single' },
+      { key: 'Live BD / DVD', label: 'Live BD / DVD', href: '#chapter-live' },
+    ],
   },
   {
     key: 'gallery',
