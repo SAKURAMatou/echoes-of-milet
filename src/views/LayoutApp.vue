@@ -1,42 +1,42 @@
 <template>
-  <Header
-    :showHanbor="true"
-    ref="headerRef"
-    @openMenu="menuOpen = true"
-    @closeMenu="menuOpen = false"
-  />
-  <!-- 背景图片透明化div -->
-  <div
-    class="fixed inset-0 min-h-screen bg-[url(/background/bg-milet-2.webp)] bg-cover bg-left opacity-25 pointer-events-none"
-  ></div>
+  <div>
+    <Header
+      :showHanbor="true"
+      ref="headerRef"
+      @openMenu="menuOpen = true"
+      @closeMenu="menuOpen = false"
+    />
+    <!-- 背景图片透明化div -->
+    <div
+      class="fixed inset-0 min-h-screen bg-[url(/background/bg-milet-2.webp)] bg-cover bg-left opacity-25 pointer-events-none"
+    ></div>
+    <LanguageSelect class="max-md:hidden" />
+    <div class="relative">
+      <!-- 整体容器：页面居中布局 -->
+      <div class="flex w-full pt-18">
+        <!-- 左侧菜单栏 -->
+        <SideMenuLeft :menuOpen="menuOpen" @closeMenu="menuClick" />
 
-  <div class="relative">
-    <!-- 整体容器：页面居中布局 -->
-    <div class="flex">
-      <!-- 左侧菜单栏 -->
-      <SideMenuLeft :menuOpen="menuOpen" @closeMenu="menuClick" />
+        <!-- 右侧内容区域：占据剩余区域，保证滚动条在页面最右侧 -->
+        <div class="flex-1 h-[calc(100vh-80px)] overflow-y-auto">
+          <main
+            class="w-[68%] max-md:w-full bg-[linear-gradient(to_bottom_right,white,#ebf8ff,#bee3f8)] bg-cover bg-center rounded-xl shadow pt-1"
+          >
+            <router-view />
+          </main>
 
-      <!-- 右侧内容区域：70%宽度 -->
-      <div class="w-[58%] max-md:w-full pt-20">
-        <LanguageSelect class="max-md:hidden" />
-
-        <main
-          class="min-h-screen bg-[linear-gradient(to_bottom_right,white,#ebf8ff,#bee3f8)] bg-cover bg-center rounded-xl shadow pt-6 mx-4"
-        >
-          <router-view />
-        </main>
-
-        <!-- <Footer /> -->
-        <div class="pt-4"></div>
-        <div class="fixed bottom-4 right-4 z-50">
-          <TWUpToTop />
+          <!-- <Footer /> -->
+          <!-- <div class="pt-4"></div> -->
         </div>
       </div>
+    </div>
+    <div class="fixed bottom-4 right-4 z-50">
+      <TWUpToTop />
     </div>
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import Header from '@/components/TWHeader.vue'
 import TWUpToTop from '@/components//TWUpToTop.vue'
 import SideMenuLeft from '@/components/menu/SideMenuLeft.vue'
