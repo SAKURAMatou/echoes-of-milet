@@ -10,23 +10,6 @@ export const albums: Work[] = [
     coverUrl: 'https://api.miles-dml.org/static/milet/img/covers/milet_-_visions_lim_A.jpg',
     editions: [
       {
-        id: 'rel-visions-standard',
-        editionName: '通常盤',
-        releaseDate: '2023-10-04',
-        discs: [
-          {
-            id: 'disc-std-1',
-            no: 1,
-            tracks: [
-              { id: 't-001', no: 1, title: 'Higher', durationSec: 252 },
-              { id: 't-002', no: 2, title: 'Ordinary days', durationSec: 238 },
-              { id: 't-003', no: 3, title: 'Hey Song', durationSec: 261 },
-              { id: 't-004', no: 4, title: 'Flare', durationSec: 245 },
-            ],
-          },
-        ],
-      },
-      {
         id: 'rel-visions-limited',
         editionName: '初回限定盤',
         releaseDate: '2023-10-04',
@@ -39,6 +22,14 @@ export const albums: Work[] = [
               { id: 't-002', no: 2, title: 'Ordinary days', durationSec: 238 },
               { id: 't-003', no: 3, title: 'Hey Song', durationSec: 261 },
               { id: 't-004', no: 4, title: 'Flare', durationSec: 245 },
+              { id: 't-001', no: 5, title: 'Higher', durationSec: 252 },
+              { id: 't-002', no: 6, title: 'Ordinary days', durationSec: 238 },
+              { id: 't-003', no: 7, title: 'Hey Song', durationSec: 261 },
+              { id: 't-004', no: 8, title: 'Flare', durationSec: 245 },
+              { id: 't-001', no: 9, title: 'Higher', durationSec: 252 },
+              { id: 't-002', no: 10, title: 'Ordinary days', durationSec: 238 },
+              { id: 't-003', no: 11, title: 'Hey Song', durationSec: 261 },
+              { id: 't-004', no: 12, title: 'Flare', durationSec: 245 },
             ],
           },
           {
@@ -48,6 +39,23 @@ export const albums: Work[] = [
             tracks: [
               { id: 't-b01', no: 1, title: 'Higher (Live)', durationSec: 275 },
               { id: 't-b02', no: 2, title: 'Flare (Acoustic)', durationSec: 230 },
+            ],
+          },
+        ],
+      },
+      {
+        id: 'rel-visions-standard',
+        editionName: '通常盤',
+        releaseDate: '2023-10-04',
+        discs: [
+          {
+            id: 'disc-std-1',
+            no: 1,
+            tracks: [
+              { id: 't-001', no: 1, title: 'Higher', durationSec: 252 },
+              { id: 't-002', no: 2, title: 'Ordinary days', durationSec: 238 },
+              { id: 't-003', no: 3, title: 'Hey Song', durationSec: 261 },
+              { id: 't-004', no: 4, title: 'Flare', durationSec: 245 },
             ],
           },
         ],

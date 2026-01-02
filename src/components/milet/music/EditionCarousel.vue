@@ -1,8 +1,8 @@
 <!-- src/components/milet/EditionCarousel.vue -->
 <template>
-  <div class="rounded-xl border border-slate-200 bg-white">
+  <div class="rounded-xl border border-slate-200 bg-white flex flex-col h-full">
     <!-- 顶部：版本轮播控制（固定） -->
-    <div class="flex items-center justify-between px-3 py-2 border-b border-slate-100">
+    <div class="flex items-center justify-between px-3 py-2 border-b border-slate-100 shrink-0">
       <button
         class="h-8 w-8 rounded-lg hover:bg-slate-100 disabled:opacity-40"
         :disabled="idx === 0"
@@ -29,24 +29,28 @@
 
     <!-- 只切换的内容区域 -->
     <div
-      class="overflow-hidden"
+      class="overflow-hidden flex-1 min-h-0"
       @pointerdown="onPointerDown"
       @pointermove="onPointerMove"
       @pointerup="handlePointerUp"
       @pointercancel="onPointerUp"
     >
       <div
-        class="flex transition-transform duration-300 ease-out"
+        class="flex transition-transform duration-300 ease-out h-full"
         :class="dragging ? 'transition-none' : ''"
         :style="{ transform: translateX }"
       >
-        <div v-for="ed in editions" :key="ed.id" class="w-full shrink-0 px-3 py-3">
-          <div class="text-xs text-slate-500 flex gap-4">
+        <div
+          v-for="ed in editions"
+          :key="ed.id"
+          class="w-full shrink-0 px-3 py-3 flex flex-col min-h-0"
+        >
+          <div class="text-xs text-slate-500 flex gap-4 shrink-0">
             <div>発売日：{{ ed.releaseDate }}</div>
             <div>収録：{{ ed.discs.length }} Disc</div>
           </div>
 
-          <div class="mt-3 space-y-3">
+          <div class="mt-3 space-y-3 overflow-y-auto flex-1 min-h-0">
             <div v-for="disc in ed.discs" :key="disc.id">
               <div class="text-sm font-medium text-slate-700">
                 Disc {{ disc.no }}

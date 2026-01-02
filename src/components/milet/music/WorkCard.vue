@@ -1,23 +1,25 @@
-<!-- src/components/milet/WorkCard.vue -->
 <template>
   <article
-    class="relative overflow-hidden rounded-2xl border border-slate-200 bg-white/80 backdrop-blur transition duration-200"
-    :class="active ? 'shadow-lg' : 'shadow-sm opacity-95 scale-[0.985]'"
+    class="relative h-full overflow-hidden rounded-2xl border border-slate-200 bg-white/80 backdrop-blur transition-[transform,opacity,filter] duration-150"
+    :style="styleCard"
   >
-    <!-- 背景弱装饰（可删） -->
+    <div class="pointer-events-none absolute inset-0" />
     <div
-      class="pointer-events-none absolute -right-24 -top-24 h-60 w-60 rounded-full bg-slate-200/30 blur-2xl"
+      class="pointer-events-none absolute -right-28 -top-28 h-72 w-72 rounded-full bg-slate-200/30 blur-2xl"
+    />
+    <div
+      class="pointer-events-none absolute -left-28 -bottom-28 h-72 w-72 rounded-full bg-slate-200/20 blur-2xl"
     />
 
-    <div class="p-4 md:p-6">
-      <div class="flex gap-4 md:gap-6">
+    <div class="h-full p-4 flex flex-col">
+      <div class="flex gap-4 md:gap-6 shrink-0">
         <div class="shrink-0">
           <div class="h-20 w-20 md:h-28 md:w-28 overflow-hidden rounded-xl bg-slate-200">
             <img
               v-if="work.coverUrl"
               :src="work.coverUrl"
               :alt="work.title"
-              class="h-full w-full object-cover"
+              class="h-full w-full object-cover transition-transform duration-150"
               loading="lazy"
             />
           </div>
@@ -35,58 +37,59 @@
           </h3>
           <p class="mt-0.5 text-sm text-slate-600 truncate">{{ work.artist }}</p>
 
-          <!-- 摘要行：堆叠时要短 -->
           <p class="mt-2 text-sm text-slate-500 line-clamp-2">
             {{ work.editions?.length || 0 }} editions ·
-            {{ work.editions?.[0]?.discs?.reduce((s, d) => s + d.tracks.length, 0) || 0 }} tracks
-            (first edition)
+            {{ work.editions?.[0]?.discs?.reduce((s, d) => s + d.tracks.length, 0) || 0 }}
+            tracks (first edition)
           </p>
         </div>
       </div>
 
-      <!-- Edition 轮播：你原组件继续用 -->
-      <div class="mt-4">
-        <EditionCarousel :editions="work.editions" />
-      </div>
-
-      <div class="mt-4 flex items-center justify-end gap-2">
-        <button class="rounded-lg border px-3 py-1.5 text-sm hover:bg-slate-50">详情</button>
-        <button class="rounded-lg border px-3 py-1.5 text-sm hover:bg-slate-50">曲目</button>
+      <div
+        class="mt-4 transition-opacity duration-150 flex-1 min-h-0"
+        :style="{ opacity: String(Math.max(0, (normalizedProgress - 0.15) / 0.25)) }"
+      >
+        <EditionCarousel :editions="work.editions" @select-track="openTrack" />
       </div>
     </div>
+    <TrackModal :open="modalOpen" :track="modalTrack" @close="modalOpen = false" />
   </article>
 </template>
-
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { computed, ref } from 'vue'
 import EditionCarousel from './EditionCarousel.vue'
+import type { Work, Track } from '@/composables/releaseType'
 import TrackModal from './TrackModal.vue'
-import type { Track, Work } from '@/composables/releaseType'
-
-const props = defineProps<{
-  work: Work
-  active: boolean
-  stackIndex: number
-}>()
-const typeLabel = computed(() => {
-  switch (props.work.releaseType) {
-    case 'ALBUM':
-      return 'Album'
-    case 'EP':
-      return 'EP'
-    case 'SINGLE':
-      return 'Single'
-    case 'LIVE_BD':
-      return 'Live BD'
-    case 'LIVE_DVD':
-      return 'Live DVD'
-    default:
-      return props.work.releaseType
-  }
-})
 
 const modalOpen = ref(false)
 const modalTrack = ref<Track | null>(null)
+const props = defineProps<{
+  work: Work
+  progress: number
+  nextProgress: number
+  stackIndex: number
+}>()
+
+const clamp = (value: number) => Math.min(1, Math.max(0, value))
+
+const normalizedProgress = computed(() => clamp(props.progress))
+const nextProgress = computed(() => clamp(props.nextProgress ?? 0))
+
+const appear = computed(() => clamp((normalizedProgress.value - 0.1) / 0.9))
+const covered = computed(() => nextProgress.value)
+
+const scale = computed(() => 1 - covered.value * 0.06)
+const lift = computed(() => (1 - appear.value) * 24 - covered.value * 12)
+const opacity = computed(() => Math.max(0.3, 1 - covered.value * 0.75))
+const blur = computed(() => covered.value * 8)
+
+const styleCard = computed(() => ({
+  transform: `translateY(${lift.value}px) scale(${scale.value})`,
+  opacity: opacity.value,
+  filter: `saturate(${1 + appear.value * 0.04}) blur(${blur}px)`,
+}))
+
+const typeLabel = computed(() => props.work.releaseType ?? 'RELEASE')
 
 function openTrack(t: Track) {
   modalTrack.value = t

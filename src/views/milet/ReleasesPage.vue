@@ -23,9 +23,8 @@
       anchor-id="chapter-live"
     />
   </div>
-  <!-- 右侧浮动章节胶囊（替代顶部 Tab） -->
+  <!-- 右侧浮动章节胶囊（替代顶部 Tab）pc,手机屏幕对应的菜单按钮 -->
   <FloatingChapterNav :chapters="chapters" @jump="scrollToAnchor" @open-map="drawerOpen = true" />
-
   <!-- 堆叠地图抽屉：快速跳转到章节（非常个性化） -->
   <StackMapDrawer
     :open="drawerOpen"
@@ -42,7 +41,7 @@
 <!-- src/pages/ReleasesPage.vue -->
 <script setup lang="ts">
 import ReleaseSection from '@/components/milet/music/ReleaseSection.vue'
-import type { Work } from '@/composables/releaseType'
+
 import FloatingChapterNav from '@/components/milet/music/FloatingChapterNav.vue'
 import StackMapDrawer from '@/components/milet/music/StackMapDrawer.vue'
 

@@ -5,7 +5,7 @@
     <div class="flex flex-col items-end gap-2">
       <!-- 主胶囊 -->
       <button
-        class="rounded-full border bg-white/80 backdrop-blur px-3 py-2 shadow-sm hover:bg-white"
+        class="max-md:hidden rounded-full border bg-white/80 backdrop-blur px-3 py-2 shadow-sm hover:bg-white"
         @click="toggle"
       >
         <div class="text-xs text-slate-500 leading-none">Chapter</div>
@@ -16,7 +16,7 @@
 
       <!-- 二级：地图入口 -->
       <button
-        class="rounded-full border bg-white/80 backdrop-blur px-3 py-2 shadow-sm hover:bg-white text-sm"
+        class="md:hidden rounded-full border bg-white/80 backdrop-blur px-3 py-2 shadow-sm hover:bg-white text-sm"
         @click="emit('open-map')"
       >
         Stack Map
@@ -55,6 +55,7 @@ const emit = defineEmits<{
 
 const open = ref(false)
 const current = ref(0)
+let scrollContainer: Element | null | Window = null
 
 function toggle() {
   open.value = !open.value
@@ -67,19 +68,44 @@ function jump(anchorId: string, idx: number) {
 
 // 轻量：滚动时根据章节的 DOM 顶部位置粗略更新 current（不依赖顶部Tab）
 function onScroll() {
-  const mid = window.scrollY + window.innerHeight * 0.35
+  if (!scrollContainer) return
+
+  let scrollY = 0
+  if (scrollContainer === window) {
+    // window 特殊处理
+    scrollY = window.scrollY
+  } else {
+    // Element 容器
+    scrollY = (scrollContainer as Element).scrollTop
+  }
+
+  const mid = scrollY + window.innerHeight * 0.35
   let best = 0
 
   props.chapters.forEach((c, idx) => {
     const el = document.getElementById(c.anchorId)
     if (!el) return
-    const top = el.getBoundingClientRect().top + window.scrollY
+    const top = el.getBoundingClientRect().top + scrollY
     if (top <= mid) best = idx
   })
 
   current.value = best
 }
 
-onMounted(() => window.addEventListener('scroll', onScroll, { passive: true }))
-onUnmounted(() => window.removeEventListener('scroll', onScroll))
+onMounted(() => {
+  // 找到最近的 overflow-y-auto 容器（可能是父组件或祖先）
+  scrollContainer = document.querySelector('.flex-1.overflow-y-auto') || window
+
+  if (scrollContainer) {
+    scrollContainer.addEventListener('scroll', onScroll, { passive: true })
+    // 初始化一次
+    onScroll()
+  }
+})
+
+onUnmounted(() => {
+  if (scrollContainer) {
+    scrollContainer.removeEventListener('scroll', onScroll)
+  }
+})
 </script>

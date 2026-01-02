@@ -1,58 +1,110 @@
-<!-- components/WorkStack.vue -->
-
 <template>
-  <div v-if="hasItems" class="relative">
+  <div v-if="hasItems" class="relative overflow-visible">
     <div
-      v-for="(w, i) in works"
-      :key="w.id"
-      class="relative min-h-[92vh] md:min-h-[96vh]"
-      :style="{ zIndex: 10 + i }"
+      v-for="(work, index) in props.works"
+      :key="work.id"
+      class="relative h-[80vh]"
+      :style="getStackItemStyle(index)"
     >
-      <!-- 这个“轨道”元素用于 IO 检测：进入到一定比例才认为 active -->
-      <div
-        class="absolute inset-x-0 top-0 h-[110vh] pointer-events-none"
-        :ref="(el) => setItemEl(el as any, i)"
-      />
-
-      <!-- 卡片本体：sticky 同一个 top，后出现的卡片 z 更高 -> 叠上来 -->
-      <div class="sticky top-[88px] md:top-[96px]">
-        <WorkCard :work="w" :active="i === activeIndex" :stack-index="i" />
+      <div class="absolute inset-x-0 top-0 h-full" :ref="(el) => setTrackEl(el as any, index)" />
+      <div class="sticky ttop-0 h-full">
+        <WorkCard
+          :work="work"
+          :progress="progresses[index] ?? 0"
+          :next-progress="progresses[index + 1] ?? 0"
+          :stack-index="index"
+        />
       </div>
     </div>
 
-    <!-- 结尾留一点空间，让最后一张卡也有“停住”的感觉 -->
-    <div class="h-[30vh]" />
+    <div class="h-[35vh]" />
   </div>
 
   <div v-else class="py-10 text-slate-500">暂无数据</div>
 </template>
+
 <script setup lang="ts">
-import { computed, onMounted, ref, watch } from 'vue'
-import WorkCard from '@/components/milet/music/WorkCard.vue'
-import type { Work } from '@/composables/releaseType'
-import { useActiveIndex } from '@/composables/useActiveIndex'
+import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
+import WorkCard from './WorkCard.vue'
+import type { Work, Track } from '@/composables/releaseType'
 
 const props = defineProps<{ works: Work[] }>()
 
-const itemEls = ref<HTMLElement[]>([])
-function setItemEl(el: Element | null, idx: number) {
-  if (!el) return
-  itemEls.value[idx] = el as HTMLElement
+const hasItems = computed(() => props.works.length > 0)
+const progresses = ref<number[]>([])
+const trackEls = ref<HTMLElement[]>([])
+const rafId = ref<number | null>(null)
+const viewportHeight = ref(typeof window !== 'undefined' ? window.innerHeight : 0)
+
+const overlapOffset = 0 // 单位是 vh，数值越大重叠区域越高
+
+const clamp = (value: number) => Math.min(1, Math.max(0, value))
+
+const setTrackEl = (el: HTMLElement | null, index: number) => {
+  trackEls.value[index] = el ?? ({} as HTMLElement)
+  scheduleUpdate()
 }
 
-const { activeIndex, observe } = useActiveIndex({ threshold: 0.55 })
+const updateProgress = () => {
+  const list = props.works.map((_, index) => {
+    const el = trackEls.value[index]
+    if (!el) return 0
+    const rect = el.getBoundingClientRect()
+    if (!rect.height) return 0
+    const raw = (viewportHeight.value - rect.top) / rect.height
+    return clamp(raw)
+  })
+  progresses.value = list
+  rafId.value = null
+}
+
+const scheduleUpdate = () => {
+  if (rafId.value === null) {
+    rafId.value = requestAnimationFrame(updateProgress)
+  }
+}
+
+const onScroll = () => scheduleUpdate()
+const onResize = () => {
+  viewportHeight.value = typeof window !== 'undefined' ? window.innerHeight : viewportHeight.value
+  scheduleUpdate()
+}
 
 onMounted(() => {
-  observe(itemEls)
+  if (typeof window !== 'undefined') {
+    window.addEventListener('scroll', onScroll, { passive: true })
+    window.addEventListener('resize', onResize)
+  }
+  scheduleUpdate()
+})
+
+onBeforeUnmount(() => {
+  if (typeof window !== 'undefined') {
+    window.removeEventListener('scroll', onScroll)
+    window.removeEventListener('resize', onResize)
+  }
+  if (rafId.value) {
+    cancelAnimationFrame(rafId.value)
+  }
 })
 
 watch(
-  () => props.works,
-  () => {
-    // works 变更后重新 observe
-    observe(itemEls)
+  () => props.works.length,
+  (len) => {
+    trackEls.value.length = len
+    progresses.value.length = len
+    scheduleUpdate()
   },
+  { immediate: true },
 )
 
-const hasItems = computed(() => props.works && props.works.length > 0)
+const getStackItemStyle = (index: number) => {
+  const style: Record<string, string> = {
+    zIndex: `${10 + index}`,
+  }
+  if (index > 0) {
+    style.marginTop = `-${overlapOffset}vh`
+  }
+  return style
+}
 </script>
