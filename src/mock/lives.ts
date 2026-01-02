@@ -7,6 +7,7 @@ export const lives: Work[] = [
     title: 'milet Live Tour 2023',
     artist: 'milet',
     releaseType: 'LIVE_BD',
+    releaseDate: '2024-02-14',
     coverUrl: '/covers/live-2023.jpg',
     editions: [
       {

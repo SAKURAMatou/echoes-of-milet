@@ -7,6 +7,7 @@ export const albums: Work[] = [
     title: 'visions',
     artist: 'milet',
     releaseType: 'ALBUM',
+    releaseDate: '2023-10-04',
     coverUrl: 'https://api.miles-dml.org/static/milet/img/covers/milet_-_visions_lim_A.jpg',
     editions: [
       {
@@ -68,6 +69,7 @@ export const albums: Work[] = [
     title: 'eyes',
     artist: 'milet',
     releaseType: 'ALBUM',
+    releaseDate: '2022-06-01',
     coverUrl: 'https://api.miles-dml.org/static/milet/img/covers/milet_-_eyes_lim_A.jpg',
     editions: [
       {

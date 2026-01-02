@@ -35,7 +35,9 @@
           <h3 class="mt-1 text-lg md:text-xl font-semibold leading-snug truncate">
             {{ work.title }}
           </h3>
-          <p class="mt-0.5 text-sm text-slate-600 truncate">{{ work.artist }}</p>
+          <p class="mt-0.5 text-sm text-slate-600 truncate">
+            {{ work.artist }}<span class="pl-2">発売日：{{ work.releaseDate }}</span>
+          </p>
 
           <p class="mt-2 text-sm text-slate-500 line-clamp-2">
             {{ work.editions?.length || 0 }} editions ·

@@ -7,6 +7,7 @@ export const epsSingles: Work[] = [
     title: 'Who I Am',
     artist: 'milet',
     releaseType: 'EP',
+    releaseDate: '2020-08-19',
     coverUrl: '/covers/who-i-am.jpg',
     editions: [
       {
@@ -34,6 +35,7 @@ export const epsSingles: Work[] = [
     artist: 'milet',
     releaseType: 'SINGLE',
     coverUrl: '/covers/drown.jpg',
+    releaseDate: '2019-10-02',
     editions: [
       {
         id: 'rel-drown',

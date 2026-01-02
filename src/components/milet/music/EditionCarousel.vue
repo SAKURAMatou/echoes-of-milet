@@ -46,15 +46,20 @@
           class="w-full shrink-0 px-3 py-3 flex flex-col min-h-0"
         >
           <div class="text-xs text-slate-500 flex gap-4 shrink-0">
-            <div>発売日：{{ ed.releaseDate }}</div>
+            <!-- <div>発売日：{{ ed.releaseDate }}</div> -->
             <div>収録：{{ ed.discs.length }} Disc</div>
           </div>
 
           <div class="mt-3 space-y-3 overflow-y-auto flex-1 min-h-0">
             <div v-for="disc in ed.discs" :key="disc.id">
-              <div class="text-sm font-medium text-slate-700">
-                Disc {{ disc.no }}
-                <span v-if="disc.title" class="text-slate-400">· {{ disc.title }}</span>
+              <div class="flex">
+                <div class="text-sm font-medium text-slate-700">
+                  Disc {{ disc.no }}
+                  <span v-if="disc.title" class="text-slate-400">· {{ disc.title }}</span>
+                </div>
+                <div>
+                  <div class="text-sm text-slate-400">({{ disc.tracks.length }} tracks)</div>
+                </div>
               </div>
 
               <div class="mt-2 divide-y divide-slate-100 rounded-lg border border-slate-100">

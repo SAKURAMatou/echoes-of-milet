@@ -1,4 +1,4 @@
-<!-- src/components/milet/ReleaseSection.vue -->
+<!-- src/components/milet/ReleaseSection.vue ，每个专辑卡片的header部分 -->
 
 <template>
   <section :id="anchorId" class="pt-5 md:pt-2">
