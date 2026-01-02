@@ -1,7 +1,7 @@
 <!-- src/components/milet/ReleaseSection.vue -->
 
 <template>
-  <section :id="anchorId" class="pt-10 md:pt-14">
+  <section :id="anchorId" class="pt-5 md:pt-2">
     <header class="mb-6 md:mb-8">
       <div class="flex items-end justify-between gap-4">
         <div>
