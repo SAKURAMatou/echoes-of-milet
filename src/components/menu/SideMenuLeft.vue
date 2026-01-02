@@ -1,5 +1,5 @@
 <template>
-  <aside class="max-md:hidden max-w-[310px] pl-[1.5%] sticky top-20 z-[100]">
+  <aside class="max-md:hidden w-[310px] pl-[1.5%] h-fit sticky top-20 z-[100]">
     <SideMenuItems class="pl-6 pr-6 py-6" />
   </aside>
   <!-- 手机版画面：抽屉弹出+遮罩 -->
