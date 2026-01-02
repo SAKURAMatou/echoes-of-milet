@@ -1,0 +1,105 @@
+export type MenuItem = {
+  key: string
+  label: string
+  sub?: string
+  // Tailwind color tokens (base)
+  color: 'pink' | 'green' | 'teal' | 'amber' | 'sky' | 'violet'
+  routerName?: string
+  children?: { key: string; label: string; href?: string }[]
+}
+
+const menu: MenuItem[] = [
+  {
+    key: 'home',
+    label: 'HOME',
+    sub: '— welcome page',
+    color: 'sky',
+    routerName: 'home',
+  },
+  {
+    key: 'milet',
+    label: 'milet',
+    sub: '— about milet',
+    color: 'pink',
+    routerName: 'milet',
+    children: [
+      { key: 'introduction', label: 'introduction', href: '#introduction' },
+      { key: 'gallery', label: 'gallery', href: '#gallery' },
+      { key: 'website', label: 'Official website', href: '#website' },
+      { key: 'sns', label: 'Official SNS', href: '#sns' },
+    ],
+  },
+  {
+    key: 'timeline',
+    label: 'TIMELINE',
+    sub: '— history of milet',
+    color: 'amber',
+    routerName: 'miletTimeLine',
+  },
+  {
+    key: 'release',
+    label: 'RELEASE',
+    sub: '— releases',
+    color: 'violet',
+    routerName: 'miletRelease',
+  },
+  {
+    key: 'gallery',
+    label: 'GALLERY',
+    sub: '— visual stories',
+    color: 'teal',
+    routerName: 'miletPicAlbum',
+  },
+]
+
+const colorMap = {
+  pink: {
+    stroke: 'border-pink-300',
+    wash: 'bg-pink-50',
+    dot: 'bg-pink-300',
+    underline: 'bg-pink-300',
+    chip: 'border-pink-200 hover:bg-pink-50',
+    focus: 'focus-visible:ring-pink-200',
+  },
+  green: {
+    stroke: 'border-green-300',
+    wash: 'bg-green-50',
+    dot: 'bg-green-300',
+    underline: 'bg-green-300',
+    chip: 'border-green-200 hover:bg-green-50',
+    focus: 'focus-visible:ring-green-200',
+  },
+  teal: {
+    stroke: 'border-teal-300',
+    wash: 'bg-teal-50',
+    dot: 'bg-teal-300',
+    underline: 'bg-teal-300',
+    chip: 'border-teal-200 hover:bg-teal-50',
+    focus: 'focus-visible:ring-teal-200',
+  },
+  amber: {
+    stroke: 'border-amber-300',
+    wash: 'bg-amber-50',
+    dot: 'bg-amber-300',
+    underline: 'bg-amber-300',
+    chip: 'border-amber-200 hover:bg-amber-50',
+    focus: 'focus-visible:ring-amber-200',
+  },
+  sky: {
+    stroke: 'border-sky-300',
+    wash: 'bg-sky-50',
+    dot: 'bg-sky-300',
+    underline: 'bg-sky-300',
+    chip: 'border-sky-200 hover:bg-sky-50',
+    focus: 'focus-visible:ring-sky-200',
+  },
+  violet: {
+    stroke: 'border-violet-300',
+    wash: 'bg-violet-50',
+    dot: 'bg-violet-300',
+    underline: 'bg-violet-300',
+    chip: 'border-violet-200 hover:bg-violet-50',
+    focus: 'focus-visible:ring-violet-200',
+  },
+} as const
+export { menu, colorMap }

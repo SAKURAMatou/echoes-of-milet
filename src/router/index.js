@@ -25,6 +25,11 @@ const router = createRouter({
           name: 'miletTimeLine',
           component: () => import('@/views/milet/MiletTimeLineAll.vue'),
         },
+        {
+          name: 'miletRelease',
+          component: () => import('@/views/milet/ReleasesPage.vue'),
+          path: 'release',
+        },
       ],
     },
     // {
