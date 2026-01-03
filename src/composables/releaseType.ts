@@ -6,6 +6,14 @@ export interface Track {
   no: number
   title: string
   durationSec?: number
+  lyric: string
+  singer: string
+  lyricists: string
+  composers: string
+  arrangers: string
+  recorded_at: string
+  performers: string
+  language: string
 }
 
 export interface Disc {

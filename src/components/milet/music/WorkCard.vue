@@ -62,6 +62,7 @@ import { computed, ref } from 'vue'
 import EditionCarousel from './EditionCarousel.vue'
 import type { Work, Track } from '@/composables/releaseType'
 import TrackModal from './TrackModal.vue'
+import axiosInstance from '@/AxiosUtil'
 
 const modalOpen = ref(false)
 const modalTrack = ref<Track | null>(null)
@@ -93,7 +94,21 @@ const styleCard = computed(() => ({
 
 const typeLabel = computed(() => props.work.releaseType ?? 'RELEASE')
 
-function openTrack(t: Track) {
+async function openTrack(t: Track) {
+  console.log('openTrack', t)
+  if (!t.lyric) {
+    //没有获取过详情数据，请求后端
+    const detail = await axiosInstance.get(import.meta.env.VITE_URL_API_MILET_RELEASE_DETAIL + t.id)
+    if (detail.data) {
+      const d = detail.data as Track
+      t.lyric = d.lyric
+      t.arrangers = d.arrangers
+      t.composers = d.composers
+      t.lyricists = d.lyricists
+      t.recorded_at = d.recorded_at
+      t.singer = d.singer
+    }
+  }
   modalTrack.value = t
   modalOpen.value = true
 }

@@ -11,13 +11,22 @@
             <button class="h-8 w-8 rounded-lg hover:bg-slate-100" @click="emit('close')">✕</button>
           </div>
 
-          <div class="px-4 py-3 text-xs text-slate-500">作词：xxx　作曲：yyy　编曲：zzz</div>
+          <div class="px-4 py-3 text-xs text-slate-500 flex flex-col gap-1.5">
+            <div class="flex gap-2">
+              <span>演唱：{{ track.singer }}</span
+              ><span>作词：{{ track.lyricists }}</span> <span> 作曲：{{ track.composers }} </span
+              ><span v-if="track.arrangers">编曲：{{ track.arrangers }}</span>
+            </div>
+            <div class="">
+              <span>首发日：{{ track.recorded_at }}</span>
+            </div>
+          </div>
 
           <div class="px-4 pb-4">
             <div
               class="rounded-xl border border-slate-100 bg-slate-50 p-3 max-h-[60vh] overflow-auto whitespace-pre-wrap text-sm leading-6"
             >
-              {{ lyrics }}
+              {{ track.lyric }}
             </div>
           </div>
         </div>
@@ -33,16 +42,14 @@ import type { Track } from '@/composables/releaseType'
 const props = defineProps<{ open: boolean; track: Track | null }>()
 const emit = defineEmits<{ (e: 'close'): void }>()
 
-const lyrics = ref<string>('')
-
-watch(
-  () => props.open,
-  async (v) => {
-    if (!v || !props.track) return
-    // TODO: 换成 API：GET /tracks/:id
-    lyrics.value = '（这里加载歌词…）\n\n君は夜を越えて…\n...'
-  },
-)
+// watch(
+//   () => props.open,
+//   async (v) => {
+//     if (!v || !props.track) return
+//     // TODO: 换成 API：GET /tracks/:id
+//     lyrics.value = '（这里加载歌词…）\n\n君は夜を越えて…\n...'
+//   },
+// )
 
 const title = computed(() => props.track?.title ?? '')
 </script>
