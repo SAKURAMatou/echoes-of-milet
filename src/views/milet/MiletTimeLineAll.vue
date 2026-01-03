@@ -1,10 +1,10 @@
 <template>
   <section ref="wrapEl" class="relative mx-auto max-w-5xl px-4 py-10">
     <!-- 中轴线：桌面居中；手机靠左 -->
-    <div class="pointer-events-none absolute top-0 h-full w-2" :class="axisPosClass">
+    <div class="pointer-events-none absolute top-5 h-full w-2" :class="axisPosClass">
       <!-- 虚线底线（蓝色） -->
       <div
-        class="absolute left-1/2 top-0 h-full w-1 -translate-x-1/2 rounded-full"
+        class="absolute left-1/2 top-0 h-[calc(100%-1.5rem)] w-1 -translate-x-1/2 rounded-full"
         :class="axisBaseClass"
       ></div>
 
@@ -108,6 +108,9 @@ let io
 
 // active
 const activeIndex = ref(0)
+
+//滚动窗口元素
+let scrollContainer: Element | null | Window = null
 
 // progress 0~1
 const progress = ref(0)
@@ -231,6 +234,8 @@ function cardClass(i, color) {
 }
 
 onMounted(async () => {
+  // 找到最近的 overflow-y-auto 容器（可能是父组件或祖先）
+  scrollContainer = document.querySelector('.flex-1.overflow-y-auto') || window
   //现在先获取数据，为后续的视图计算做准备
   await getData()
   await nextTick()
@@ -255,16 +260,21 @@ onMounted(async () => {
   for (const el of Array.from(itemEls.values())) io.observe(el)
 
   updateActiveAndProgress()
-  window.addEventListener('scroll', scheduleUpdate, { passive: true })
-  window.addEventListener('resize', scheduleUpdate)
+  if (scrollContainer) {
+    scrollContainer.addEventListener('scroll', scheduleUpdate, { passive: true })
+    scrollContainer.addEventListener('resize', scheduleUpdate)
+  }
+
   getData()
   seed.value = Math.floor(Math.random() * Object.keys(colorMap).length) + 5
 })
 
 onBeforeUnmount(() => {
   if (io) io.disconnect()
-  window.removeEventListener('scroll', scheduleUpdate)
-  window.removeEventListener('resize', scheduleUpdate)
+  if (scrollContainer) {
+    scrollContainer.removeEventListener('scroll', scheduleUpdate)
+    scrollContainer.removeEventListener('resize', scheduleUpdate)
+  }
   if (rafId) cancelAnimationFrame(rafId)
 })
 
