@@ -1,87 +1,98 @@
 <!-- src/components/milet/EditionCarousel.vue -->
 <template>
-  <div class="rounded-xl border border-slate-200 bg-white flex flex-col h-full">
-    <!-- 顶部：版本轮播控制（固定） -->
-    <div class="flex items-center justify-between px-3 py-2 border-b border-slate-100 shrink-0">
-      <button
-        class="h-8 w-8 rounded-lg hover:bg-slate-100 disabled:opacity-40"
-        :disabled="idx === 0"
-        @click="prev"
-        aria-label="prev"
+  <div class="relation h-full">
+    <!-- 背景图片层 -->
+    <div
+      v-if="editions[idx]?.coverUrl"
+      class="absolute inset-0 bg-cover bg-center opacity-3 transition-opacity duration-300"
+      :style="{ backgroundImage: `url('${editions[idx]?.coverUrl}')` }"
+    ></div>
+    <div class="rounded-xl border border-slate-200 bg-white flex flex-col h-full z-10">
+      <!-- 顶部：版本轮播控制（固定） -->
+      <div
+        class="flex items-center justify-between px-3 py-2 border-b border-slate-100 shrink-0 z-10"
       >
-        ‹
-      </button>
+        <button
+          class="h-8 w-8 rounded-lg hover:bg-slate-200 hover:text-slate-800 disabled:opacity-40 transition-colors text-slate-600"
+          :disabled="idx === 0"
+          @click="prev"
+          aria-label="prev"
+        >
+          ‹
+        </button>
 
-      <div class="text-sm text-slate-700">
-        <span class="font-medium">{{ editions[idx]?.editionName }}</span>
-        <span class="text-slate-400 ml-2">({{ idx + 1 }}/{{ max }})</span>
+        <div class="text-sm text-slate-700">
+          <span class="font-medium">{{ editions[idx]?.editionName }}</span>
+          <span class="text-slate-400 ml-2">({{ idx + 1 }}/{{ max }})</span>
+        </div>
+
+        <button
+          class="h-8 w-8 rounded-lg hover:bg-slate-200 hover:text-slate-800 disabled:opacity-40 transition-colors text-slate-600"
+          :disabled="idx === max - 1"
+          @click="next"
+          aria-label="next"
+        >
+          ›
+        </button>
       </div>
 
-      <button
-        class="h-8 w-8 rounded-lg hover:bg-slate-100 disabled:opacity-40"
-        :disabled="idx === max - 1"
-        @click="next"
-        aria-label="next"
-      >
-        ›
-      </button>
-    </div>
-
-    <!-- 只切换的内容区域 -->
-    <div
-      class="overflow-hidden flex-1 min-h-0"
-      @pointerdown="onPointerDown"
-      @pointermove="onPointerMove"
-      @pointerup="handlePointerUp"
-      @pointercancel="onPointerUp"
-    >
+      <!-- 只切换的内容区域 -->
       <div
-        class="flex transition-transform duration-300 ease-out h-full"
-        :class="dragging ? 'transition-none' : ''"
-        :style="{ transform: translateX }"
+        class="overflow-hidden flex-1 min-h-0"
+        @pointerdown="onPointerDown"
+        @pointermove="onPointerMove"
+        @pointerup="handlePointerUp"
+        @pointercancel="onPointerUp"
       >
+        <!-- 内容层 -->
         <div
-          v-for="ed in editions"
-          :key="ed.id"
-          class="w-full shrink-0 px-3 py-3 flex flex-col min-h-0"
+          class="flex transition-transform duration-300 ease-out h-full relative"
+          :class="dragging ? 'transition-none' : ''"
+          :style="{ transform: translateX }"
         >
-          <div class="text-xs text-slate-500 flex gap-4 shrink-0">
-            <!-- <div>発売日：{{ ed.releaseDate }}</div> -->
-            <div>収録：{{ ed.discs.length }} Disc</div>
-          </div>
+          <div
+            v-for="ed in editions"
+            :key="ed.id"
+            class="w-full shrink-0 px-3 py-3 flex flex-col min-h-0"
+          >
+            <div class="text-xs text-slate-500 flex gap-4 shrink-0">
+              <!-- <div>発売日：{{ ed.releaseDate }}</div> -->
+              <div>収録：{{ ed.discs.length }} Disc</div>
+            </div>
 
-          <div class="mt-3 space-y-3 overflow-y-auto flex-1 min-h-0">
-            <div v-for="disc in ed.discs" :key="disc.id">
-              <div class="flex">
-                <div class="text-sm font-medium text-slate-700">
-                  Disc {{ disc.no }}
-                  <span v-if="disc.title" class="text-slate-400">· {{ disc.title }}</span>
+            <div class="mt-3 space-y-3 overflow-y-auto flex-1 min-h-0">
+              <div v-for="disc in ed.discs" :key="disc.id">
+                <div class="flex">
+                  <div class="text-sm font-medium text-slate-700">
+                    Disc {{ disc.no }}
+                    <span v-if="disc.title" class="text-slate-400">· {{ disc.title }}</span>
+                  </div>
+                  <div>
+                    <div class="text-sm text-slate-400">({{ disc.tracks.length }} tracks)</div>
+                  </div>
                 </div>
-                <div>
-                  <div class="text-sm text-slate-400">({{ disc.tracks.length }} tracks)</div>
-                </div>
-              </div>
 
-              <div class="mt-2 divide-y divide-slate-100 rounded-lg border border-slate-100">
-                <button
-                  v-for="t in disc.tracks"
-                  :key="t.id"
-                  class="w-full flex items-center justify-between px-3 py-2 text-left hover:bg-slate-50"
-                  @click="emit('select-track', t)"
-                >
-                  <div class="min-w-0">
-                    <span class="text-slate-500 mr-2">{{ String(t.no).padStart(2, '0') }}</span>
-                    <span class="truncate">{{ t.title }}</span>
-                  </div>
-                  <div class="text-xs text-slate-400 ml-3">
-                    {{
-                      t.durationSec
-                        ? `${Math.floor(t.durationSec / 60)}:${String(t.durationSec % 60).padStart(2, '0')}`
-                        : ''
-                    }}
-                    <span class="ml-2">›</span>
-                  </div>
-                </button>
+                <div class="mt-2 divide-y divide-slate-100 rounded-lg border border-slate-100">
+                  <button
+                    v-for="t in disc.tracks"
+                    :key="t.id"
+                    class="w-full flex items-center justify-between px-3 py-2 text-left hover:bg-slate-100 transition-colors"
+                    @click="emit('select-track', t)"
+                  >
+                    <div class="min-w-0">
+                      <span class="text-slate-500 mr-2">{{ String(t.no).padStart(2, '0') }}</span>
+                      <span class="truncate">{{ t.title }}</span>
+                    </div>
+                    <div class="text-xs text-slate-400 ml-3">
+                      {{
+                        t.durationSec
+                          ? `${Math.floor(t.durationSec / 60)}:${String(t.durationSec % 60).padStart(2, '0')}`
+                          : ''
+                      }}
+                      <span class="ml-2">›</span>
+                    </div>
+                  </button>
+                </div>
               </div>
             </div>
           </div>

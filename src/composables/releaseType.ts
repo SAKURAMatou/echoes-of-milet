@@ -19,6 +19,7 @@ export interface ReleaseEdition {
   id: string // release_id
   editionName: string // 通常盤 / 初回限定盤 など
   releaseDate: string
+  coverUrl: string
   discs: Disc[]
 }
 

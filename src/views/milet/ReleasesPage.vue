@@ -9,6 +9,7 @@
       anchor-id="chapter-albums"
     />
     <ReleaseSection
+      v-if="epsSingles.length > 0"
       title="EP / 单曲"
       subtitle="EPs & Singles"
       :works="epsSingles"
@@ -17,6 +18,7 @@
       anchor-id="chapter-ep-single"
     />
     <ReleaseSection
+      v-if="epsSingles.length > 0"
       title="演唱会 BD / DVD"
       subtitle="Live BD/DVD"
       :works="lives"
@@ -45,10 +47,19 @@ import ReleaseSection from '@/components/milet/music/ReleaseSection.vue'
 import FloatingChapterNav from '@/components/milet/music/FloatingChapterNav.vue'
 import StackMapDrawer from '@/components/milet/music/StackMapDrawer.vue'
 
-import { albums } from '@/mock/albums'
-import { epsSingles } from '@/mock/epsSingles'
-import { lives } from '@/mock/lives'
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
+import { useReleaseData } from '@/composables/useReleaseData'
+
+// 使用 useReleaseData composable 按需加载数据
+// 类型参数：1 = ALBUM, 2 = EP/SINGLE, 3 = LIVE
+const albumsData = useReleaseData({ type: 1, elementId: 'chapter-albums' })
+const epsSinglesData = useReleaseData({ type: 2, elementId: 'chapter-ep-single' })
+const livesData = useReleaseData({ type: 3, elementId: 'chapter-live' })
+
+// 计算属性：当数据加载完成时使用后端数据，否则显示空数组或fallback
+const albums = computed(() => albumsData.data.value)
+const epsSingles = computed(() => epsSinglesData.data.value)
+const lives = computed(() => livesData.data.value)
 
 const drawerOpen = ref(false)
 
@@ -58,30 +69,30 @@ function scrollToAnchor(anchorId: string) {
   el.scrollIntoView({ behavior: 'smooth', block: 'start' })
 }
 
-const chapters = [
+const chapters = computed(() => [
   {
     key: 'ALBUMS' as const,
     title: 'Album',
-    subtitle: `${albums.length} releases`,
-    works: albums,
+    subtitle: `${albums.value.length} releases`,
+    works: albums.value,
     anchorId: 'chapter-albums',
     covers: [],
   },
   {
     key: 'EP_SINGLE' as const,
     title: 'EP / Single',
-    subtitle: `${epsSingles.length} releases`,
-    works: epsSingles,
+    subtitle: `${epsSingles.value.length} releases`,
+    works: epsSingles.value,
     anchorId: 'chapter-ep-single',
     covers: [],
   },
   {
     key: 'LIVE' as const,
     title: 'Live BD / DVD',
-    subtitle: `${lives.length} releases`,
-    works: lives,
+    subtitle: `${lives.value.length} releases`,
+    works: lives.value,
     anchorId: 'chapter-live',
     covers: [],
   },
-]
+])
 </script>

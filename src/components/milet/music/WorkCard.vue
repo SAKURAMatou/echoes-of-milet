@@ -27,14 +27,14 @@
 
         <div class="min-w-0 flex-1">
           <div class="flex items-center gap-2">
+            <h3 class="mt-1 text-lg md:text-xl font-semibold leading-snug truncate">
+              {{ work.title }}
+            </h3>
             <span class="inline-flex rounded-full border px-2 py-0.5 text-xs text-slate-600">
               {{ typeLabel }}
             </span>
           </div>
 
-          <h3 class="mt-1 text-lg md:text-xl font-semibold leading-snug truncate">
-            {{ work.title }}
-          </h3>
           <p class="mt-0.5 text-sm text-slate-600 truncate">
             {{ work.artist }}<span class="pl-2">発売日：{{ work.releaseDate }}</span>
           </p>
