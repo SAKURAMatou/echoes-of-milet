@@ -71,6 +71,7 @@
 </template>
 <script setup>
 import { onMounted, ref, onUnmounted, nextTick, getCurrentInstance } from 'vue'
+import { useRoute } from 'vue-router'
 
 // import pagination_long from '@/components/Pagination1.vue'
 // import pagination_short from '@/components/Pagination2.vue'
@@ -79,9 +80,12 @@ import LazyImage from '@/components/LazyImage.vue'
 import { Fancybox } from '@fancyapps/ui'
 import '@fancyapps/ui/dist/fancybox/fancybox.css'
 
+const route = useRoute()
+
 const imgList = ref([])
 const currentPage = ref(1)
 const totalPages = ref(1)
+const galleryId = ref('')
 
 // const instance = getCurrentInstance()
 // const lazyload = instance?.appContext.config.globalProperties.$Lazyload
@@ -91,6 +95,9 @@ const observerTarget = ref(null)
 
 onMounted(async () => {
   document.title = 'milet photo album'
+  // 从路由参数中获取 galleryId
+  galleryId.value = route.params.galleryId || ''
+
   await loadPage()
 
   //页面自动翻页监听事件
@@ -110,10 +117,8 @@ onMounted(async () => {
  * 加载数据
  */
 const loadPage = async () => {
-  const resData = await axiosInstance.post(
-    import.meta.env.VITE_URL_API_MILET_PICLIST + currentPage.value,
-    JSON.stringify({ tag: null }),
-  )
+  const url = `${import.meta.env.VITE_URL_API_MILET_PICLIST}/${currentPage.value}/${galleryId.value}`
+  const resData = await axiosInstance.get(url)
   // const resData = res.data
 
   if (resData.code === 200) {
@@ -122,10 +127,10 @@ const loadPage = async () => {
     totalPages.value = resData.maxPage
     resImgList.forEach((img) => {
       img.link =
-        import.meta.env.VITE_BASE_API_URI + import.meta.env.VITE_URL_STATIC_MILET_I + img.link
+        import.meta.env.VITE_BASE_IMG_URL + import.meta.env.VITE_URL_STATIC_MILET_I + img.link
       if (img.prelink && img.prelink != '') {
         img.prelink =
-          import.meta.env.VITE_BASE_API_URI + import.meta.env.VITE_URL_STATIC_MILET_I + img.prelink
+          import.meta.env.VITE_BASE_IMG_URL + import.meta.env.VITE_URL_STATIC_MILET_I + img.prelink
       }
       // img.link = '/apihost' + import.meta.env.VITE_URL_STATIC_MILET_I + img.link
       // if (img.prelink && img.prelink != '') {

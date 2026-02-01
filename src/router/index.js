@@ -16,8 +16,13 @@ const router = createRouter({
       children: [
         { path: '', name: 'milet', component: () => import('@/views/milet/MiletHomeView.vue') },
         {
-          path: 'picalbum',
+          path: 'galleryList',
           name: 'miletPicAlbum',
+          component: () => import('@/views/milet/MiletGalleryView.vue'),
+        },
+        {
+          path: 'galleryDetail/:galleryId',
+          name: 'galleryDetail',
           component: () => import('@/views/milet/MiletPicList.vue'),
         },
         {

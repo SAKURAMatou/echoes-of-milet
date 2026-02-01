@@ -15,7 +15,7 @@ export const langConfig = {
     },
     miletHomeView: {
       title0: 'miletについて',
-      title1: '写真集 Album',
+      title1: 'milet写真集 Gallery',
       title2: 'miletの活動軌跡',
       title3: 'miletの公式サイト',
       title4: 'miletの公式SNS',
@@ -26,6 +26,11 @@ export const langConfig = {
     },
     miletPic: {
       tip: '当サイトに掲載している画像の一部は、インタネットやMVから引用しています。FCの限定画像についてはできるだけ掲載しないように気を付けていますが、もし見落としがあったらごめんなさい！！',
+    },
+    miletGallery: {
+      tip: '当サイトに掲載している画像の一部は、インタネットやMVから引用しています。FCの限定画像についてはできるだけ掲載しないように気を付けていますが、もし見落としがあったらごめんなさい！！',
+      topAlbums: 'ピックアップアルバム',
+      albums: 'すべてのアルバム',
     },
   },
   zh: {
@@ -45,7 +50,7 @@ export const langConfig = {
     },
     miletHomeView: {
       title0: '关于milet',
-      title1: '图集 Album',
+      title1: '照片集 Gallery',
       title2: ' milet活动轨迹',
       title3: 'milet官方网站',
       title4: 'milet官方SNS',
@@ -56,6 +61,11 @@ export const langConfig = {
     },
     miletPic: {
       tip: '提示：本站图片部分来自网络、MV；尽可能避免fc图片外泄，可能会有漏网之鱼',
+    },
+    miletGallery: {
+      tip: '提示：本站图片部分来自网络、MV；尽可能避免fc图片外泄，可能会有漏网之鱼',
+      topAlbums: '精选相册',
+      albums: '所有相册',
     },
   },
 }

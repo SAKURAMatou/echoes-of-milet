@@ -54,6 +54,10 @@ const menu: MenuItem[] = [
     sub: '— visual stories',
     color: 'teal',
     routerName: 'miletPicAlbum',
+    children: [
+      { key: 'pick-gallery', label: 'pick gallery', href: '#pick-gallery' },
+      { key: 'all-gallery', label: 'all gallery', href: '#all-gallery' },
+    ],
   },
 ]
 
