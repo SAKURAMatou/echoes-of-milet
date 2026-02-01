@@ -20,6 +20,11 @@
       ></div>
     </div>
 
+    <!-- 加载状态提示 -->
+    <div v-if="isLoading" class="flex justify-center py-4">
+      <div class="text-sm text-gray-500">加载中...</div>
+    </div>
+
     <ul class="space-y-10">
       <li
         v-for="(it, i) in items"
@@ -59,6 +64,14 @@
         </div>
       </li>
     </ul>
+
+    <!-- 无限加载触发点 -->
+    <div ref="loadMoreEl" class="h-2" />
+
+    <!-- 加载完成或无更多数据提示 -->
+    <div v-if="hasLoadedOnce && !hasMoreData" class="text-center py-4">
+      <div class="text-sm text-gray-400">no more data</div>
+    </div>
   </section>
 </template>
 
@@ -71,6 +84,7 @@ import {
   computed,
   nextTick,
   getCurrentInstance,
+  watch,
 } from 'vue'
 import axiosInstance from '@/AxiosUtil'
 
@@ -92,10 +106,16 @@ type TimeLineResItem = {
   color: string
 }
 
-const allData = ref({ zh: [] as TimeLineResItem[], jp: [] as TimeLineResItem[] })
+const displayedData = ref({ zh: [] as TimeLineResItem[], jp: [] as TimeLineResItem[] })
 const wrapEl = ref(null)
+const loadMoreEl = ref(null)
 //用来决定每个item的颜色属性的随机数seed
 const seed = ref(0)
+// 分页相关
+const currentPage = ref(1)
+const hasMoreData = ref(true)
+const isLoading = ref(false)
+const hasLoadedOnce = ref(false)
 // item DOM
 const itemEls = reactive(new Map<number, HTMLElement>())
 function setItemRef(el, idx) {
@@ -149,7 +169,8 @@ function updateActiveAndProgress() {
 
   // progress：wrap 顶部 -> active item 中心
   const wrapRect = wrap.getBoundingClientRect()
-  const total = wrapRect.height
+  // 使用 scrollHeight 获取实际完整高度，包括所有加载的内容
+  const total = wrap.scrollHeight
 
   const activeEl = itemEls.get(bestIdx) as HTMLElement | undefined
   if (!activeEl || total <= 0) {
@@ -159,6 +180,21 @@ function updateActiveAndProgress() {
   const aRect = activeEl.getBoundingClientRect()
   const aCenterInWrap = aRect.top + aRect.height * 0.5 - wrapRect.top
   progress.value = Math.max(0, Math.min(1, aCenterInWrap / total))
+
+  // 检查是否需要加载更多数据（距底部500px时触发）
+  checkLoadMore()
+}
+
+function checkLoadMore() {
+  if (isLoading.value || !hasMoreData.value) return
+
+  const loadMoreElement = loadMoreEl.value as HTMLElement | undefined
+  if (!loadMoreElement) return
+
+  const rect = loadMoreElement.getBoundingClientRect()
+  if (rect.top < window.innerHeight + 500) {
+    loadMoreData()
+  }
 }
 
 /** 颜色映射：点/卡片/标题跟着变（你可按站点色再微调） */
@@ -236,8 +272,17 @@ function cardClass(i, color) {
 onMounted(async () => {
   // 找到最近的 overflow-y-auto 容器（可能是父组件或祖先）
   scrollContainer = document.querySelector('.flex-1.overflow-y-auto') || window
-  //现在先获取数据，为后续的视图计算做准备
-  await getData()
+
+  // 初始化加载第一页数据
+  hasLoadedOnce.value = true
+  isLoading.value = true
+  const { data, hasMore } = await getData(1)
+  const lang = global.$lang.lang
+
+  hasMoreData.value = hasMore
+  currentPage.value = 2 // 准备加载第二页
+  isLoading.value = false
+
   await nextTick()
 
   io = new IntersectionObserver(
@@ -265,7 +310,6 @@ onMounted(async () => {
     scrollContainer.addEventListener('resize', scheduleUpdate)
   }
 
-  getData()
   seed.value = Math.floor(Math.random() * Object.keys(colorMap).length) + 5
 })
 
@@ -278,18 +322,59 @@ onBeforeUnmount(() => {
   if (rafId) cancelAnimationFrame(rafId)
 })
 
-const getData = async () => {
+const getData = async (page: number = 1) => {
   try {
-    const response = await axiosInstance.get(import.meta.env.VITE_URL_API_MILET_TIMELINE_ALL)
-    // console.log('Fetched timeline data:', response.data)
-    allData.value = response.data
+    const response = await axiosInstance.get(
+      `${import.meta.env.VITE_URL_API_MILET_TIMELINE_ALL}/${page}`,
+    )
+    // axios 的 response.data 就是: { data: { zh: [], jp: [] }, hasMore: boolean }
+    const { data, hasMore } = response.data
+    //data中可能包含不是数组的k-v；把新数组添加到现有数组中，key对应
+    for (const k of Object.keys(data)) {
+      if (Array.isArray(data[k])) {
+        displayedData.value[k] = [...displayedData.value[k], ...data[k]]
+      }
+    }
+    return { data, hasMore }
   } catch (error) {
     console.error('Error fetching timeline data:', error)
+    return { data: { zh: [], jp: [] }, hasMore: false }
+  }
+}
+
+const loadMoreData = async () => {
+  if (isLoading.value || !hasMoreData.value) return
+
+  isLoading.value = true
+  try {
+    const previousCount = items.value.length
+    const { data, hasMore } = await getData(currentPage.value)
+
+    if (hasMore) {
+      currentPage.value += 1
+      hasMoreData.value = hasMore
+    } else {
+      hasMoreData.value = false
+    }
+
+    // 新增数据后，为新增的元素设置 IntersectionObserver
+    await nextTick()
+    for (let i = previousCount; i < items.value.length; i++) {
+      const el = itemEls.get(i)
+      if (el && io) {
+        io.observe(el)
+      }
+    }
+  } catch (error) {
+    console.error('Error loading more data:', error)
+    hasMoreData.value = false
+  } finally {
+    isLoading.value = false
   }
 }
 
 const items = computed<TimeLineResItem[]>(() => {
-  return allData.value[global.$lang.lang].map((it, index) => ({
+  return displayedData.value[global.$lang.lang].map((it, index) => ({
     ...it,
     color: Object.keys(colorMap)[(index + seed.value) % Object.keys(colorMap).length] || 'blue', // 默认颜色
   }))
