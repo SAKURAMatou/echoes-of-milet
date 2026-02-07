@@ -23,10 +23,14 @@
         class="relative mt-4 max-h-[200px] overflow-hidden cursor-pointer transition-[max-height_0.3s_ease] duration-300"
         @click="cardClick"
       >
+        <div
+          class="absolute inset-0 bg-cover bg-center opacity-12 rounded-sm"
+          :style="{ backgroundImage: `url('${initImgUrl(item.img)}')` }"
+        ></div>
         <p v-for="text in item.contents" class="mb-4 leading-relaxed">
           {{ text }}
         </p>
-        <img v-show="item.img" :src="item.img" class="rounded-lg shadow-md mx-auto" />
+        <img v-show="item.img" :src="initImgUrl(item.img)" class="rounded-lg shadow-md mx-auto" />
         <!-- 渐变遮罩层 
          absolute bottom-0 left-0 w-full h-20 bg-gradient-to-t from-gray-300 via-white to-transparent-->
         <div class="fade-mask flex justify-center items-center pointer-events-none">
@@ -38,6 +42,7 @@
 </template>
 <script setup>
 import { ref, onMounted } from 'vue'
+import { initImgUrl } from '@/composables/ImgUrlUtil'
 
 const seed = ref(0)
 

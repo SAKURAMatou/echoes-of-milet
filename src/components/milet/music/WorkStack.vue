@@ -20,7 +20,7 @@
     <div class="h-[10vh]" />
   </div>
 
-  <div v-else class="py-10 text-slate-500">暂无数据</div>
+  <div v-else class="py-10 text-slate-500">no data</div>
 </template>
 
 <script setup lang="ts">

@@ -12,34 +12,34 @@ const menu: MenuItem[] = [
   {
     key: 'home',
     label: 'HOME',
-    sub: '— welcome page',
+    sub: '— Welcome page',
     color: 'sky',
     routerName: 'home',
   },
   {
     key: 'milet',
     label: 'milet',
-    sub: '— about milet',
+    sub: '— About milet',
     color: 'pink',
     routerName: 'milet',
     children: [
       { key: 'introduction', label: 'introduction', href: '#introduction' },
       { key: 'gallery', label: 'gallery', href: '#gallery' },
+      { key: 'timeline', label: 'timeline', href: '#sns' },
       { key: 'website', label: 'Official website', href: '#website' },
-      { key: 'sns', label: 'Official SNS', href: '#sns' },
     ],
   },
   {
     key: 'timeline',
     label: 'TIMELINE',
-    sub: '— history of milet',
+    sub: '— Activity of milet',
     color: 'amber',
     routerName: 'miletTimeLine',
   },
   {
     key: 'release',
     label: 'RELEASE',
-    sub: '— releases',
+    sub: '— The milet Anthology',
     color: 'violet',
     routerName: 'miletRelease',
     children: [
@@ -51,7 +51,7 @@ const menu: MenuItem[] = [
   {
     key: 'gallery',
     label: 'GALLERY',
-    sub: '— visual stories',
+    sub: '— Visual Journey',
     color: 'teal',
     routerName: 'miletPicAlbum',
     children: [
