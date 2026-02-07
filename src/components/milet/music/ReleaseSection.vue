@@ -1,7 +1,7 @@
 <!-- src/components/milet/ReleaseSection.vue ，每个专辑卡片的header部分 -->
 
 <template>
-  <section :id="anchorId" class="pt-5 md:pt-2">
+  <section class="pt-5 md:pt-2">
     <header class="mb-3">
       <div class="flex items-end justify-between gap-4">
         <div>
@@ -19,5 +19,5 @@
 import WorkStack from './WorkStack.vue'
 import type { Work } from '@/composables/releaseType'
 
-const props = defineProps<{ title: string; subtitle?: string; works: Work[]; anchorId: string }>()
+const props = defineProps<{ title: string; subtitle?: string; works: Work[] }>()
 </script>

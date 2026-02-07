@@ -4,8 +4,8 @@
     <!-- 背景图片层 -->
     <div
       v-if="editions[idx]?.coverUrl"
-      class="absolute inset-0 bg-cover bg-center opacity-3 transition-opacity duration-300"
-      :style="{ backgroundImage: `url('${editions[idx]?.coverUrl}')` }"
+      class="absolute inset-0 bg-cover bg-center opacity-6 transition-opacity duration-300"
+      :style="{ backgroundImage: `url('${initImgUrl(editions[idx]?.coverUrl)}')` }"
     ></div>
     <div class="rounded-xl border border-slate-200 bg-white flex flex-col h-full z-10">
       <!-- 顶部：版本轮播控制（固定） -->
@@ -105,7 +105,7 @@
 import { computed, ref, watch } from 'vue'
 import { useSwipe } from '@/composables/useSwipe'
 import type { ReleaseEdition, Track } from '@/composables/releaseType'
-
+import { initImgUrl } from '@/composables/ImgUrlUtil'
 const props = defineProps<{ editions: ReleaseEdition[] }>()
 const emit = defineEmits<{ (e: 'select-track', t: Track): void }>()
 

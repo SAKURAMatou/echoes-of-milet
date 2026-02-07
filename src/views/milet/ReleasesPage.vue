@@ -1,29 +1,65 @@
 <template>
   <div class="mx-4">
-    <ReleaseSection
-      title="专辑"
-      subtitle="Albums"
-      :works="albums"
-      next-id="ep"
-      next-title="EP / 单曲"
-      anchor-id="chapter-albums"
-    />
-    <ReleaseSection
-      v-if="epsSingles.length > 0"
-      title="EP / 单曲"
-      subtitle="EPs & Singles"
-      :works="epsSingles"
-      next-id="live"
-      next-title="演唱会 BD / DVD"
-      anchor-id="chapter-ep-single"
-    />
-    <ReleaseSection
-      v-if="epsSingles.length > 0"
-      title="演唱会 BD / DVD"
-      subtitle="Live BD/DVD"
-      :works="lives"
-      anchor-id="chapter-live"
-    />
+    <div id="chapter-albums">
+      <ReleaseSection
+        title="专辑"
+        subtitle="Albums"
+        :works="albums"
+        next-id="ep"
+        next-title="EP / 单曲"
+      />
+      <div v-if="albumsData.hasMore.value" class="flex justify-center py-4">
+        <div class="w-full max-w-3xl px-4">
+          <button
+            @click="albumsData.loadMore"
+            :disabled="albumsData.loading.value"
+            class="w-full py-3 bg-slate-900 text-white rounded-2xl shadow-md hover:opacity-95 disabled:opacity-50"
+          >
+            {{ albumsData.loading.value ? 'Loading...' : 'Load More Albums' }}
+          </button>
+        </div>
+      </div>
+    </div>
+    <div id="chapter-ep-single">
+      <ReleaseSection
+        v-if="epsSingles.length > 0"
+        title="EP / 单曲"
+        subtitle="EPs & Singles"
+        :works="epsSingles"
+        next-id="live"
+        next-title="演唱会 BD / DVD"
+      />
+      <div v-if="epsSinglesData.hasMore.value" class="flex justify-center py-4">
+        <div class="w-full max-w-3xl px-4">
+          <button
+            @click="epsSinglesData.loadMore"
+            :disabled="epsSinglesData.loading.value"
+            class="w-full py-3 bg-slate-900 text-white rounded-2xl shadow-md hover:opacity-95 disabled:opacity-50"
+          >
+            {{ epsSinglesData.loading.value ? 'Loading...' : 'Load More EP / Singles' }}
+          </button>
+        </div>
+      </div>
+    </div>
+    <div id="chapter-live">
+      <ReleaseSection
+        v-if="lives.length > 0"
+        title="演唱会 BD / DVD"
+        subtitle="Live BD/DVD"
+        :works="lives"
+      />
+      <div v-if="livesData.hasMore.value" class="flex justify-center py-4">
+        <div class="w-full max-w-3xl px-4">
+          <button
+            @click="livesData.loadMore"
+            :disabled="livesData.loading.value"
+            class="w-full py-3 bg-slate-900 text-white rounded-2xl shadow-md hover:opacity-95 disabled:opacity-50"
+          >
+            {{ livesData.loading.value ? 'Loading...' : 'Load More Live BD/DVD' }}
+          </button>
+        </div>
+      </div>
+    </div>
   </div>
   <!-- 右侧浮动章节胶囊（替代顶部 Tab）pc,手机屏幕对应的菜单按钮 -->
   <FloatingChapterNav :chapters="chapters" @jump="scrollToAnchor" @open-map="drawerOpen = true" />

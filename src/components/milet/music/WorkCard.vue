@@ -17,7 +17,7 @@
           <div class="h-20 w-20 md:h-28 md:w-28 overflow-hidden rounded-xl bg-slate-200">
             <img
               v-if="work.coverUrl"
-              :src="work.coverUrl"
+              :src="initImgUrl(work.coverUrl)"
               :alt="work.title"
               class="h-full w-full object-cover transition-transform duration-150"
               loading="lazy"
@@ -63,6 +63,8 @@ import EditionCarousel from './EditionCarousel.vue'
 import type { Work, Track } from '@/composables/releaseType'
 import TrackModal from './TrackModal.vue'
 import axiosInstance from '@/AxiosUtil'
+
+import { initImgUrl } from '@/composables/ImgUrlUtil'
 
 const modalOpen = ref(false)
 const modalTrack = ref<Track | null>(null)
