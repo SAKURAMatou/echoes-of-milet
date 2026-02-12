@@ -2,7 +2,8 @@
 export type ReleaseType = 'ALBUM' | 'EP' | 'SINGLE' | 'LIVE_BD' | 'LIVE_DVD'
 
 export interface Track {
-  id: string
+  // id: string
+  showId: string
   no: number
   title: string
   durationSec?: number

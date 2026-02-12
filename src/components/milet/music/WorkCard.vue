@@ -100,7 +100,9 @@ async function openTrack(t: Track) {
   console.log('openTrack', t)
   if (!t.lyric) {
     //没有获取过详情数据，请求后端
-    const detail = await axiosInstance.get(import.meta.env.VITE_URL_API_MILET_RELEASE_DETAIL + t.id)
+    const detail = await axiosInstance.get(
+      import.meta.env.VITE_URL_API_MILET_RELEASE_DETAIL + t.showId,
+    )
     if (detail.data) {
       const d = detail.data as Track
       t.lyric = d.lyric

@@ -75,7 +75,7 @@
                 <div class="mt-2 divide-y divide-slate-100 rounded-lg border border-slate-100">
                   <button
                     v-for="t in disc.tracks"
-                    :key="t.id"
+                    :key="t.showId"
                     class="w-full flex items-center justify-between px-3 py-2 text-left hover:bg-slate-100 transition-colors"
                     @click="emit('select-track', t)"
                   >
