@@ -66,7 +66,7 @@
                   </h3>
                   <span
                     class="text-xs bg-pink-100 text-pink-700 px-3 py-1 rounded-full font-semibold whitespace-nowrap"
-                    >📌 置顶</span
+                    >📌 {{ $getConfigLang('miletGallery')['toptip'] }}</span
                   >
                 </div>
                 <div class="flex items-center text-sm text-gray-100 drop-shadow-md">
