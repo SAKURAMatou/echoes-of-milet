@@ -35,6 +35,8 @@ const router = createRouter({
           component: () => import('@/views/milet/ReleasesPage.vue'),
           path: 'release',
         },
+        //兼容旧的路由
+        { name: 'picalbum', path: 'picalbum', redirect: '/milet/galleryList' },
       ],
     },
     // {
