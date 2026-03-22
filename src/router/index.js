@@ -8,8 +8,6 @@ const router = createRouter({
       name: 'home',
       component: () => import('@/views/MiletSiteHome.vue'),
     },
-
-    //父路由指定视图的话，默认会把子路由的组件渲染到父路由的默认插槽中，单独显示子路由页面的话，需要忽略父路由的视图
     {
       path: '/milet',
       component: () => import('@/views/LayoutApp.vue'),
@@ -31,19 +29,18 @@ const router = createRouter({
           component: () => import('@/views/milet/MiletTimeLineAll.vue'),
         },
         {
+          path: 'release',
           name: 'miletRelease',
           component: () => import('@/views/milet/ReleasesPage.vue'),
-          path: 'release',
         },
-        //兼容旧的路由
-        { name: 'picalbum', path: 'picalbum', redirect: '/milet/galleryList' },
+        {
+          path: 'about',
+          name: 'aboutMe',
+          component: () => import('@/views/AboutMeView.vue'),
+        },
+        { path: 'picalbum', name: 'picalbum', redirect: '/milet/galleryList' },
       ],
     },
-    // {
-    //   path: '/milet/picalbum',
-    //   name: 'miletPicAlbum',
-    //   component: () => import('@/views/milet/MiletPicList.vue'),
-    // },
   ],
 })
 

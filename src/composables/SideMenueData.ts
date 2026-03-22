@@ -2,7 +2,6 @@ export type MenuItem = {
   key: string
   label: string
   sub?: string
-  // Tailwind color tokens (base)
   color: 'pink' | 'green' | 'teal' | 'amber' | 'sky' | 'violet'
   routerName?: string
   children?: { key: string; label: string; href?: string }[]
@@ -12,51 +11,62 @@ const menu: MenuItem[] = [
   {
     key: 'home',
     label: 'HOME',
-    sub: '— Welcome page',
+    sub: '- Welcome page',
     color: 'sky',
     routerName: 'home',
   },
   {
     key: 'milet',
-    label: 'milet',
-    sub: '— About milet',
+    label: 'MILET',
+    sub: '- About milet',
     color: 'pink',
     routerName: 'milet',
     children: [
       { key: 'introduction', label: 'introduction', href: '#introduction' },
       { key: 'gallery', label: 'gallery', href: '#gallery' },
-      { key: 'timeline', label: 'timeline', href: '#sns' },
-      { key: 'website', label: 'Official website', href: '#website' },
+      { key: 'timeline', label: 'timeline', href: '#timeline' },
+      { key: 'website', label: 'official website', href: '#website' },
     ],
   },
   {
     key: 'timeline',
     label: 'TIMELINE',
-    sub: '— Activity of milet',
+    sub: '- Activity of milet',
     color: 'amber',
     routerName: 'miletTimeLine',
   },
   {
     key: 'release',
     label: 'RELEASE',
-    sub: '— The milet Anthology',
+    sub: '- The milet anthology',
     color: 'violet',
     routerName: 'miletRelease',
     children: [
       { key: 'albums', label: 'albums', href: '#chapter-albums' },
-      { key: 'EP / Single', label: 'EP / Single', href: '#chapter-ep-single' },
-      { key: 'Live BD / DVD', label: 'Live BD / DVD', href: '#chapter-live' },
+      { key: 'eps', label: 'EP / Single', href: '#chapter-ep-single' },
+      { key: 'live', label: 'Live BD / DVD', href: '#chapter-live' },
     ],
   },
   {
     key: 'gallery',
     label: 'GALLERY',
-    sub: '— Visual Journey',
+    sub: '- Visual journey',
     color: 'teal',
     routerName: 'miletPicAlbum',
     children: [
-      { key: 'pick-gallery', label: 'pickup gallery', href: '#pick-gallery' },
+      { key: 'pickup-gallery', label: 'pickup gallery', href: '#pick-gallery' },
       { key: 'all-gallery', label: 'all gallery', href: '#all-gallery' },
+    ],
+  },
+  {
+    key: 'about',
+    label: 'ABOUT ME',
+    sub: '- Site story & feedback',
+    color: 'green',
+    routerName: 'aboutMe',
+    children: [
+      { key: 'intro', label: 'intro', href: '#about-intro' },
+      { key: 'feedback', label: 'feedback', href: '#about-feedback' },
     ],
   },
 ]
@@ -111,4 +121,5 @@ const colorMap = {
     focus: 'focus-visible:ring-violet-200',
   },
 } as const
+
 export { menu, colorMap }
