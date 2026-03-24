@@ -270,6 +270,7 @@ function cardClass(i, color) {
 }
 
 onMounted(async () => {
+  document.title = 'milet activities timeline'
   // 找到最近的 overflow-y-auto 容器（可能是父组件或祖先）
   scrollContainer = document.querySelector('.flex-1.overflow-y-auto') || window
 

@@ -24,6 +24,7 @@
         @click="cardClick"
       >
         <div
+          id="card-bg"
           class="absolute inset-0 bg-cover bg-center opacity-12 rounded-sm"
           :style="{ backgroundImage: `url('${initImgUrl(item.img)}')` }"
         ></div>
@@ -77,6 +78,7 @@ const cardClick = (event) => {
   dom.classList.toggle('overflow-hidden')
   const mask = dom.querySelector('.fade-mask')
   mask.classList.toggle('hidden')
+  dom.querySelector('#card-bg')?.classList.toggle('hidden')
   // if (dom.classList.contains('max-h-[200px]')) {
   //   mask.style.display = 'flex'
   // } else {

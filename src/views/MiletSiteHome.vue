@@ -54,6 +54,11 @@
 </template>
 <script setup lang="ts">
 import Header from '@/components/TWHeader.vue'
+import { onMounted } from 'vue'
+
+onMounted(() => {
+  document.title = 'echoes of milet'
+})
 </script>
 <!-- Tailwind 动画 -->
 <style>

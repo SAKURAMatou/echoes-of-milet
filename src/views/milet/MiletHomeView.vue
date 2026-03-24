@@ -51,6 +51,7 @@ const loading = ref(true)
 
 //子组件的渲染
 onMounted(async () => {
+  document.title = 'echoes of milet'
   try {
     const resJson = await axiosInstance.post(import.meta.env.VITE_URL_API_MILET_HOME)
 

@@ -83,7 +83,7 @@ import ReleaseSection from '@/components/milet/music/ReleaseSection.vue'
 import FloatingChapterNav from '@/components/milet/music/FloatingChapterNav.vue'
 import StackMapDrawer from '@/components/milet/music/StackMapDrawer.vue'
 
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useReleaseData } from '@/composables/useReleaseData'
 
 // 使用 useReleaseData composable 按需加载数据
@@ -131,4 +131,8 @@ const chapters = computed(() => [
     covers: [],
   },
 ])
+
+onMounted(() => {
+  document.title = 'milet releases'
+})
 </script>

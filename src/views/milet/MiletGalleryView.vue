@@ -212,10 +212,12 @@ const global = appContext.config.globalProperties
 const topAlbumList = ref([])
 const normalAlbumList = ref([])
 const loading = ref(true)
+const isLoadingMore = ref(false)
 const currentPage = ref(1)
 const totalPages = ref(1)
 const isLastPage = ref(false)
 const observerTarget = ref(null)
+const galleryObserver = ref(null)
 
 /**
  * 获取相册列表数据
@@ -262,6 +264,7 @@ const initLoad = async () => {
     console.error('初始化加载失败:', error)
   } finally {
     loading.value = false
+    await nextTick()
     setupIntersectionObserver()
   }
 }
@@ -314,7 +317,12 @@ const goToGallery = (galleryId) => {
  * 设置 IntersectionObserver 监听无限滚动
  */
 const setupIntersectionObserver = () => {
-  if (isLastPage.value) return
+  if (galleryObserver.value) {
+    galleryObserver.value.disconnect()
+    galleryObserver.value = null
+  }
+
+  if (isLastPage.value || !observerTarget.value) return
 
   const observer = new IntersectionObserver((entries) => {
     if (entries[0].isIntersecting) {
@@ -323,12 +331,10 @@ const setupIntersectionObserver = () => {
     }
   })
 
-  if (observerTarget.value) {
-    observer.observe(observerTarget.value)
-  }
+  observer.observe(observerTarget.value)
 
   // 保存 observer 引用以便后续清理
-  window.galleryObserver = observer
+  galleryObserver.value = observer
 }
 
 /**
@@ -349,17 +355,22 @@ const throttle = (fn, delay) => {
  * 加载更多数据
  */
 const delayLoadMore = throttle(() => {
-  if (!isLastPage.value) {
-    currentPage.value += 1
-    console.log('load more data, page:', currentPage.value)
-    loadAlbums(0, currentPage.value).then((maxPage) => {
+  if (isLastPage.value || isLoadingMore.value) return
+
+  isLoadingMore.value = true
+  currentPage.value += 1
+  console.log('load more data, page:', currentPage.value)
+  loadAlbums(0, currentPage.value)
+    .then((maxPage) => {
       isLastPage.value = currentPage.value >= maxPage
       // 重新设置观察器
+    })
+    .finally(() => {
+      isLoadingMore.value = false
       nextTick(() => {
         setupIntersectionObserver()
       })
     })
-  }
 }, 1500)
 
 onMounted(() => {
@@ -368,8 +379,8 @@ onMounted(() => {
 })
 
 onUnmounted(() => {
-  if (window.galleryObserver) {
-    window.galleryObserver.disconnect()
+  if (galleryObserver.value) {
+    galleryObserver.value.disconnect()
   }
 })
 </script>
