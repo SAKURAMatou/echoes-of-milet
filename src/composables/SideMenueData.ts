@@ -2,6 +2,7 @@ export type MenuItem = {
   key: string
   label: string
   sub?: string
+  shown: boolean
   color: 'pink' | 'green' | 'teal' | 'amber' | 'sky' | 'violet'
   routerName?: string
   children?: { key: string; label: string; href?: string }[]
@@ -14,6 +15,7 @@ const menu: MenuItem[] = [
     sub: '- Welcome page',
     color: 'sky',
     routerName: 'home',
+    shown: true,
   },
   {
     key: 'milet',
@@ -27,6 +29,7 @@ const menu: MenuItem[] = [
       { key: 'timeline', label: 'timeline', href: '#timeline' },
       { key: 'website', label: 'official website', href: '#website' },
     ],
+    shown: true,
   },
   {
     key: 'timeline',
@@ -34,6 +37,7 @@ const menu: MenuItem[] = [
     sub: '- Activity of milet',
     color: 'amber',
     routerName: 'miletTimeLine',
+    shown: true,
   },
   {
     key: 'release',
@@ -46,6 +50,7 @@ const menu: MenuItem[] = [
       { key: 'eps', label: 'EP / Single', href: '#chapter-ep-single' },
       { key: 'live', label: 'Live BD / DVD', href: '#chapter-live' },
     ],
+    shown: true,
   },
   {
     key: 'gallery',
@@ -57,6 +62,7 @@ const menu: MenuItem[] = [
       { key: 'pickup-gallery', label: 'pickup gallery', href: '#pick-gallery' },
       { key: 'all-gallery', label: 'all gallery', href: '#all-gallery' },
     ],
+    shown: true,
   },
   {
     key: 'about',
@@ -68,6 +74,15 @@ const menu: MenuItem[] = [
       { key: 'intro', label: 'intro', href: '#about-intro' },
       { key: 'feedback', label: 'feedback', href: '#about-feedback' },
     ],
+    shown: true,
+  },
+  {
+    key: 'gallery-detail',
+    label: 'GALLERY DETAIL',
+    sub: '- Gallery detail page',
+    color: 'pink',
+    routerName: 'galleryDetail',
+    shown: false,
   },
 ]
 

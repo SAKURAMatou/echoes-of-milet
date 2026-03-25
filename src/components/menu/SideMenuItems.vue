@@ -1,6 +1,11 @@
 <template>
   <div>
-    <div class="text-xs tracking-[.18em] text-slate-500/80 mb-3 select-none">MENU</div>
+    <div class="flex justify-around items-center text-xs">
+      <div class="tracking-[.18em] text-slate-500/80 mb-3 select-none">MENU</div>
+      <div class="mb-3 text-slate-500/70 select-none">
+        CURRENT：<span class="text-slate-700">{{ activeItem?.label }}</span>
+      </div>
+    </div>
 
     <nav aria-label="Primary" class="flex flex-col gap-4">
       <transition-group
@@ -19,6 +24,7 @@
           <!-- Sticker -->
 
           <router-link
+            v-if="item.shown"
             :to="{ name: item.routerName }"
             class="menu-link relative block focus-visible:outline-none"
             :aria-current="isActiveRoute(item) ? 'page' : false"
@@ -90,9 +96,7 @@
     </nav>
 
     <!-- Optional: active hint -->
-    <div class="mt-6 text-xs text-slate-500/70">
-      CURRENT：<span class="text-slate-700">{{ activeItem?.label }}</span>
-    </div>
+
     <div class="flex items-center mt-6 relative md:hidden">
       <LanguageSelect />
     </div>
@@ -159,7 +163,7 @@ function isActiveRoute(item: MenuItem) {
   return route.name === item.routerName
 }
 
-const activeItem = computed(() => menu.find((m) => m.routerName === route.name))
+const activeItem = computed(() => menu.find((m) => route.name === m.routerName))
 const emit = defineEmits(['closeMenuItem'])
 
 function onMenuItemClick() {
