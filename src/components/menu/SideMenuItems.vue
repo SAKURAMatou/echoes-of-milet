@@ -93,7 +93,7 @@
     <div class="mt-6 text-xs text-slate-500/70">
       CURRENT：<span class="text-slate-700">{{ activeItem?.label }}</span>
     </div>
-    <div class="flex items-center mt-6 relative">
+    <div class="flex items-center mt-6 relative md:hidden">
       <LanguageSelect />
     </div>
   </div>

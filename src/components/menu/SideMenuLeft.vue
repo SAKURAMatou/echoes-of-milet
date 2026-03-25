@@ -1,6 +1,10 @@
 <template>
-  <aside class="max-md:hidden w-[310px] pl-[1.5%] h-fit sticky top-20 z-[100]">
-    <SideMenuItems class="pl-6 pr-6 py-6" />
+  <aside class="max-md:hidden w-[310px] pl-5 lg:pl-6 h-full overflow-hidden">
+    <div
+      class="scrollbar-none h-full overflow-y-auto rounded-xl border border-white/40 bg-[linear-gradient(to_bottom_right,white,#ebf8ff,#bee3f8)] backdrop-blur-xl"
+    >
+      <SideMenuItems class="pl-6 pr-6 py-6" />
+    </div>
   </aside>
   <!-- 手机版画面：抽屉弹出+遮罩 -->
   <teleport to="body">
@@ -20,7 +24,7 @@
         aria-label="Mobile menu"
       >
         <div
-          class="h-full overflow-y-auto border-r border-white/30 bg-[linear-gradient(to_bottom_right,white,#ebf8ff,#bee3f8)] backdrop-blur-xl"
+          class="scrollbar-none h-full overflow-y-auto border-r border-white/30 bg-[linear-gradient(to_bottom_right,white,#ebf8ff,#bee3f8)] backdrop-blur-xl"
         >
           <SideMenuItems class="pl-6 pr-6 py-6" @closeMenuItem="emit('closeMenu')" />
         </div>

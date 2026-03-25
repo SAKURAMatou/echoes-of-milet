@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <div class="min-h-screen md:h-screen md:overflow-hidden">
     <Header
       :showHanbor="true"
       ref="headerRef"
@@ -11,16 +11,18 @@
       class="fixed inset-0 min-h-screen bg-[url(/background/bg-milet-2.webp)] bg-cover bg-left opacity-25 pointer-events-none"
     ></div>
     <LanguageSelect class="max-md:hidden" />
-    <div class="relative">
+    <div class="relative md:h-full">
       <!-- 整体容器：页面居中布局 -->
-      <div class="flex w-full pt-18">
+      <div class="flex w-full pt-18 md:h-full md:box-border md:gap-6 lg:gap-8 xl:gap-10">
         <!-- 左侧菜单栏 -->
         <SideMenuLeft :menuOpen="menuOpen" @closeMenu="menuClick" />
 
         <!-- 右侧内容区域：占据剩余区域，保证滚动条在页面最右侧 -->
-        <div class="flex-1 h-[calc(100vh-80px)] overflow-y-auto">
+        <div
+          class="flex-1 min-w-0 md:min-h-0 md:overflow-y-auto md:pr-14 lg:pr-20 xl:pr-28 2xl:pr-36"
+        >
           <main
-            class="w-[68%] max-md:w-full bg-[linear-gradient(to_bottom_right,white,#ebf8ff,#bee3f8)] bg-cover bg-center rounded-xl shadow pt-1"
+            class="w-full md:max-w-[700px] lg:max-w-[760px] xl:max-w-[820px] 2xl:max-w-[900px] bg-[linear-gradient(to_bottom_right,white,#ebf8ff,#bee3f8)] bg-cover bg-center rounded-xl shadow pt-1"
           >
             <router-view />
           </main>
