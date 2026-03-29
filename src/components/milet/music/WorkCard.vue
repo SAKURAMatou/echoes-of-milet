@@ -35,8 +35,11 @@
             </span>
           </div>
 
-          <p class="mt-0.5 text-sm text-slate-600 truncate">
-            {{ work.artist }}<span class="pl-2">発売日：{{ work.releaseDate }}</span>
+          <p class="mt-0.5 text-sm text-slate-600 truncate flex flex-wrap">
+            <span class="pr-2">{{ pageText.workCard.artist }}：{{ work.artist }}</span>
+            <span class="md:pl-2 pr-2"
+              >{{ pageText.workCard.releaseDate }}：{{ work.releaseDate }}</span
+            >
           </p>
 
           <p class="mt-2 text-sm text-slate-500 line-clamp-2">
@@ -58,13 +61,22 @@
   </article>
 </template>
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { computed, ref, getCurrentInstance } from 'vue'
 import EditionCarousel from './EditionCarousel.vue'
 import type { Work, Track } from '@/composables/releaseType'
 import TrackModal from './TrackModal.vue'
 import axiosInstance from '@/AxiosUtil'
 
 import { initImgUrl } from '@/composables/ImgUrlUtil'
+
+import { WORK_TEXT } from '@/composables/ReleaseMetaData'
+
+const { appContext } = getCurrentInstance()
+const global = appContext.config.globalProperties
+const pageText = computed(() => {
+  const lang = global.$lang?.lang ? global.$lang.lang : 'zh'
+  return WORK_TEXT[lang]
+})
 
 const modalOpen = ref(false)
 const modalTrack = ref<Track | null>(null)

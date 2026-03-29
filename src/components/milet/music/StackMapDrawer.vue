@@ -10,13 +10,13 @@
       <div class="flex items-center justify-between">
         <div>
           <div class="text-xs tracking-[.18em] text-slate-500/80">STACK MAP</div>
-          <div class="text-lg font-semibold mt-1">快速跳转</div>
+          <div class="text-lg font-semibold mt-1">{{ pageText.stackMap.desc }}</div>
         </div>
         <button
           class="rounded-lg border px-3 py-1.5 text-sm hover:bg-slate-50"
           @click="emit('close')"
         >
-          关闭
+          {{ pageText.stackMap.close }}
         </button>
       </div>
 
@@ -30,7 +30,7 @@
           <div class="flex items-center justify-between gap-3">
             <div>
               <div class="text-base font-medium">{{ c.title }}</div>
-              <div class="text-xs text-slate-500">Tap to jump</div>
+              <div class="text-xs text-slate-500">{{ pageText.stackMap.action }}</div>
             </div>
 
             <!-- 右侧缩略封面堆叠 -->
@@ -54,6 +54,15 @@
   </div>
 </template>
 <script setup lang="ts">
+import { getCurrentInstance, computed } from 'vue'
+import { RELEASE_PAGE_TEXT } from '@/composables/ReleaseMetaData'
+const pageText = computed(() => {
+  const lang = global.$lang?.lang ? global.$lang.lang : 'zh'
+  return RELEASE_PAGE_TEXT[lang]
+})
+const { appContext } = getCurrentInstance()
+const global = appContext.config.globalProperties
+
 type CoverItem = { id: string; coverUrl?: string; title: string }
 type Chapter = { key: string; title: string; anchorId: string; covers: CoverItem[] }
 

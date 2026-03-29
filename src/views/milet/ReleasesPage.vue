@@ -2,11 +2,11 @@
   <div class="mx-4">
     <div id="chapter-albums">
       <ReleaseSection
-        title="专辑"
+        :title="pageText.title.album"
         subtitle="Albums"
         :works="albums"
         next-id="ep"
-        next-title="EP / 单曲"
+        :next-title="pageText.title.ep"
       />
       <div v-if="albumsData.hasMore.value" class="flex justify-center py-4">
         <div class="w-full max-w-3xl px-4">
@@ -23,11 +23,11 @@
     <div id="chapter-ep-single">
       <ReleaseSection
         v-if="epsSingles.length > 0"
-        title="EP / 单曲"
+        :title="pageText.title.ep"
         subtitle="EPs & Singles"
         :works="epsSingles"
         next-id="live"
-        next-title="演唱会 BD / DVD"
+        :next-title="pageText.title.live"
       />
       <div v-if="epsSinglesData.hasMore.value" class="flex justify-center py-4">
         <div class="w-full max-w-3xl px-4">
@@ -44,7 +44,7 @@
     <div id="chapter-live">
       <ReleaseSection
         v-if="lives.length > 0"
-        title="演唱会 BD / DVD"
+        :title="pageText.title.live"
         subtitle="Live BD/DVD"
         :works="lives"
       />
@@ -62,8 +62,20 @@
     </div>
   </div>
   <!-- 右侧浮动章节胶囊（替代顶部 Tab）pc,手机屏幕对应的菜单按钮 -->
-  <FloatingChapterNav :chapters="chapters" @jump="scrollToAnchor" @open-map="drawerOpen = true" />
-  <!-- 堆叠地图抽屉：快速跳转到章节（非常个性化） -->
+
+  <div>
+    <div class="fixed right-3 md:right-6 top-[90px] md:top-[110px] z-[300]">
+      <div class="flex flex-col items-end gap-2">
+        <button
+          class="md:hidden rounded-full border bg-white/80 backdrop-blur px-3 py-2 shadow-sm hover:bg-white text-sm"
+          @click="drawerOpen = true"
+        >
+          {{ pageText.stackMap.desc }}
+        </button>
+      </div>
+    </div>
+  </div>
+  <!-- 堆叠地图抽屉：快速跳转到章节 -->
   <StackMapDrawer
     :open="drawerOpen"
     :chapters="chapters"
@@ -80,12 +92,20 @@
 <script setup lang="ts">
 import ReleaseSection from '@/components/milet/music/ReleaseSection.vue'
 
-import FloatingChapterNav from '@/components/milet/music/FloatingChapterNav.vue'
 import StackMapDrawer from '@/components/milet/music/StackMapDrawer.vue'
 
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, getCurrentInstance } from 'vue'
 import { useReleaseData } from '@/composables/useReleaseData'
 
+import { RELEASE_PAGE_TEXT } from '@/composables/ReleaseMetaData'
+
+const { appContext } = getCurrentInstance()
+const global = appContext.config.globalProperties
+
+const pageText = computed(() => {
+  const lang = global.$lang?.lang ? global.$lang.lang : 'zh'
+  return RELEASE_PAGE_TEXT[lang]
+})
 // 使用 useReleaseData composable 按需加载数据
 // 类型参数：1 = ALBUM, 2 = EP/SINGLE, 3 = LIVE
 const albumsData = useReleaseData({ type: 1, elementId: 'chapter-albums' })

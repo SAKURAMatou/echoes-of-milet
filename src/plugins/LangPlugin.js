@@ -1,5 +1,5 @@
 import { reactive } from 'vue'
-import { langConfig } from '@/plugins/lang.js'
+import { langConfig } from '@/composables/lang.js'
 
 export default {
   install(app) {
