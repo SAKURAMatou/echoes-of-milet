@@ -97,13 +97,13 @@ const styleCard = computed(() => ({
 const typeLabel = computed(() => props.work.releaseType ?? 'RELEASE')
 
 async function openTrack(t: Track) {
-  console.log('openTrack', t)
+  // console.log('openTrack', t)
   if (!t.lyric) {
     //没有获取过详情数据，请求后端
     const detail = await axiosInstance.get(
       import.meta.env.VITE_URL_API_MILET_RELEASE_DETAIL + t.showId,
     )
-    if (detail.data) {
+    if (detail.data && Object.keys(detail.data).length > 0) {
       const d = detail.data as Track
       t.lyric = d.lyric
       t.arrangers = d.arrangers
@@ -111,9 +111,11 @@ async function openTrack(t: Track) {
       t.lyricists = d.lyricists
       t.recorded_at = d.recorded_at
       t.singer = d.singer
+      modalOpen.value = true
     }
+  } else {
+    modalOpen.value = true
   }
   modalTrack.value = t
-  modalOpen.value = true
 }
 </script>

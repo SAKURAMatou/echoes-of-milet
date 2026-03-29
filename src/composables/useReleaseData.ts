@@ -28,7 +28,7 @@ export function useReleaseData(options: ReleaseDataOptions) {
       const url = `${apiBaseUrl}${options.type}?page=${page}&pageSize=${pageSize}`
       const response = await axiosInstance.get<{ data: Work[]; total: Number }>(url)
       const newData = Array.isArray(response.data) ? response.data : response.data.data || []
-
+      // newData.length = 5
       // 如果返回数据少于pageSize，说明没有更多数据
       if (newData.length < pageSize) {
         hasMore.value = false

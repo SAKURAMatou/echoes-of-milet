@@ -17,7 +17,7 @@
       </div>
     </div>
 
-    <div class="h-[10vh]" />
+    <div class="h-[2vh]" />
   </div>
 
   <div v-else class="py-10 text-slate-500">no data</div>

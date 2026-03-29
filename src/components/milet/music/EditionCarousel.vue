@@ -1,97 +1,99 @@
-<!-- src/components/milet/EditionCarousel.vue -->
 <template>
   <div class="relation h-full">
-    <!-- 背景图片层 -->
     <div
       v-if="editions[idx]?.coverUrl"
       class="absolute inset-0 bg-cover bg-center opacity-6 transition-opacity duration-300"
       :style="{ backgroundImage: `url('${initImgUrl(editions[idx]?.coverUrl)}')` }"
     ></div>
-    <div class="rounded-xl border border-slate-200 bg-white flex flex-col h-full z-10">
-      <!-- 顶部：版本轮播控制（固定） -->
+
+    <div class="z-10 flex h-full flex-col rounded-xl border border-slate-200 bg-white">
       <div
-        class="flex items-center justify-between px-3 py-2 border-b border-slate-100 shrink-0 z-10"
+        class="z-10 flex shrink-0 items-center justify-between border-b border-slate-100 px-3 py-2"
       >
         <button
-          class="h-8 w-8 rounded-lg hover:bg-slate-200 hover:text-slate-800 disabled:opacity-40 transition-colors text-slate-600"
+          class="h-8 w-8 rounded-lg text-slate-600 transition-colors hover:bg-slate-200 hover:text-slate-800 disabled:opacity-40"
           :disabled="idx === 0"
-          @click="prev"
           aria-label="prev"
+          @click="prev"
         >
           ‹
         </button>
 
         <div class="text-sm text-slate-700">
           <span class="font-medium">{{ editions[idx]?.editionName }}</span>
-          <span class="text-slate-400 ml-2">({{ idx + 1 }}/{{ max }})</span>
+          <span class="ml-2 text-slate-400">({{ idx + 1 }}/{{ max }})</span>
         </div>
 
         <button
-          class="h-8 w-8 rounded-lg hover:bg-slate-200 hover:text-slate-800 disabled:opacity-40 transition-colors text-slate-600"
+          class="h-8 w-8 rounded-lg text-slate-600 transition-colors hover:bg-slate-200 hover:text-slate-800 disabled:opacity-40"
           :disabled="idx === max - 1"
-          @click="next"
           aria-label="next"
+          @click="next"
         >
           ›
         </button>
       </div>
 
-      <!-- 只切换的内容区域 -->
-      <div
-        class="overflow-hidden flex-1 min-h-0"
-        @pointerdown="onPointerDown"
-        @pointermove="onPointerMove"
-        @pointerup="handlePointerUp"
-        @pointercancel="onPointerUp"
-      >
-        <!-- 内容层 -->
+      <div class="flex-1 overflow-hidden min-h-0">
         <div
-          class="flex transition-transform duration-300 ease-out h-full relative"
+          class="relative flex h-full transition-transform duration-300 ease-out"
           :class="dragging ? 'transition-none' : ''"
           :style="{ transform: translateX }"
         >
           <div
             v-for="ed in editions"
             :key="ed.id"
-            class="w-full shrink-0 px-3 py-3 flex flex-col min-h-0"
+            class="flex min-h-0 w-full shrink-0 flex-col px-3 py-3"
           >
-            <div class="text-xs text-slate-500 flex gap-4 shrink-0">
-              <!-- <div>発売日：{{ ed.releaseDate }}</div> -->
-              <div>収録：{{ ed.discs.length }} Disc</div>
+            <div class="flex shrink-0 gap-4 text-xs text-slate-500">
+              <div>{{ ed.discs.length }} Disc</div>
             </div>
 
-            <div class="mt-3 space-y-3 overflow-y-auto flex-1 min-h-0">
+            <div
+              class="mt-3 flex-1 min-h-0 space-y-3 overflow-y-auto [touch-action:pan-y]"
+              :class="{ 'select-none': interactionActive }"
+              @pointerdown="handlePointerDown"
+              @pointermove="handlePointerMove"
+              @pointerup="handlePointerEnd"
+              @pointercancel="handlePointerEnd"
+            >
               <div v-for="disc in ed.discs" :key="disc.id">
-                <div class="flex">
+                <div class="flex items-center justify-between gap-3">
                   <div class="text-sm font-medium text-slate-700">
                     Disc {{ disc.no }}
                     <span v-if="disc.title" class="text-slate-400">· {{ disc.title }}</span>
                   </div>
-                  <div>
-                    <div class="text-sm text-slate-400">({{ disc.tracks.length }} tracks)</div>
-                  </div>
+                  <div class="text-sm text-slate-400">({{ disc.tracks.length }} tracks)</div>
                 </div>
 
                 <div class="mt-2 divide-y divide-slate-100 rounded-lg border border-slate-100">
-                  <button
+                  <div
                     v-for="t in disc.tracks"
                     :key="t.showId"
-                    class="w-full flex items-center justify-between px-3 py-2 text-left hover:bg-slate-100 transition-colors"
-                    @click="emit('select-track', t)"
+                    class="flex w-full items-stretch justify-between gap-2 px-3 py-2 text-left transition-colors hover:bg-slate-50"
                   >
-                    <div class="min-w-0">
-                      <span class="text-slate-500 mr-2">{{ String(t.no).padStart(2, '0') }}</span>
-                      <span class="truncate">{{ t.title }}</span>
+                    <div
+                      class="scrollbar-none flex min-w-0 flex-1 items-center overflow-x-auto overscroll-x-contain px-1 py-2 [touch-action:pan-y]"
+                      data-inline-scroll
+                    >
+                      <span class="mr-2 shrink-0 text-slate-500">
+                        {{ String(t.no).padStart(2, '0') }}
+                      </span>
+                      <span class="whitespace-nowrap">{{ t.title }}</span>
                     </div>
-                    <div class="text-xs text-slate-400 ml-3">
+
+                    <button
+                      class="mx-1 flex shrink-0 items-center justify-center rounded-xl px-3 text-xs text-slate-400 transition-colors hover:bg-slate-200 max-md:bg-slate-200"
+                      @click="emit('select-track', t)"
+                    >
                       {{
                         t.durationSec
                           ? `${Math.floor(t.durationSec / 60)}:${String(t.durationSec % 60).padStart(2, '0')}`
-                          : ''
+                          : 'detail'
                       }}
-                      <span class="ml-2">›</span>
-                    </div>
-                  </button>
+                      <span class="ml-1 text-xs text-slate-400">›</span>
+                    </button>
+                  </div>
                 </div>
               </div>
             </div>
@@ -101,21 +103,20 @@
     </div>
   </div>
 </template>
+
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue'
+import { initImgUrl } from '@/composables/ImgUrlUtil'
 import { useSwipe } from '@/composables/useSwipe'
 import type { ReleaseEdition, Track } from '@/composables/releaseType'
-import { initImgUrl } from '@/composables/ImgUrlUtil'
+
 const props = defineProps<{ editions: ReleaseEdition[] }>()
 const emit = defineEmits<{ (e: 'select-track', t: Track): void }>()
 
 const idx = ref(0)
 const max = computed(() => props.editions.length)
 
-const { dx, dragging, onPointerDown, onPointerMove, onPointerUp } = useSwipe()
-
 const translateX = computed(() => {
-  // 拖动时跟随手指一点点移动（扁平化，别做 3D）
   const drag = dragging.value ? dx.value : 0
   return `translateX(calc(${-idx.value * 100}% + ${drag}px))`
 })
@@ -123,22 +124,28 @@ const translateX = computed(() => {
 function prev() {
   if (idx.value > 0) idx.value--
 }
+
 function next() {
   if (idx.value < max.value - 1) idx.value++
 }
-
-function handlePointerUp() {
-  // 阈值：容器宽度的约 25%（这里用 px 简化，实际可读 clientWidth）
-  const threshold = 80
-  if (dx.value > threshold) prev()
-  else if (dx.value < -threshold) next()
-  onPointerUp()
-}
+const {
+  dx,
+  dragging,
+  interactionActive,
+  handlePointerDown,
+  handlePointerMove,
+  handlePointerEnd,
+  reset,
+} = useSwipe({
+  onSwipeLeft: next,
+  onSwipeRight: prev,
+})
 
 watch(
   () => props.editions,
   () => {
     idx.value = 0
+    reset()
   },
 )
 </script>
