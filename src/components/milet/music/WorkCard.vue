@@ -11,10 +11,10 @@
       class="pointer-events-none absolute -left-28 -bottom-28 h-72 w-72 rounded-full bg-slate-200/20 blur-2xl"
     />
 
-    <div class="h-full p-4 flex flex-col">
-      <div class="flex gap-4 md:gap-6 shrink-0">
+    <div class="flex h-full flex-col p-4">
+      <div class="flex shrink-0 gap-4 md:gap-6">
         <div class="shrink-0">
-          <div class="h-20 w-20 md:h-28 md:w-28 overflow-hidden rounded-xl bg-slate-200">
+          <div class="h-20 w-20 overflow-hidden rounded-xl bg-slate-200 md:h-28 md:w-28">
             <img
               v-if="work.coverUrl"
               :src="initImgUrl(work.coverUrl)"
@@ -26,32 +26,36 @@
         </div>
 
         <div class="min-w-0 flex-1">
-          <div class="flex items-center gap-2">
-            <h3 class="mt-1 text-lg md:text-xl font-semibold leading-snug truncate">
+          <div class="flex flex-wrap items-center gap-2">
+            <h3 class="mt-1 truncate text-lg font-semibold leading-snug md:text-xl">
               {{ work.title }}
             </h3>
             <span class="inline-flex rounded-full border px-2 py-0.5 text-xs text-slate-600">
               {{ typeLabel }}
             </span>
+            <span
+              class="inline-flex rounded-full border px-2 py-0.5 text-xs"
+              :class="distributionBadgeClass"
+            >
+              {{ distributionLabel }}
+            </span>
           </div>
 
-          <p class="mt-0.5 text-sm text-slate-600 truncate flex flex-wrap">
-            <span class="pr-2">{{ pageText.workCard.artist }}：{{ work.artist }}</span>
-            <span class="md:pl-2 pr-2"
-              >{{ pageText.workCard.releaseDate }}：{{ work.releaseDate }}</span
+          <p class="mt-0.5 flex flex-wrap truncate text-sm text-slate-600">
+            <span class="pr-2">{{ pageText.workCard.artist }}: {{ work.artist }}</span>
+            <span class="pr-2 md:pl-2"
+              >{{ pageText.workCard.releaseDate }}: {{ work.releaseDate }}</span
             >
           </p>
 
-          <p class="mt-2 text-sm text-slate-500 line-clamp-2">
-            {{ work.editions?.length || 0 }} editions ·
-            {{ work.editions?.[0]?.discs?.reduce((s, d) => s + d.tracks.length, 0) || 0 }}
-            tracks (first edition)
+          <p class="mt-2 line-clamp-2 text-sm text-slate-500">
+            {{ summaryText }}
           </p>
         </div>
       </div>
 
       <div
-        class="mt-4 transition-opacity duration-150 flex-1 min-h-0"
+        class="mt-4 min-h-0 flex-1 transition-opacity duration-150"
         :style="{ opacity: String(Math.max(0, (normalizedProgress - 0.15) / 0.25)) }"
       >
         <EditionCarousel :editions="work.editions" @select-track="openTrack" />
@@ -60,18 +64,17 @@
     <TrackModal :open="modalOpen" :track="modalTrack" @close="modalOpen = false" />
   </article>
 </template>
+
 <script setup lang="ts">
-import { computed, ref, getCurrentInstance } from 'vue'
-import EditionCarousel from './EditionCarousel.vue'
-import type { Work, Track } from '@/composables/releaseType'
-import TrackModal from './TrackModal.vue'
+import { computed, getCurrentInstance, ref } from 'vue'
 import axiosInstance from '@/AxiosUtil'
-
 import { initImgUrl } from '@/composables/ImgUrlUtil'
-
 import { WORK_TEXT } from '@/composables/ReleaseMetaData'
+import type { Track, Work } from '@/composables/releaseType'
+import EditionCarousel from './EditionCarousel.vue'
+import TrackModal from './TrackModal.vue'
 
-const { appContext } = getCurrentInstance()
+const { appContext } = getCurrentInstance()!
 const global = appContext.config.globalProperties
 const pageText = computed(() => {
   const lang = global.$lang?.lang ? global.$lang.lang : 'zh'
@@ -107,14 +110,29 @@ const styleCard = computed(() => ({
 }))
 
 const typeLabel = computed(() => props.work.releaseType ?? 'RELEASE')
+const isPhysical = computed(() => props.work.isPhysical !== false)
+const distributionLabel = computed(() =>
+  isPhysical.value ? pageText.value.workCard.physicalTag : pageText.value.workCard.streamingTag,
+)
+const distributionBadgeClass = computed(() =>
+  isPhysical.value
+    ? 'border-slate-200 bg-white/80 text-slate-600'
+    : 'border-emerald-200 bg-emerald-50 text-emerald-700',
+)
+const firstEditionTrackCount = computed(
+  () => props.work.editions?.[0]?.discs?.reduce((sum, disc) => sum + disc.tracks.length, 0) || 0,
+)
+const summaryText = computed(() => {
+  const editionCount = props.work.editions?.length || 0
+  const trackCount = firstEditionTrackCount.value
+  const workCardText = pageText.value.workCard
+  const tailText = isPhysical.value ? workCardText.firstEdition : workCardText.streamingEdition
+  return `${editionCount} ${workCardText.editionCount} - ${trackCount} ${workCardText.trackCount} (${tailText})`
+})
 
 async function openTrack(t: Track) {
-  // console.log('openTrack', t)
   if (!t.lyric) {
-    //没有获取过详情数据，请求后端
-    const detail = await axiosInstance.get(
-      import.meta.env.VITE_URL_API_MILET_RELEASE_DETAIL + t.showId,
-    )
+    const detail = await axiosInstance.get(import.meta.env.VITE_URL_API_MILET_RELEASE_DETAIL + t.showId)
     if (detail.data && Object.keys(detail.data).length > 0) {
       const d = detail.data as Track
       t.lyric = d.lyric

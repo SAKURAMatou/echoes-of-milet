@@ -8,33 +8,36 @@
 
     <div class="z-10 flex h-full flex-col rounded-xl border border-slate-200 bg-white">
       <div
-        class="z-10 flex shrink-0 items-center justify-between border-b border-slate-100 px-3 py-2"
+        class="z-10 flex shrink-0 items-center border-b border-slate-100 px-3 py-2"
+        :class="hasMultipleEditions ? 'justify-between' : 'justify-center'"
       >
         <button
+          v-if="hasMultipleEditions"
           class="h-8 w-8 rounded-lg text-slate-600 transition-colors hover:bg-slate-200 hover:text-slate-800 disabled:opacity-40"
           :disabled="idx === 0"
           aria-label="prev"
           @click="prev"
         >
-          ‹
+          &lt;
         </button>
 
         <div class="text-sm text-slate-700">
           <span class="font-medium">{{ editions[idx]?.editionName }}</span>
-          <span class="ml-2 text-slate-400">({{ idx + 1 }}/{{ max }})</span>
+          <span v-if="hasMultipleEditions" class="ml-2 text-slate-400">({{ idx + 1 }}/{{ max }})</span>
         </div>
 
         <button
+          v-if="hasMultipleEditions"
           class="h-8 w-8 rounded-lg text-slate-600 transition-colors hover:bg-slate-200 hover:text-slate-800 disabled:opacity-40"
           :disabled="idx === max - 1"
           aria-label="next"
           @click="next"
         >
-          ›
+          &gt;
         </button>
       </div>
 
-      <div class="flex-1 overflow-hidden min-h-0">
+      <div class="min-h-0 flex-1 overflow-hidden">
         <div
           class="relative flex h-full transition-transform duration-300 ease-out"
           :class="dragging ? 'transition-none' : ''"
@@ -45,12 +48,19 @@
             :key="ed.id"
             class="flex min-h-0 w-full shrink-0 flex-col px-3 py-3"
           >
-            <div class="flex shrink-0 gap-4 text-xs text-slate-500">
-              <div>{{ ed.discs.length }} Disc</div>
+            <div v-if="isStreamingEdition(ed)" class="shrink-0">
+              <span
+                class="inline-flex rounded-full border border-emerald-200 bg-emerald-50 px-2.5 py-1 text-xs font-medium text-emerald-700"
+              >
+                {{ pageText.streamingEdition }}
+              </span>
+            </div>
+            <div v-else class="flex shrink-0 gap-4 text-xs text-slate-500">
+              <div>{{ ed.discs.length }} {{ pageText.discLabel }}</div>
             </div>
 
             <div
-              class="mt-3 flex-1 min-h-0 space-y-3 overflow-y-auto [touch-action:pan-y]"
+              class="mt-3 min-h-0 flex-1 space-y-3 overflow-y-auto [touch-action:pan-y]"
               :class="{ 'select-none': interactionActive }"
               @pointerdown="handlePointerDown"
               @pointermove="handlePointerMove"
@@ -58,15 +68,21 @@
               @pointercancel="handlePointerEnd"
             >
               <div v-for="disc in ed.discs" :key="disc.id">
-                <div class="flex items-center justify-between gap-3">
+                <div
+                  v-if="!isVirtualDisc(disc)"
+                  class="flex items-center justify-between gap-3"
+                >
                   <div class="text-sm font-medium text-slate-700">
-                    Disc {{ disc.no }}
-                    <span v-if="disc.title" class="text-slate-400">· {{ disc.title }}</span>
+                    {{ pageText.discLabel }} {{ getDiscNumber(disc) }}
+                    <span v-if="disc.title" class="text-slate-400">- {{ disc.title }}</span>
                   </div>
                   <div class="text-sm text-slate-400">({{ disc.tracks.length }} tracks)</div>
                 </div>
 
-                <div class="mt-2 divide-y divide-slate-100 rounded-lg border border-slate-100">
+                <div
+                  class="divide-y divide-slate-100 rounded-lg border border-slate-100"
+                  :class="!isVirtualDisc(disc) ? 'mt-2' : ''"
+                >
                   <div
                     v-for="t in disc.tracks"
                     :key="t.showId"
@@ -89,9 +105,9 @@
                       {{
                         t.durationSec
                           ? `${Math.floor(t.durationSec / 60)}:${String(t.durationSec % 60).padStart(2, '0')}`
-                          : 'detail'
+                          : pageText.detailLabel
                       }}
-                      <span class="ml-1 text-xs text-slate-400">›</span>
+                      <span class="ml-1 text-xs text-slate-400">&gt;</span>
                     </button>
                   </div>
                 </div>
@@ -105,16 +121,24 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref, watch } from 'vue'
+import { computed, getCurrentInstance, ref, watch } from 'vue'
 import { initImgUrl } from '@/composables/ImgUrlUtil'
+import { WORK_TEXT } from '@/composables/ReleaseMetaData'
+import type { Disc, ReleaseEdition, Track } from '@/composables/releaseType'
 import { useSwipe } from '@/composables/useSwipe'
-import type { ReleaseEdition, Track } from '@/composables/releaseType'
 
 const props = defineProps<{ editions: ReleaseEdition[] }>()
 const emit = defineEmits<{ (e: 'select-track', t: Track): void }>()
+const { appContext } = getCurrentInstance()!
+const global = appContext.config.globalProperties
+const pageText = computed(() => {
+  const lang = global.$lang?.lang ? global.$lang.lang : 'zh'
+  return WORK_TEXT[lang].workCard
+})
 
 const idx = ref(0)
 const max = computed(() => props.editions.length)
+const hasMultipleEditions = computed(() => max.value > 1)
 
 const translateX = computed(() => {
   const drag = dragging.value ? dx.value : 0
@@ -128,6 +152,19 @@ function prev() {
 function next() {
   if (idx.value < max.value - 1) idx.value++
 }
+
+function isVirtualDisc(disc: Disc) {
+  return disc.isVirtual === true
+}
+
+function isStreamingEdition(edition: ReleaseEdition) {
+  return edition.discs.length === 1 && edition.discs[0]?.isVirtual === true
+}
+
+function getDiscNumber(disc: Disc) {
+  return disc.discNo ?? disc.no ?? 1
+}
+
 const {
   dx,
   dragging,

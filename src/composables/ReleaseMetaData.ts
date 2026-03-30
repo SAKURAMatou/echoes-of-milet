@@ -8,7 +8,7 @@ export const RELEASE_PAGE_TEXT = {
     stackMap: {
       desc: '目次',
       close: '閉じる',
-      action: 'へ移動',
+      action: '移動',
     },
   },
   zh: {
@@ -30,12 +30,30 @@ export const WORK_TEXT = {
     workCard: {
       artist: 'アーティスト',
       releaseDate: '発売日',
+      physicalTag: '实体',
+      streamingTag: '配信',
+      editionCount: 'editions',
+      trackCount: 'tracks',
+      firstEdition: 'first edition',
+      streamingEdition: 'streaming release',
+      discLabel: 'Disc',
+      tracksLabel: 'Tracks',
+      detailLabel: 'detail',
     },
   },
   zh: {
     workCard: {
       artist: '艺术家',
       releaseDate: '发行日期',
+      physicalTag: '实体专辑',
+      streamingTag: '流媒体发布',
+      editionCount: '个版本',
+      trackCount: '首曲目',
+      firstEdition: '首个版本',
+      streamingEdition: '流媒体版',
+      discLabel: 'Disc',
+      tracksLabel: '曲目',
+      detailLabel: '详情',
     },
   },
 }

@@ -1,8 +1,7 @@
-// src/types/release.ts
-export type ReleaseType = 'ALBUM' | 'EP' | 'SINGLE' | 'LIVE_BD' | 'LIVE_DVD'
+export type ReleaseType = 'ALBUM' | 'EP' | 'SINGLE' | 'LIVE' | 'LIVE_BD' | 'LIVE_DVD'
+export type DistributionType = 'PHYSICAL' | 'STREAMING'
 
 export interface Track {
-  // id: string
   showId: string
   no: number
   title: string
@@ -19,25 +18,29 @@ export interface Track {
 
 export interface Disc {
   id: string
-  no: number
+  no?: number
+  discNo?: number
   title?: string
+  isVirtual?: boolean
   tracks: Track[]
 }
 
 export interface ReleaseEdition {
-  id: string // release_id
-  editionName: string // 通常盤 / 初回限定盤 など
-  releaseDate: string
+  id: string
+  editionName: string
+  releaseDate?: string
   coverUrl: string
   discs: Disc[]
 }
 
 export interface Work {
-  id: string // work_id
+  id: string
   title: string
   artist: string
-  coverUrl?: string // 共通（版ごとに違うなら edition 側に持ってもOK）
+  coverUrl?: string
   releaseType: ReleaseType
+  isPhysical: boolean
+  distributionType: DistributionType
   releaseDate: string
   editions: ReleaseEdition[]
 }
