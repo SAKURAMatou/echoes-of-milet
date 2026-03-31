@@ -49,7 +49,12 @@
         <!-- 内容区域：手机单列（轴线左，卡片右）；桌面双列左右交替 -->
         <div class="grid grid-cols-1 sm:grid-cols-2 sm:gap-x-10">
           <div class="w-[90%] max-w-xl" :class="cardWrapClass(i)">
-            <div :class="cardClass(i, it.color)">
+            <component
+              :is="hasItemLink(it.link_url) ? 'button' : 'div'"
+              :type="hasItemLink(it.link_url) ? 'button' : undefined"
+              :class="cardClass(i, it.color, hasItemLink(it.link_url))"
+              @click="handleItemClick(it.link_url)"
+            >
               <div class="text-sm font-semibold tabular-nums" :class="colorMap[it.color]?.time">
                 {{ it.event_date }}
               </div>
@@ -59,7 +64,7 @@
               <p class="mt-2 text-sm leading-relaxed text-black/70">
                 {{ it.timeline_body }}
               </p>
-            </div>
+            </component>
           </div>
         </div>
       </li>
@@ -92,6 +97,7 @@ declare global {
   interface ImportMeta {
     env: {
       VITE_URL_API_MILET_TIMELINE_ALL: string
+      VITE_BASE_API_URI?: string
       [key: string]: string | undefined
     }
   }
@@ -107,8 +113,8 @@ type TimeLineResItem = {
 }
 
 const displayedData = ref({ zh: [] as TimeLineResItem[], jp: [] as TimeLineResItem[] })
-const wrapEl = ref(null)
-const loadMoreEl = ref(null)
+const wrapEl = ref<HTMLElement | null>(null)
+const loadMoreEl = ref<HTMLElement | null>(null)
 //用来决定每个item的颜色属性的随机数seed
 const seed = ref(0)
 // 分页相关
@@ -118,19 +124,23 @@ const isLoading = ref(false)
 const hasLoadedOnce = ref(false)
 // item DOM
 const itemEls = reactive(new Map<number, HTMLElement>())
-function setItemRef(el, idx) {
-  if (el) itemEls.set(idx, el)
+function setItemRef(el: any, idx: number) {
+  if (el instanceof HTMLElement) {
+    itemEls.set(idx, el)
+    return
+  }
+  itemEls.delete(idx)
 }
 
 // reveal
-const visibleSet = reactive(new Set())
-let io
+const visibleSet = reactive(new Set<number>())
+let io: IntersectionObserver | null = null
 
 // active
 const activeIndex = ref(0)
 
 //滚动窗口元素
-let scrollContainer: Element | null | Window = null
+let scrollContainer: HTMLElement | Window = window
 
 // progress 0~1
 const progress = ref(0)
@@ -146,11 +156,45 @@ function scheduleUpdate() {
   })
 }
 
+function findScrollContainer(el: HTMLElement | null) {
+  let current = el?.parentElement ?? null
+
+  while (current) {
+    const style = window.getComputedStyle(current)
+    const overflowY = style.overflowY
+    const isScrollable =
+      overflowY === 'auto' || overflowY === 'scroll' || overflowY === 'overlay'
+
+    if (isScrollable) return current
+    current = current.parentElement
+  }
+
+  return window
+}
+
+function getScrollMetrics() {
+  if (scrollContainer instanceof HTMLElement) {
+    const rect = scrollContainer.getBoundingClientRect()
+    return {
+      viewportTop: rect.top,
+      viewportHeight: rect.height,
+      viewportBottom: rect.bottom,
+    }
+  }
+
+  return {
+    viewportTop: 0,
+    viewportHeight: window.innerHeight,
+    viewportBottom: window.innerHeight,
+  }
+}
+
 function updateActiveAndProgress() {
   const wrap = wrapEl.value
   if (!wrap || itemEls.size === 0) return
 
-  const viewportCenter = window.innerHeight * 0.5
+  const { viewportTop, viewportHeight } = getScrollMetrics()
+  const viewportCenter = viewportTop + viewportHeight * 0.5
 
   // active：离视口中心最近
   let bestIdx = activeIndex.value
@@ -191,8 +235,9 @@ function checkLoadMore() {
   const loadMoreElement = loadMoreEl.value as HTMLElement | undefined
   if (!loadMoreElement) return
 
+  const { viewportBottom } = getScrollMetrics()
   const rect = loadMoreElement.getBoundingClientRect()
-  if (rect.top < window.innerHeight + 500) {
+  if (rect.top < viewportBottom + 500) {
     loadMoreData()
   }
 }
@@ -246,6 +291,39 @@ const axisBaseClass =
 const axisProgClass =
   'bg-[repeating-linear-gradient(to_bottom,rgba(59,130,246,0.75)_0,rgba(59,130,246,0.75)_10px,transparent_10px,transparent_18px)]'
 
+function getItemHref(link: string | undefined | null) {
+  const value = (link || '').trim()
+  if (!value) return ''
+
+  if (/^[a-z][a-z\d+\-.]*:\/\//i.test(value)) return value
+
+  const hasDomain = /^(?:www\.)?[a-z0-9-]+(?:\.[a-z0-9-]+)+(?::\d+)?(?:\/|$|\?)/i.test(value)
+  if (hasDomain) {
+    return `https://${value.replace(/^https?:\/\//i, '')}`
+  }
+
+  const baseOrigin =
+    (typeof window !== 'undefined' && window.location?.origin) ||
+    import.meta.env.VITE_BASE_API_URI ||
+    ''
+
+  try {
+    return new URL(value, baseOrigin).toString()
+  } catch {
+    return ''
+  }
+}
+
+function handleItemClick(link: string | undefined | null) {
+  const href = getItemHref(link)
+  if (!href) return
+  window.open(href, '_blank', 'noopener,noreferrer')
+}
+
+function hasItemLink(link: string | undefined | null) {
+  return Boolean(getItemHref(link))
+}
+
 function cardWrapClass(i) {
   // 手机：统一在右侧（给轴线留出空间）
   // 桌面：左右交替
@@ -255,10 +333,13 @@ function cardWrapClass(i) {
   return 'ml-10 sm:ml-0 sm:col-start-2 sm:justify-self-start'
 }
 
-function cardClass(i, color) {
-  const base = 'rounded-2xl border px-6 py-5 shadow-sm backdrop-blur transition-all duration-200'
+function cardClass(i, color, isClickable = false) {
+  const base =
+    'rounded-2xl border px-6 py-5 text-left shadow-sm backdrop-blur transition-all duration-200'
   const themed = colorMap[color]?.card ?? 'bg-white/70 border-black/10'
-  const normal = 'hover:shadow-md'
+  const normal = isClickable
+    ? 'w-full cursor-pointer hover:-translate-y-0.5 hover:shadow-md focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-sky-200/70'
+    : 'hover:shadow-md'
 
   // active 高亮：轻微放大 + ring（跟色）
   const active =
@@ -272,19 +353,19 @@ function cardClass(i, color) {
 onMounted(async () => {
   document.title = 'milet activities timeline'
   // 找到最近的 overflow-y-auto 容器（可能是父组件或祖先）
-  scrollContainer = document.querySelector('.flex-1.overflow-y-auto') || window
+  scrollContainer = findScrollContainer(wrapEl.value)
 
   // 初始化加载第一页数据
   hasLoadedOnce.value = true
   isLoading.value = true
-  const { data, hasMore } = await getData(1)
-  const lang = global.$lang.lang
+  const { hasMore } = await getData(1)
 
   hasMoreData.value = hasMore
   currentPage.value = 2 // 准备加载第二页
   isLoading.value = false
 
   await nextTick()
+  scrollContainer = findScrollContainer(wrapEl.value)
 
   io = new IntersectionObserver(
     (entries) => {
@@ -308,8 +389,8 @@ onMounted(async () => {
   updateActiveAndProgress()
   if (scrollContainer) {
     scrollContainer.addEventListener('scroll', scheduleUpdate, { passive: true })
-    scrollContainer.addEventListener('resize', scheduleUpdate)
   }
+  window.addEventListener('resize', scheduleUpdate)
 
   seed.value = Math.floor(Math.random() * Object.keys(colorMap).length) + 5
 })
@@ -318,8 +399,8 @@ onBeforeUnmount(() => {
   if (io) io.disconnect()
   if (scrollContainer) {
     scrollContainer.removeEventListener('scroll', scheduleUpdate)
-    scrollContainer.removeEventListener('resize', scheduleUpdate)
   }
+  window.removeEventListener('resize', scheduleUpdate)
   if (rafId) cancelAnimationFrame(rafId)
 })
 
@@ -349,7 +430,7 @@ const loadMoreData = async () => {
   isLoading.value = true
   try {
     const previousCount = items.value.length
-    const { data, hasMore } = await getData(currentPage.value)
+    const { hasMore } = await getData(currentPage.value)
 
     if (hasMore) {
       currentPage.value += 1
@@ -379,5 +460,10 @@ const items = computed<TimeLineResItem[]>(() => {
     ...it,
     color: Object.keys(colorMap)[(index + seed.value) % Object.keys(colorMap).length] || 'blue', // 默认颜色
   }))
+})
+
+watch(items, async () => {
+  await nextTick()
+  scheduleUpdate()
 })
 </script>
