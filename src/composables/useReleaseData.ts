@@ -26,16 +26,17 @@ export function useReleaseData(options: ReleaseDataOptions) {
     try {
       // 接口路径：baseUrl + type (1,2,3)
       const url = `${apiBaseUrl}${options.type}?page=${page}&pageSize=${pageSize}`
-      const response = await axiosInstance.get<{ data: Work[]; total: Number }>(url)
-      const newData = Array.isArray(response.data) ? response.data : response.data.data || []
+      const response = await axiosInstance.get<{ data: Work[]; total: number }>(url)
+      // const newData = Array.isArray(response.data) ? response.data : response.data || []
       // newData.length = 5
       // 如果返回数据少于pageSize，说明没有更多数据
-      if (newData.length <= pageSize) {
-        hasMore.value = false
-      }
+      // if (newData.length <= pageSize) {
+      //   hasMore.value = false
+      // }
+      hasMore.value = response.total > data.value.length + response.data.length
 
       // 追加数据而不是替换
-      data.value = [...data.value, ...newData]
+      data.value = [...data.value, ...response.data]
       currentPage.value = page
     } catch (err) {
       error.value = err instanceof Error ? err.message : 'Failed to fetch data'

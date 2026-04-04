@@ -92,16 +92,6 @@ import {
   watch,
 } from 'vue'
 import axiosInstance from '@/AxiosUtil'
-
-declare global {
-  interface ImportMeta {
-    env: {
-      VITE_URL_API_MILET_TIMELINE_ALL: string
-      VITE_BASE_API_URI?: string
-      [key: string]: string | undefined
-    }
-  }
-}
 const { appContext } = getCurrentInstance()
 const global = appContext.config.globalProperties
 type TimeLineResItem = {

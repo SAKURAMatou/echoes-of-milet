@@ -1,18 +1,29 @@
 import { reactive } from 'vue'
-import { langConfig } from '@/composables/lang.js'
+import { langConfig } from '@/composables/lang'
+
+interface LangState {
+  lang: SupportedLang
+}
+declare module '@vue/runtime-core' {
+  interface ComponentCustomProperties {
+    $getConfigLang: (key: string) => object | string
+    $lang: LangState
+    $toggleLang: (key: SupportedLang) => void
+  }
+}
 
 export default {
-  install(app) {
-    const langState = reactive({
+  install(app: import('vue').App) {
+    const langState = reactive<LangState>({
       lang: getInitialLang(),
     })
 
-    const selectedList = ['zh', 'jp']
+    const selectedList = ['zh', 'jp'] as SupportedLang[]
 
     //获取初始语言设置，默认中文
     function getInitialLang() {
-      const saved = localStorage.getItem('lang')
-      if (saved) return saved
+      const saved = localStorage.getItem('lang') as SupportedLang | null
+      if (saved && selectedList.includes(saved)) return saved
       const browserLang = navigator.language.toLowerCase()
       if (browserLang.includes('zh')) {
         return 'zh'
@@ -28,14 +39,14 @@ export default {
      * @param {*} key
      * @returns
      */
-    function getConfigLang(key) {
+    function getConfigLang(key: string) {
       return langConfig[langState.lang]?.[key] || key
     }
     /**
      * 保存语言设置
      * @param {*} lang
      */
-    function setLang(lang) {
+    function setLang(lang: SupportedLang) {
       if (!selectedList.includes(lang)) {
         return
       }
@@ -45,7 +56,7 @@ export default {
     /**
      * 语言切换事件
      */
-    function toggleLang(key) {
+    function toggleLang(key: SupportedLang) {
       setLang(key)
     }
     // 挂载到全局

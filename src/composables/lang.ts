@@ -70,4 +70,4 @@ export const langConfig = {
       toptip: '置顶相册',
     },
   },
-}
+} as LangConfig
