@@ -8,7 +8,7 @@
     />
     <!-- 背景图片透明化div -->
     <div
-      class="fixed inset-0 min-h-screen bg-[url(/background/bg-milet-2.webp)] bg-cover bg-left opacity-25 pointer-events-none"
+      class="fixed inset-0 min-h-screen bg-[url(/background/bg-milet-home-pre.webp)] bg-cover bg-left opacity-25 pointer-events-none"
     ></div>
     <LanguageSelect class="max-md:hidden" />
     <div class="relative md:h-full">
