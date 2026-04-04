@@ -11,14 +11,12 @@ declare module '@vue/runtime-core' {
     $toggleLang: (key: SupportedLang) => void
   }
 }
-
+const selectedList = ['zh', 'jp'] as SupportedLang[]
 export default {
   install(app: import('vue').App) {
     const langState = reactive<LangState>({
       lang: getInitialLang(),
     })
-
-    const selectedList = ['zh', 'jp'] as SupportedLang[]
 
     //获取初始语言设置，默认中文
     function getInitialLang() {
