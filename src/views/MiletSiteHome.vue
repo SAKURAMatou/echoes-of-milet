@@ -11,7 +11,7 @@
         <div class="relative w-full h-[50vh] md:hidden">
           <!-- 图片：注意 object-position 调整重点 -->
           <img
-            src="/background/bbg-milet-home-pre.webp"
+            src="/background/bg-milet-home-pre.webp"
             class="w-full h-full object-cover object-[80%_20%]"
             alt="milet"
           />
@@ -47,7 +47,7 @@
 
       <img
         class="absolute max-md:hidden top-0 right-0 w-[55%] h-full object-cover object-right [mask-image:linear-gradient(to_right,transparent_0%,black_20%)]"
-        src="/background/bbg-milet-home-pre.webp"
+        src="/background/bg-milet-home-pre.webp"
       />
     </section>
   </div>
