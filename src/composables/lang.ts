@@ -20,10 +20,7 @@ export const langConfig = {
       title3: 'miletの公式サイト',
       title4: 'miletの公式SNS',
     },
-    miletsite: {
-      tips1:
-        'milet公式Insgramのいプロフィールを埋め込みたかったですが、Insgramのプライバシーポリシーの関係でビジネスアカウント（本人）でないと対応できないようで、諦めました。',
-    },
+
     miletPic: {
       tip: '当サイトに掲載している画像の一部は、インタネットやMVから引用しています。FCの限定画像についてはできるだけ掲載しないように気を付けていますが、もし見落としがあったらごめんなさい！！',
     },
@@ -56,10 +53,7 @@ export const langConfig = {
       title3: 'milet官方网站',
       title4: 'milet官方SNS',
     },
-    miletsite: {
-      tips1:
-        '原本想要添加milet官方INS的主页，但是INS的隐私策略问题，非企业账号（本人账号）太困难了，放弃。',
-    },
+
     miletPic: {
       tip: '提示：本站图片部分来自网络、MV；尽可能避免fc图片外泄，可能会有漏网之鱼',
     },
