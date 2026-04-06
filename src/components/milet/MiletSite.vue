@@ -91,7 +91,7 @@ const twitterWidgets = computed(() => {
 })
 
 const instagramPostUrl = computed(() => {
-  return props.miletSiteData?.instagramPost || fallbackInstagramPost
+  return props.miletSiteData?.insPost || fallbackInstagramPost
 })
 
 const instagramWidget = computed(() => {
