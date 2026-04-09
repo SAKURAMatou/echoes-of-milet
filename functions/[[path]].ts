@@ -140,12 +140,15 @@ export const onRequest = async (context: FunctionContext) => {
       },
     })
   } catch (error) {
+    const errorText = error instanceof Error ? error.stack || error.message : String(error)
     console.error('pages function render failed', {
       url: request.url,
-      error: error instanceof Error ? error.stack || error.message : String(error),
+      error: errorText,
     })
 
-    return new Response('Internal Server Error', {
+    const isPreviewHost = new URL(request.url).hostname.endsWith('.pages.dev')
+
+    return new Response(isPreviewHost ? errorText : 'Internal Server Error', {
       status: 500,
       headers: {
         'content-type': 'text/plain; charset=utf-8',
