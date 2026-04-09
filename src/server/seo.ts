@@ -6,7 +6,7 @@ interface SeoMeta {
   type?: 'website' | 'article'
 }
 
-const siteUrl = 'https://echoes-of-milet.pages.dev'
+const siteUrl = 'https://miles-dml.org'
 
 const seoMap: Record<string, SeoMeta> = {
   home: {
@@ -18,14 +18,16 @@ const seoMap: Record<string, SeoMeta> = {
   },
   milet: {
     title: 'Echoes of milet | Home',
-    description: 'Server-rendered milet home content with intro cards, timeline highlights, and official links.',
+    description:
+      'Server-rendered milet home content with intro cards, timeline highlights, and official links.',
     image: '/milet-img/milet-fc-og-img.png',
     canonicalPath: '/milet',
     type: 'website',
   },
   about: {
     title: 'About Me | Echoes of milet',
-    description: 'About the site author, the story behind the project, and a feedback form for fellow fans.',
+    description:
+      'About the site author, the story behind the project, and a feedback form for fellow fans.',
     image: '/milet-img/milet-site-og-img.jpg',
     canonicalPath: '/milet/about',
     type: 'website',
