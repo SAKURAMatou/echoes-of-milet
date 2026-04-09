@@ -24,7 +24,7 @@ function injectHtml(html, payload) {
 }
 
 await mkdir(clientDist, { recursive: true })
-await writeFile(path.join(clientDist, '__ssr-template.html'), template)
+await writeFile(path.join(clientDist, 'ssr-template.html'), template)
 
 for (const route of routes) {
   const rendered = await render(route)

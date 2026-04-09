@@ -154,7 +154,7 @@ async function resolveStaticFile(urlPath) {
   return null
 }
 
-const template = await readFile(path.join(root, 'dist', 'client', '__ssr-template.html'), 'utf-8')
+const template = await readFile(path.join(root, 'dist', 'client', 'ssr-template.html'), 'utf-8')
 const renderModuleUrl = pathToFileURL(path.join(root, 'dist', 'server', 'entry-server.js')).href
 const { render } = await import(renderModuleUrl)
 

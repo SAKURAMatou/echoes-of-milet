@@ -86,9 +86,18 @@ async function proxyApiRequest(request: Request, env: PagesFunctionEnv) {
 }
 
 async function getTemplate(request: Request, env: PagesFunctionEnv) {
-  const templateRequest = new Request(new URL('/__ssr-template.html', request.url).toString(), request)
+  const templateRequest = new Request(new URL('/ssr-template.html', request.url).toString(), request)
   const response = await env.ASSETS.fetch(templateRequest)
-  return response.text()
+  if (!response.ok) {
+    throw new Error(`SSR template fetch failed: ${response.status} ${response.statusText}`)
+  }
+
+  const template = await response.text()
+  if (!template.includes('<!--app-html-->')) {
+    throw new Error('SSR template is missing <!--app-html--> placeholder')
+  }
+
+  return template
 }
 
 function createStaticAssetRequest(request: Request, pathname: string) {
