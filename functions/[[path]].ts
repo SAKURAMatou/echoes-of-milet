@@ -102,30 +102,45 @@ function createStaticAssetRequest(request: Request, pathname: string) {
 
 export const onRequest = async (context: FunctionContext) => {
   const { request, env } = context
-  const pathname = normalizeUrl(new URL(request.url).pathname)
 
-  if (pathname.startsWith('/api/')) {
-    return proxyApiRequest(request, env)
-  }
+  try {
+    const pathname = normalizeUrl(new URL(request.url).pathname)
 
-  if (isAssetRequest(pathname) || isSsgRoute(pathname)) {
-    const staticAssetResponse = await env.ASSETS.fetch(createStaticAssetRequest(request, pathname))
-    if (staticAssetResponse.ok) {
-      return staticAssetResponse
+    if (pathname.startsWith('/api/')) {
+      return proxyApiRequest(request, env)
     }
+
+    if (isAssetRequest(pathname) || isSsgRoute(pathname)) {
+      const staticAssetResponse = await env.ASSETS.fetch(createStaticAssetRequest(request, pathname))
+      if (staticAssetResponse.ok) {
+        return staticAssetResponse
+      }
+    }
+
+    const { render } = await import('../dist/server/entry-server.js')
+    const rendered = await render(pathname, {
+      headers: Object.fromEntries(request.headers.entries()),
+    })
+    const template = await getTemplate(request, env)
+    const html = injectHtml(template, rendered)
+
+    return new Response(html, {
+      status: rendered.status || 200,
+      headers: {
+        'content-type': 'text/html; charset=utf-8',
+      },
+    })
+  } catch (error) {
+    console.error('pages function render failed', {
+      url: request.url,
+      error: error instanceof Error ? error.stack || error.message : String(error),
+    })
+
+    return new Response('Internal Server Error', {
+      status: 500,
+      headers: {
+        'content-type': 'text/plain; charset=utf-8',
+      },
+    })
   }
-
-  const { render } = await import('../dist/server/entry-server.js')
-  const rendered = await render(pathname, {
-    headers: Object.fromEntries(request.headers.entries()),
-  })
-  const template = await getTemplate(request, env)
-  const html = injectHtml(template, rendered)
-
-  return new Response(html, {
-    status: rendered.status || 200,
-    headers: {
-      'content-type': 'text/html; charset=utf-8',
-    },
-  })
 }
