@@ -50,7 +50,7 @@ function injectHtml(
 
 function getRequestOrigin(request: Request, env: PagesFunctionEnv) {
   const url = new URL(request.url)
-  return url.origin
+  return apiProxyConfig.origins.production.site || url.origin
 }
 
 function buildProxyHeaders(request: Request, env: PagesFunctionEnv) {
