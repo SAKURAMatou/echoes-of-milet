@@ -18,8 +18,6 @@ Use this for daily component and route development with Vite HMR.
 
 ## Local SSR verification
 
-This project now includes a Pages Functions entry at [`functions/[[path]].ts`](./functions/[[path]].ts).
-
 Before deployment, verify SSR/SSG locally with the built client/server bundles:
 
 ```sh
@@ -83,4 +81,3 @@ Route behavior:
 - `dist/client/__ssr-template.html` is kept as the runtime template for SSR responses.
 - `functions/[[path]].ts` handles both dynamic SSR and `/api/*` proxying on Cloudflare Pages.
 - The SSR runtime path is now unified around `src/server/render.ts` and Cloudflare Pages Functions.
-- `wrangler.toml` is retained only for local Cloudflare Pages SSR verification, not for production deployment.
