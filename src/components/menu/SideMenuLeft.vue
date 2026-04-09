@@ -7,28 +7,23 @@
     </div>
   </aside>
 
-  <teleport v-if="isClient" to="body">
-    <transition name="fade">
-      <div v-if="menuOpen" class="fixed inset-0 z-40 md:hidden" @click="emit('closeMenu')">
-        <div class="absolute inset-0 bg-slate-900/30 backdrop-blur-sm"></div>
-      </div>
-    </transition>
+  <teleport v-if="isClient && menuOpen" to="body">
+    <div class="fixed inset-0 z-40 md:hidden" @click="emit('closeMenu')">
+      <div class="absolute inset-0 bg-slate-900/30 backdrop-blur-sm"></div>
+    </div>
 
-    <transition name="drawer">
-      <aside
-        v-if="menuOpen"
-        class="md:hidden fixed left-0 top-0 z-50 h-dvh w-[310px]"
-        role="dialog"
-        aria-modal="true"
-        aria-label="Mobile menu"
+    <aside
+      class="md:hidden fixed left-0 top-0 z-50 h-dvh w-[310px]"
+      role="dialog"
+      aria-modal="true"
+      aria-label="Mobile menu"
+    >
+      <div
+        class="scrollbar-none h-full overflow-y-auto border-r border-white/30 bg-[linear-gradient(to_bottom_right,white,#ebf8ff,#bee3f8)] backdrop-blur-xl"
       >
-        <div
-          class="scrollbar-none h-full overflow-y-auto border-r border-white/30 bg-[linear-gradient(to_bottom_right,white,#ebf8ff,#bee3f8)] backdrop-blur-xl"
-        >
-          <SideMenuItems class="pl-6 pr-6 py-6" @closeMenuItem="emit('closeMenu')" />
-        </div>
-      </aside>
-    </transition>
+        <SideMenuItems class="pl-6 pr-6 py-6" @closeMenuItem="emit('closeMenu')" />
+      </div>
+    </aside>
   </teleport>
 </template>
 

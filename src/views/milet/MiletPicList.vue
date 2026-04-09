@@ -122,8 +122,7 @@ const loadPage = async () => {
   // const resData = res.data
 
   if (resData.code === 200) {
-    // imgList.value = resData.data
-    const resImgList = resData.data
+    const resImgList = Array.isArray(resData.data) ? resData.data : []
     totalPages.value = resData.maxPage
     resImgList.forEach((img) => {
       img.link =

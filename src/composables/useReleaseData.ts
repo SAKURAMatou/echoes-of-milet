@@ -1,9 +1,10 @@
 import { ref, onMounted, onBeforeUnmount } from 'vue'
+
 import axiosInstance from '@/AxiosUtil'
+
 import type { Work } from './releaseType'
 
 export interface ReleaseDataOptions {
-  // 类型: 1 = ALBUM, 2 = EP/SINGLE, 3 = LIVE
   type: 1 | 2 | 3
   elementId: string
 }
@@ -23,20 +24,14 @@ export function useReleaseData(options: ReleaseDataOptions) {
   const fetchData = async (page: number) => {
     loading.value = true
     error.value = null
+
     try {
-      // 接口路径：baseUrl + type (1,2,3)
       const url = `${apiBaseUrl}${options.type}?page=${page}&pageSize=${pageSize}`
       const response = await axiosInstance.get<{ data: Work[]; total: number }>(url)
-      // const newData = Array.isArray(response.data) ? response.data : response.data || []
-      // newData.length = 5
-      // 如果返回数据少于pageSize，说明没有更多数据
-      // if (newData.length <= pageSize) {
-      //   hasMore.value = false
-      // }
-      hasMore.value = response.total > data.value.length + response.data.length
+      const newData = Array.isArray(response.data) ? response.data : []
 
-      // 追加数据而不是替换
-      data.value = [...data.value, ...response.data]
+      hasMore.value = response.total > data.value.length + newData.length
+      data.value = [...data.value, ...newData]
       currentPage.value = page
     } catch (err) {
       error.value = err instanceof Error ? err.message : 'Failed to fetch data'
@@ -59,7 +54,6 @@ export function useReleaseData(options: ReleaseDataOptions) {
     observer = new IntersectionObserver(
       (entries) => {
         entries.forEach((entry) => {
-          // 当元素进入视口且还未初始化时，加载第一页数据
           if (entry.isIntersecting && !isInitialized.value) {
             isInitialized.value = true
             fetchData(1)
@@ -67,7 +61,7 @@ export function useReleaseData(options: ReleaseDataOptions) {
         })
       },
       {
-        rootMargin: '100px', // 提前100px开始加载
+        rootMargin: '100px',
         threshold: 0.01,
       },
     )

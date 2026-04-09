@@ -4,19 +4,15 @@ import { fileURLToPath } from 'node:url'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const root = path.resolve(__dirname, '..')
-const mode = process.argv[2] || 'local'
-const port = process.env.PORT || '8788'
-const npxCommand = process.platform === 'win32' ? 'npx.cmd' : 'npx'
+const port = process.env.PORT || '5173'
 const env = {
   ...process.env,
+  API_ORIGIN: process.env.API_ORIGIN || 'http://localhost:8787',
+  PUBLIC_SITE_ORIGIN: process.env.PUBLIC_SITE_ORIGIN || `http://localhost:${port}`,
 }
 
-if (mode === 'local') {
-  env.API_ORIGIN = env.API_ORIGIN || 'http://localhost:8787'
-  env.PUBLIC_SITE_ORIGIN = env.PUBLIC_SITE_ORIGIN || `http://localhost:${port}`
-  env.VITE_BASE_API_URI = env.VITE_BASE_API_URI || env.API_ORIGIN
-  env.VITE_PUBLIC_SITE_ORIGIN = env.VITE_PUBLIC_SITE_ORIGIN || env.PUBLIC_SITE_ORIGIN
-}
+env.VITE_BASE_API_URI = env.VITE_BASE_API_URI || env.API_ORIGIN
+env.VITE_PUBLIC_SITE_ORIGIN = env.VITE_PUBLIC_SITE_ORIGIN || env.PUBLIC_SITE_ORIGIN
 
 const args = [
   'wrangler',
@@ -25,17 +21,24 @@ const args = [
   'dist/client',
   '--compatibility-date',
   '2026-04-09',
-  '--functions',
-  'functions',
+  '--ip',
+  '127.0.0.1',
   '--port',
   port,
 ]
 
-const child = spawn(npxCommand, args, {
-  cwd: root,
-  stdio: 'inherit',
-  env,
-})
+const child =
+  process.platform === 'win32'
+    ? spawn('cmd.exe', ['/c', 'npx', ...args], {
+        cwd: root,
+        stdio: 'inherit',
+        env,
+      })
+    : spawn('npx', args, {
+        cwd: root,
+        stdio: 'inherit',
+        env,
+      })
 
 child.on('exit', (code) => {
   process.exit(code ?? 0)

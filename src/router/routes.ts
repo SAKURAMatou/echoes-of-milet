@@ -1,4 +1,5 @@
 import type { RouteRecordRaw } from 'vue-router'
+import { getConfiguredRenderMode } from '@/server/render-config'
 
 declare module 'vue-router' {
   interface RouteMeta {
@@ -11,7 +12,7 @@ export const routes: RouteRecordRaw[] = [
   {
     path: '/',
     name: 'home',
-    meta: { renderMode: 'ssg', seoKey: 'home' },
+    meta: { renderMode: getConfiguredRenderMode('/'), seoKey: 'home' },
     component: () => import('@/views/MiletSiteHome.vue'),
   },
   {
@@ -21,7 +22,7 @@ export const routes: RouteRecordRaw[] = [
       {
         path: '',
         name: 'milet',
-        meta: { renderMode: 'ssr', seoKey: 'milet' },
+        meta: { renderMode: getConfiguredRenderMode('/milet'), seoKey: 'milet' },
         component: () => import('@/views/milet/MiletHomeView.vue'),
       },
       {
@@ -51,7 +52,7 @@ export const routes: RouteRecordRaw[] = [
       {
         path: 'about',
         name: 'aboutMe',
-        meta: { renderMode: 'ssg', seoKey: 'about' },
+        meta: { renderMode: getConfiguredRenderMode('/milet/about'), seoKey: 'about' },
         component: () => import('@/views/AboutMeView.vue'),
       },
       { path: 'picalbum', name: 'picalbum', redirect: '/milet/galleryList' },

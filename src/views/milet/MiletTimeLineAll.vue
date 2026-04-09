@@ -152,8 +152,7 @@ function findScrollContainer(el: HTMLElement | null) {
   while (current) {
     const style = window.getComputedStyle(current)
     const overflowY = style.overflowY
-    const isScrollable =
-      overflowY === 'auto' || overflowY === 'scroll' || overflowY === 'overlay'
+    const isScrollable = overflowY === 'auto' || overflowY === 'scroll' || overflowY === 'overlay'
 
     if (isScrollable) return current
     current = current.parentElement
@@ -382,7 +381,7 @@ onMounted(async () => {
   }
   window.addEventListener('resize', scheduleUpdate)
 
-  seed.value = Math.floor(Math.random() * Object.keys(colorMap).length) + 5
+  seed.value = 0
 })
 
 onBeforeUnmount(() => {

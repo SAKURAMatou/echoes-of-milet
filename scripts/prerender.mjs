@@ -1,13 +1,14 @@
 import { mkdir, readFile, writeFile } from 'node:fs/promises'
 import path from 'node:path'
 import { fileURLToPath, pathToFileURL } from 'node:url'
+import renderConfig from '../render.config.json' with { type: 'json' }
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const root = path.resolve(__dirname, '..')
 const clientDist = path.join(root, 'dist', 'client')
 const serverEntryUrl = pathToFileURL(path.join(root, 'dist', 'server', 'entry-server.js')).href
 
-const routes = ['/', '/milet/about']
+const routes = renderConfig.ssgRoutes
 let template = await readFile(path.join(clientDist, 'index.html'), 'utf-8')
 const { render } = await import(serverEntryUrl)
 

@@ -65,7 +65,7 @@
 </template>
 
 <script setup>
-import { computed, nextTick, onMounted, ref } from 'vue'
+import { computed, nextTick, onMounted, ref, watch } from 'vue'
 
 const insContainer = ref(null)
 const twitterContainer = ref(null)
@@ -80,6 +80,8 @@ const props = defineProps({
 const twScriptLink = 'https://platform.twitter.com/widgets.js'
 const insScriptLink = 'https://www.instagram.com/embed.js'
 const fallbackInstagramPost = 'https://www.instagram.com/p/DWgab3aCYqi/'
+let twitterScriptPromise = null
+let instagramScriptPromise = null
 
 const twitterWidgets = computed(() => {
   return `<blockquote class="twitter-tweet">
@@ -114,23 +116,74 @@ const instagramWidget = computed(() => {
   `
 })
 
-function loadTwitterEmbed() {
-  if (!twitterContainer.value) return
+function ensureTwitterScript() {
+  if (window.twttr?.widgets) {
+    return Promise.resolve(window.twttr)
+  }
+
+  if (twitterScriptPromise) {
+    return twitterScriptPromise
+  }
+
+  twitterScriptPromise = new Promise((resolve, reject) => {
+    const existedScript = document.querySelector(`script[src="${twScriptLink}"]`)
+    if (existedScript) {
+      existedScript.addEventListener('load', () => resolve(window.twttr), { once: true })
+      existedScript.addEventListener('error', reject, { once: true })
+      return
+    }
+
+    const twitterScript = document.createElement('script')
+    twitterScript.src = twScriptLink
+    twitterScript.async = true
+    twitterScript.onload = () => resolve(window.twttr)
+    twitterScript.onerror = reject
+    document.body.appendChild(twitterScript)
+  })
+
+  return twitterScriptPromise
+}
+
+function ensureInstagramScript() {
+  if (window.instgrm?.Embeds) {
+    return Promise.resolve(window.instgrm)
+  }
+
+  if (instagramScriptPromise) {
+    return instagramScriptPromise
+  }
+
+  instagramScriptPromise = new Promise((resolve, reject) => {
+    const existedScript = document.querySelector(`script[src="${insScriptLink}"]`)
+    if (existedScript) {
+      existedScript.addEventListener('load', () => resolve(window.instgrm), { once: true })
+      existedScript.addEventListener('error', reject, { once: true })
+      return
+    }
+
+    const insScript = document.createElement('script')
+    insScript.src = insScriptLink
+    insScript.async = true
+    insScript.onload = () => resolve(window.instgrm)
+    insScript.onerror = reject
+    document.body.appendChild(insScript)
+  })
+
+  return instagramScriptPromise
+}
+
+async function loadTwitterEmbed() {
+  if (!twitterContainer.value || !props.miletSiteData?.twitterPost) return
 
   twitterContainer.value.innerHTML = twitterWidgets.value
+  await nextTick()
 
-  if (window.twttr?.widgets) {
-    window.twttr.widgets.load(twitterContainer.value)
-    return
+  try {
+    const api = await ensureTwitterScript()
+    api?.widgets?.load(twitterContainer.value)
+  } catch (error) {
+    console.error('twitter embed load failed', error)
   }
-
-  const twitterScript = document.createElement('script')
-  twitterScript.src = twScriptLink
-  twitterScript.async = true
-  twitterScript.onload = () => {
-    window.twttr?.widgets?.load(twitterContainer.value)
-  }
-  document.body.appendChild(twitterScript)
 }
 
 async function loadInstagramEmbed() {
@@ -139,34 +192,28 @@ async function loadInstagramEmbed() {
   insContainer.value.innerHTML = instagramWidget.value
   await nextTick()
 
-  if (window.instgrm?.Embeds) {
-    window.instgrm.Embeds.process()
-    return
+  try {
+    const api = await ensureInstagramScript()
+    api?.Embeds?.process()
+  } catch (error) {
+    console.error('instagram embed load failed', error)
   }
+}
 
-  const existedScript = document.querySelector(`script[src="${insScriptLink}"]`)
-  if (existedScript) {
-    existedScript.addEventListener(
-      'load',
-      () => {
-        window.instgrm?.Embeds?.process()
-      },
-      { once: true },
-    )
-    return
-  }
-
-  const insScript = document.createElement('script')
-  insScript.src = insScriptLink
-  insScript.async = true
-  insScript.onload = () => {
-    window.instgrm?.Embeds?.process()
-  }
-  document.body.appendChild(insScript)
+async function initializeEmbeds() {
+  await nextTick()
+  loadTwitterEmbed()
+  loadInstagramEmbed()
 }
 
 onMounted(() => {
-  loadTwitterEmbed()
-  loadInstagramEmbed()
+  initializeEmbeds()
 })
+
+watch(
+  () => [props.miletSiteData?.twitterPost, props.miletSiteData?.insPost],
+  () => {
+    initializeEmbeds()
+  },
+)
 </script>

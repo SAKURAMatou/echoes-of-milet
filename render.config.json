@@ -1,0 +1,8 @@
+{
+  "ssgRoutes": ["/", "/milet/about"],
+  "renderModeByPath": {
+    "/": "ssg",
+    "/milet": "ssr",
+    "/milet/about": "ssg"
+  }
+}

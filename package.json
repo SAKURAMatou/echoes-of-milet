@@ -5,16 +5,12 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "dev:ssr": "node scripts/dev-ssr.mjs",
     "build": "vite build",
     "build:client": "vite build --outDir dist/client --ssrManifest",
     "build:server": "vite build --ssr src/entry-server.ts --outDir dist/server",
     "build:ssr": "npm run build:client && npm run build:server && node scripts/prerender.mjs",
     "preview": "vite preview",
-    "preview:ssr": "npm run build:ssr && node scripts/run-server.mjs production",
-    "preview:ssr:local": "npm run build:ssr && node scripts/run-server.mjs preview-local",
-    "preview:pages": "npm run build:ssr && node scripts/run-pages-dev.mjs production",
-    "preview:pages:local": "npm run build:ssr && node scripts/run-pages-dev.mjs local",
+    "verify:ssr:local": "npm run build:ssr && node scripts/verify-ssr-local.mjs",
     "type-check": "vue-tsc --noEmit -p tsconfig.json",
     "format": "prettier --write src/"
   },

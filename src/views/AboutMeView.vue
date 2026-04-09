@@ -172,7 +172,7 @@
               <p class="text-sm font-medium text-slate-700">{{ copy.form.turnstileTitle }}</p>
               <p class="mt-1 text-sm leading-6 text-slate-500">{{ copy.form.turnstileDesc }}</p>
               <div
-                v-if="turnstileEnabled"
+                v-if="turnstileEnabled && isClientReady"
                 ref="turnstileRef"
                 class="mt-4 min-h-[70px] rounded-2xl border border-dashed border-sky-200 bg-white px-3 py-2"
               ></div>
@@ -219,7 +219,7 @@
       </div>
     </section>
 
-    <teleport to="body">
+    <teleport v-if="isClientReady" to="body">
       <transition name="fade">
         <div
           v-if="showConfirm"
@@ -281,7 +281,7 @@
       </transition>
     </teleport>
 
-    <teleport to="body">
+    <teleport v-if="isClientReady" to="body">
       <transition name="toast">
         <div
           v-if="toast.visible"
@@ -296,7 +296,7 @@
 </template>
 
 <script setup>
-import { computed, getCurrentInstance, onBeforeUnmount, onMounted, reactive, ref } from 'vue'
+import { computed, getCurrentInstance, nextTick, onBeforeUnmount, onMounted, reactive, ref, watch } from 'vue'
 
 import axiosInstance from '@/AxiosUtil'
 import { ABOUT_COPY } from '@/composables/AboutMedata'
@@ -327,6 +327,7 @@ const showMessageOwner = ref(true)
 const turnstileRef = ref(null)
 const showConfirm = ref(false)
 const isSubmitting = ref(false)
+const isClientReady = ref(false)
 const turnstileToken = ref('')
 const widgetId = ref(null)
 const toastTimer = ref(null)
@@ -560,9 +561,22 @@ async function renderTurnstile() {
 }
 
 onMounted(() => {
+  isClientReady.value = true
   document.title = 'About Me - For milet, for miles'
-  renderTurnstile()
 })
+
+watch(
+  [isClientReady, turnstileRef],
+  async ([clientReady, container]) => {
+    if (!clientReady || !container) {
+      return
+    }
+
+    await nextTick()
+    renderTurnstile()
+  },
+  { flush: 'post' },
+)
 
 onBeforeUnmount(() => {
   if (toastTimer.value) {

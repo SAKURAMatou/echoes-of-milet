@@ -91,6 +91,15 @@ async function getTemplate(request: Request, env: PagesFunctionEnv) {
   return response.text()
 }
 
+function createStaticAssetRequest(request: Request, pathname: string) {
+  if (isAssetRequest(pathname)) {
+    return request
+  }
+
+  const assetPath = pathname === '/' ? '/index.html' : `${pathname}/index.html`
+  return new Request(new URL(assetPath, request.url).toString(), request)
+}
+
 export const onRequest = async (context: FunctionContext) => {
   const { request, env } = context
   const pathname = normalizeUrl(new URL(request.url).pathname)
@@ -100,7 +109,10 @@ export const onRequest = async (context: FunctionContext) => {
   }
 
   if (isAssetRequest(pathname) || isSsgRoute(pathname)) {
-    return env.ASSETS.fetch(request)
+    const staticAssetResponse = await env.ASSETS.fetch(createStaticAssetRequest(request, pathname))
+    if (staticAssetResponse.ok) {
+      return staticAssetResponse
+    }
   }
 
   const { render } = await import('../dist/server/entry-server.js')

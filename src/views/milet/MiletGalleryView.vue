@@ -229,7 +229,7 @@ const loadAlbums = async (istop, page) => {
     )
 
     if (response.code === 200) {
-      const albums = response.data || []
+      const albums = Array.isArray(response.data) ? response.data : []
 
       if (istop === 1) {
         //置顶相册 缂傚倸鍊搁崰姘跺闯閿濆违濠电姴娲﹂崕搴ｇ磼鐎ｎ亞浠㈤柡鍌楀亾

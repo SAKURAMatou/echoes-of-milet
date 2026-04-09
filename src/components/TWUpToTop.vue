@@ -1,6 +1,7 @@
 <template>
   <div class="relative">
     <button
+      v-if="isClientReady"
       v-show="isShow"
       :style="{ opacity: opacityValue }"
       @click="scrollToTop"
@@ -23,6 +24,7 @@ import { ref, onMounted, onUnmounted } from 'vue'
 
 const isShow = ref(false)
 const opacityValue = ref(0)
+const isClientReady = ref(false)
 let scrollElement = null
 
 const findScrollElement = () => {
@@ -56,6 +58,7 @@ const handleScroll = () => {
 }
 
 onMounted(() => {
+  isClientReady.value = true
   scrollElement = findScrollElement()
   if (scrollElement) {
     scrollElement.addEventListener('scroll', handleScroll)
