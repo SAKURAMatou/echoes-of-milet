@@ -37,7 +37,10 @@ function isSsgRoute(url = '/') {
   return ssgRoutes.has(normalizeUrl(url))
 }
 
-function injectHtml(template: string, payload: { htmlLang: string; headTags: string; appHtml: string; initialState: unknown }) {
+function injectHtml(
+  template: string,
+  payload: { htmlLang: string; headTags: string; appHtml: string; initialState: unknown },
+) {
   return template
     .replace('__HTML_LANG__', payload.htmlLang)
     .replace('<!--app-head-->', payload.headTags)
@@ -56,7 +59,7 @@ function getRequestOrigin(request: Request, env: PagesFunctionEnv) {
 function buildProxyHeaders(request: Request, env: PagesFunctionEnv) {
   const requestOrigin = getRequestOrigin(request, env)
   const headers = new Headers(request.headers)
-  headers.set('origin', headers.get('origin') || requestOrigin)
+  headers.set('origin', requestOrigin || headers.get('origin'))
   headers.set('referer', headers.get('referer') || `${requestOrigin}/`)
   headers.set('accept-encoding', 'identity')
   headers.set('x-forwarded-host', new URL(request.url).host)
@@ -67,7 +70,9 @@ function buildProxyHeaders(request: Request, env: PagesFunctionEnv) {
 
 function stripProxyResponseHeaders(headers: Headers) {
   const cloned = new Headers(headers)
-  ;['content-encoding', 'content-length', 'transfer-encoding', 'connection'].forEach((name) => cloned.delete(name))
+  ;['content-encoding', 'content-length', 'transfer-encoding', 'connection'].forEach((name) =>
+    cloned.delete(name),
+  )
   return cloned
 }
 
@@ -152,8 +157,17 @@ export const onRequest = async (context: FunctionContext) => {
       return proxyApiRequest(request, env)
     }
 
-    if (isAssetRequest(pathname) || isSsgRoute(pathname)) {
-      const staticAssetResponse = await env.ASSETS.fetch(createStaticAssetRequest(request, pathname))
+    if (isAssetRequest(pathname)) {
+      const staticAssetResponse = await env.ASSETS.fetch(
+        createStaticAssetRequest(request, pathname),
+      )
+      return staticAssetResponse
+    }
+
+    if (isSsgRoute(pathname)) {
+      const staticAssetResponse = await env.ASSETS.fetch(
+        createStaticAssetRequest(request, pathname),
+      )
       if (staticAssetResponse.ok) {
         return staticAssetResponse
       }
