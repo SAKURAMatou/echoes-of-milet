@@ -86,10 +86,28 @@ async function proxyApiRequest(request: Request, env: PagesFunctionEnv) {
 }
 
 async function getTemplate(request: Request, env: PagesFunctionEnv) {
-  const templateRequest = new Request(new URL('/ssr-template.html', request.url).toString(), request)
-  const response = await env.ASSETS.fetch(templateRequest)
-  if (!response.ok) {
-    throw new Error(`SSR template fetch failed: ${response.status} ${response.statusText}`)
+  let templateUrl = new URL('/ssr-template.html', request.url)
+  let response: Response | null = null
+
+  for (let i = 0; i < 4; i += 1) {
+    const templateRequest = new Request(templateUrl.toString(), request)
+    response = await env.ASSETS.fetch(templateRequest)
+
+    if (response.status >= 300 && response.status < 400) {
+      const location = response.headers.get('location')
+      if (!location) {
+        throw new Error(`SSR template redirect is missing location header: ${response.status}`)
+      }
+
+      templateUrl = new URL(location, templateUrl)
+      continue
+    }
+
+    break
+  }
+
+  if (!response || !response.ok) {
+    throw new Error(`SSR template fetch failed: ${response?.status} ${response?.statusText}`)
   }
 
   const template = await response.text()
