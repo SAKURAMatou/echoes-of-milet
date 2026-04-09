@@ -6,15 +6,14 @@
       <SideMenuItems class="pl-6 pr-6 py-6" />
     </div>
   </aside>
-  <!-- 手机版画面：抽屉弹出+遮罩 -->
-  <teleport to="body">
+
+  <teleport v-if="isClient" to="body">
     <transition name="fade">
       <div v-if="menuOpen" class="fixed inset-0 z-40 md:hidden" @click="emit('closeMenu')">
-        <!-- 背景遮罩：暗色+模糊 -->
         <div class="absolute inset-0 bg-slate-900/30 backdrop-blur-sm"></div>
       </div>
     </transition>
-    <!-- 抽屉本体：从左滑出，区域毛玻璃 -->
+
     <transition name="drawer">
       <aside
         v-if="menuOpen"
@@ -34,8 +33,11 @@
 </template>
 
 <script setup lang="ts">
+import { onMounted, ref } from 'vue'
+
 import SideMenuItems from './SideMenuItems.vue'
-const props = defineProps({
+
+defineProps({
   menuOpen: {
     type: Boolean,
     required: true,
@@ -43,4 +45,9 @@ const props = defineProps({
 })
 
 const emit = defineEmits(['closeMenu'])
+const isClient = ref(false)
+
+onMounted(() => {
+  isClient.value = true
+})
 </script>

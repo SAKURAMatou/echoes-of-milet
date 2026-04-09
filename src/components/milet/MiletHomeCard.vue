@@ -42,21 +42,14 @@
   </div>
 </template>
 <script setup>
-import { ref, onMounted } from 'vue'
 import { initImgUrl } from '@/composables/ImgUrlUtil'
 
-const seed = ref(0)
-
-//组件展示的数据从父组传值
+//缁勪欢灞曠ず鐨勬暟鎹粠鐖剁粍浼犲€?
 const props = defineProps({
   cardDataL: {
     type: Array,
     default: [],
   },
-})
-
-onMounted(() => {
-  seed.value = Math.floor(Math.random() * 6) + 5
 })
 
 const cardClassList = [
@@ -69,7 +62,7 @@ const cardClassList = [
 ]
 
 function getCardClass(idx) {
-  return cardClassList[(idx + seed.value) % cardClassList.length]
+  return cardClassList[idx % cardClassList.length]
 }
 
 const cardClick = (event) => {

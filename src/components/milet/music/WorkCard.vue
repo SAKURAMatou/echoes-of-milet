@@ -133,8 +133,8 @@ const summaryText = computed(() => {
 async function openTrack(t: Track) {
   if (!t.lyric) {
     const detail = await axiosInstance.get(import.meta.env.VITE_URL_API_MILET_RELEASE_DETAIL + t.showId)
-    if (detail.data && Object.keys(detail.data).length > 0) {
-      const d = detail.data as Track
+    if (detail && Object.keys(detail).length > 0) {
+      const d = detail as Track
       t.lyric = d.lyric
       t.arrangers = d.arrangers
       t.composers = d.composers

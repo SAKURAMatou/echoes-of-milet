@@ -8,21 +8,43 @@ interface CustomAxiosInstance extends AxiosInstance {
   put<T = any>(url: string, data?: any, config?: AxiosRequestConfig): Promise<T>
   delete<T = any>(url: string, config?: AxiosRequestConfig): Promise<T>
 }
+
+function resolveBaseURL() {
+  if (import.meta.env.SSR) {
+    return import.meta.env.VITE_BASE_API_URI || ''
+  }
+
+  return ''
+}
+
+function resolveSsrHeaders() {
+  if (!import.meta.env.SSR) {
+    return undefined
+  }
+
+  const siteOrigin = import.meta.env.VITE_PUBLIC_SITE_ORIGIN || 'http://localhost:5173'
+
+  return {
+    Origin: siteOrigin,
+    Referer: `${siteOrigin}/`,
+  }
+}
+
 const axiosInstance = axios.create({
-  baseURL: import.meta.env.VITE_BASE_API_URI,
+  baseURL: resolveBaseURL(),
   timeout: 5000,
+  headers: resolveSsrHeaders(),
 }) as CustomAxiosInstance
 
 axiosInstance.interceptors.response.use(
   (response) => {
     const status = response.status
     if (status >= 200 && status < 300) {
-      // 请求成功，返回数据（可以进一步处理 response.data）
       return response.data
-    } else {
-      console.error(response)
-      return Promise.reject(new Error(`HTTP 状态错误：${status}`))
     }
+
+    console.error(response)
+    return Promise.reject(new Error(`HTTP status error: ${status}`))
   },
   (error) => {
     console.error(error)

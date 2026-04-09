@@ -28,6 +28,8 @@ coverage
 *.sw?
 
 *.tsbuildinfo
+.ssr-runtime/
+.dev.vars
 
 test1.html
 test2.html

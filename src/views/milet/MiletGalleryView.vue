@@ -229,13 +229,13 @@ const loadAlbums = async (istop, page) => {
     )
 
     if (response.code === 200) {
-      const albums = response.data
+      const albums = response.data || []
 
       if (istop === 1) {
-        // 置顶相册
+        //置顶相册 缂傚倸鍊搁崰姘跺闯閿濆违濠电姴娲﹂崕搴ｇ磼鐎ｎ亞浠㈤柡鍌楀亾
         topAlbumList.value = albums
       } else {
-        // 普通相册，追加到列表
+        //普通相册，追加到列表 闂備礁鎼幏瀣闯閿濆鐒垫い鎺嶇劍閻ㄦ垶绻涢弶鎴█鐎规洘锚閻ｆ繄鈧綆鍓涢ˇ顕€鏌℃径鍡樻珗婵☆偄瀚幈銊╂倷閸濆嫮顦梺鍝勵槸閻忔繈鎮樺▎鎾村仩?
         normalAlbumList.value.push(...albums)
       }
 
@@ -300,7 +300,7 @@ const getAlbumDescription = (descriptions) => {
   const targetLang = langMap[currentLang] || 'zh-CN'
 
   const desc = descriptions.find((d) => d.lang === targetLang)
-  return desc?.description || descriptions[0]?.description || '暂无描述'
+  return desc?.description || descriptions[0]?.description || 'No description'
 }
 
 /**

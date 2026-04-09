@@ -17,6 +17,6 @@
       "@/*": ["./src/*"]
     }
   },
-  "exclude": ["node_modules", "dist"],
-  "include": ["src/**/*.ts", "src/**/*.d.ts", "src/**/*.vue", "src/**/*.tsx", "vite.config.*"]
+  "exclude": ["node_modules", "dist", ".ssr-runtime"],
+  "include": ["src/**/*.ts", "src/**/*.d.ts", "src/**/*.vue", "src/**/*.tsx", "functions/**/*.ts", "vite.config.*"]
 }

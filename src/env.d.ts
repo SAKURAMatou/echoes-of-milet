@@ -3,6 +3,7 @@
 interface ImportMetaEnv {
   readonly VITE_BASE_API_URI?: string
   readonly VITE_BASE_IMG_URL?: string
+  readonly VITE_PUBLIC_SITE_ORIGIN?: string
   readonly VITE_TURNSTILE_SITE_KEY?: string
   readonly VITE_URL_API_ABOUT_FEEDBACK?: string
   readonly VITE_URL_API_MILET_GALLERY?: string

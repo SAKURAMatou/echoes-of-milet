@@ -1,9 +1,17 @@
 import { reactive } from 'vue'
+
+import type { AppState } from '@/composables/useAppState'
 import { langConfig } from '@/composables/lang'
 
 interface LangState {
   lang: SupportedLang
 }
+
+interface CreateLangPluginOptions {
+  state: AppState
+  requestHeaders?: Record<string, string | string[] | undefined>
+}
+
 declare module '@vue/runtime-core' {
   interface ComponentCustomProperties {
     $getConfigLang: (key: string) => object | string
@@ -11,56 +19,116 @@ declare module '@vue/runtime-core' {
     $toggleLang: (key: SupportedLang) => void
   }
 }
+
 const selectedList = ['zh', 'jp'] as SupportedLang[]
-export default {
-  install(app: import('vue').App) {
-    const langState = reactive<LangState>({
-      lang: getInitialLang(),
-    })
 
-    //获取初始语言设置，默认中文
-    function getInitialLang() {
-      const saved = localStorage.getItem('lang') as SupportedLang | null
-      if (saved && selectedList.includes(saved)) return saved
-      const browserLang = navigator.language.toLowerCase()
-      if (browserLang.includes('zh')) {
-        return 'zh'
-      } else if (browserLang.includes('ja') || browserLang.includes('jp')) {
-        return 'jp'
-      } else {
-        return 'zh'
-      }
-    }
+function normalizeLang(value?: string | null): SupportedLang | null {
+  if (!value) {
+    return null
+  }
 
-    /**
-     * 获取配置的语言
-     * @param {*} key
-     * @returns
-     */
-    function getConfigLang(key: string) {
-      return langConfig[langState.lang]?.[key] || key
-    }
-    /**
-     * 保存语言设置
-     * @param {*} lang
-     */
-    function setLang(lang: SupportedLang) {
-      if (!selectedList.includes(lang)) {
-        return
-      }
-      langState.lang = lang
-      localStorage.setItem('lang', lang)
-    }
-    /**
-     * 语言切换事件
-     */
-    function toggleLang(key: SupportedLang) {
-      setLang(key)
-    }
-    // 挂载到全局
-    app.config.globalProperties.$getConfigLang = getConfigLang
-    app.config.globalProperties.$lang = langState
+  const lowerValue = value.toLowerCase()
 
-    app.config.globalProperties.$toggleLang = toggleLang
-  },
+  if (selectedList.includes(lowerValue as SupportedLang)) {
+    return lowerValue as SupportedLang
+  }
+
+  if (lowerValue.includes('ja') || lowerValue.includes('jp')) {
+    return 'jp'
+  }
+
+  if (lowerValue.includes('zh')) {
+    return 'zh'
+  }
+
+  return null
 }
+
+function parseCookieLang(cookieHeader?: string | string[]) {
+  const source = Array.isArray(cookieHeader) ? cookieHeader.join(';') : cookieHeader
+
+  if (!source) {
+    return null
+  }
+
+  const matched = source.match(/(?:^|;\s*)lang=([^;]+)/i)
+  return normalizeLang(matched?.[1] ? decodeURIComponent(matched[1]) : null)
+}
+
+function resolveInitialLang(options: CreateLangPluginOptions) {
+  const stateLang = normalizeLang(options.state.lang)
+  if (stateLang) {
+    return stateLang
+  }
+
+  if (typeof window !== 'undefined') {
+    const localLang = normalizeLang(window.localStorage.getItem('lang'))
+    if (localLang) {
+      return localLang
+    }
+
+    const cookieLang = parseCookieLang(document.cookie)
+    if (cookieLang) {
+      return cookieLang
+    }
+
+    return normalizeLang(window.navigator.language) ?? 'zh'
+  }
+
+  const cookieLang = parseCookieLang(options.requestHeaders?.cookie)
+  if (cookieLang) {
+    return cookieLang
+  }
+
+  const acceptLanguage = options.requestHeaders?.['accept-language']
+  const acceptLanguageValue = Array.isArray(acceptLanguage)
+    ? acceptLanguage.join(',')
+    : acceptLanguage
+
+  return normalizeLang(acceptLanguageValue) ?? 'zh'
+}
+
+export function createLangPlugin(options: CreateLangPluginOptions) {
+  return {
+    install(app: import('vue').App) {
+      const langState = reactive<LangState>({
+        lang: resolveInitialLang(options),
+      })
+
+      options.state.lang = langState.lang
+
+      function getConfigLang(key: string) {
+        return langConfig[langState.lang]?.[key] || key
+      }
+
+      function setLang(lang: SupportedLang) {
+        if (!selectedList.includes(lang)) {
+          return
+        }
+
+        langState.lang = lang
+        options.state.lang = lang
+
+        if (typeof document !== 'undefined') {
+          document.cookie = `lang=${lang}; Path=/; Max-Age=31536000; SameSite=Lax`
+          window.localStorage.setItem('lang', lang)
+        }
+      }
+
+      function toggleLang(key: SupportedLang) {
+        setLang(key)
+      }
+
+      app.config.globalProperties.$getConfigLang = getConfigLang
+      app.config.globalProperties.$lang = langState
+      app.config.globalProperties.$toggleLang = toggleLang
+    },
+  }
+}
+
+export default createLangPlugin({
+  state: {
+    lang: 'zh',
+    miletHomeData: null,
+  },
+})

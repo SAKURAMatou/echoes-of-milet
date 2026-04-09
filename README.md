@@ -1,95 +1,98 @@
-# my-blog
+# Echoes of milet
 
-## Project Setup
+## Local development
+
+Install dependencies:
 
 ```sh
 npm install
 ```
 
-### Compile and Hot-Reload for Development
+Fast local SSR development with the Node server:
 
 ```sh
-npm run dev
+npm run dev:ssr
 ```
 
-### Compile and Minify for Production
+This mode keeps Vite HMR for `src/**` changes and auto-restarts the local SSR server when `server.ts`, `.env`, `.env.development`, or `vite.config.js` changes.
+
+## Local production-style checks
+
+Preview the built app with the local Node SSR server:
 
 ```sh
-npm run build
+npm run preview:ssr
 ```
 
-https://www.transparenttextures.com/
+Preview the built app against the local backend to avoid production CORS during local verification:
 
-纹理背景图片网站
+```sh
+npm run preview:ssr:local
+```
 
-# 项目内容
+## Cloudflare Pages local preview
 
-主页-home
+This project now includes a Pages Functions entry at [`functions/[[path]].ts`](./functions/[[path]].ts).
 
-博客-blog
+Preview the Cloudflare Pages runtime locally after a production build:
 
-milet
+```sh
+npm run preview:pages:local
+```
 
-|——图片分享
+Default local Pages preview settings:
 
+- `API_ORIGIN=http://localhost:8787`
+- `PUBLIC_SITE_ORIGIN=http://localhost:8788`
 
+If you want to simulate production instead, set real environment variables first and run:
 
-# 配色
+```sh
+npm run preview:pages
+```
 
-| 用途           | 颜色值                 | 说明                        |
-| -------------- | ---------------------- | --------------------------- |
-| 主色           | `#2C75D1`              | 活力蓝，醒目不刺眼          |
-| 主色 hover     | `#187bcd`<br />#1C3E60 | 深蓝一点，按钮/链接悬浮状态 |
-| 强调色（次主） | `#00BFA6`              | 青绿色，有自然清新感        |
-| 背景主色       | `#F5F9FF`              | 柔和灰白，干净，不压主图    |
-| 顶部文字色     | `#ffffff`              | header 中的文字配白色最佳   |
-| 正文文字色     | `#1f3a5f`              | 深蓝灰，柔和不刺眼          |
-| 标题强调色     | `#FF9F45`              | 柑橘橙色，用于强调/按钮跳色 |
+Note: `preview:pages*` uses `npx wrangler`. If Wrangler is not already available in your environment, `npx` will prompt to download it.
 
+## Cloudflare Pages deployment
 
+Build command:
 
-# 主页-home
+```sh
+npm run build:ssr
+```
 
-1，简介，页面加载结束添加了打字机效果展示文字
+Build output directory:
 
-2，blog跳转按钮
+```text
+dist/client
+```
 
-3，语言切换（后续添加）
+Functions directory:
 
-# 博客列表
+```text
+functions
+```
 
-标签列表，pc竖向在数据列表左侧，手机横向在数据列表上边
+Recommended Cloudflare Pages environment variables:
 
-数据列表，每条记录，pc时左侧图片右侧概要，手机时上边图片，下边概要
+```env
+VITE_BASE_API_URI=https://your-api-domain
+VITE_PUBLIC_SITE_ORIGIN=https://your-frontend-domain
+API_ORIGIN=https://your-api-domain
+PUBLIC_SITE_ORIGIN=https://your-frontend-domain
+```
 
-分页控件，数据列表下方底部固定，pc时暂时多个分页icon，手机时只展示当前页/总页数
+Route behavior:
 
+- `/` uses SSG
+- `/milet/about` uses SSG
+- `/milet` uses SSR
+- `/milet/timeline` uses CSR
+- `/milet/galleryList` uses CSR
+- `/milet/release` uses CSR
 
+## Notes
 
-# milethome
-
-不定数card展示内容
-
-timeline展示milet，活动时间线
-
-milet图集跳转按钮
-
-官方网站连接
-
-## 图片列表
-
-图片懒加载：vue3-lazyload
-
-图排的lightbox查看大图photoswipe
-
-
-
-# 配色选择
-
-| 背景色类名      | 字体色类名        | 推荐场景             |
-| --------------- | ----------------- | -------------------- |
-| `bg-pink-200`   | `text-pink-900`   | 甜美回忆、温馨记录   |
-| `bg-blue-200`   | `text-blue-900`   | 清新记录、学业进展   |
-| `bg-green-200`  | `text-green-900`  | 日常生活、成长轨迹   |
-| `bg-purple-200` | `text-purple-900` | 梦幻、感性类故事     |
-| `bg-orange-200` | `text-orange-900` | 搞笑、热血、冲动行为 |
+- `dist/client/__ssr-template.html` is kept as the runtime template for SSR responses.
+- `functions/[[path]].ts` handles both dynamic SSR and `/api/*` proxying on Cloudflare Pages.
+- `server.ts` is only for local Node-based testing and is not used in Cloudflare production.

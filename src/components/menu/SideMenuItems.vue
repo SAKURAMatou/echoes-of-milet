@@ -3,7 +3,7 @@
     <div class="flex justify-around items-center text-xs">
       <div class="tracking-[.18em] text-slate-500/80 mb-3 select-none">MENU</div>
       <div class="mb-3 text-slate-500/70 select-none">
-        CURRENT：<span class="text-slate-700">{{ activeItem?.label }}</span>
+        CURRENT: <span class="text-slate-700">{{ activeItem?.label }}</span>
       </div>
     </div>
 
@@ -69,7 +69,7 @@
                 </div>
 
                 <span class="block mt-2 text-xs text-slate-500/80 font-['Montserrat','sans-serif']">
-                  {{ item.sub || '— explore' }}
+                  {{ item.sub || 'explore' }}
                 </span>
               </div>
             </StickerSVG>
@@ -123,9 +123,9 @@ const BOTTOM_WIDE_STATIONERY_PATH = `
 `
 
 // const PATHS = [
-//   CHARACTER_STATIONERY_PATH, // 主入口
-//   STATIONERY_CUT_PATH, // 次入口
-//   BOTTOM_WIDE_STATIONERY_PATH, // 底部宽贴纸
+//   CHARACTER_STATIONERY_PATH, // 涓诲叆鍙?
+//   STATIONERY_CUT_PATH, // 娆″叆鍙?
+//   BOTTOM_WIDE_STATIONERY_PATH, // 搴曢儴瀹借创绾?
 // ]
 
 function getBgColor(color: MenuItem['color']) {
@@ -212,7 +212,7 @@ function onMenuItemClick() {
   transform: translateX(0);
 }
 
-/* 可选：让离开也顺滑（如果菜单会变动/切换） */
+/* 鍙€夛細璁╃寮€涔熼『婊戯紙濡傛灉鑿滃崟浼氬彉鍔?鍒囨崲锛?*/
 .menu-stagger-leave-active {
   transition:
     transform 220ms ease,
@@ -223,7 +223,7 @@ function onMenuItemClick() {
   transform: translateX(-10px);
 }
 
-/* 可选：避免 group 在过渡期间撑开导致抖动 */
+/* 鍙€夛細閬垮厤 group 鍦ㄨ繃娓℃湡闂存拺寮€瀵艰嚧鎶栧姩 */
 .menu-stagger-move {
   transition: transform 260ms ease;
 }

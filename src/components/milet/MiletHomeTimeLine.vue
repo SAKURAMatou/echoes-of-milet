@@ -3,11 +3,11 @@
     <div
       class="absolute top-4 -left-4 rotate-[-3deg] bg-yellow-200 text-yellow-900 px-4 py-1 rounded-full shadow font-semibold text-sm border border-yellow-400"
     >
-      🧷 {{ $getConfigLang('miletHomeView')['title2'] }}
+      Timeline {{ $getConfigLang('miletHomeView')['title2'] }}
     </div>
 
     <div class="relative mt-12 border-l-4 border-dashed border-blue-400 pl-6">
-      <!-- 上方箭头 -->
+      <!-- 婵炴垶鎸搁敃銉╁蓟閻旇櫣涓嶆い鎾跺亼娴?-->
       <div
         class="absolute -top-4 left-[-12px] w-0 h-0 border-l-[10px] border-l-transparent border-r-[10px] border-r-transparent border-b-[14px] border-b-blue-400"
       ></div>
@@ -29,22 +29,21 @@
           {{ item.timeline_body }}
         </p>
       </div>
-      <!-- More按钮 -->
+      <!-- More闂佸湱顭堥ˇ鐢稿箰?-->
     </div>
     <div
       class="mt-8 bg-gradient-to-r from-white via-gray-50 to-white border border-gray-200 rounded-lg p-4 text-center hover:shadow-md transition-shadow cursor-pointer"
       @click="goToTimeLine"
     >
-      <span v-if="timelineDataL.length > 0" class="text-gray-600 font-semibold">More →</span>
+      <span v-if="timelineDataL.length > 0" class="text-gray-600 font-semibold">More -></span>
     </div>
   </div>
 </template>
 <script setup>
-import { ref, onMounted } from 'vue'
+
 import { useRouter } from 'vue-router'
 
 const router = useRouter()
-//组件展示的数据从父组传值
 const props = defineProps({
   timelineDataL: {
     type: Array,
@@ -52,13 +51,7 @@ const props = defineProps({
   },
 })
 
-const seed = ref(0)
-onMounted(() => {
-  seed.value = Math.floor(Math.random() * 6) + 5
-})
-
-// timeline样式自动选择
-
+// timeline闂佸搫绉撮崲鑼閿熺姵鍤婃い蹇撳琚熼梻渚囧亜椤︽壆鈧?
 const timelineClassList = [
   { dot: 'bg-blue-400', title: 'text-blue-800' },
   { dot: 'bg-pink-300', title: 'text-pink-800' },
@@ -68,7 +61,7 @@ const timelineClassList = [
   { dot: 'bg-orange-400', title: 'text-orange-900' },
 ]
 const timelineClass = (index) => {
-  return timelineClassList[(index + seed.value) % timelineClassList.length]
+  return timelineClassList[index % timelineClassList.length]
 }
 
 const openBlog = (bloglink) => {
