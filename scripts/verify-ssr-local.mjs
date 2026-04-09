@@ -4,6 +4,7 @@ import path from 'node:path'
 import { fileURLToPath, pathToFileURL } from 'node:url'
 
 import renderConfig from '../render.config.json' with { type: 'json' }
+import apiProxyConfig from '../api-proxy.config.json' with { type: 'json' }
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const root = path.resolve(__dirname, '..')
@@ -11,6 +12,7 @@ const port = Number(process.env.PORT || 5173)
 const publicSiteOrigin = process.env.PUBLIC_SITE_ORIGIN || `http://127.0.0.1:${port}`
 const upstreamOrigin = process.env.API_ORIGIN || process.env.VITE_BASE_API_URI || 'http://127.0.0.1:8787'
 const ssgRoutes = new Set(renderConfig.ssgRoutes)
+const allowedApiPrefixes = apiProxyConfig.allowedPrefixes
 
 const mimeTypes = {
   '.css': 'text/css; charset=utf-8',
@@ -84,14 +86,27 @@ function buildProxyResponseHeaders(response) {
   return responseHeaders
 }
 
+function isAllowedApiPath(pathname = '/') {
+  return allowedApiPrefixes.some((prefix) => pathname === prefix || pathname.startsWith(prefix))
+}
+
 async function proxyApiRequest(req, res) {
-  const targetUrl = new URL(req.url || '/', upstreamOrigin)
+  const requestUrl = new URL(req.url || '/', publicSiteOrigin)
+  if (!isAllowedApiPath(requestUrl.pathname)) {
+    res.writeHead(403, {
+      'Content-Type': 'text/plain; charset=utf-8',
+    })
+    res.end('Forbidden')
+    return
+  }
+
+  const targetUrl = new URL(requestUrl.pathname + requestUrl.search, upstreamOrigin)
   const bodyAllowed = !['GET', 'HEAD'].includes(req.method || 'GET')
   const headers = {
     ...req.headers,
     host: targetUrl.host,
-    origin: req.headers.origin || publicSiteOrigin,
-    referer: req.headers.referer || `${publicSiteOrigin}/`,
+    origin: publicSiteOrigin,
+    referer: `${publicSiteOrigin}/`,
     'accept-encoding': 'identity',
     'x-forwarded-host': req.headers.host || '',
     'x-forwarded-proto': 'http',

@@ -1,0 +1,14 @@
+{
+  "allowedPrefixes": [
+    "/api/milet/homedata",
+    "/api/milet/piclist/current",
+    "/api/milet/timelinedata",
+    "/api/milet/release/type/",
+    "/api/milet/release/worker/detail/",
+    "/api/milet/gallery",
+    "/api/milet/feedback",
+    "/api/blog/detail/",
+    "/api/blog/datalist/current/",
+    "/api/blog/datalist/tag/"
+  ]
+}

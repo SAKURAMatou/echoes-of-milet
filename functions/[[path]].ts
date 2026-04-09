@@ -1,3 +1,5 @@
+import apiProxyConfig from '../api-proxy.config.json'
+
 interface FetcherLike {
   fetch(request: Request): Promise<Response>
 }
@@ -16,6 +18,7 @@ interface FunctionContext {
 }
 
 const ssgRoutes = new Set(['/', '/milet/about'])
+const allowedApiPrefixes = apiProxyConfig.allowedPrefixes as string[]
 
 function normalizeUrl(url = '/') {
   const [pathname] = url.split('?')
@@ -68,9 +71,21 @@ function stripProxyResponseHeaders(headers: Headers) {
   return cloned
 }
 
+function isAllowedApiPath(pathname: string) {
+  return allowedApiPrefixes.some((prefix) => pathname === prefix || pathname.startsWith(prefix))
+}
+
 async function proxyApiRequest(request: Request, env: PagesFunctionEnv) {
   const upstreamOrigin = env.API_ORIGIN || env.VITE_BASE_API_URI || 'https://api.miles-dml.org'
   const url = new URL(request.url)
+  if (!isAllowedApiPath(url.pathname)) {
+    return new Response('Forbidden', {
+      status: 403,
+      headers: {
+        'content-type': 'text/plain; charset=utf-8',
+      },
+    })
+  }
   const targetUrl = new URL(url.pathname + url.search, upstreamOrigin)
 
   const response = await fetch(targetUrl.toString(), {
