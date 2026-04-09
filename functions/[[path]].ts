@@ -6,10 +6,6 @@ interface FetcherLike {
 
 interface PagesFunctionEnv {
   ASSETS: FetcherLike
-  API_ORIGIN?: string
-  PUBLIC_SITE_ORIGIN?: string
-  VITE_BASE_API_URI?: string
-  VITE_PUBLIC_SITE_ORIGIN?: string
 }
 
 interface FunctionContext {
@@ -18,7 +14,8 @@ interface FunctionContext {
 }
 
 const ssgRoutes = new Set(['/', '/milet/about'])
-const allowedApiPrefixes = apiProxyConfig.allowedPrefixes as string[]
+const allowedApiPrefixes = Object.values(apiProxyConfig.routes) as string[]
+const upstreamOrigin = apiProxyConfig.origins.production.backend
 
 function normalizeUrl(url = '/') {
   const [pathname] = url.split('?')
@@ -53,7 +50,7 @@ function injectHtml(
 
 function getRequestOrigin(request: Request, env: PagesFunctionEnv) {
   const url = new URL(request.url)
-  return env.PUBLIC_SITE_ORIGIN || env.VITE_PUBLIC_SITE_ORIGIN || url.origin
+  return url.origin
 }
 
 function buildProxyHeaders(request: Request, env: PagesFunctionEnv) {
@@ -81,7 +78,6 @@ function isAllowedApiPath(pathname: string) {
 }
 
 async function proxyApiRequest(request: Request, env: PagesFunctionEnv) {
-  const upstreamOrigin = env.API_ORIGIN || env.VITE_BASE_API_URI || 'https://api.miles-dml.org'
   const url = new URL(request.url)
   if (!isAllowedApiPath(url.pathname)) {
     return new Response('Forbidden', {

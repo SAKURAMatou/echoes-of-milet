@@ -31,10 +31,10 @@ This command will:
 - serve SSG routes from prerendered files and SSR routes from the built server entry
 - proxy `/api/*` requests to the local backend for data verification
 
-Default local preview settings:
+Default local preview settings are defined in [`api-proxy.config.json`](/D:/CODE/front/tailwindCSS/echoes%20of%20milet/api-proxy.config.json):
 
-- `API_ORIGIN=http://localhost:8787`
-- `PUBLIC_SITE_ORIGIN=http://localhost:5173`
+- `origins.development.backend`
+- `origins.development.site`
 
 Open `http://127.0.0.1:5173` after the command is ready.
 
@@ -58,13 +58,15 @@ Functions directory:
 functions
 ```
 
-Recommended Cloudflare Pages environment variables:
+Production URLs are also defined in [`api-proxy.config.json`](/D:/CODE/front/tailwindCSS/echoes%20of%20milet/api-proxy.config.json):
+
+- `origins.production.backend`
+- `origins.production.site`
+
+Current runtime environment variable:
 
 ```env
-VITE_BASE_API_URI=https://your-api-domain
-VITE_PUBLIC_SITE_ORIGIN=https://your-frontend-domain
-API_ORIGIN=https://your-api-domain
-PUBLIC_SITE_ORIGIN=https://your-frontend-domain
+VITE_TURNSTILE_SITE_KEY=your-turnstile-site-key
 ```
 
 Route behavior:
@@ -81,3 +83,4 @@ Route behavior:
 - `dist/client/__ssr-template.html` is kept as the runtime template for SSR responses.
 - `functions/[[path]].ts` handles both dynamic SSR and `/api/*` proxying on Cloudflare Pages.
 - The SSR runtime path is now unified around `src/server/render.ts` and Cloudflare Pages Functions.
+- Frontend API paths, static asset paths, and proxy upstream origins are all sourced from `api-proxy.config.json`.

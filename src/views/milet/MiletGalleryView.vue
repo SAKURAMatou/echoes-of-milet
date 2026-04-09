@@ -202,6 +202,7 @@
 import { ref, onMounted, onUnmounted, nextTick, getCurrentInstance } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import axiosInstance from '@/AxiosUtil'
+import { apiRoutes, buildStaticAssetUrl } from '@/config/api'
 
 const router = useRouter()
 const route = useRoute()
@@ -225,7 +226,7 @@ const galleryObserver = ref(null)
 const loadAlbums = async (istop, page) => {
   try {
     const response = await axiosInstance.get(
-      `${import.meta.env.VITE_URL_API_MILET_GALLERY}/${istop}/${page}`,
+      `${apiRoutes.miletGallery}/${istop}/${page}`,
     )
 
     if (response.code === 200) {
@@ -274,7 +275,7 @@ const initLoad = async () => {
  */
 const getImageUrl = (coverUrl) => {
   if (!coverUrl) return ''
-  return import.meta.env.VITE_BASE_IMG_URL + import.meta.env.VITE_URL_STATIC_MILET_I + coverUrl
+  return buildStaticAssetUrl(coverUrl)
 }
 
 /**

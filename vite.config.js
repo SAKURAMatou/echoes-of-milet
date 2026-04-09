@@ -1,9 +1,10 @@
 import { fileURLToPath, URL } from 'node:url'
 
-import { defineConfig, loadEnv } from 'vite'
+import { defineConfig } from 'vite'
 import vue from '@vitejs/plugin-vue'
 import vueDevTools from 'vite-plugin-vue-devtools'
 import tailwindcss from '@tailwindcss/vite'
+import apiProxyConfig from './api-proxy.config.json'
 
 const hopByHopResponseHeaders = new Set([
   'connection',
@@ -33,9 +34,9 @@ function buildProxyResponseHeaders(response) {
 }
 
 export default defineConfig(({ mode }) => {
-  const env = loadEnv(mode, process.cwd(), '')
-  const apiOrigin = env.VITE_BASE_API_URI || 'https://api.miles-dml.org'
-  const publicSiteOrigin = env.VITE_PUBLIC_SITE_ORIGIN || 'http://localhost:5173'
+  const runtimeConfig = apiProxyConfig.origins[mode] || apiProxyConfig.origins.production
+  const apiOrigin = runtimeConfig.backend
+  const publicSiteOrigin = runtimeConfig.site
 
   return {
     plugins: [

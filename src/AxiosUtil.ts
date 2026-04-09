@@ -1,5 +1,7 @@
 import axios from 'axios'
 
+import { getBackendOrigin, getSiteOrigin } from '@/config/api'
+
 import type { AxiosInstance, AxiosRequestConfig } from 'axios'
 
 interface CustomAxiosInstance extends AxiosInstance {
@@ -11,7 +13,7 @@ interface CustomAxiosInstance extends AxiosInstance {
 
 function resolveBaseURL() {
   if (import.meta.env.SSR) {
-    return import.meta.env.VITE_BASE_API_URI || ''
+    return getBackendOrigin()
   }
 
   return ''
@@ -22,7 +24,7 @@ function resolveSsrHeaders() {
     return undefined
   }
 
-  const siteOrigin = import.meta.env.VITE_PUBLIC_SITE_ORIGIN || 'http://localhost:5173'
+  const siteOrigin = getSiteOrigin()
 
   return {
     Origin: siteOrigin,

@@ -1,14 +1,28 @@
 {
-  "allowedPrefixes": [
-    "/api/milet/homedata",
-    "/api/milet/piclist/current",
-    "/api/milet/timelinedata",
-    "/api/milet/release/type/",
-    "/api/milet/release/worker/detail/",
-    "/api/milet/gallery",
-    "/api/milet/feedback",
-    "/api/blog/detail/",
-    "/api/blog/datalist/current/",
-    "/api/blog/datalist/tag/"
-  ]
+  "origins": {
+    "development": {
+      "backend": "http://localhost:8787",
+      "site": "http://localhost:5173"
+    },
+    "production": {
+      "backend": "https://api.miles-dml.org",
+      "site": "https://miles-dml.org"
+    }
+  },
+  "routes": {
+    "miletHome": "/api/milet/homedata",
+    "miletPiclist": "/api/milet/piclist/current",
+    "miletTimeline": "/api/milet/timelinedata",
+    "miletRelease": "/api/milet/release/type/",
+    "miletReleaseDetail": "/api/milet/release/worker/detail/",
+    "miletGallery": "/api/milet/gallery",
+    "aboutFeedback": "/api/milet/feedback",
+    "blogDetail": "/api/blog/detail/",
+    "blogList": "/api/blog/datalist/current/",
+    "blogPage": "/api/blog/datalist/tag/"
+  },
+  "staticRoutes": {
+    "miletImage": "/static/milet/img/",
+    "blogImage": "/static/blog/img/"
+  }
 }

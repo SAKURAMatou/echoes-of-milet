@@ -1,3 +1,5 @@
+import { buildStaticAssetUrl } from '@/config/api'
+
 export function initImgUrl(url: string): string {
   if (!url) return ''
 
@@ -5,7 +7,7 @@ export function initImgUrl(url: string): string {
 
   const paths = url.split('/')
   if (paths.length === 2) {
-    return import.meta.env.VITE_BASE_IMG_URL + import.meta.env.VITE_URL_STATIC_MILET_I + url
+    return buildStaticAssetUrl(url)
   } else {
     return ''
   }

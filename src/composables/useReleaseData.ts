@@ -1,6 +1,7 @@
 import { ref, onMounted, onBeforeUnmount } from 'vue'
 
 import axiosInstance from '@/AxiosUtil'
+import { apiRoutes } from '@/config/api'
 
 import type { Work } from './releaseType'
 
@@ -18,7 +19,7 @@ export function useReleaseData(options: ReleaseDataOptions) {
   const isInitialized = ref(false)
   let observer: IntersectionObserver | null = null
 
-  const apiBaseUrl = import.meta.env.VITE_URL_API_MILET_RELEASE
+  const apiBaseUrl = apiRoutes.miletRelease
   const pageSize = 5
 
   const fetchData = async (page: number) => {

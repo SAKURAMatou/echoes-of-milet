@@ -300,6 +300,7 @@ import { computed, getCurrentInstance, nextTick, onBeforeUnmount, onMounted, rea
 
 import axiosInstance from '@/AxiosUtil'
 import { ABOUT_COPY } from '@/composables/AboutMedata'
+import { apiRoutes } from '@/config/api'
 
 const { appContext } = getCurrentInstance()
 const global = appContext.config.globalProperties
@@ -333,7 +334,7 @@ const widgetId = ref(null)
 const toastTimer = ref(null)
 
 const turnstileSiteKey = import.meta.env.VITE_TURNSTILE_SITE_KEY || ''
-const feedbackApiUrl = import.meta.env.VITE_URL_API_ABOUT_FEEDBACK || ''
+const feedbackApiUrl = apiRoutes.aboutFeedback
 const turnstileEnabled = computed(() => Boolean(turnstileSiteKey))
 const activeLang = computed(() => (global.$lang?.lang === 'jp' ? 'jp' : 'zh'))
 const copy = computed(() => ABOUT_COPY[activeLang.value])

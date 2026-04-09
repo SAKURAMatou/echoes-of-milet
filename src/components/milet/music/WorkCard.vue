@@ -69,6 +69,7 @@
 import { computed, getCurrentInstance, ref } from 'vue'
 import axiosInstance from '@/AxiosUtil'
 import { initImgUrl } from '@/composables/ImgUrlUtil'
+import { apiRoutes } from '@/config/api'
 import { WORK_TEXT } from '@/composables/ReleaseMetaData'
 import type { Track, Work } from '@/composables/releaseType'
 import EditionCarousel from './EditionCarousel.vue'
@@ -132,7 +133,7 @@ const summaryText = computed(() => {
 
 async function openTrack(t: Track) {
   if (!t.lyric) {
-    const detail = await axiosInstance.get(import.meta.env.VITE_URL_API_MILET_RELEASE_DETAIL + t.showId)
+    const detail = await axiosInstance.get(apiRoutes.miletReleaseDetail + t.showId)
     if (detail && Object.keys(detail).length > 0) {
       const d = detail as Track
       t.lyric = d.lyric

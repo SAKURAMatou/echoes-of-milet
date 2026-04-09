@@ -35,6 +35,7 @@ import MiletHomeCard from '@/components/milet/MiletHomeCard.vue'
 import MiletHomeTimeLine from '@/components/milet/MiletHomeTimeLine.vue'
 import MiletSite from '@/components/milet/MiletSite.vue'
 import { useAppState } from '@/composables/useAppState'
+import { apiRoutes } from '@/config/api'
 
 const internalInstance = getCurrentInstance()
 const global = internalInstance?.appContext.config.globalProperties
@@ -49,7 +50,7 @@ async function loadMiletHomeData() {
   }
 
   try {
-    const resJson = await axiosInstance.post(import.meta.env.VITE_URL_API_MILET_HOME || '/api/milet/homedata')
+    const resJson = await axiosInstance.post(apiRoutes.miletHome)
 
     if (resJson.code === 200) {
       miletDatas.value = resJson.data

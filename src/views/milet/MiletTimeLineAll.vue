@@ -92,6 +92,7 @@ import {
   watch,
 } from 'vue'
 import axiosInstance from '@/AxiosUtil'
+import { apiRoutes, getBackendOrigin } from '@/config/api'
 const { appContext } = getCurrentInstance()
 const global = appContext.config.globalProperties
 type TimeLineResItem = {
@@ -293,7 +294,7 @@ function getItemHref(link: string | undefined | null) {
 
   const baseOrigin =
     (typeof window !== 'undefined' && window.location?.origin) ||
-    import.meta.env.VITE_BASE_API_URI ||
+    getBackendOrigin() ||
     ''
 
   try {
@@ -396,7 +397,7 @@ onBeforeUnmount(() => {
 const getData = async (page: number = 1) => {
   try {
     const response = await axiosInstance.get(
-      `${import.meta.env.VITE_URL_API_MILET_TIMELINE_ALL}/${page}`,
+      `${apiRoutes.miletTimeline}/${page}`,
     )
     // axios 的 response.data 就是: { data: { zh: [], jp: [] }, hasMore: boolean }
     const { data, hasMore } = response.data

@@ -9,10 +9,13 @@ import apiProxyConfig from '../api-proxy.config.json' with { type: 'json' }
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const root = path.resolve(__dirname, '..')
 const port = Number(process.env.PORT || 5173)
-const publicSiteOrigin = process.env.PUBLIC_SITE_ORIGIN || `http://127.0.0.1:${port}`
-const upstreamOrigin = process.env.API_ORIGIN || process.env.VITE_BASE_API_URI || 'http://127.0.0.1:8787'
+const developmentConfig = apiProxyConfig.origins.development
+const publicSiteUrl = new URL(developmentConfig.site)
+publicSiteUrl.port = String(port)
+const publicSiteOrigin = publicSiteUrl.toString().replace(/\/$/, '')
+const upstreamOrigin = developmentConfig.backend
 const ssgRoutes = new Set(renderConfig.ssgRoutes)
-const allowedApiPrefixes = apiProxyConfig.allowedPrefixes
+const allowedApiPrefixes = Object.values(apiProxyConfig.routes)
 
 const mimeTypes = {
   '.css': 'text/css; charset=utf-8',
