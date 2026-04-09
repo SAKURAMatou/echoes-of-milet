@@ -7,7 +7,7 @@
       <button
         class="w-full bg-gradient-to-r from-pink-200 via-yellow-100 to-blue-100 text-blue-800 font-semibold py-3 rounded-xl shadow-md border border-yellow-300 transition duration-300 cursor-pointer"
       >
-        馃摳 {{ $getConfigLang('miletHomeView')['title1'] }}
+        &#x1F4F8; {{ $getConfigLang('miletHomeView')['title1'] }}
       </button>
       <div class="absolute top-[-10px] left-3 w-4 h-4 bg-red-300 rotate-45 shadow-sm"></div>
     </RouterLink>
