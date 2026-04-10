@@ -14,7 +14,7 @@ const publicSiteUrl = new URL(developmentConfig.site)
 publicSiteUrl.port = String(port)
 const publicSiteOrigin = publicSiteUrl.toString().replace(/\/$/, '')
 const upstreamOrigin = developmentConfig.backend
-const ssgRoutes = new Set(renderConfig.ssgRoutes)
+const localizedSsgRoutes = new Set(renderConfig.ssgRoutes)
 const allowedApiPrefixes = Object.values(apiProxyConfig.routes)
 
 const mimeTypes = {
@@ -61,7 +61,48 @@ function isAssetRequest(url = '/') {
 }
 
 function isSsgRoute(url = '/') {
-  return ssgRoutes.has(normalizeUrl(url))
+  return localizedSsgRoutes.has(normalizeUrl(url))
+}
+
+function normalizeLang(value) {
+  if (!value) {
+    return null
+  }
+
+  const lowerValue = String(value).toLowerCase()
+
+  if (lowerValue === 'zh' || lowerValue.startsWith('zh-')) {
+    return 'zh'
+  }
+
+  if (lowerValue === 'jp' || lowerValue === 'ja' || lowerValue.startsWith('ja-') || lowerValue.includes('jp')) {
+    return 'jp'
+  }
+
+  return null
+}
+
+function parseCookieLang(cookieHeader) {
+  if (!cookieHeader) {
+    return null
+  }
+
+  const matched = String(cookieHeader).match(/(?:^|;\s*)lang=([^;]+)/i)
+  return normalizeLang(matched?.[1] ? decodeURIComponent(matched[1]) : null)
+}
+
+function resolveRequestLang(req, requestUrl) {
+  const queryLang = normalizeLang(requestUrl.searchParams.get('lang'))
+  if (queryLang) {
+    return queryLang
+  }
+
+  const cookieLang = parseCookieLang(req.headers.cookie)
+  if (cookieLang) {
+    return cookieLang
+  }
+
+  return normalizeLang(req.headers['accept-language']) ?? 'zh'
 }
 
 function injectHtml(template, payload) {
@@ -172,6 +213,24 @@ async function resolveStaticFile(urlPath) {
   return null
 }
 
+async function resolveLocalizedSsgFile(urlPath, lang) {
+  const distRoot = path.join(root, 'dist', 'client')
+  const cleanPath = decodeURIComponent(normalizeUrl(urlPath))
+  const relativeRoute = cleanPath === '/' ? '' : cleanPath.replace(/^\/+/, '')
+  const candidate = path.join(distRoot, '_localized', lang, relativeRoute, 'index.html')
+
+  try {
+    const fileStat = await stat(candidate)
+    if (fileStat.isFile()) {
+      return candidate
+    }
+  } catch {
+    return null
+  }
+
+  return null
+}
+
 const template = await readFile(path.join(root, 'dist', 'client', 'ssr-template.html'), 'utf-8')
 const renderModuleUrl = pathToFileURL(path.join(root, 'dist', 'server', 'entry-server.js')).href
 const { render } = await import(renderModuleUrl)
@@ -185,8 +244,23 @@ const server = http.createServer(async (req, res) => {
       return
     }
 
+    const requestUrl = new URL(url, publicSiteOrigin)
+
+    if (isSsgRoute(url)) {
+      const localizedSsgFile = await resolveLocalizedSsgFile(
+        requestUrl.pathname,
+        resolveRequestLang(req, requestUrl),
+      )
+      if (localizedSsgFile) {
+        const served = await serveFile(localizedSsgFile, res)
+        if (served) {
+          return
+        }
+      }
+    }
+
     const staticFile = await resolveStaticFile(url)
-    if (staticFile && (isAssetRequest(url) || isSsgRoute(url))) {
+    if (staticFile && isAssetRequest(url)) {
       const served = await serveFile(staticFile, res)
       if (served) {
         return

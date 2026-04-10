@@ -13,7 +13,7 @@ interface FunctionContext {
   env: PagesFunctionEnv
 }
 
-const ssgRoutes = new Set(['/', '/milet/about'])
+const localizedSsgRoutes = new Set(['/', '/milet/about'])
 const allowedApiPrefixes = Object.values(apiProxyConfig.routes) as string[]
 const upstreamOrigin = apiProxyConfig.origins.production.backend
 
@@ -31,7 +31,49 @@ function isAssetRequest(url = '/') {
 }
 
 function isSsgRoute(url = '/') {
-  return ssgRoutes.has(normalizeUrl(url))
+  return localizedSsgRoutes.has(normalizeUrl(url))
+}
+
+function normalizeLang(value?: string | null) {
+  if (!value) {
+    return null
+  }
+
+  const lowerValue = value.toLowerCase()
+
+  if (lowerValue === 'zh' || lowerValue.startsWith('zh-')) {
+    return 'zh'
+  }
+
+  if (lowerValue === 'jp' || lowerValue === 'ja' || lowerValue.startsWith('ja-') || lowerValue.includes('jp')) {
+    return 'jp'
+  }
+
+  return null
+}
+
+function parseCookieLang(cookieHeader?: string | null) {
+  if (!cookieHeader) {
+    return null
+  }
+
+  const matched = cookieHeader.match(/(?:^|;\s*)lang=([^;]+)/i)
+  return normalizeLang(matched?.[1] ? decodeURIComponent(matched[1]) : null)
+}
+
+function resolveRequestLang(request: Request) {
+  const url = new URL(request.url)
+  const queryLang = normalizeLang(url.searchParams.get('lang'))
+  if (queryLang) {
+    return queryLang
+  }
+
+  const cookieLang = parseCookieLang(request.headers.get('cookie'))
+  if (cookieLang) {
+    return cookieLang
+  }
+
+  return normalizeLang(request.headers.get('accept-language')) ?? 'zh'
 }
 
 function injectHtml(
@@ -143,11 +185,21 @@ function createStaticAssetRequest(request: Request, pathname: string) {
   return new Request(new URL(assetPath, request.url).toString(), request)
 }
 
+function createLocalizedSsgAssetRequest(request: Request, pathname: string, lang: 'zh' | 'jp') {
+  const localizedPath =
+    pathname === '/'
+      ? `/_localized/${lang}/index.html`
+      : `/_localized/${lang}${pathname}/index.html`
+
+  return new Request(new URL(localizedPath, request.url).toString(), request)
+}
+
 export const onRequest = async (context: FunctionContext) => {
   const { request, env } = context
 
   try {
-    const pathname = normalizeUrl(new URL(request.url).pathname)
+    const url = new URL(request.url)
+    const pathname = normalizeUrl(url.pathname)
 
     if (pathname.startsWith('/api/')) {
       return proxyApiRequest(request, env)
@@ -161,8 +213,9 @@ export const onRequest = async (context: FunctionContext) => {
     }
 
     if (isSsgRoute(pathname)) {
+      const lang = resolveRequestLang(request)
       const staticAssetResponse = await env.ASSETS.fetch(
-        createStaticAssetRequest(request, pathname),
+        createLocalizedSsgAssetRequest(request, pathname, lang),
       )
       if (staticAssetResponse.ok) {
         return staticAssetResponse
@@ -170,7 +223,7 @@ export const onRequest = async (context: FunctionContext) => {
     }
 
     const { render } = await import('../dist/server/entry-server.js')
-    const rendered = await render(pathname, {
+    const rendered = await render(`${pathname}${url.search}`, {
       headers: Object.fromEntries(request.headers.entries()),
     })
     const template = await getTemplate(request, env)
