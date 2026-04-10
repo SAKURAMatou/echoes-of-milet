@@ -1,7 +1,7 @@
 import { renderToString } from 'vue/server-renderer'
 
 import { createApp } from '@/app'
-import { renderSeoTags } from '@/server/seo'
+import { renderSeoTags, toHtmlLang } from '@/server/seo'
 
 interface RenderRequest {
   headers?: Record<string, string | string[] | undefined>
@@ -17,7 +17,12 @@ export interface RenderResult {
 }
 
 export async function render(url: string, request: RenderRequest = {}): Promise<RenderResult> {
+  const requestUrl = new URL(url, 'https://miles-dml.org')
+  const requestLang = requestUrl.searchParams.get('lang')
   const { app, router, state } = createApp({
+    initialState: {
+      lang: requestLang === 'jp' ? 'jp' : requestLang === 'zh' ? 'zh' : undefined,
+    },
     requestHeaders: request.headers,
   })
 
@@ -32,9 +37,9 @@ export async function render(url: string, request: RenderRequest = {}): Promise<
 
   return {
     appHtml,
-    headTags: renderSeoTags(matchedSeoKey),
+    headTags: renderSeoTags(matchedSeoKey, state.lang),
     initialState: state,
-    htmlLang: state.lang,
+    htmlLang: toHtmlLang(state.lang),
     renderMode,
     status: currentRoute.matched.length === 0 ? 404 : 200,
   }

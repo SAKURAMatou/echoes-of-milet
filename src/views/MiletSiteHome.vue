@@ -54,10 +54,20 @@
 </template>
 <script setup lang="ts">
 import Header from '@/components/TWHeader.vue'
-import { onMounted } from 'vue'
+import { getCurrentInstance, watchEffect } from 'vue'
 
-onMounted(() => {
-  document.title = 'echoes of milet'
+const internalInstance = getCurrentInstance()
+const global = internalInstance?.appContext.config.globalProperties
+
+watchEffect(() => {
+  if (typeof document === 'undefined') {
+    return
+  }
+
+  document.title =
+    global?.$lang?.lang === 'jp'
+      ? 'Echoes of milet | milet 日本語ファンサイト'
+      : 'Echoes of milet | milet 中文站'
 })
 </script>
 <!-- Tailwind 动画 -->

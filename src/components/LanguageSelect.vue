@@ -56,15 +56,24 @@
 
 <script setup>
 import { getCurrentInstance, onBeforeUnmount, onMounted, ref } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
 
 const { appContext } = getCurrentInstance()
 const global = appContext.config.globalProperties
 const showLangSelect = ref(false)
 const menuWrapperLang = ref(null)
+const route = useRoute()
+const router = useRouter()
 
-const selectLang = (lang) => {
+const selectLang = async (lang) => {
   showLangSelect.value = false
   global.$toggleLang(lang)
+  await router.replace({
+    query: {
+      ...route.query,
+      lang,
+    },
+  })
 }
 
 const clickOutside = (event) => {

@@ -22,6 +22,10 @@ declare module '@vue/runtime-core' {
 
 const selectedList = ['zh', 'jp'] as SupportedLang[]
 
+function toHtmlLang(lang: SupportedLang) {
+  return lang === 'jp' ? 'ja-JP' : 'zh-CN'
+}
+
 function normalizeLang(value?: string | null): SupportedLang | null {
   if (!value) {
     return null
@@ -112,6 +116,7 @@ export function createLangPlugin(options: CreateLangPluginOptions) {
         if (typeof document !== 'undefined') {
           document.cookie = `lang=${lang}; Path=/; Max-Age=31536000; SameSite=Lax`
           window.localStorage.setItem('lang', lang)
+          document.documentElement.lang = toHtmlLang(lang)
         }
       }
 

@@ -1,12 +1,39 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml">
   <url>
-    <loc>https://echoes-of-milet.pages.dev/</loc>
+    <loc>https://miles-dml.org/?lang=zh</loc>
+    <xhtml:link rel="alternate" hreflang="zh-CN" href="https://miles-dml.org/?lang=zh" />
+    <xhtml:link rel="alternate" hreflang="ja-JP" href="https://miles-dml.org/?lang=jp" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://miles-dml.org/" />
   </url>
   <url>
-    <loc>https://echoes-of-milet.pages.dev/milet</loc>
+    <loc>https://miles-dml.org/?lang=jp</loc>
+    <xhtml:link rel="alternate" hreflang="zh-CN" href="https://miles-dml.org/?lang=zh" />
+    <xhtml:link rel="alternate" hreflang="ja-JP" href="https://miles-dml.org/?lang=jp" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://miles-dml.org/" />
   </url>
   <url>
-    <loc>https://echoes-of-milet.pages.dev/milet/about</loc>
+    <loc>https://miles-dml.org/milet?lang=zh</loc>
+    <xhtml:link rel="alternate" hreflang="zh-CN" href="https://miles-dml.org/milet?lang=zh" />
+    <xhtml:link rel="alternate" hreflang="ja-JP" href="https://miles-dml.org/milet?lang=jp" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://miles-dml.org/milet" />
+  </url>
+  <url>
+    <loc>https://miles-dml.org/milet?lang=jp</loc>
+    <xhtml:link rel="alternate" hreflang="zh-CN" href="https://miles-dml.org/milet?lang=zh" />
+    <xhtml:link rel="alternate" hreflang="ja-JP" href="https://miles-dml.org/milet?lang=jp" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://miles-dml.org/milet" />
+  </url>
+  <url>
+    <loc>https://miles-dml.org/milet/about?lang=zh</loc>
+    <xhtml:link rel="alternate" hreflang="zh-CN" href="https://miles-dml.org/milet/about?lang=zh" />
+    <xhtml:link rel="alternate" hreflang="ja-JP" href="https://miles-dml.org/milet/about?lang=jp" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://miles-dml.org/milet/about" />
+  </url>
+  <url>
+    <loc>https://miles-dml.org/milet/about?lang=jp</loc>
+    <xhtml:link rel="alternate" hreflang="zh-CN" href="https://miles-dml.org/milet/about?lang=zh" />
+    <xhtml:link rel="alternate" hreflang="ja-JP" href="https://miles-dml.org/milet/about?lang=jp" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://miles-dml.org/milet/about" />
   </url>
 </urlset>

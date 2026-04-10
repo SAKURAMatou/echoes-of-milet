@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://echoes-of-milet.pages.dev/sitemap.xml
+Sitemap: https://miles-dml.org/sitemap.xml

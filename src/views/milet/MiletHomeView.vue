@@ -27,7 +27,7 @@
   </div>
 </template>
 <script setup lang="ts">
-import { computed, getCurrentInstance, onMounted, onServerPrefetch, ref } from 'vue'
+import { computed, getCurrentInstance, onMounted, onServerPrefetch, ref, watchEffect } from 'vue'
 
 import axiosInstance from '@/AxiosUtil'
 import Divider1 from '@/components/Divider1.vue'
@@ -65,9 +65,15 @@ async function loadMiletHomeData() {
 
 onServerPrefetch(loadMiletHomeData)
 
-onMounted(async () => {
-  document.title = 'echoes of milet'
+watchEffect(() => {
+  if (typeof document === 'undefined') {
+    return
+  }
 
+  document.title = global?.$lang?.lang === 'jp' ? 'Echoes of milet | milet ホーム' : 'Echoes of milet | milet 首页'
+})
+
+onMounted(async () => {
   if (!miletDatas.value) {
     await loadMiletHomeData()
   }
