@@ -4,7 +4,7 @@ import { defineConfig } from 'vite'
 import vue from '@vitejs/plugin-vue'
 import vueDevTools from 'vite-plugin-vue-devtools'
 import tailwindcss from '@tailwindcss/vite'
-import apiProxyConfig from './api-proxy.config.json'
+import apiProxyConfig from './api-proxy.config.json' with { type: 'json' }
 
 const hopByHopResponseHeaders = new Set([
   'connection',
@@ -48,7 +48,8 @@ export default defineConfig(({ mode }) => {
         configureServer(server) {
           server.middlewares.use('/api', async (req, res, next) => {
             try {
-              const requestUrl = new URL(req.url || '/', publicSiteOrigin)
+              const relativePath = req.url?.startsWith('/') ? req.url : `/${req.url || ''}`
+              const requestUrl = new URL(`/api${relativePath}`, publicSiteOrigin)
 
               const bodyAllowed = !['GET', 'HEAD'].includes(req.method || 'GET')
               const targetUrl = new URL(requestUrl.pathname + requestUrl.search, apiOrigin)

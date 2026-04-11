@@ -8,7 +8,7 @@
   >
     <div class="w-full flex justify-between items-center mx-auto">
       <div class="max-md:w-full flex items-center justify-center">
-        <router-link :to="{ name: 'home' }" class="flex gap-1 items-center">
+        <router-link :to="homeLink" class="flex gap-1 items-center">
           <div class="logo">
             Echoes
             <span class="italic text-[#5dade2] mx-[6px] text-[28px]">of</span>
@@ -171,13 +171,15 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
-import { useRouter } from 'vue-router'
+import { computed, ref } from 'vue'
+import { useRoute } from 'vue-router'
 
 import eventBus from '@/plugins/event-bus'
+import { withLangParam } from '@/composables/useLangRoute'
 
 const isMenuOpen = ref(false)
 const searchContent = ref(null)
+const route = useRoute()
 // function handleResize() {
 //   if (window.innerWidth >= 768) {
 //     isMenuOpen.value = false
@@ -212,6 +214,8 @@ const toggleMenu = () => {
 const closeMenu = () => {
   isMenuOpen.value = false
 }
+
+const homeLink = computed(() => withLangParam({ name: 'home' }, String(route.params.lang || 'zh')))
 defineExpose({
   closeMenu,
 })

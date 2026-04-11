@@ -10,3 +10,4 @@ export function createAppRouter(isServer = import.meta.env.SSR) {
 }
 
 export default createAppRouter()
+

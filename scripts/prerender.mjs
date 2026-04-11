@@ -9,7 +9,7 @@ const clientDist = path.join(root, 'dist', 'client')
 const serverEntryUrl = pathToFileURL(path.join(root, 'dist', 'server', 'entry-server.js')).href
 
 const routes = renderConfig.ssgRoutes
-const localizedLangs = ['zh', 'jp']
+const localizedLangs = ['zh', 'ja']
 let template = await readFile(path.join(clientDist, 'index.html'), 'utf-8')
 const { render } = await import(serverEntryUrl)
 
@@ -29,10 +29,12 @@ await writeFile(path.join(clientDist, 'ssr-template.html'), template)
 
 for (const route of routes) {
   for (const lang of localizedLangs) {
-    const localizedRoute = `${route}${route.includes('?') ? '&' : '?'}lang=${lang}`
+    const localizedRoute = `/${lang}${route === '/' ? '' : route}`
     const rendered = await render(localizedRoute)
-    const routePath = route === '/' ? '' : route.replace(/^\//, '')
-    const filePath = path.join(clientDist, '_localized', lang, routePath, 'index.html')
+    const filePath =
+      localizedRoute === `/${lang}`
+        ? path.join(clientDist, lang, 'index.html')
+        : path.join(clientDist, localizedRoute.replace(/^\//, ''), 'index.html')
 
     await mkdir(path.dirname(filePath), { recursive: true })
     await writeFile(filePath, injectHtml(template, rendered))

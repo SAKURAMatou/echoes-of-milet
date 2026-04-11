@@ -202,6 +202,7 @@
 import { ref, onMounted, onUnmounted, nextTick, getCurrentInstance } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import axiosInstance from '@/AxiosUtil'
+import { withLangParam } from '@/composables/useLangRoute'
 import { apiRoutes, buildStaticAssetUrl } from '@/config/api'
 
 const router = useRouter()
@@ -308,10 +309,9 @@ const getAlbumDescription = (descriptions) => {
  * 跳转到相册详情页
  */
 const goToGallery = (galleryId) => {
-  router.push({
-    name: 'galleryDetail',
-    params: { galleryId: galleryId },
-  })
+  router.push(
+    withLangParam({ name: 'galleryDetail', params: { galleryId: galleryId } }, String(route.params.lang || 'zh')),
+  )
 }
 
 /**

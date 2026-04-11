@@ -1,5 +1,6 @@
 import { reactive } from 'vue'
 
+import { resolveSupportedLang, resolveUrlLangFromPath, toSupportedLang } from '@/composables/useLangRoute'
 import type { AppState } from '@/composables/useAppState'
 import { langConfig } from '@/composables/lang'
 
@@ -10,6 +11,7 @@ interface LangState {
 interface CreateLangPluginOptions {
   state: AppState
   requestHeaders?: Record<string, string | string[] | undefined>
+  currentPath?: string
 }
 
 declare module '@vue/runtime-core' {
@@ -60,12 +62,17 @@ function parseCookieLang(cookieHeader?: string | string[]) {
 }
 
 function resolveInitialLang(options: CreateLangPluginOptions) {
-  const stateLang = normalizeLang(options.state.lang)
-  if (stateLang) {
-    return stateLang
+  const routeLang = resolveSupportedLang(resolveUrlLangFromPath(options.currentPath || '/'))
+  if (routeLang) {
+    return routeLang
   }
 
   if (typeof window !== 'undefined') {
+    const pathLang = resolveUrlLangFromPath(window.location.pathname)
+    if (pathLang) {
+      return toSupportedLang(pathLang)
+    }
+
     const localLang = normalizeLang(window.localStorage.getItem('lang'))
     if (localLang) {
       return localLang
@@ -77,6 +84,11 @@ function resolveInitialLang(options: CreateLangPluginOptions) {
     }
 
     return normalizeLang(window.navigator.language) ?? 'zh'
+  }
+
+  const stateLang = normalizeLang(options.state.lang)
+  if (stateLang) {
+    return stateLang
   }
 
   const cookieLang = parseCookieLang(options.requestHeaders?.cookie)
@@ -136,4 +148,5 @@ export default createLangPlugin({
     lang: 'zh',
     miletHomeData: null,
   },
+  currentPath: '/',
 })

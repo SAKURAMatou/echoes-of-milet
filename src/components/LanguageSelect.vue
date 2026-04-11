@@ -57,6 +57,7 @@
 <script setup>
 import { getCurrentInstance, onBeforeUnmount, onMounted, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
+import { toUrlLang } from '@/composables/useLangRoute'
 
 const { appContext } = getCurrentInstance()
 const global = appContext.config.globalProperties
@@ -68,11 +69,20 @@ const router = useRouter()
 const selectLang = async (lang) => {
   showLangSelect.value = false
   global.$toggleLang(lang)
+
+  if (!route.name) {
+    await router.replace(`/${toUrlLang(lang)}`)
+    return
+  }
+
   await router.replace({
-    query: {
-      ...route.query,
-      lang,
+    name: route.name,
+    params: {
+      ...route.params,
+      lang: toUrlLang(lang),
     },
+    query: route.query,
+    hash: route.hash,
   })
 }
 

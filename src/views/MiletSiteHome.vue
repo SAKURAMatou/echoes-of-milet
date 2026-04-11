@@ -37,7 +37,7 @@
           </p>
 
           <router-link
-            :to="{ name: 'milet' }"
+            :to="miletLink"
             class="inline-block px-10 py-4 rounded-full bg-[#1a2c50]/90 text-white text-sm tracking-widest shadow-xl transition-all hover:bg-[#488ec7] hover:-translate-y-1 hover:shadow-2xl"
           >
             LISTEN NOW
@@ -54,10 +54,14 @@
 </template>
 <script setup lang="ts">
 import Header from '@/components/TWHeader.vue'
-import { getCurrentInstance, watchEffect } from 'vue'
+import { computed, getCurrentInstance, watchEffect } from 'vue'
+import { useRoute } from 'vue-router'
+import { withLangParam } from '@/composables/useLangRoute'
 
 const internalInstance = getCurrentInstance()
 const global = internalInstance?.appContext.config.globalProperties
+const route = useRoute()
+const miletLink = computed(() => withLangParam({ name: 'milet' }, String(route.params.lang || 'zh')))
 
 watchEffect(() => {
   if (typeof document === 'undefined') {

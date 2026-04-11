@@ -12,6 +12,7 @@ import { createAppRouter } from './router'
 interface CreateAppOptions {
   initialState?: Partial<AppState>
   requestHeaders?: Record<string, string | string[] | undefined>
+  currentPath?: string
 }
 
 export function createApp(options: CreateAppOptions = {}) {
@@ -25,6 +26,7 @@ export function createApp(options: CreateAppOptions = {}) {
     createLangPlugin({
       state,
       requestHeaders: options.requestHeaders,
+      currentPath: options.currentPath,
     }),
   )
 

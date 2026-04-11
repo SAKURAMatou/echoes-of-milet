@@ -3,7 +3,7 @@
   <Divider1 />
 
   <div id="gallery" class="relative w-full px-4 my-10">
-    <RouterLink :to="{ name: 'miletPicAlbum' }" target="_blank">
+    <RouterLink :to="galleryRoute" target="_blank">
       <button
         class="w-full bg-gradient-to-r from-pink-200 via-yellow-100 to-blue-100 text-blue-800 font-semibold py-3 rounded-xl shadow-md border border-yellow-300 transition duration-300 cursor-pointer"
       >
@@ -34,14 +34,20 @@ import Divider1 from '@/components/Divider1.vue'
 import MiletHomeCard from '@/components/milet/MiletHomeCard.vue'
 import MiletHomeTimeLine from '@/components/milet/MiletHomeTimeLine.vue'
 import MiletSite from '@/components/milet/MiletSite.vue'
+import { withLangParam } from '@/composables/useLangRoute'
 import { useAppState } from '@/composables/useAppState'
 import { apiRoutes } from '@/config/api'
+import { useRoute } from 'vue-router'
 
 const internalInstance = getCurrentInstance()
 const global = internalInstance?.appContext.config.globalProperties
 const appState = useAppState()
+const route = useRoute()
 const miletDatas = ref<Record<string, any> | null>(appState.miletHomeData)
 const loading = ref(!miletDatas.value)
+const galleryRoute = computed(() =>
+  withLangParam({ name: 'miletPicAlbum' }, String(route.params.lang || 'zh')),
+)
 
 async function loadMiletHomeData() {
   if (miletDatas.value) {

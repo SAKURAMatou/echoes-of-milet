@@ -1,4 +1,5 @@
 import renderConfig from '../../render.config.json'
+import { stripLangPrefix } from '@/composables/useLangRoute'
 
 export type RenderMode = 'ssg' | 'ssr' | 'csr'
 
@@ -24,7 +25,7 @@ export function isAssetRequest(url = '/') {
 }
 
 export function getConfiguredRenderMode(path: string): RenderMode {
-  return renderModeByPath[normalizeUrl(path)] ?? 'csr'
+  return renderModeByPath[stripLangPrefix(normalizeUrl(path))] ?? 'csr'
 }
 
 export function getSsgRoutes() {

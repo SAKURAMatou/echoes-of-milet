@@ -41,9 +41,11 @@
 </template>
 <script setup>
 
-import { useRouter } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
+import { withLangParam } from '@/composables/useLangRoute'
 
 const router = useRouter()
+const route = useRoute()
 const props = defineProps({
   timelineDataL: {
     type: Array,
@@ -68,12 +70,17 @@ const openBlog = (bloglink) => {
   // console.log(bloglink)
   if (bloglink && bloglink.endsWith('.html')) {
     // window.open('/blogdetail/' + bloglink, '_blank')
-    window.open(router.resolve({ name: 'blogDetail', params: { id: bloglink } }).href, '_blank')
+    window.open(
+      router.resolve(
+        withLangParam({ name: 'blogDetail', params: { id: bloglink } }, String(route.params.lang || 'zh')),
+      ).href,
+      '_blank',
+    )
     // router.push({ name: 'blogDetail', params: { id: bloglink } })
   }
 }
 
 const goToTimeLine = () => {
-  router.push({ name: 'miletTimeLine' })
+  router.push(withLangParam({ name: 'miletTimeLine' }, String(route.params.lang || 'zh')))
 }
 </script>

@@ -13,7 +13,7 @@ interface FunctionContext {
   env: PagesFunctionEnv
 }
 
-const localizedSsgRoutes = new Set(['/', '/milet/about'])
+const ssgRoutes = new Set(['/zh', '/ja', '/zh/milet/about', '/ja/milet/about'])
 const allowedApiPrefixes = Object.values(apiProxyConfig.routes) as string[]
 const upstreamOrigin = apiProxyConfig.origins.production.backend
 
@@ -31,7 +31,7 @@ function isAssetRequest(url = '/') {
 }
 
 function isSsgRoute(url = '/') {
-  return localizedSsgRoutes.has(normalizeUrl(url))
+  return ssgRoutes.has(normalizeUrl(url))
 }
 
 function normalizeLang(value?: string | null) {
@@ -45,8 +45,8 @@ function normalizeLang(value?: string | null) {
     return 'zh'
   }
 
-  if (lowerValue === 'jp' || lowerValue === 'ja' || lowerValue.startsWith('ja-') || lowerValue.includes('jp')) {
-    return 'jp'
+  if (lowerValue === 'ja' || lowerValue === 'jp' || lowerValue.startsWith('ja-') || lowerValue.includes('jp')) {
+    return 'ja'
   }
 
   return null
@@ -61,19 +61,46 @@ function parseCookieLang(cookieHeader?: string | null) {
   return normalizeLang(matched?.[1] ? decodeURIComponent(matched[1]) : null)
 }
 
-function resolveRequestLang(request: Request) {
-  const url = new URL(request.url)
-  const queryLang = normalizeLang(url.searchParams.get('lang'))
-  if (queryLang) {
-    return queryLang
-  }
-
+function resolvePreferredLang(request: Request) {
   const cookieLang = parseCookieLang(request.headers.get('cookie'))
   if (cookieLang) {
     return cookieLang
   }
 
   return normalizeLang(request.headers.get('accept-language')) ?? 'zh'
+}
+
+function convertLegacyPath(pathname: string, lang: 'zh' | 'ja') {
+  const cleanPath = normalizeUrl(pathname)
+  return cleanPath === '/' ? `/${lang}` : `/${lang}${cleanPath}`
+}
+
+function stripLangPrefix(pathname: string) {
+  const stripped = normalizeUrl(pathname).replace(/^\/(?:zh|ja)(?=\/|$)/i, '')
+  return stripped || '/'
+}
+
+function buildLegacyRedirect(url: URL) {
+  const queryLang = normalizeLang(url.searchParams.get('lang'))
+  if (!queryLang) {
+    return null
+  }
+
+  const targetUrl = new URL(convertLegacyPath(stripLangPrefix(url.pathname), queryLang), url.origin)
+  return targetUrl.toString()
+}
+
+function buildBarePathRedirect(pathname: string, request: Request) {
+  const cleanPath = normalizeUrl(pathname)
+  if (cleanPath === '/' || cleanPath.startsWith('/zh') || cleanPath.startsWith('/ja')) {
+    return null
+  }
+
+  if (cleanPath.startsWith('/api/')) {
+    return null
+  }
+
+  return convertLegacyPath(cleanPath, resolvePreferredLang(request))
 }
 
 function injectHtml(
@@ -90,13 +117,13 @@ function injectHtml(
     )
 }
 
-function getRequestOrigin(request: Request, env: PagesFunctionEnv) {
+function getRequestOrigin(request: Request) {
   const url = new URL(request.url)
   return apiProxyConfig.origins.production.site || url.origin
 }
 
-function buildProxyHeaders(request: Request, env: PagesFunctionEnv) {
-  const requestOrigin = getRequestOrigin(request, env)
+function buildProxyHeaders(request: Request) {
+  const requestOrigin = getRequestOrigin(request)
   const headers = new Headers(request.headers)
   headers.set('origin', requestOrigin || headers.get('origin'))
   headers.set('referer', headers.get('referer') || `${requestOrigin}/`)
@@ -119,7 +146,7 @@ function isAllowedApiPath(pathname: string) {
   return allowedApiPrefixes.some((prefix) => pathname === prefix || pathname.startsWith(prefix))
 }
 
-async function proxyApiRequest(request: Request, env: PagesFunctionEnv) {
+async function proxyApiRequest(request: Request) {
   const url = new URL(request.url)
   if (!isAllowedApiPath(url.pathname)) {
     return new Response('Forbidden', {
@@ -133,7 +160,7 @@ async function proxyApiRequest(request: Request, env: PagesFunctionEnv) {
 
   const response = await fetch(targetUrl.toString(), {
     method: request.method,
-    headers: buildProxyHeaders(request, env),
+    headers: buildProxyHeaders(request),
     body: ['GET', 'HEAD'].includes(request.method) ? undefined : request.body,
   })
 
@@ -185,13 +212,13 @@ function createStaticAssetRequest(request: Request, pathname: string) {
   return new Request(new URL(assetPath, request.url).toString(), request)
 }
 
-function createLocalizedSsgAssetRequest(request: Request, pathname: string, lang: 'zh' | 'jp') {
-  const localizedPath =
-    pathname === '/'
-      ? `/_localized/${lang}/index.html`
-      : `/_localized/${lang}${pathname}/index.html`
-
-  return new Request(new URL(localizedPath, request.url).toString(), request)
+function createRedirectResponse(target: string, status: number) {
+  return new Response(null, {
+    status,
+    headers: {
+      location: target,
+    },
+  })
 }
 
 export const onRequest = async (context: FunctionContext) => {
@@ -201,22 +228,30 @@ export const onRequest = async (context: FunctionContext) => {
     const url = new URL(request.url)
     const pathname = normalizeUrl(url.pathname)
 
+    const legacyRedirect = buildLegacyRedirect(url)
+    if (legacyRedirect) {
+      return createRedirectResponse(legacyRedirect, 301)
+    }
+
+    if (pathname === '/') {
+      return createRedirectResponse(`/${resolvePreferredLang(request)}`, 302)
+    }
+
+    const barePathRedirect = buildBarePathRedirect(pathname, request)
+    if (barePathRedirect) {
+      return createRedirectResponse(barePathRedirect, 302)
+    }
+
     if (pathname.startsWith('/api/')) {
-      return proxyApiRequest(request, env)
+      return proxyApiRequest(request)
     }
 
     if (isAssetRequest(pathname)) {
-      const staticAssetResponse = await env.ASSETS.fetch(
-        createStaticAssetRequest(request, pathname),
-      )
-      return staticAssetResponse
+      return env.ASSETS.fetch(createStaticAssetRequest(request, pathname))
     }
 
     if (isSsgRoute(pathname)) {
-      const lang = resolveRequestLang(request)
-      const staticAssetResponse = await env.ASSETS.fetch(
-        createLocalizedSsgAssetRequest(request, pathname, lang),
-      )
+      const staticAssetResponse = await env.ASSETS.fetch(createStaticAssetRequest(request, pathname))
       if (staticAssetResponse.ok) {
         return staticAssetResponse
       }

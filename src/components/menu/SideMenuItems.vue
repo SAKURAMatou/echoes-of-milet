@@ -25,7 +25,7 @@
 
           <router-link
             v-if="item.shown"
-            :to="{ name: item.routerName }"
+            :to="buildMenuRoute(item.routerName)"
             class="menu-link relative block focus-visible:outline-none"
             :aria-current="isActiveRoute(item) ? 'page' : false"
             :class="{ 'is-active': isActiveRoute(item) }"
@@ -109,6 +109,7 @@ import { useRoute } from 'vue-router'
 import LanguageSelect from '@/components/LanguageSelect.vue'
 import type { MenuItem } from '@/composables/SideMenueData'
 import { menu, colorMap } from '@/composables/SideMenueData'
+import { withLangParam } from '@/composables/useLangRoute'
 
 const BOTTOM_WIDE_STATIONERY_PATH = `
     M316,12
@@ -161,6 +162,14 @@ const route = useRoute()
 
 function isActiveRoute(item: MenuItem) {
   return route.name === item.routerName
+}
+
+function buildMenuRoute(routerName?: string) {
+  if (!routerName) {
+    return '#'
+  }
+
+  return withLangParam({ name: routerName }, String(route.params.lang || 'zh'))
 }
 
 const activeItem = computed(() => menu.find((m) => route.name === m.routerName))

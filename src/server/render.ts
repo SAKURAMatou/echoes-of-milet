@@ -1,6 +1,7 @@
 import { renderToString } from 'vue/server-renderer'
 
 import { createApp } from '@/app'
+import { resolveSupportedLang, resolveUrlLangFromPath } from '@/composables/useLangRoute'
 import { renderSeoTags, toHtmlLang } from '@/server/seo'
 
 interface RenderRequest {
@@ -18,12 +19,13 @@ export interface RenderResult {
 
 export async function render(url: string, request: RenderRequest = {}): Promise<RenderResult> {
   const requestUrl = new URL(url, 'https://miles-dml.org')
-  const requestLang = requestUrl.searchParams.get('lang')
+  const requestLang = resolveSupportedLang(resolveUrlLangFromPath(requestUrl.pathname))
   const { app, router, state } = createApp({
     initialState: {
-      lang: requestLang === 'jp' ? 'jp' : requestLang === 'zh' ? 'zh' : undefined,
+      lang: requestLang,
     },
     requestHeaders: request.headers,
+    currentPath: requestUrl.pathname,
   })
 
   await router.push(url)

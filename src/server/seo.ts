@@ -1,3 +1,5 @@
+import { toUrlLang } from '@/composables/useLangRoute'
+
 interface SeoLocaleContent {
   title: string
   description: string
@@ -91,16 +93,14 @@ function toOgLocale(lang?: string | null) {
 }
 
 function createLocalizedUrl(pathname: string, lang: SupportedLang) {
-  const url = new URL(pathname, siteUrl)
-  url.searchParams.set('lang', lang)
-  return url.toString()
+  return `${siteUrl}/${toUrlLang(lang)}${pathname === '/' ? '' : pathname}`
 }
 
 function renderAlternateLinks(pathname: string) {
   return [
     `<link rel="alternate" hreflang="zh-CN" href="${createLocalizedUrl(pathname, 'zh')}">`,
     `<link rel="alternate" hreflang="ja-JP" href="${createLocalizedUrl(pathname, 'jp')}">`,
-    `<link rel="alternate" hreflang="x-default" href="${siteUrl}${pathname}">`,
+    `<link rel="alternate" hreflang="x-default" href="${siteUrl}/">`,
   ].join('\n')
 }
 
@@ -159,3 +159,4 @@ export function renderSeoTags(seoKey?: string, lang?: string | null) {
     `<script type="application/ld+json">${escapeJsonForHtml(renderStructuredData(localized.title, localized.description, canonicalUrl, resolvedLang))}</script>`,
   ].join('\n')
 }
+

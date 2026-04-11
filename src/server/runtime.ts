@@ -1,4 +1,4 @@
-const ssgRoutes = new Set(['/', '/milet/about'])
+const ssgRoutes = new Set(['/zh', '/ja', '/zh/milet/about', '/ja/milet/about'])
 
 export function normalizeUrl(url = '/') {
   const [pathname] = url.split('?')
