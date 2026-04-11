@@ -96,6 +96,10 @@ function buildBarePathRedirect(pathname: string, request: Request) {
     return null
   }
 
+  if (isAssetRequest(cleanPath)) {
+    return null
+  }
+
   if (cleanPath.startsWith('/api/')) {
     return null
   }
