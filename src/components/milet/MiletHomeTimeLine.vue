@@ -25,9 +25,10 @@
         <h3 class="text-lg font-bold" :class="timelineClass(index).title">
           {{ item.timeline_title }}
         </h3>
-        <p class="text-sm text-gray-600 mt-1">
-          {{ item.timeline_body }}
-        </p>
+        <FormattedPlainText
+          class="mt-2 text-sm leading-6 text-gray-600"
+          :text="item.timeline_body"
+        />
       </div>
       <!-- More闂佸湱顭堥ˇ鐢稿箰?-->
     </div>
@@ -43,6 +44,7 @@
 
 import { useRoute, useRouter } from 'vue-router'
 import { withLangParam } from '@/composables/useLangRoute'
+import FormattedPlainText from '@/components/FormattedPlainText.vue'
 
 const router = useRouter()
 const route = useRoute()

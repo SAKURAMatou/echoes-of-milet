@@ -61,9 +61,10 @@
               <h3 class="mt-1 text-base font-bold" :class="colorMap[it.color]?.title">
                 {{ it.timeline_title }}
               </h3>
-              <p class="mt-2 text-sm leading-relaxed text-black/70">
-                {{ it.timeline_body }}
-              </p>
+              <FormattedPlainText
+                class="mt-3 text-sm leading-7 text-black/70"
+                :text="it.timeline_body"
+              />
             </component>
           </div>
         </div>
@@ -93,6 +94,7 @@ import {
 } from 'vue'
 import axiosInstance from '@/AxiosUtil'
 import { apiRoutes, getBackendOrigin } from '@/config/api'
+import FormattedPlainText from '@/components/FormattedPlainText.vue'
 const { appContext } = getCurrentInstance()
 const global = appContext.config.globalProperties
 type TimeLineResItem = {
