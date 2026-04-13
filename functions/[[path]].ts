@@ -14,7 +14,11 @@ interface FunctionContext {
 }
 
 const ssgRoutes = new Set(['/zh', '/ja', '/zh/milet/about', '/ja/milet/about'])
-const directAssetPaths = new Set(['/baidu_verify_codeva-HqQ4QBPDlh.html'])
+const baiduVerificationContent = '3c345798cdedc5cdc0a388e198c65a32'
+const baiduVerificationPaths = new Set([
+  '/baidu_verify_codeva-HqQ4QBPDlh.html',
+  '/baidu_verify_codeva-HqQ4QBPDlh',
+])
 const allowedApiPrefixes = Object.values(apiProxyConfig.routes) as string[]
 const upstreamOrigin = apiProxyConfig.origins.production.backend
 
@@ -233,8 +237,13 @@ export const onRequest = async (context: FunctionContext) => {
     const url = new URL(request.url)
     const pathname = normalizeUrl(url.pathname)
 
-    if (directAssetPaths.has(pathname)) {
-      return env.ASSETS.fetch(createStaticAssetRequest(request, pathname))
+    if (baiduVerificationPaths.has(pathname)) {
+      return new Response(baiduVerificationContent, {
+        status: 200,
+        headers: {
+          'content-type': 'text/plain; charset=utf-8',
+        },
+      })
     }
 
     if (isAssetRequest(pathname)) {
