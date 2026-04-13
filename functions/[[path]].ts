@@ -232,6 +232,10 @@ export const onRequest = async (context: FunctionContext) => {
     const url = new URL(request.url)
     const pathname = normalizeUrl(url.pathname)
 
+    if (isAssetRequest(pathname)) {
+      return env.ASSETS.fetch(createStaticAssetRequest(request, pathname))
+    }
+
     const legacyRedirect = buildLegacyRedirect(url)
     if (legacyRedirect) {
       return createRedirectResponse(legacyRedirect, 301)
@@ -248,10 +252,6 @@ export const onRequest = async (context: FunctionContext) => {
 
     if (pathname.startsWith('/api/')) {
       return proxyApiRequest(request)
-    }
-
-    if (isAssetRequest(pathname)) {
-      return env.ASSETS.fetch(createStaticAssetRequest(request, pathname))
     }
 
     if (isSsgRoute(pathname)) {
