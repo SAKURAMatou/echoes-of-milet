@@ -28,7 +28,7 @@ const seoMap: Record<string, SeoMeta> = {
           'Echoes of milet は miles DML が運営する milet の日本語ファンサイトです。サイト案内、注目コンテンツ、milet に関するまとめを掲載しています。',
       },
     },
-    image: '/milet-img/milet-site-og-img.jpg',
+    image: '/echoes-of-milet-OG.webp',
     canonicalPath: '/',
     type: 'website',
   },
@@ -45,7 +45,7 @@ const seoMap: Record<string, SeoMeta> = {
           'Echoes of milet の milet ホームページです。プロフィール、タイムライン、ギャラリー導線、公式リンクをまとめています。',
       },
     },
-    image: '/milet-img/milet-fc-og-img.png',
+    image: '/echoes-of-milet-OG.webp',
     canonicalPath: '/milet',
     type: 'website',
   },
@@ -62,7 +62,7 @@ const seoMap: Record<string, SeoMeta> = {
           'Echoes of milet の制作背景、miles DML の運営情報、フィードバック窓口をまとめた日本語ページです。',
       },
     },
-    image: '/milet-img/milet-site-og-img.jpg',
+    image: '/echoes-of-milet-OG.webp',
     canonicalPath: '/milet/about',
     type: 'website',
   },
@@ -104,7 +104,12 @@ function renderAlternateLinks(pathname: string) {
   ].join('\n')
 }
 
-function renderStructuredData(title: string, description: string, canonicalUrl: string, lang: SupportedLang) {
+function renderStructuredData(
+  title: string,
+  description: string,
+  canonicalUrl: string,
+  lang: SupportedLang,
+) {
   return JSON.stringify({
     '@context': 'https://schema.org',
     '@type': 'WebPage',
@@ -159,4 +164,3 @@ export function renderSeoTags(seoKey?: string, lang?: string | null) {
     `<script type="application/ld+json">${escapeJsonForHtml(renderStructuredData(localized.title, localized.description, canonicalUrl, resolvedLang))}</script>`,
   ].join('\n')
 }
-
