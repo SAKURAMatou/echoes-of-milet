@@ -1,73 +1,131 @@
 <template>
-  <div class="relative">
-    <button
-      v-if="isClientReady"
-      v-show="isShow"
-      :style="{ opacity: opacityValue }"
-      @click="scrollToTop"
-      class="bg-blue-500 text-white rounded-lg shadow-lg opacity-0 transition-opacity duration-300 z-50 cursor-pointer"
+  <button
+    v-if="isClientReady"
+    v-show="isShow"
+    type="button"
+    :style="{ opacity: opacityValue }"
+    class="rounded-lg bg-blue-500 text-white shadow-lg transition-opacity duration-300 cursor-pointer"
+    aria-label="Back to top"
+    @click="scrollToTop"
+  >
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      height="48px"
+      width="48px"
+      viewBox="0 -960 960 960"
+      fill="#FFFFFF"
+      aria-hidden="true"
     >
-      <svg
-        xmlns="http://www.w3.org/2000/svg"
-        height="48px"
-        width="48px"
-        viewBox="0 -960 960 960"
-        fill="#FFFFFF"
-      >
-        <path d="M480-528 296-344l-56-56 240-240 240 240-56 56-184-184Z" />
-      </svg>
-    </button>
-  </div>
+      <path d="M480-528 296-344l-56-56 240-240 240 240-56 56-184-184Z" />
+    </svg>
+  </button>
 </template>
+
 <script setup>
-import { ref, onMounted, onUnmounted } from 'vue'
+import { nextTick, onMounted, onUnmounted, ref } from 'vue'
 
 const isShow = ref(false)
 const opacityValue = ref(0)
 const isClientReady = ref(false)
-let scrollElement = null
 
-const findScrollElement = () => {
-  // 查找可滚动的容器（通常是 overflow-y-auto 的元素）
-  const container = document.querySelector('.flex-1')
-  return container || window
+let scrollElement = null
+let mediaQuery = null
+
+function isWindowScrollTarget(target) {
+  return !target || target === window
 }
 
-const scrollToTop = () => {
-  if (scrollElement && scrollElement !== window) {
-    scrollElement.scrollTo({
-      top: 0,
-      behavior: 'smooth',
-    })
-  } else {
+function getScrollTop(target) {
+  if (isWindowScrollTarget(target)) {
+    return window.scrollY || document.documentElement.scrollTop || document.body.scrollTop || 0
+  }
+
+  return target.scrollTop || 0
+}
+
+function getScrollableDistance(target) {
+  if (isWindowScrollTarget(target)) {
+    const doc = document.documentElement
+    return Math.max(doc.scrollHeight - window.innerHeight, 0)
+  }
+
+  return Math.max(target.scrollHeight - target.clientHeight, 0)
+}
+
+function findScrollElement() {
+  if (typeof window === 'undefined') return null
+
+  if (window.matchMedia('(max-width: 767px)').matches) {
+    return window
+  }
+
+  return document.querySelector('[data-page-scroll-container]') || window
+}
+
+function bindScrollTarget() {
+  const nextScrollElement = findScrollElement()
+
+  if (scrollElement === nextScrollElement) {
+    handleScroll()
+    return
+  }
+
+  if (scrollElement) {
+    scrollElement.removeEventListener('scroll', handleScroll)
+  }
+
+  scrollElement = nextScrollElement
+
+  if (scrollElement) {
+    scrollElement.addEventListener('scroll', handleScroll, { passive: true })
+  }
+
+  handleScroll()
+}
+
+function scrollToTop() {
+  const target = findScrollElement()
+
+  if (isWindowScrollTarget(target)) {
     window.scrollTo({
       top: 0,
       behavior: 'smooth',
     })
+    return
   }
+
+  target.scrollTo({
+    top: 0,
+    behavior: 'smooth',
+  })
 }
 
-const handleScroll = () => {
-  if (!scrollElement) return
+function handleScroll() {
+  const target = scrollElement || findScrollElement()
+  const scrollTop = getScrollTop(target)
+  const scrollableDistance = getScrollableDistance(target)
+  const ratio = scrollableDistance > 0 ? Math.min(scrollTop / (scrollableDistance * 0.5), 1) : 0
 
-  const scrollY = scrollElement.scrollTop
-  const maxscroll = scrollElement.scrollHeight - scrollElement.clientHeight
-  const ratio = Math.min(scrollY / (maxscroll * 0.5), 1)
-  isShow.value = scrollY > 100 // 显示按钮的阈值
-  opacityValue.value = ratio // 根据滚动比例设置透明度
+  isShow.value = scrollTop > 100
+  opacityValue.value = ratio
 }
 
-onMounted(() => {
+onMounted(async () => {
   isClientReady.value = true
-  scrollElement = findScrollElement()
-  if (scrollElement) {
-    scrollElement.addEventListener('scroll', handleScroll)
-  }
+  await nextTick()
+
+  mediaQuery = window.matchMedia('(max-width: 767px)')
+  mediaQuery.addEventListener('change', bindScrollTarget)
+  bindScrollTarget()
 })
 
 onUnmounted(() => {
   if (scrollElement) {
     scrollElement.removeEventListener('scroll', handleScroll)
+  }
+
+  if (mediaQuery) {
+    mediaQuery.removeEventListener('change', bindScrollTarget)
   }
 })
 </script>

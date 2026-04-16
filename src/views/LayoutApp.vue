@@ -19,6 +19,7 @@
 
         <!-- 右侧内容区域：占据剩余区域，保证滚动条在页面最右侧 -->
         <div
+          data-page-scroll-container
           class="flex-1 min-w-0 md:min-h-0 md:overflow-y-auto md:pr-14 lg:pr-20 xl:pr-28 2xl:pr-36"
         >
           <main

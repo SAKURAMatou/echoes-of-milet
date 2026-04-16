@@ -4,6 +4,43 @@
 @import 'tailwindcss';
 @plugin "@tailwindcss/typography";
 
+@layer base {
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: rgba(14, 165, 233, 0.72) rgba(226, 232, 240, 0.72);
+  }
+
+  *::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+
+  *::-webkit-scrollbar-track {
+    border-radius: 9999px;
+    background:
+      linear-gradient(180deg, rgba(255, 255, 255, 0.82), rgba(226, 232, 240, 0.72));
+  }
+
+  *::-webkit-scrollbar-thumb {
+    border: 2px solid rgba(248, 250, 252, 0.92);
+    border-radius: 9999px;
+    background:
+      linear-gradient(180deg, rgba(125, 211, 252, 0.96), rgba(148, 163, 184, 0.92));
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.5),
+      0 6px 18px -10px rgba(14, 165, 233, 0.75);
+  }
+
+  *::-webkit-scrollbar-thumb:hover {
+    background:
+      linear-gradient(180deg, rgba(56, 189, 248, 0.98), rgba(100, 116, 139, 0.94));
+  }
+
+  *::-webkit-scrollbar-corner {
+    background: transparent;
+  }
+}
+
 @layer utilities {
   .scrollbar-none {
     -ms-overflow-style: none;

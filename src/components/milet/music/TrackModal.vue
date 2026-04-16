@@ -1,13 +1,17 @@
 <template>
   <teleport to="body">
-    <div v-if="open && track" class="fixed inset-0 z-[999]">
-      <div class="absolute inset-0 bg-slate-950/76 backdrop-blur-[10px]" @click="closeAll"></div>
+    <transition name="track-modal" appear>
+      <div v-if="open && track" class="fixed inset-0 z-[999]">
+        <div
+          class="modal-backdrop absolute inset-0 bg-slate-950/76 backdrop-blur-[10px]"
+          @click="closeAll"
+        ></div>
 
-      <div class="absolute inset-0 modal-scroll">
-        <div class="flex min-h-full items-start justify-center p-3 md:items-center md:p-6">
-          <div
-            class="relative flex h-[calc(100dvh-24px)] w-full max-w-6xl flex-col overflow-hidden rounded-[18px] border border-white/10 bg-[linear-gradient(180deg,#fcfdff_0%,#f8fafc_58%,#f1f5f9_100%)] shadow-[0_50px_130px_-40px_rgba(15,23,42,0.72)] md:h-[calc(100dvh-48px)]"
-          >
+        <div class="absolute inset-0 modal-scroll">
+          <div class="flex min-h-full items-start justify-center p-3 md:items-center md:p-6">
+            <div
+              class="modal-panel relative flex h-[calc(100dvh-24px)] w-full max-w-6xl flex-col overflow-hidden rounded-[18px] border border-white/10 bg-[linear-gradient(180deg,#fcfdff_0%,#f8fafc_58%,#f1f5f9_100%)] shadow-[0_50px_130px_-40px_rgba(15,23,42,0.72)] md:h-[calc(100dvh-48px)]"
+            >
             <div
               class="pointer-events-none absolute inset-x-0 top-0 h-36 bg-[radial-gradient(circle_at_top_left,rgba(56,189,248,0.16),transparent_52%),radial-gradient(circle_at_top_right,rgba(244,114,182,0.16),transparent_46%)]"
             ></div>
@@ -426,9 +430,10 @@
               </transition>
             </div>
           </div>
-        </div>
+          </div>
       </div>
-    </div>
+      </div>
+    </transition>
   </teleport>
 </template>
 
@@ -601,43 +606,55 @@ function closeAll() {
 .panel-scroll {
   -webkit-overflow-scrolling: touch;
   overscroll-behavior: contain;
-  scrollbar-width: thin;
-  scrollbar-color: rgba(14, 165, 233, 0.72) rgba(226, 232, 240, 0.72);
 }
 
-.modal-scroll::-webkit-scrollbar,
-.panel-scroll::-webkit-scrollbar {
-  width: 10px;
-  height: 10px;
+.track-modal-enter-active,
+.track-modal-leave-active {
+  transition: opacity 260ms ease;
 }
 
-.modal-scroll::-webkit-scrollbar-track,
-.panel-scroll::-webkit-scrollbar-track {
-  border-radius: 9999px;
-  background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.82), rgba(226, 232, 240, 0.72));
+.track-modal-enter-active .modal-backdrop,
+.track-modal-leave-active .modal-backdrop {
+  transition:
+    opacity 260ms ease,
+    backdrop-filter 260ms ease;
 }
 
-.modal-scroll::-webkit-scrollbar-thumb,
-.panel-scroll::-webkit-scrollbar-thumb {
-  border: 2px solid rgba(248, 250, 252, 0.92);
-  border-radius: 9999px;
-  background:
-    linear-gradient(180deg, rgba(125, 211, 252, 0.96), rgba(148, 163, 184, 0.92));
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.5),
-    0 6px 18px -10px rgba(14, 165, 233, 0.75);
+.track-modal-enter-active .modal-panel {
+  transition:
+    opacity 280ms cubic-bezier(0.2, 0.8, 0.2, 1),
+    transform 280ms cubic-bezier(0.2, 0.8, 0.2, 1),
+    filter 280ms ease;
 }
 
-.modal-scroll::-webkit-scrollbar-thumb:hover,
-.panel-scroll::-webkit-scrollbar-thumb:hover {
-  background:
-    linear-gradient(180deg, rgba(56, 189, 248, 0.98), rgba(100, 116, 139, 0.94));
+.track-modal-leave-active .modal-panel {
+  transition:
+    opacity 180ms ease,
+    transform 180ms ease,
+    filter 180ms ease;
 }
 
-.modal-scroll::-webkit-scrollbar-corner,
-.panel-scroll::-webkit-scrollbar-corner {
-  background: transparent;
+.track-modal-enter-from,
+.track-modal-leave-to {
+  opacity: 0;
+}
+
+.track-modal-enter-from .modal-backdrop,
+.track-modal-leave-to .modal-backdrop {
+  opacity: 0;
+  backdrop-filter: blur(0);
+}
+
+.track-modal-enter-from .modal-panel {
+  opacity: 0;
+  filter: blur(6px);
+  transform: translateY(18px) scale(0.97);
+}
+
+.track-modal-leave-to .modal-panel {
+  opacity: 0;
+  filter: blur(4px);
+  transform: translateY(10px) scale(0.98);
 }
 
 .listen-drawer-enter-active,

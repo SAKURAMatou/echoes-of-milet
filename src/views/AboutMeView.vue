@@ -1,5 +1,5 @@
 <template>
-  <div class="min-h-[calc(100vh-88px)] overflow-hidden text-slate-700">
+  <div class="min-h-[calc(100vh-88px)] overflow-x-hidden text-slate-700">
     <section
       id="about-intro"
       class="relative isolate border-b border-white/70 bg-[radial-gradient(circle_at_top_left,rgba(186,230,253,0.9),transparent_38%),radial-gradient(circle_at_top_right,rgba(244,244,245,0.9),transparent_34%),linear-gradient(135deg,#ffffff_0%,#f0f9ff_48%,#eff6ff_100%)] px-6 pb-14 pt-12 md:px-10"
@@ -52,9 +52,9 @@
       </div>
     </section>
 
-    <section id="about-feedback" class="px-6 py-12 md:px-10">
+    <section id="about-feedback" class="px-3 py-12 sm:px-6 md:px-10">
       <div
-        class="mx-auto grid max-w-6xl gap-8"
+        class="mx-auto grid w-full min-w-0 max-w-6xl gap-8"
         :class="showMessageOwner ? 'lg:grid-cols-[0.82fr_1.18fr]' : 'lg:grid-cols-1'"
       >
         <div v-if="showMessageOwner">
@@ -96,9 +96,9 @@
         </div>
 
         <div
-          class="rounded-[32px] border border-white/70 bg-white/92 p-6 shadow-[0_24px_80px_rgba(148,163,184,0.16)] md:p-8"
+          class="mx-auto w-full min-w-0 max-w-3xl rounded-[26px] border border-white/70 bg-white/92 p-4 shadow-[0_24px_80px_rgba(148,163,184,0.16)] sm:p-6 md:rounded-[32px] md:p-8"
         >
-          <form class="space-y-5" novalidate @submit.prevent="openConfirm">
+          <form class="min-w-0 space-y-5" novalidate @submit.prevent="openConfirm">
             <div>
               <label class="mb-2 block text-sm font-medium text-slate-700" for="email">
                 {{ copy.form.emailLabel }}
@@ -108,7 +108,7 @@
                 v-model.trim="form.email"
                 type="email"
                 autocomplete="email"
-                class="w-full rounded-2xl border bg-slate-50/60 px-4 py-3 outline-none transition focus:border-sky-300 focus:bg-white focus:ring-4 focus:ring-sky-100"
+                class="w-full min-w-0 rounded-2xl border bg-slate-50/60 px-4 py-3 outline-none transition focus:border-sky-300 focus:bg-white focus:ring-4 focus:ring-sky-100"
                 :class="errors.email ? 'border-rose-300' : 'border-slate-200'"
                 :placeholder="copy.form.emailPlaceholder"
                 @blur="validateField('email')"
@@ -129,7 +129,7 @@
                 type="text"
                 maxlength="120"
                 autocomplete="off"
-                class="w-full rounded-2xl border bg-slate-50/60 px-4 py-3 outline-none transition focus:border-sky-300 focus:bg-white focus:ring-4 focus:ring-sky-100"
+                class="w-full min-w-0 rounded-2xl border bg-slate-50/60 px-4 py-3 outline-none transition focus:border-sky-300 focus:bg-white focus:ring-4 focus:ring-sky-100"
                 :class="errors.title ? 'border-rose-300' : 'border-slate-200'"
                 :placeholder="copy.form.titlePlaceholder"
                 @blur="validateField('title')"
@@ -149,7 +149,7 @@
                 v-model.trim="form.content"
                 rows="7"
                 maxlength="2000"
-                class="w-full rounded-[24px] border bg-slate-50/60 px-4 py-3 outline-none transition focus:border-sky-300 focus:bg-white focus:ring-4 focus:ring-sky-100"
+                class="w-full min-w-0 rounded-[24px] border bg-slate-50/60 px-4 py-3 outline-none transition focus:border-sky-300 focus:bg-white focus:ring-4 focus:ring-sky-100"
                 :class="errors.content ? 'border-rose-300' : 'border-slate-200'"
                 :placeholder="copy.form.contentPlaceholder"
                 @blur="validateField('content')"
@@ -168,13 +168,13 @@
               />
             </div>
 
-            <div class="rounded-[24px] border border-slate-200 bg-slate-50/70 p-4">
+            <div class="min-w-0 rounded-[24px] border border-slate-200 bg-slate-50/70 p-4">
               <p class="text-sm font-medium text-slate-700">{{ copy.form.turnstileTitle }}</p>
               <p class="mt-1 text-sm leading-6 text-slate-500">{{ copy.form.turnstileDesc }}</p>
               <div
                 v-if="turnstileEnabled && isClientReady"
                 ref="turnstileRef"
-                class="mt-4 min-h-[70px] rounded-2xl border border-dashed border-sky-200 bg-white px-3 py-2"
+                class="mt-4 min-h-[70px] max-w-full overflow-x-auto rounded-2xl border border-dashed border-sky-200 bg-white px-3 py-2"
               ></div>
               <div
                 v-else
@@ -191,7 +191,7 @@
               <p class="text-sm leading-6 text-slate-500">{{ copy.form.submitHint }}</p>
               <button
                 type="submit"
-                class="inline-flex min-w-[170px] items-center justify-center rounded-full bg-slate-800 px-6 py-3 text-sm font-medium text-white transition hover:-translate-y-0.5 hover:bg-sky-700 disabled:cursor-not-allowed disabled:opacity-60"
+                class="inline-flex w-full items-center justify-center rounded-full bg-slate-800 px-6 py-3 text-sm font-medium text-white transition hover:-translate-y-0.5 hover:bg-sky-700 disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto sm:min-w-[170px]"
                 :disabled="isSubmitting"
               >
                 {{ isSubmitting ? copy.form.submitting : copy.form.submit }}

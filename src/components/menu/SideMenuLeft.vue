@@ -8,12 +8,12 @@
   </aside>
 
   <teleport v-if="isClient && menuOpen" to="body">
-    <div class="fixed inset-0 z-40 md:hidden" @click="emit('closeMenu')">
+    <div class="fixed inset-x-0 bottom-0 top-16 z-40 md:hidden" @click="emit('closeMenu')">
       <div class="absolute inset-0 bg-slate-900/30 backdrop-blur-sm"></div>
     </div>
 
     <aside
-      class="md:hidden fixed left-0 top-0 z-50 h-dvh w-[310px]"
+      class="fixed left-0 top-16 z-40 h-[calc(100dvh-4rem)] w-[310px] md:hidden"
       role="dialog"
       aria-modal="true"
       aria-label="Mobile menu"
