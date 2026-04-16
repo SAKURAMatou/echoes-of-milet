@@ -24,6 +24,6 @@ export function getSiteOrigin() {
 export function buildStaticAssetUrl(assetPath: string, staticBase = staticRoutes.miletImage) {
   if (!assetPath) return ''
   if (/^https?:\/\//i.test(assetPath)) return assetPath
-
-  return `${getBackendOrigin()}${staticBase}${assetPath}`
+  //图片统一使用正式地址
+  return `${apiProxyConfig.origins['production'].backend}${staticBase}${assetPath}`
 }

@@ -15,6 +15,7 @@
     "miletTimeline": "/api/milet/timelinedata",
     "miletRelease": "/api/milet/release/type/",
     "miletReleaseDetail": "/api/milet/release/worker/detail/",
+    "miletTrackListen": "/api/milet/tracklisten/",
     "miletGallery": "/api/milet/gallery",
     "aboutFeedback": "/api/milet/feedback",
     "blogDetail": "/api/blog/detail/",
