@@ -99,7 +99,8 @@ const global = internalInstance?.appContext.config.globalProperties
 const route = useRoute()
 
 const currentLang = computed(() => String(route.params.lang || global?.$lang?.lang || 'zh'))
-const miletLink = computed(() => withLangParam({ name: 'miletRelease' }, currentLang.value))
+const miletLink = computed(() => withLangParam({ name: 'milet' }, currentLang.value))
+const releaseLink = computed(() => withLangParam({ name: 'miletRelease' }, currentLang.value))
 const aboutLink = computed(() => withLangParam({ name: 'aboutMe' }, currentLang.value))
 const galleryLink = computed(() => withLangParam({ name: 'miletPicAlbum' }, currentLang.value))
 const timelineLink = computed(() => withLangParam({ name: 'miletTimeLine' }, currentLang.value))
@@ -118,7 +119,7 @@ const copy = computed(() => ({
         label: 'MUSIC',
         title: '作品脉络',
         description: '整理专辑、单曲、版本与聆听入口，让回顾更轻松。',
-        to: miletLink.value,
+        to: releaseLink.value,
       },
       {
         label: 'LIVE',
@@ -147,7 +148,7 @@ const copy = computed(() => ({
         label: 'MUSIC',
         title: '作品の流れ',
         description: 'アルバム、シングル、エディション、聴ける場所をまとめています。',
-        to: miletLink.value,
+        to: releaseLink.value,
       },
       {
         label: 'LIVE',
