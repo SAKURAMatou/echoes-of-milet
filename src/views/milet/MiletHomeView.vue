@@ -1,53 +1,65 @@
 <template>
-  <MiletHomeCard id="introduction" v-if="!loading && miletDataL" :cardDataL="miletDataL.card" />
-  <Divider1 />
+  <article class="milet-home rounded-lg min-h-screen text-[#202632]">
+    <template v-if="!loading && homeV2">
+      <MiletHomeHero
+        :current-year="currentYear"
+        :lead="heroText.lead"
+        :sublead="heroText.sublead"
+        :button-label="heroText.buttonLabel"
+        :scroll-label="heroText.scrollLabel"
+        @scroll-to-highlight="scrollToHighlight"
+      />
 
-  <div id="gallery" class="relative w-full px-4 my-10">
-    <RouterLink :to="galleryRoute" target="_blank">
-      <button
-        class="w-full bg-gradient-to-r from-pink-200 via-yellow-100 to-blue-100 text-blue-800 font-semibold py-3 rounded-xl shadow-md border border-yellow-300 transition duration-300 cursor-pointer"
-      >
-        &#x1F4F8; {{ $getConfigLang('miletHomeView')['title1'] }}
-      </button>
-      <div class="absolute top-[-10px] left-3 w-4 h-4 bg-red-300 rotate-45 shadow-sm"></div>
-    </RouterLink>
-  </div>
-
-  <Divider1 />
-
-  <MiletHomeTimeLine
-    id="timeline"
-    v-if="!loading && miletDataL"
-    :timelineDataL="miletDataL.timeline"
-  />
-  <Divider1 />
-
-  <div class="mx-auto max-w-3xl">
-    <MiletSite v-if="!loading && miletDataL" :miletSiteData="miletDataL.site" />
-  </div>
+      <div class="px-5 py-12 sm:px-8 md:px-10">
+        <MiletHomeWhy :items="whyCards" />
+        <MiletHomeHighlight :title="sectionTitles.highlight" :items="highlights" />
+        <MiletHomeTimelinePreview :title="sectionTitles.timeline" :timeline="timeline" />
+        <MiletHomeGallery :title="sectionTitles.gallery" :gallery="gallery" />
+        <MiletHomeOfficialLinks :official="official" />
+        <MiletHomeEntryGrid :entries="entries" />
+        <MiletHomeCta :title="cta.title" :button-label="cta.buttonLabel" :to="cta.to" />
+      </div>
+    </template>
+  </article>
 </template>
-<script setup lang="ts">
-import { computed, getCurrentInstance, onMounted, onServerPrefetch, ref, watchEffect } from 'vue'
 
-import axiosInstance from '@/AxiosUtil'
-import Divider1 from '@/components/Divider1.vue'
-import MiletHomeCard from '@/components/milet/MiletHomeCard.vue'
-import MiletHomeTimeLine from '@/components/milet/MiletHomeTimeLine.vue'
-import MiletSite from '@/components/milet/MiletSite.vue'
-import { withLangParam } from '@/composables/useLangRoute'
-import { useAppState } from '@/composables/useAppState'
-import { apiRoutes } from '@/config/api'
+<script setup lang="ts">
+import { computed, onMounted, onServerPrefetch, ref, watchEffect } from 'vue'
 import { useRoute } from 'vue-router'
 
-const internalInstance = getCurrentInstance()
-const global = internalInstance?.appContext.config.globalProperties
+import axiosInstance from '@/AxiosUtil'
+import MiletHomeCta from '@/components/milet/home/MiletHomeCta.vue'
+import MiletHomeEntryGrid from '@/components/milet/home/MiletHomeEntryGrid.vue'
+import MiletHomeGallery from '@/components/milet/home/MiletHomeGallery.vue'
+import MiletHomeHero from '@/components/milet/home/MiletHomeHero.vue'
+import MiletHomeHighlight from '@/components/milet/home/MiletHomeHighlight.vue'
+import MiletHomeOfficialLinks from '@/components/milet/home/MiletHomeOfficialLinks.vue'
+import MiletHomeTimelinePreview from '@/components/milet/home/MiletHomeTimelinePreview.vue'
+import MiletHomeWhy from '@/components/milet/home/MiletHomeWhy.vue'
+import {
+  buildMiletHomeV2Data,
+  ctaView,
+  entryViewItems,
+  galleryViewSection,
+  highlightViewItems,
+  normalizeMiletLang,
+  officialViewSection,
+  sectionTitleMap,
+  textOf,
+  timelineViewSection,
+  whyViewItems,
+} from '@/composables/miletHomeV2'
+import { useAppState } from '@/composables/useAppState'
+import { apiRoutes } from '@/config/api'
+
 const appState = useAppState()
 const route = useRoute()
+const currentYear = new Date().getFullYear()
 const miletDatas = ref<Record<string, any> | null>(appState.miletHomeData)
 const loading = ref(!miletDatas.value)
-const galleryRoute = computed(() =>
-  withLangParam({ name: 'miletPicAlbum' }, String(route.params.lang || 'zh')),
-)
+
+const routeLang = computed(() => String(route.params.lang || 'zh'))
+const currentLang = computed(() => normalizeMiletLang(routeLang.value))
 
 async function loadMiletHomeData() {
   if (miletDatas.value) {
@@ -71,12 +83,77 @@ async function loadMiletHomeData() {
 
 onServerPrefetch(loadMiletHomeData)
 
+const homeV2 = computed(() => {
+  if (!miletDatas.value) {
+    return null
+  }
+
+  return buildMiletHomeV2Data(miletDatas.value, currentLang.value)
+})
+
+const heroText = computed(() => ({
+  lead: textOf(homeV2.value?.hero.lead, currentLang.value),
+  sublead: textOf(homeV2.value?.hero.sublead, currentLang.value),
+  buttonLabel: textOf(homeV2.value?.hero.buttonLabel, currentLang.value),
+  scrollLabel: textOf(homeV2.value?.hero.scrollLabel, currentLang.value),
+}))
+
+const sectionTitles = computed(() => {
+  if (!homeV2.value) {
+    return {
+      highlight: { kicker: 'highlight', title: '', subtitle: '' },
+      timeline: { kicker: 'timeline', title: '', subtitle: '' },
+      gallery: { kicker: 'gallery', title: '', subtitle: '' },
+    }
+  }
+
+  return sectionTitleMap(homeV2.value, currentLang.value)
+})
+const whyCards = computed(() => (homeV2.value ? whyViewItems(homeV2.value, currentLang.value) : []))
+const highlights = computed(() =>
+  homeV2.value ? highlightViewItems(homeV2.value, currentLang.value, routeLang.value) : [],
+)
+const timeline = computed(() =>
+  homeV2.value
+    ? timelineViewSection(homeV2.value, currentLang.value, routeLang.value)
+    : { items: [], moreLabel: '', moreTo: '#' },
+)
+const gallery = computed(() =>
+  homeV2.value
+    ? galleryViewSection(homeV2.value, currentLang.value, routeLang.value)
+    : { items: [], moreLabel: '', moreTo: '#' },
+)
+const official = computed(() =>
+  homeV2.value
+    ? officialViewSection(homeV2.value, currentLang.value)
+    : {
+        title: '',
+        body: '',
+        instagramProfileUrl: '',
+        twitterProfileUrl: '',
+        sites: [],
+      },
+)
+const entries = computed(() =>
+  homeV2.value ? entryViewItems(homeV2.value, currentLang.value, routeLang.value) : [],
+)
+const cta = computed(() =>
+  homeV2.value
+    ? ctaView(currentLang.value, routeLang.value)
+    : { title: '', buttonLabel: '', to: '#' },
+)
+
+function scrollToHighlight() {
+  document.getElementById('highlight')?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+}
+
 watchEffect(() => {
   if (typeof document === 'undefined') {
     return
   }
 
-  document.title = global?.$lang?.lang === 'jp' ? 'Echoes of milet | milet ホーム' : 'Echoes of milet | milet 首页'
+  document.title =
+    currentLang.value === 'ja' ? 'Echoes of milet | milet ホーム' : 'Echoes of milet | milet 首页'
 })
 
 onMounted(async () => {
@@ -84,12 +161,12 @@ onMounted(async () => {
     await loadMiletHomeData()
   }
 })
-
-const miletDataL = computed(() => {
-  if (!miletDatas.value) {
-    return null
-  }
-
-  return miletDatas.value[global?.$lang.lang || appState.lang] || null
-})
 </script>
+
+<style scoped>
+.milet-home {
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.24) 0%, rgba(246, 250, 249, 0.74) 42%),
+    rgba(255, 255, 255, 0.45);
+}
+</style>

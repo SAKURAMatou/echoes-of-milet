@@ -27,7 +27,10 @@ export const routes: RouteRecordRaw[] = [
           {
             path: '',
             name: 'milet',
-            meta: { renderMode: getConfiguredRenderMode('/milet'), seoKey: 'milet' },
+            meta: {
+              renderMode: getConfiguredRenderMode('/milet'),
+              seoKey: 'milet',
+            },
             component: () => import('@/views/milet/MiletHomeView.vue'),
           },
           {
