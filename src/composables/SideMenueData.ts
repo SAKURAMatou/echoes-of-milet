@@ -64,7 +64,7 @@ const menu: MenuItem[] = [
       { key: 'pickup-gallery', label: 'pickup gallery', href: '#pick-gallery' },
       { key: 'all-gallery', label: 'all gallery', href: '#all-gallery' },
     ],
-    shown: true,
+    shown: false,
   },
   {
     key: 'about',
