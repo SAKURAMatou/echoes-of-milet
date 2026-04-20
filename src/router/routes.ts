@@ -58,6 +58,24 @@ export const routes: RouteRecordRaw[] = [
             component: () => import('@/views/milet/ReleasesPage.vue'),
           },
           {
+            path: 'interactive/song-guess',
+            name: 'miletSongGuess',
+            meta: { renderMode: 'csr' },
+            component: () => import('@/views/milet/interactive/SongGuessIntroView.vue'),
+          },
+          {
+            path: 'interactive/song-guess/play/:challengeId',
+            name: 'miletSongGuessPlay',
+            meta: { renderMode: 'csr' },
+            component: () => import('@/views/milet/interactive/SongGuessPlayView.vue'),
+          },
+          {
+            path: 'interactive/song-guess/result/:challengeId',
+            name: 'miletSongGuessResult',
+            meta: { renderMode: 'csr' },
+            component: () => import('@/views/milet/interactive/SongGuessResultView.vue'),
+          },
+          {
             path: 'about',
             name: 'aboutMe',
             meta: { renderMode: getConfiguredRenderMode('/milet/about'), seoKey: 'about' },
