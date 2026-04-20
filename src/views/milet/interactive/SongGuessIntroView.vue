@@ -1,61 +1,78 @@
 <template>
-  <article class="song-guess-page">
-    <section class="song-guess-hero">
+  <article
+    class="min-h-screen bg-[linear-gradient(180deg,rgba(255,255,255,0.48),rgba(246,250,249,0.82)),radial-gradient(circle_at_80%_0%,rgba(155,216,210,0.24),transparent_34%)] px-6 py-10 text-[#26313a] max-sm:px-[18px] max-sm:py-[30px]"
+  >
+    <section class="grid grid-cols-[minmax(0,0.9fr)_minmax(280px,1fr)] items-end gap-7 max-md:grid-cols-1">
       <div>
-        <div class="section-kicker">echo room</div>
-        <h1>Song Guess Challenge</h1>
-        <p class="hero-lead">听一段 milet 的歌曲片段，在倒计时结束前选择正确曲目。</p>
-        <p class="hero-note">每个难度 10 题，提交后立即反馈结果。题库可切换，后续管理端会支持上传音频和配置题目。</p>
+        <div class="text-[0.78rem] font-bold uppercase tracking-[0.16em] text-[#317f8d]">{{ text.introEyebrow }}</div>
+        <h1 class="mt-3 font-serif text-[clamp(3rem,8vw,5rem)] leading-none text-[#1e2a35]">
+          {{ text.introTitle }}
+        </h1>
+        <p class="mt-[22px] max-w-[520px] text-[1.05rem] leading-[1.9] text-[#3f4f5a]">
+          {{ text.introLead }}
+        </p>
+        <p class="max-w-[560px] text-[0.92rem] leading-[1.85] text-[#60707a]">
+          {{ text.introSub }}
+        </p>
       </div>
-      <div class="hero-surface">
+      <div class="grid gap-3.5">
         <SongGuessWaveform :playing="true" />
-        <div class="hero-meta">
-          <span>10 questions</span>
-          <span>instant feedback</span>
-          <span>share result</span>
+        <div class="flex flex-wrap gap-2 text-[0.76rem] font-bold uppercase text-[#60707a]">
+          <span class="rounded-full border border-[#317f8d]/20 bg-white/60 px-2.5 py-[7px]">{{ text.questionsBadge }}</span>
+          <span class="rounded-full border border-[#317f8d]/20 bg-white/60 px-2.5 py-[7px]">{{ text.randomBankBadge }}</span>
+          <span class="rounded-full border border-[#317f8d]/20 bg-white/60 px-2.5 py-[7px]">{{ text.feedbackBadge }}</span>
         </div>
       </div>
     </section>
 
-    <section class="setup-section">
-      <div class="setup-heading">
+    <section class="mt-10 border-t border-[#317f8d]/15 pt-7">
+      <div class="flex items-end justify-between gap-5 max-md:block">
         <div>
-          <div class="section-kicker">challenge setup</div>
-          <h2>选择题库与难度</h2>
+          <div class="text-[0.78rem] font-bold uppercase tracking-[0.16em] text-[#317f8d]">
+            {{ text.setupEyebrow }}
+          </div>
+          <h2 class="mt-2 font-serif text-[clamp(2.2rem,5vw,3.35rem)] leading-none text-[#1e2a35]">
+            {{ text.setupTitle }}
+          </h2>
         </div>
-        <p v-if="error" class="error-text">{{ error }}</p>
+        <p v-if="error" class="m-0 text-[0.9rem] font-bold text-[#8c4855]">{{ error }}</p>
       </div>
 
-      <div class="bank-row" aria-label="Question bank">
-        <button
-          v-for="bank in config?.banks || []"
-          :key="bank.id"
-          type="button"
-          class="bank-button"
-          :class="{ active: selectedBankId === bank.id }"
-          @click="selectedBankId = bank.id"
-        >
-          {{ bank.label }}
-        </button>
-      </div>
-
-      <div class="difficulty-grid">
+      <div class="mt-[22px] grid grid-cols-3 gap-3.5 max-md:grid-cols-1">
         <button
           v-for="difficulty in config?.difficulties || []"
           :key="difficulty.id"
           type="button"
-          class="difficulty-card"
-          :class="[difficulty.id, { active: selectedDifficulty === difficulty.id }]"
+          class="relative grid min-h-[158px] gap-2.5 overflow-hidden rounded-[18px] border p-[18px] text-left transition hover:-translate-y-0.5 hover:bg-white/95 max-md:min-h-[116px]"
+          :class="difficultyCardClass(difficulty.id)"
           @click="selectedDifficulty = difficulty.id"
         >
-          <span class="difficulty-label">{{ difficulty.label }}</span>
-          <strong>{{ difficulty.clipDurationSec }}s audio</strong>
-          <span>{{ difficulty.timeLimitSec }} 秒答题 / {{ difficulty.optionCount }} 个选项</span>
+          <span
+            v-if="selectedDifficulty === difficulty.id"
+            class="absolute right-3 top-3 grid h-7 w-7 place-items-center rounded-full bg-[#26313a] text-xs font-black text-white"
+          >
+            OK
+          </span>
+          <span
+            class="text-[0.78rem] font-extrabold uppercase"
+            :class="difficulty.id === 'hard' ? 'text-[#8c4855]' : 'text-[#317f8d]'"
+          >
+            {{ difficulty.label }}
+          </span>
+          <strong class="font-serif text-[2rem] leading-none">{{ difficulty.clipDurationSec }}{{ text.audioSuffix }}</strong>
+          <span class="text-[0.88rem] text-[#60707a]">
+            {{ difficultyDetail(difficulty.timeLimitSec, difficulty.optionCount) }}
+          </span>
         </button>
       </div>
 
-      <button type="button" class="start-button" :disabled="loading || !selectedBankId" @click="startChallenge">
-        {{ loading ? 'Preparing...' : '开始挑战' }}
+      <button
+        type="button"
+        class="mt-6 inline-flex min-h-[46px] items-center justify-center rounded-full border border-[#317f8d]/20 bg-[#26313a] px-7 text-[0.95rem] font-extrabold text-white transition hover:-translate-y-0.5 hover:bg-[#317f8d] disabled:cursor-not-allowed disabled:opacity-55 max-md:w-full"
+        :disabled="loading"
+        @click="startChallenge"
+      >
+        {{ loading ? text.preparing : text.start }}
       </button>
     </section>
   </article>
@@ -66,6 +83,7 @@ import { onMounted, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 
 import SongGuessWaveform from '@/components/milet/interactive/SongGuessWaveform.vue'
+import { useSongGuessText } from '@/composables/interactive/songGuessText'
 import {
   createSongGuessChallenge,
   getSongGuessConfig,
@@ -75,8 +93,8 @@ import {
 
 const route = useRoute()
 const router = useRouter()
+const text = useSongGuessText()
 const config = ref<SongGuessConfig | null>(null)
-const selectedBankId = ref('')
 const selectedDifficulty = ref<SongGuessDifficulty>('easy')
 const loading = ref(false)
 const error = ref('')
@@ -84,14 +102,31 @@ const error = ref('')
 onMounted(async () => {
   try {
     config.value = await getSongGuessConfig()
-    selectedBankId.value = config.value.defaultBankId
   } catch {
-    error.value = '互动题库暂时无法加载，请稍后再试。'
+    error.value = text.value.loadConfigError
   }
 })
 
+function difficultyDetail(timeLimit: number, optionCount: number) {
+  return text.value.difficultyDetail
+    .replace('{timeLimit}', String(timeLimit))
+    .replace('{optionCount}', String(optionCount))
+}
+
+function difficultyCardClass(difficulty: SongGuessDifficulty) {
+  if (selectedDifficulty.value !== difficulty) {
+    return 'border-[#317f8d]/20 bg-white/70 shadow-none'
+  }
+
+  if (difficulty === 'hard') {
+    return 'border-[#8c4855] bg-white shadow-[0_24px_70px_-38px_rgba(140,72,85,0.75)] ring-4 ring-[#8c4855]/18'
+  }
+
+  return 'border-[#317f8d] bg-white shadow-[0_24px_70px_-38px_rgba(49,127,141,0.8)] ring-4 ring-[#317f8d]/20'
+}
+
 async function startChallenge() {
-  if (!selectedBankId.value || loading.value) return
+  if (loading.value) return
 
   loading.value = true
   error.value = ''
@@ -99,7 +134,6 @@ async function startChallenge() {
   try {
     const challenge = await createSongGuessChallenge({
       difficulty: selectedDifficulty.value,
-      bankId: selectedBankId.value,
       lang: String(route.params.lang || 'zh'),
     })
     await router.push({
@@ -107,244 +141,9 @@ async function startChallenge() {
       params: { lang: route.params.lang, challengeId: challenge.challengeId },
     })
   } catch {
-    error.value = '挑战创建失败，请稍后再试。'
+    error.value = text.value.createError
   } finally {
     loading.value = false
   }
 }
 </script>
-
-<style scoped>
-.song-guess-page {
-  min-height: 100vh;
-  padding: 42px 24px 48px;
-  color: #26313a;
-  background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.48), rgba(246, 250, 249, 0.82)),
-    radial-gradient(circle at 80% 0%, rgba(155, 216, 210, 0.24), transparent 34%);
-}
-
-.song-guess-hero {
-  display: grid;
-  grid-template-columns: minmax(0, 0.9fr) minmax(280px, 1fr);
-  gap: 28px;
-  align-items: end;
-}
-
-.section-kicker {
-  color: #317f8d;
-  font-size: 0.78rem;
-  font-weight: 700;
-  letter-spacing: 0.16em;
-  text-transform: uppercase;
-}
-
-h1,
-h2 {
-  margin: 0;
-  font-family: 'Cormorant Garamond', serif;
-  line-height: 0.96;
-  color: #1e2a35;
-}
-
-h1 {
-  margin-top: 12px;
-  font-size: clamp(3rem, 8vw, 5rem);
-}
-
-h2 {
-  margin-top: 8px;
-  font-size: clamp(2.2rem, 5vw, 3.35rem);
-}
-
-.hero-lead {
-  margin-top: 22px;
-  max-width: 520px;
-  font-size: 1.05rem;
-  line-height: 1.9;
-  color: #3f4f5a;
-}
-
-.hero-note {
-  max-width: 560px;
-  color: #60707a;
-  font-size: 0.92rem;
-  line-height: 1.85;
-}
-
-.hero-surface {
-  display: grid;
-  gap: 14px;
-}
-
-.hero-meta {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  color: #60707a;
-  font-size: 0.76rem;
-  font-weight: 700;
-  text-transform: uppercase;
-}
-
-.hero-meta span {
-  border: 1px solid rgba(49, 127, 141, 0.18);
-  border-radius: 999px;
-  background: rgba(255, 255, 255, 0.58);
-  padding: 7px 10px;
-}
-
-.setup-section {
-  margin-top: 42px;
-  border-top: 1px solid rgba(49, 127, 141, 0.16);
-  padding-top: 28px;
-}
-
-.setup-heading {
-  display: flex;
-  align-items: end;
-  justify-content: space-between;
-  gap: 20px;
-}
-
-.error-text {
-  margin: 0;
-  color: #8c4855;
-  font-size: 0.9rem;
-  font-weight: 700;
-}
-
-.bank-row,
-.difficulty-grid {
-  margin-top: 22px;
-}
-
-.bank-row {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
-}
-
-.bank-button,
-.difficulty-card,
-.start-button {
-  border: 1px solid rgba(49, 127, 141, 0.18);
-  background: rgba(255, 255, 255, 0.66);
-  color: #26313a;
-  transition:
-    transform 180ms ease,
-    border-color 180ms ease,
-    background 180ms ease,
-    color 180ms ease;
-}
-
-.bank-button {
-  min-height: 40px;
-  border-radius: 999px;
-  padding: 0 16px;
-  font-size: 0.85rem;
-  font-weight: 700;
-}
-
-.bank-button.active,
-.bank-button:hover {
-  border-color: rgba(49, 127, 141, 0.62);
-  background: #317f8d;
-  color: #fff;
-}
-
-.difficulty-grid {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 14px;
-}
-
-.difficulty-card {
-  display: grid;
-  gap: 10px;
-  min-height: 150px;
-  border-radius: 18px;
-  padding: 18px;
-  text-align: left;
-}
-
-.difficulty-card:hover,
-.difficulty-card.active {
-  transform: translateY(-2px);
-  border-color: rgba(49, 127, 141, 0.54);
-  background: rgba(255, 255, 255, 0.9);
-}
-
-.difficulty-card.hard.active {
-  border-color: rgba(140, 72, 85, 0.52);
-}
-
-.difficulty-label {
-  color: #317f8d;
-  font-size: 0.78rem;
-  font-weight: 800;
-  text-transform: uppercase;
-}
-
-.difficulty-card.hard .difficulty-label {
-  color: #8c4855;
-}
-
-.difficulty-card strong {
-  font-family: 'Cormorant Garamond', serif;
-  font-size: 2rem;
-  line-height: 1;
-}
-
-.difficulty-card span:last-child {
-  color: #60707a;
-  font-size: 0.88rem;
-}
-
-.start-button {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-height: 46px;
-  margin-top: 24px;
-  border-radius: 999px;
-  background: #26313a;
-  padding: 0 28px;
-  color: #fff;
-  font-size: 0.95rem;
-  font-weight: 800;
-}
-
-.start-button:hover:not(:disabled) {
-  transform: translateY(-2px);
-  background: #317f8d;
-}
-
-.start-button:disabled {
-  cursor: not-allowed;
-  opacity: 0.55;
-}
-
-@media (max-width: 760px) {
-  .song-guess-page {
-    padding: 30px 18px 34px;
-  }
-
-  .song-guess-hero,
-  .difficulty-grid {
-    grid-template-columns: 1fr;
-  }
-
-  .setup-heading {
-    display: block;
-  }
-
-  .difficulty-card {
-    min-height: 116px;
-  }
-
-  .start-button {
-    width: 100%;
-  }
-}
-</style>

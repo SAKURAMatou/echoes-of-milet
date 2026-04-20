@@ -86,8 +86,6 @@ export interface SongGuessResult {
 }
 
 export interface SongGuessConfig {
-  banks: SongGuessBank[]
-  defaultBankId: string
   difficulties: SongGuessDifficultyConfig[]
 }
 
@@ -99,7 +97,6 @@ export function getSongGuessConfig() {
 
 export function createSongGuessChallenge(payload: {
   difficulty: SongGuessDifficulty
-  bankId: string
   lang: string
 }) {
   return axiosInstance.post<SongGuessChallenge>(`${baseUrl}/challenges`, payload)
