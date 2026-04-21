@@ -12,6 +12,13 @@ declare module 'vue-router' {
 export const routes: RouteRecordRaw[] = [
   { path: '/', redirect: () => `/${resolvePreferredUrlLang()}` },
   {
+    path: '/sg',
+    redirect: () => {
+      const lang = resolvePreferredUrlLang()
+      return { name: 'miletSongGuess', params: { lang } }
+    },
+  },
+  {
     path: '/:lang(zh|ja)',
     children: [
       {

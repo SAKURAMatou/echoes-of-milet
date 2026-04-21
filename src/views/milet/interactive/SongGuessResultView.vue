@@ -2,23 +2,37 @@
   <article
     class="min-h-screen bg-[linear-gradient(180deg,rgba(255,255,255,0.5),rgba(246,250,249,0.86)),radial-gradient(circle_at_90%_10%,rgba(155,216,210,0.28),transparent_34%)] px-6 py-9 text-[#26313a] max-md:px-[18px] max-md:py-[30px]"
   >
-    <div v-if="loading" class="grid min-h-[360px] place-items-center font-bold text-[#60707a]">{{ text.loadingResult }}</div>
-    <div v-else-if="error" class="grid min-h-[360px] place-items-center font-bold text-[#8c4855]">{{ error }}</div>
+    <div v-if="loading" class="grid min-h-[360px] place-items-center font-bold text-[#60707a]">
+      {{ text.loadingResult }}
+    </div>
+    <div v-else-if="error" class="grid min-h-[360px] place-items-center font-bold text-[#8c4855]">
+      {{ error }}
+    </div>
 
     <section v-else-if="result" class="grid gap-6">
-      <header class="flex items-end justify-between gap-6 border-b border-[#317f8d]/15 pb-6 max-md:grid">
+      <header
+        class="flex items-end justify-between gap-6 border-b border-[#317f8d]/15 pb-6 max-md:grid"
+      >
         <div>
           <div class="text-[0.78rem] font-extrabold uppercase tracking-[0.16em] text-[#317f8d]">
             {{ text.resultEyebrow }}
           </div>
-          <h1 class="mt-2.5 font-serif text-[clamp(4rem,12vw,7.4rem)] leading-[0.86] text-[#1e2a35]">
+          <h1
+            class="mt-2.5 font-serif text-[clamp(4rem,12vw,7.4rem)] leading-[0.86] text-[#1e2a35]"
+          >
             {{ result.score }} / {{ result.total }}
           </h1>
           <p class="mt-[18px] text-base font-extrabold text-[#60707a]">{{ resultLabel }}</p>
         </div>
-        <div class="grid min-w-[132px] gap-2 rounded-[18px] border border-[#317f8d]/20 bg-white/75 p-[18px] text-right max-md:text-left">
-          <span class="text-[0.78rem] font-black uppercase text-[#317f8d]">{{ result.difficulty }}</span>
-          <strong class="text-[2rem]">{{ Math.round((result.score / result.total) * 100) }}%</strong>
+        <div
+          class="grid min-w-[132px] gap-2 rounded-[18px] border border-[#317f8d]/20 bg-white/75 p-[18px] text-right max-md:text-left"
+        >
+          <span class="text-[0.78rem] font-black uppercase text-[#317f8d]">{{
+            result.difficulty
+          }}</span>
+          <strong class="text-[2rem]"
+            >{{ Math.round((result.score / result.total) * 100) }}%</strong
+          >
         </div>
       </header>
 
@@ -49,13 +63,21 @@
           v-for="item in result.items"
           :key="item.questionId"
           class="grid grid-cols-[46px_minmax(0,1fr)_58px] items-center gap-3.5 rounded-2xl border p-3.5 max-md:grid-cols-[38px_minmax(0,1fr)]"
-          :class="item.isCorrect ? 'border-[#317f8d]/15 bg-white/70' : 'border-[#8c4855]/25 bg-[rgba(252,232,236,0.62)]'"
+          :class="
+            item.isCorrect
+              ? 'border-[#317f8d]/15 bg-white/70'
+              : 'border-[#8c4855]/25 bg-[rgba(252,232,236,0.62)]'
+          "
         >
           <span class="font-black text-[#317f8d]">{{ String(item.no).padStart(2, '0') }}</span>
           <div>
             <strong class="block leading-snug text-[#26313a]">{{ item.correctTitle }}</strong>
             <p class="m-0 mt-1 text-[0.86rem] text-[#60707a]">
-              {{ item.isCorrect ? text.correct : `${text.yourChoice}${item.selectedTitle || text.timeUp}` }}
+              {{
+                item.isCorrect
+                  ? text.correct
+                  : `${text.yourChoice}${item.selectedTitle || text.timeUp}`
+              }}
             </p>
           </div>
           <span
@@ -76,6 +98,8 @@ import { RouterLink, useRoute } from 'vue-router'
 
 import { getSongGuessResult, type SongGuessResult } from '@/composables/interactive/songGuess'
 import { useSongGuessText } from '@/composables/interactive/songGuessText'
+
+import apiProxyConfig from '../../../../api-proxy.config.json'
 
 const PNG_QUALITY = 0.92
 
@@ -143,13 +167,43 @@ async function createShareImageBlob() {
   ctx.font = '600 30px Montserrat, sans-serif'
   ctx.fillText('Challenge link:', 90, 515)
   ctx.font = '600 26px Montserrat, sans-serif'
-  ctx.fillText(shareUrl(), 90, 558)
+  ctx.fillText(shareUrl(), 90, 558, 760)
 
-  return await new Promise<Blob | null>((resolve) => canvas.toBlob(resolve, 'image/png', PNG_QUALITY))
+  await drawQrCode(ctx, 870, 310, 250)
+
+  return await new Promise<Blob | null>((resolve) =>
+    canvas.toBlob(resolve, 'image/png', PNG_QUALITY),
+  )
+}
+
+async function drawQrCode(ctx: CanvasRenderingContext2D, x: number, y: number, size: number) {
+  const image = await loadQrImage()
+  if (!image) return
+
+  ctx.fillStyle = '#ffffff'
+  ctx.fillRect(x - 18, y - 18, size + 36, size + 58)
+  ctx.strokeStyle = 'rgba(49,127,141,0.22)'
+  ctx.lineWidth = 2
+  ctx.strokeRect(x - 18, y - 18, size + 36, size + 58)
+
+  ctx.drawImage(image, x, y, size, size)
+
+  ctx.fillStyle = '#60707a'
+  ctx.font = '700 20px Montserrat, sans-serif'
+  ctx.fillText('Scan to play', x + 54, y + size + 32)
 }
 
 function shareUrl() {
-  return `https://miles-dml.org/${route.params.lang || 'zh'}/milet/interactive/song-guess`
+  return `${apiProxyConfig.origins.production.site}/sg`
+}
+
+function loadQrImage() {
+  return new Promise<HTMLImageElement | null>((resolve) => {
+    const image = new Image()
+    image.onload = () => resolve(image)
+    image.onerror = () => resolve(null)
+    image.src = `${apiProxyConfig.origins.production.backend}/${apiProxyConfig.staticRoutes.qrCode}`
+  })
 }
 
 async function copyImageAndLink(blob: Blob, shareText: string) {

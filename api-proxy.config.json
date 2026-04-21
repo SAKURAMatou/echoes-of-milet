@@ -25,6 +25,7 @@
   },
   "staticRoutes": {
     "miletImage": "/static/milet/img/",
-    "blogImage": "/static/blog/img/"
+    "blogImage": "/static/blog/img/",
+    "qrCode": "/static/milet/img/song-guess/sg-qr.png"
   }
 }
