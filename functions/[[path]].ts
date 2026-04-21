@@ -113,6 +113,9 @@ function buildBarePathRedirect(pathname: string, request: Request) {
   if (cleanPath.startsWith('/api/')) {
     return null
   }
+  if (cleanPath.startsWith('/other/')) {
+    return null
+  }
 
   return convertLegacyPath(cleanPath, resolvePreferredLang(request))
 }
