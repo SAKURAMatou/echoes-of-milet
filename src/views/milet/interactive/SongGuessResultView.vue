@@ -202,7 +202,7 @@ function loadQrImage() {
     const image = new Image()
     image.onload = () => resolve(image)
     image.onerror = () => resolve(null)
-    image.src = `${apiProxyConfig.origins.production.backend}/${apiProxyConfig.staticRoutes.qrCode}`
+    image.src = `${apiProxyConfig.origins.production.backend}${apiProxyConfig.staticRoutes.qrCode}`
   })
 }
 
