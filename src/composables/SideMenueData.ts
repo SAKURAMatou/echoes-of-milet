@@ -55,6 +55,14 @@ const menu: MenuItem[] = [
     shown: true,
   },
   {
+    key: 'echo-room',
+    label: 'ECHO ROOM',
+    sub: '- Interactive challenge',
+    color: 'sky',
+    routerName: 'miletSongGuess',
+    shown: true,
+  },
+  {
     key: 'gallery',
     label: 'GALLERY',
     sub: '- Visual journey',

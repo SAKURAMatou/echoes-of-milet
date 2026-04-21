@@ -12,6 +12,7 @@
     <div class="px-5 py-12 sm:px-8 md:px-10">
       <MiletHomeWhy :items="whyCards" />
       <MiletHomeHighlight :title="sectionTitles.highlight" :items="highlights" />
+      <MiletHomeEchoRoom />
       <MiletHomeTimelinePreview :title="sectionTitles.timeline" :timeline="timeline" />
       <MiletHomeGallery :title="sectionTitles.gallery" :gallery="gallery" />
       <MiletHomeOfficialLinks :official="official" />
@@ -27,6 +28,7 @@ import { useRoute } from 'vue-router'
 
 import axiosInstance from '@/AxiosUtil'
 import MiletHomeCta from '@/components/milet/home/MiletHomeCta.vue'
+import MiletHomeEchoRoom from '@/components/milet/home/MiletHomeEchoRoom.vue'
 import MiletHomeEntryGrid from '@/components/milet/home/MiletHomeEntryGrid.vue'
 import MiletHomeGallery from '@/components/milet/home/MiletHomeGallery.vue'
 import MiletHomeHero from '@/components/milet/home/MiletHomeHero.vue'
