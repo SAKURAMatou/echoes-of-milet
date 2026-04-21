@@ -21,11 +21,14 @@
     "aboutFeedback": "/api/milet/feedback",
     "blogDetail": "/api/blog/detail/",
     "blogList": "/api/blog/datalist/current/",
-    "blogPage": "/api/blog/datalist/tag/"
+    "blogPage": "/api/blog/datalist/tag/",
+    "qrCode": "/other/songGuessQrCode"
   },
   "staticRoutes": {
     "miletImage": "/static/milet/img/",
-    "blogImage": "/static/blog/img/",
-    "qrCode": "/static/milet/img/song-guess/sg-qr.png"
+    "blogImage": "/static/blog/img/"
+  },
+  "otherRquests": {
+    "songGuessQrCode": "/static/milet/img/song-guess/sg-qr.png"
   }
 }

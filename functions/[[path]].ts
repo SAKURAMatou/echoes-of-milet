@@ -50,7 +50,12 @@ function normalizeLang(value?: string | null) {
     return 'zh'
   }
 
-  if (lowerValue === 'ja' || lowerValue === 'jp' || lowerValue.startsWith('ja-') || lowerValue.includes('jp')) {
+  if (
+    lowerValue === 'ja' ||
+    lowerValue === 'jp' ||
+    lowerValue.startsWith('ja-') ||
+    lowerValue.includes('jp')
+  ) {
     return 'ja'
   }
 
@@ -178,6 +183,37 @@ async function proxyApiRequest(request: Request) {
     headers: stripProxyResponseHeaders(response.headers),
   })
 }
+async function proxyOtherRequest(request: Request) {
+  const url = new URL(request.url)
+  if (!isAllowedApiPath(url.pathname)) {
+    return new Response('Forbidden', {
+      status: 403,
+      headers: {
+        'content-type': 'text/plain; charset=utf-8',
+      },
+    })
+  }
+  const uri = apiProxyConfig.otherRquests[url.pathname.replace('/other/', '')]
+  if (!uri) {
+    return new Response('Not Found', {
+      status: 404,
+      headers: {
+        'content-type': 'text/plain; charset=utf-8',
+      },
+    })
+  }
+  const targetUrl = new URL(uri, upstreamOrigin)
+
+  const response = await fetch(targetUrl.toString(), {
+    method: request.method,
+    headers: buildProxyHeaders(request),
+    body: ['GET', 'HEAD'].includes(request.method) ? undefined : request.body,
+  })
+  return new Response(response.body, {
+    status: response.status,
+    headers: stripProxyResponseHeaders(response.headers),
+  })
+}
 
 async function getTemplate(request: Request, env: PagesFunctionEnv) {
   let templateUrl = new URL('/ssr-template.html', request.url)
@@ -267,9 +303,15 @@ export const onRequest = async (context: FunctionContext) => {
     if (pathname.startsWith('/api/')) {
       return proxyApiRequest(request)
     }
+    if (pathname.startsWith('/other/')) {
+      //特殊处理的请求，例如二维码等
+      return proxyOtherRequest(request)
+    }
 
     if (isSsgRoute(pathname)) {
-      const staticAssetResponse = await env.ASSETS.fetch(createStaticAssetRequest(request, pathname))
+      const staticAssetResponse = await env.ASSETS.fetch(
+        createStaticAssetRequest(request, pathname),
+      )
       if (staticAssetResponse.ok) {
         return staticAssetResponse
       }
