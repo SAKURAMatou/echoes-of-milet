@@ -294,13 +294,13 @@ const defaultMiletHomeV2: MiletHomeV2Data = {
       route: { name: 'miletTimeLine' },
       priority: 20,
     },
-    {
-      id: 'gallery',
-      title: { ja: '瞬間を見る', zh: '观看瞬间' },
-      body: { ja: '写真とその一瞬', zh: '照片与被定格的时刻' },
-      route: { name: 'miletPicAlbum' },
-      priority: 30,
-    },
+    // {
+    //   id: 'gallery',
+    //   title: { ja: '瞬間を見る', zh: '观看瞬间' },
+    //   body: { ja: '写真とその一瞬', zh: '照片与被定格的时刻' },
+    //   route: { name: 'miletPicAlbum' },
+    //   priority: 30,
+    // },
     {
       id: 'about',
       title: { ja: '言葉を読む', zh: '阅读文字' },
