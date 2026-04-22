@@ -127,12 +127,12 @@ const copy = computed(() => ({
         description: '记录 live、活动与重要节点，保留每一次余韵。',
         to: timelineLink.value,
       },
-      {
-        label: 'GALLERY',
-        title: '影像收藏',
-        description: '按主题整理公开图像资料，尽量避开受限素材。',
-        // to: galleryLink.value,
-      },
+      // {
+      //   label: 'GALLERY',
+      //   title: '影像收藏',
+      //   description: '按主题整理公开图像资料，尽量避开受限素材。',
+      //   // to: galleryLink.value,
+      // },
     ],
   },
   jp: {
@@ -156,12 +156,12 @@ const copy = computed(() => ({
         description: 'ライブやイベント、大切な節目を記録しています。',
         to: timelineLink.value,
       },
-      {
-        label: 'GALLERY',
-        title: '写真の記録',
-        description: '公開されている画像を中心に、テーマごとに整理しています。',
-        // to: galleryLink.value,
-      },
+      // {
+      //   label: 'GALLERY',
+      //   title: '写真の記録',
+      //   description: '公開されている画像を中心に、テーマごとに整理しています。',
+      //   // to: galleryLink.value,
+      // },
     ],
   },
 }))

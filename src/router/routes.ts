@@ -1,6 +1,7 @@
 import type { RouteRecordRaw } from 'vue-router'
 import { getConfiguredRenderMode } from '@/server/render-config'
 import { resolvePreferredUrlLang } from '@/composables/useLangRoute'
+import { buildShortLinkTarget, shortLinks } from '@/config/shortLinks'
 
 declare module 'vue-router' {
   interface RouteMeta {
@@ -11,13 +12,10 @@ declare module 'vue-router' {
 
 export const routes: RouteRecordRaw[] = [
   { path: '/', redirect: () => `/${resolvePreferredUrlLang()}` },
-  {
-    path: '/sg',
-    redirect: () => {
-      const lang = resolvePreferredUrlLang()
-      return { name: 'miletSongGuess', params: { lang } }
-    },
-  },
+  ...shortLinks.map((link) => ({
+    path: `/${link.slug}`,
+    redirect: () => buildShortLinkTarget(`/${link.slug}`, resolvePreferredUrlLang()) || '/',
+  })),
   {
     path: '/:lang(zh|ja)',
     children: [
@@ -26,6 +24,12 @@ export const routes: RouteRecordRaw[] = [
         name: 'home',
         meta: { renderMode: getConfiguredRenderMode('/'), seoKey: 'home' },
         component: () => import('@/views/MiletSiteHome.vue'),
+      },
+      {
+        path: ':shortLink',
+        redirect: (to) =>
+          buildShortLinkTarget(`/${to.params.lang}/${to.params.shortLink}`, String(to.params.lang) === 'ja' ? 'ja' : 'zh') ||
+          { name: 'home', params: { lang: to.params.lang } },
       },
       {
         path: 'milet',

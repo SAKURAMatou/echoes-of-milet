@@ -269,12 +269,54 @@ async function copyImageAndLink(blob: Blob, shareText: string) {
   ])
 }
 
+async function shareWithSystem(blob: Blob | null, shareText: string, url: string) {
+  const shareNavigator = navigator as Navigator & {
+    canShare?: (data: ShareData) => boolean
+    share?: (data: ShareData) => Promise<void>
+  }
+
+  if (!shareNavigator.share) return false
+
+  const title = 'Echoes of milet - Song Guess'
+  if (blob && typeof File !== 'undefined') {
+    const file = new File([blob], 'song-guess-result.png', { type: 'image/png' })
+    const data = {
+      title,
+      text: shareText,
+      url,
+      files: [file],
+    }
+    if (!shareNavigator.canShare || shareNavigator.canShare(data)) {
+      await shareNavigator.share(data)
+      return true
+    }
+  }
+
+  await shareNavigator.share({
+    title,
+    text: shareText,
+    url,
+  })
+  return true
+}
+
 async function shareResult() {
   if (!result.value) return
   copied.value = false
   const url = shareUrl()
   const shareText = `${result.value.shareText}\n${url}`
   const blob = await createShareImageBlob()
+
+  try {
+    if (await shareWithSystem(blob, shareText, url)) {
+      copied.value = true
+      return
+    }
+  } catch (shareError: any) {
+    if (shareError?.name === 'AbortError') {
+      return
+    }
+  }
 
   try {
     if (blob) {

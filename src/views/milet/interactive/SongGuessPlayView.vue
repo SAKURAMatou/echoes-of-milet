@@ -48,7 +48,7 @@
           class="grid min-h-[74px] grid-cols-[34px_minmax(0,1fr)] items-center gap-3 rounded-2xl border p-3.5 text-left transition disabled:cursor-default max-md:min-h-16"
           :class="optionClass(option.optionId)"
           :disabled="locked"
-          @click="selectedOptionId = option.optionId"
+          @click="chooseOption(option.optionId)"
         >
           <span class="grid h-[34px] w-[34px] place-items-center rounded-full bg-[#317f8d]/10 text-[0.8rem] font-black text-[#317f8d]">
             {{ option.optionId.toUpperCase() }}
@@ -69,23 +69,14 @@
         <p v-else class="m-0 text-[0.9rem] font-semibold text-[#60707a]">
           {{ text.playHint }}
         </p>
-        <div>
+        <div class="flex min-w-[180px] justify-end max-md:w-full">
           <button
-            v-if="!answerResult"
             type="button"
-            class="min-h-11 rounded-full border border-[#23313d]/25 bg-[#26313a] px-6 font-extrabold text-white hover:bg-[#317f8d] disabled:cursor-not-allowed disabled:opacity-45 max-md:w-full"
-            :disabled="submitting || !selectedOptionId"
-            @click="() => submitAnswer()"
+            class="min-h-11 w-[180px] rounded-full border border-[#23313d]/25 bg-[#26313a] px-6 font-extrabold text-white hover:bg-[#317f8d] disabled:cursor-not-allowed disabled:opacity-45 max-md:w-full"
+            :disabled="submitting || (!answerResult && !selectedOptionId)"
+            @click="answerResult ? goNext(true) : submitAnswer()"
           >
-            {{ submitting ? text.checking : text.submit }}
-          </button>
-          <button
-            v-else
-            type="button"
-            class="min-h-11 rounded-full border border-[#23313d]/25 bg-[#26313a] px-6 font-extrabold text-white hover:bg-[#317f8d] max-md:w-full"
-            @click="goNext"
-          >
-            {{ isLastQuestion ? text.viewResult : text.nextQuestion }}
+            {{ actionButtonText }}
           </button>
         </div>
       </div>
@@ -120,13 +111,20 @@ const isPlaying = ref(false)
 const remainingSec = ref(0)
 const startedAtMs = ref(0)
 const timedOut = ref(false)
+const autoPlayNext = ref(false)
 let audio: HTMLAudioElement | null = null
 let timerId: number | null = null
+let autoNextTimerId: number | null = null
 
 const currentQuestion = computed(() => challenge.value?.questions[currentIndex.value] || null)
 const locked = computed(() => Boolean(answerResult.value || timedOut.value || submitting.value))
 const isLastQuestion = computed(() => currentIndex.value >= (challenge.value?.questionCount || 1) - 1)
 const remainingSecText = computed(() => `00:${String(Math.max(0, remainingSec.value)).padStart(2, '0')}`)
+const actionButtonText = computed(() => {
+  if (submitting.value) return text.value.checking
+  if (answerResult.value) return isLastQuestion.value ? text.value.viewResult : text.value.nextQuestion
+  return text.value.submit
+})
 
 watch(
   currentQuestion,
@@ -138,6 +136,11 @@ watch(
       audio.addEventListener('ended', () => {
         isPlaying.value = false
       })
+      if (autoPlayNext.value) {
+        window.setTimeout(() => {
+          void playCurrentAudio(true)
+        }, 120)
+      }
     }
   },
   { immediate: true },
@@ -163,22 +166,37 @@ async function loadChallenge() {
 async function togglePlay() {
   if (!audio || !currentQuestion.value) return
 
-  if (!startedAtMs.value) {
-    startedAtMs.value = Date.now()
-    startTimer()
-  }
-
   if (isPlaying.value) {
+    autoPlayNext.value = false
     audio.pause()
     isPlaying.value = false
     return
   }
 
+  const played = await playCurrentAudio(false)
+  if (played) {
+    autoPlayNext.value = true
+  }
+}
+
+async function playCurrentAudio(silent = false) {
+  if (!audio || !currentQuestion.value) return false
+
+  if (!startedAtMs.value) {
+    startedAtMs.value = Date.now()
+    startTimer()
+  }
+
   try {
     await audio.play()
     isPlaying.value = true
+    return true
   } catch {
+    if (silent) {
+      return false
+    }
     error.value = text.value.audioError
+    return false
   }
 }
 
@@ -198,6 +216,12 @@ function startTimer() {
   }, 250)
 }
 
+function chooseOption(optionId: string) {
+  if (locked.value) return
+  selectedOptionId.value = optionId
+  void submitAnswer()
+}
+
 async function submitAnswer(forceTimeout = false) {
   if (!challenge.value || !currentQuestion.value || submitting.value || answerResult.value) return
   if (!selectedOptionId.value && !forceTimeout) return
@@ -212,6 +236,7 @@ async function submitAnswer(forceTimeout = false) {
       optionId: forceTimeout ? '' : selectedOptionId.value,
       elapsedMs: startedAtMs.value ? Date.now() - startedAtMs.value : currentQuestion.value.timeLimitSec * 1000 + 1,
     })
+    scheduleAutoNext()
   } catch {
     error.value = text.value.answerError
   } finally {
@@ -219,8 +244,18 @@ async function submitAnswer(forceTimeout = false) {
   }
 }
 
-function goNext() {
+function scheduleAutoNext() {
+  stopAutoNext()
+  autoNextTimerId = window.setTimeout(() => {
+    goNext()
+  }, isLastQuestion.value ? 1400 : 950)
+}
+
+function goNext(manual = false) {
   if (!challenge.value) return
+  if (manual) {
+    stopAutoNext()
+  }
 
   if (isLastQuestion.value) {
     router.push({
@@ -235,6 +270,7 @@ function goNext() {
 
 function resetQuestion() {
   stopTimer()
+  stopAutoNext()
   pauseAudio()
   if (audio) {
     audio.src = ''
@@ -257,6 +293,13 @@ function stopTimer() {
   if (timerId !== null) {
     window.clearInterval(timerId)
     timerId = null
+  }
+}
+
+function stopAutoNext() {
+  if (autoNextTimerId !== null) {
+    window.clearTimeout(autoNextTimerId)
+    autoNextTimerId = null
   }
 }
 

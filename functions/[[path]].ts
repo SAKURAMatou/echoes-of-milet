@@ -1,4 +1,5 @@
 import apiProxyConfig from '../api-proxy.config.json'
+import { buildShortLinkTarget } from '../src/config/shortLinks'
 
 interface FetcherLike {
   fetch(request: Request): Promise<Response>
@@ -118,6 +119,10 @@ function buildBarePathRedirect(pathname: string, request: Request) {
   }
 
   return convertLegacyPath(cleanPath, resolvePreferredLang(request))
+}
+
+function buildShortLinkRedirect(pathname: string, request: Request) {
+  return buildShortLinkTarget(pathname, resolvePreferredLang(request))
 }
 
 function injectHtml(
@@ -296,6 +301,11 @@ export const onRequest = async (context: FunctionContext) => {
 
     if (pathname === '/') {
       return createRedirectResponse(`/${resolvePreferredLang(request)}`, 302)
+    }
+
+    const shortLinkRedirect = buildShortLinkRedirect(pathname, request)
+    if (shortLinkRedirect) {
+      return createRedirectResponse(shortLinkRedirect, 302)
     }
 
     const barePathRedirect = buildBarePathRedirect(pathname, request)

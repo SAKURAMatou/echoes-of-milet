@@ -42,10 +42,33 @@ export function resolveUrlLangFromPath(pathname: string): UrlLang | null {
   return normalizeUrlLang(matched?.[1] ?? null)
 }
 
-export function resolvePreferredUrlLang() {
+function headerValue(value?: string | string[] | null) {
+  return Array.isArray(value) ? value.join(',') : value
+}
+
+function parseCookieLang(cookieHeader?: string | string[] | null) {
+  const source = headerValue(cookieHeader)
+  if (!source) {
+    return null
+  }
+
+  const matched = source.match(/(?:^|;\s*)lang=([^;]+)/i)
+  return normalizeUrlLang(matched?.[1] ? decodeURIComponent(matched[1]) : null)
+}
+
+export function resolvePreferredUrlLang(headers?: Record<string, string | string[] | undefined>) {
+  const headerCookieLang = parseCookieLang(headers?.cookie)
+  if (headerCookieLang) {
+    return headerCookieLang
+  }
+
+  const headerAcceptLang = normalizeUrlLang(headerValue(headers?.['accept-language']))
+  if (headerAcceptLang) {
+    return headerAcceptLang
+  }
+
   if (typeof document !== 'undefined') {
-    const matched = document.cookie.match(/(?:^|;\s*)lang=([^;]+)/i)
-    const cookieLang = normalizeUrlLang(matched?.[1] ? decodeURIComponent(matched[1]) : null)
+    const cookieLang = parseCookieLang(document.cookie)
     if (cookieLang) {
       return cookieLang
     }

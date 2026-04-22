@@ -1,7 +1,12 @@
 import { renderToString } from 'vue/server-renderer'
 
 import { createApp } from '@/app'
-import { resolveSupportedLang, resolveUrlLangFromPath } from '@/composables/useLangRoute'
+import {
+  resolvePreferredUrlLang,
+  resolveSupportedLang,
+  resolveUrlLangFromPath,
+} from '@/composables/useLangRoute'
+import { buildShortLinkTarget } from '@/config/shortLinks'
 import { renderSeoTags, toHtmlLang } from '@/server/seo'
 
 interface RenderRequest {
@@ -19,7 +24,12 @@ export interface RenderResult {
 
 export async function render(url: string, request: RenderRequest = {}): Promise<RenderResult> {
   const requestUrl = new URL(url, 'https://miles-dml.org')
-  const requestLang = resolveSupportedLang(resolveUrlLangFromPath(requestUrl.pathname))
+  const shortLinkTarget = buildShortLinkTarget(
+    requestUrl.pathname,
+    resolvePreferredUrlLang(request.headers),
+  )
+  const renderUrl = shortLinkTarget ? `${shortLinkTarget}${requestUrl.search}` : url
+  const requestLang = resolveSupportedLang(resolveUrlLangFromPath(new URL(renderUrl, 'https://miles-dml.org').pathname))
   const { app, router, state } = createApp({
     initialState: {
       lang: requestLang,
@@ -28,7 +38,7 @@ export async function render(url: string, request: RenderRequest = {}): Promise<
     currentPath: requestUrl.pathname,
   })
 
-  await router.push(url)
+  await router.push(renderUrl)
   await router.isReady()
 
   const currentRoute = router.currentRoute.value
