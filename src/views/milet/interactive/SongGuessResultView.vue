@@ -300,12 +300,33 @@ async function shareWithSystem(blob: Blob | null, shareText: string, url: string
   return true
 }
 
+function shouldPreferClipboard() {
+  if (typeof navigator === 'undefined') return false
+  return !/Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent)
+}
+
+async function tryCopyImageAndLink(blob: Blob | null, shareText: string) {
+  if (!blob) return false
+
+  try {
+    await copyImageAndLink(blob, shareText)
+    return true
+  } catch {
+    return false
+  }
+}
+
 async function shareResult() {
   if (!result.value) return
   copied.value = false
   const url = shareUrl()
   const shareText = `${result.value.shareText}\n${url}`
   const blob = await createShareImageBlob()
+
+  if (shouldPreferClipboard() && (await tryCopyImageAndLink(blob, shareText))) {
+    copied.value = true
+    return
+  }
 
   try {
     if (await shareWithSystem(blob, shareText, url)) {
@@ -318,12 +339,13 @@ async function shareResult() {
     }
   }
 
+  if (!shouldPreferClipboard() && (await tryCopyImageAndLink(blob, shareText))) {
+    copied.value = true
+    return
+  }
+
   try {
-    if (blob) {
-      await copyImageAndLink(blob, shareText)
-    } else {
-      await navigator.clipboard.writeText(shareText)
-    }
+    await navigator.clipboard.writeText(shareText)
     copied.value = true
   } catch {
     await navigator.clipboard.writeText(shareText)
