@@ -7,6 +7,7 @@ interface FetcherLike {
 
 interface PagesFunctionEnv {
   ASSETS: FetcherLike
+  MILET_SOURCE_GUARD_TOKEN: string
 }
 
 interface FunctionContext {
@@ -144,7 +145,7 @@ function getRequestOrigin(request: Request) {
   return apiProxyConfig.origins.production.site || url.origin
 }
 
-function buildProxyHeaders(request: Request) {
+function buildProxyHeaders(request: Request, env: PagesFunctionEnv) {
   const requestOrigin = getRequestOrigin(request)
   const headers = new Headers(request.headers)
   headers.set('origin', requestOrigin || headers.get('origin'))
@@ -153,6 +154,10 @@ function buildProxyHeaders(request: Request) {
   headers.set('x-forwarded-host', new URL(request.url).host)
   headers.set('x-forwarded-proto', new URL(request.url).protocol.replace(':', ''))
   headers.set('x-forwarded-origin', requestOrigin)
+
+  if (env?.MILET_SOURCE_GUARD_TOKEN) {
+    headers.set('X-Milet-Source-Guard-Token', env.MILET_SOURCE_GUARD_TOKEN)
+  }
   return headers
 }
 
@@ -163,12 +168,19 @@ function stripProxyResponseHeaders(headers: Headers) {
   )
   return cloned
 }
+function isPathUnder(pathname: string, prefix: string) {
+  if (prefix.endsWith('/')) {
+    return pathname.startsWith(prefix)
+  }
 
-function isAllowedApiPath(pathname: string) {
-  return allowedApiPrefixes.some((prefix) => pathname === prefix || pathname.startsWith(prefix))
+  return pathname === prefix || pathname.startsWith(`${prefix}/`)
 }
 
-async function proxyApiRequest(request: Request) {
+function isAllowedApiPath(pathname: string) {
+  return allowedApiPrefixes.some((prefix) => isPathUnder(pathname, prefix))
+}
+
+async function proxyApiRequest(request: Request, env: PagesFunctionEnv) {
   const url = new URL(request.url)
   if (!isAllowedApiPath(url.pathname)) {
     return new Response('Forbidden', {
@@ -182,7 +194,7 @@ async function proxyApiRequest(request: Request) {
 
   const response = await fetch(targetUrl.toString(), {
     method: request.method,
-    headers: buildProxyHeaders(request),
+    headers: buildProxyHeaders(request, env),
     body: ['GET', 'HEAD'].includes(request.method) ? undefined : request.body,
   })
 
@@ -214,7 +226,7 @@ async function proxyOtherRequest(request: Request) {
 
   const response = await fetch(targetUrl.toString(), {
     method: request.method,
-    headers: buildProxyHeaders(request),
+    headers: buildProxyHeaders(request, null),
     body: ['GET', 'HEAD'].includes(request.method) ? undefined : request.body,
   })
   return new Response(response.body, {
@@ -278,6 +290,10 @@ export const onRequest = async (context: FunctionContext) => {
   const { request, env } = context
 
   try {
+    if (!env.MILET_SOURCE_GUARD_TOKEN) {
+      return new Response('Source guard token is not configured', { status: 500 })
+    }
+
     const url = new URL(request.url)
     const pathname = normalizeUrl(url.pathname)
 
@@ -314,7 +330,7 @@ export const onRequest = async (context: FunctionContext) => {
     }
 
     if (pathname.startsWith('/api/')) {
-      return proxyApiRequest(request)
+      return proxyApiRequest(request, env)
     }
     if (pathname.startsWith('/other/')) {
       //特殊处理的请求，例如二维码等

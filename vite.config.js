@@ -1,10 +1,11 @@
 import { fileURLToPath, URL } from 'node:url'
 
-import { defineConfig } from 'vite'
+import { defineConfig, loadEnv } from 'vite'
 import vue from '@vitejs/plugin-vue'
 import vueDevTools from 'vite-plugin-vue-devtools'
 import tailwindcss from '@tailwindcss/vite'
 import apiProxyConfig from './api-proxy.config.json' with { type: 'json' }
+import { json } from 'node:stream/consumers'
 
 const hopByHopResponseHeaders = new Set([
   'connection',
@@ -37,7 +38,7 @@ export default defineConfig(({ mode }) => {
   const runtimeConfig = apiProxyConfig.origins[mode] || apiProxyConfig.origins.production
   const apiOrigin = runtimeConfig.backend
   const publicSiteOrigin = runtimeConfig.site
-
+  const env = loadEnv(mode, process.cwd(), '')
   return {
     plugins: [
       vue(),
@@ -64,6 +65,7 @@ export default defineConfig(({ mode }) => {
                   'x-forwarded-host': req.headers.host || '',
                   'x-forwarded-proto': publicSiteOrigin.startsWith('https://') ? 'https' : 'http',
                   'x-forwarded-origin': publicSiteOrigin,
+                  'X-Milet-Source-Token': env.MILET_SOURCE_GUARD_TOKEN || '',
                 },
                 body: bodyAllowed ? req : undefined,
                 duplex: bodyAllowed ? 'half' : undefined,
