@@ -156,7 +156,7 @@ function buildProxyHeaders(request: Request, env: PagesFunctionEnv) {
   headers.set('x-forwarded-origin', requestOrigin)
 
   if (env?.MILET_SOURCE_GUARD_TOKEN) {
-    headers.set('X-Milet-Source-Guard-Token', env.MILET_SOURCE_GUARD_TOKEN)
+    headers.set('X-Milet-Source-Token', env.MILET_SOURCE_GUARD_TOKEN)
   }
   return headers
 }
