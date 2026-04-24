@@ -16,7 +16,7 @@
     >
       <RouterLink
         :to="{ name: 'milet', params: { lang: routeLang } }"
-        class="rounded-full border border-white/70 bg-white/55 px-4 py-2 font-semibold text-[#276d7b] shadow-sm backdrop-blur transition hover:bg-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#317f8d]"
+        class="brand-pill px-5 py-2.5 font-semibold text-[#276d7b] shadow-sm backdrop-blur transition hover:bg-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#317f8d]"
       >
         echoes of milet
       </RouterLink>
@@ -28,8 +28,9 @@
     </header>
 
     <div
-      class="relative z-10 flex h-full transition-transform duration-700 ease-[cubic-bezier(0.22,1,0.36,1)]"
-      :style="{ transform: `translateX(-${activeChapter * 100}%)` }"
+      class="anniversary-track relative z-10 flex h-full transition-transform duration-700 ease-[cubic-bezier(0.22,1,0.36,1)]"
+      :class="isMobileViewport ? 'is-vertical' : 'is-horizontal'"
+      :style="trackTransformStyle"
     >
       <section class="anniversary-slide">
         <div
@@ -67,7 +68,7 @@
         </div>
       </section>
 
-      <section class="anniversary-slide">
+      <section class="anniversary-slide anniversary-slide-year">
         <div
           class="mx-auto grid w-full max-w-6xl items-center gap-7 px-5 pt-20 sm:px-8 md:grid-cols-[0.86fr_1.14fr] md:gap-12"
         >
@@ -119,7 +120,7 @@
         </div>
       </section>
 
-      <section class="anniversary-slide">
+      <section class="anniversary-slide anniversary-slide-songs">
         <div
           class="mx-auto grid w-full max-w-6xl items-center gap-8 px-5 pt-20 sm:px-8 md:grid-cols-[0.9fr_1.1fr] md:gap-12"
         >
@@ -269,6 +270,7 @@ const momentProgress = ref(0)
 const releaseProgress = ref(0)
 const currentPhotoIndex = ref(-1)
 const photoAssembled = ref(false)
+const isMobileViewport = ref(false)
 const touchStart = ref({ x: 0, y: 0 })
 const celebrationPieces = Array.from({ length: 18 }, (_, index) => index + 1)
 const momentAutoplayMs = 5200
@@ -283,6 +285,13 @@ const anniversaryNo = computed(() => anniversaryYear(config.debutDate))
 const currentChapter = computed(() => config.chapters[activeChapter.value])
 const activeMoment = computed(() => config.timeline[activeMomentIndex.value])
 const activeRelease = computed(() => config.releases[activeReleaseIndex.value])
+const trackTransformStyle = computed(() => {
+  return {
+    transform: isMobileViewport.value
+      ? `translateY(-${activeChapter.value * 100}%)`
+      : `translateX(-${activeChapter.value * 100}%)`,
+  }
+})
 
 function textOf(text: AnniversaryText) {
   return anniversaryText(text, lang.value)
@@ -411,6 +420,11 @@ function progressStyle(value: number) {
   }
 }
 
+function syncViewportMode() {
+  if (typeof window === 'undefined') return
+  isMobileViewport.value = window.innerWidth <= 767
+}
+
 function handleKeydown(event: KeyboardEvent) {
   if (event.key === 'ArrowRight') goNext()
   if (event.key === 'ArrowLeft') goPrev()
@@ -425,6 +439,13 @@ function handleTouchEnd(event: TouchEvent) {
   const touch = event.changedTouches[0]
   const dx = touch.clientX - touchStart.value.x
   const dy = touch.clientY - touchStart.value.y
+  if (isMobileViewport.value) {
+    if (Math.abs(dy) < 44 || Math.abs(dy) < Math.abs(dx)) return
+    if (dy < 0) goNext()
+    else goPrev()
+    return
+  }
+
   if (Math.abs(dx) < 44 || Math.abs(dx) < Math.abs(dy)) return
   if (dx < 0) goNext()
   else goPrev()
@@ -459,7 +480,9 @@ watch(lang, () => {
 onMounted(() => {
   document.title =
     lang.value === 'ja' ? 'milet anniversary | Echoes of milet' : 'milet 周年祝福 | Echoes of milet'
+  syncViewportMode()
   window.addEventListener('keydown', handleKeydown)
+  window.addEventListener('resize', syncViewportMode)
 })
 
 onBeforeUnmount(() => {
@@ -467,6 +490,7 @@ onBeforeUnmount(() => {
   clearMomentTimer()
   clearReleaseTimer()
   window.removeEventListener('keydown', handleKeydown)
+  window.removeEventListener('resize', syncViewportMode)
 })
 </script>
 
@@ -666,6 +690,14 @@ onBeforeUnmount(() => {
   align-items: center;
 }
 
+.anniversary-track.is-horizontal {
+  flex-direction: row;
+}
+
+.anniversary-track.is-vertical {
+  flex-direction: column;
+}
+
 .section-eyebrow {
   font-size: 0.75rem;
   font-weight: 700;
@@ -686,14 +718,19 @@ onBeforeUnmount(() => {
 
 .primary-action {
   min-height: 2.75rem;
-  border-radius: 999px;
-  border: 1px solid rgba(39, 109, 123, 0.24);
-  background: rgba(255, 255, 255, 0.72);
-  padding: 0 1.2rem;
+  border: none;
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, 0.88), rgba(235, 247, 249, 0.82)),
+    linear-gradient(90deg, rgba(49, 127, 141, 0.08), rgba(221, 190, 95, 0.1));
+  clip-path: polygon(0 22%, 84% 22%, 100% 50%, 84% 78%, 0 78%, 9% 50%);
+  padding: 0 1.9rem 0 1.55rem;
   font-size: 0.875rem;
   font-weight: 700;
+  letter-spacing: 0.02em;
   color: #276d7b;
-  box-shadow: 0 18px 48px -36px rgba(31, 43, 53, 0.9);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.92),
+    0 18px 48px -36px rgba(31, 43, 53, 0.9);
   transition:
     transform 180ms ease,
     background 180ms ease,
@@ -702,8 +739,46 @@ onBeforeUnmount(() => {
 
 .primary-action:hover {
   transform: translateY(-2px);
-  background: #276d7b;
+  background:
+    linear-gradient(135deg, rgba(39, 109, 123, 0.96), rgba(49, 127, 141, 0.9)),
+    linear-gradient(90deg, rgba(221, 190, 95, 0.24), rgba(255, 255, 255, 0));
   color: white;
+}
+
+.brand-pill {
+  border: none;
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  font-family:
+    Montserrat,
+    sans-serif;
+  font-size: 1.1rem;
+  font-weight: 600;
+  letter-spacing: 0;
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, 0.9), rgba(236, 247, 250, 0.78)),
+    linear-gradient(90deg, rgba(49, 127, 141, 0.08), rgba(221, 190, 95, 0.08));
+  clip-path: polygon(0 20%, 86% 20%, 100% 50%, 86% 80%, 0 80%, 8% 50%);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.92),
+    0 14px 36px -28px rgba(31, 43, 53, 0.72);
+}
+
+.brand-pill::after {
+  content: '';
+  position: absolute;
+  right: 0.9rem;
+  top: 50%;
+  width: 0.42rem;
+  height: 0.42rem;
+  border-radius: 999px;
+  background: rgba(39, 109, 123, 0.24);
+  transform: translateY(-50%);
+}
+
+.brand-pill:hover::after {
+  background: rgba(39, 109, 123, 0.48);
 }
 
 .anniversary-number {
@@ -1074,6 +1149,15 @@ onBeforeUnmount(() => {
     opacity 180ms ease;
 }
 
+button,
+a[role='button'],
+.chapter-nav button,
+.chapter-control,
+.primary-action,
+.brand-pill {
+  cursor: pointer;
+}
+
 .chapter-nav button:nth-child(1) {
   --step: 0;
 }
@@ -1260,6 +1344,12 @@ onBeforeUnmount(() => {
     padding-bottom: 5.8rem;
   }
 
+  .anniversary-slide-year > div,
+  .anniversary-slide-songs > div {
+    align-content: start;
+    min-height: calc(100dvh - 10.25rem);
+  }
+
   .section-title {
     font-size: 2.45rem;
   }
@@ -1269,6 +1359,7 @@ onBeforeUnmount(() => {
   }
 
   .year-panel {
+    min-height: 25rem;
     padding: 1.1rem;
   }
 
@@ -1277,7 +1368,7 @@ onBeforeUnmount(() => {
   }
 
   .release-stage {
-    min-height: 360px;
+    min-height: 28rem;
   }
 
   .release-cover {
@@ -1342,6 +1433,11 @@ onBeforeUnmount(() => {
   .chapter-control-prev:hover,
   .chapter-control-next:hover {
     transform: translateX(-50%);
+  }
+
+  .primary-action {
+    min-height: 3rem;
+    padding: 0 1.65rem 0 1.35rem;
   }
 }
 
