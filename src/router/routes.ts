@@ -32,9 +32,9 @@ export const routes: RouteRecordRaw[] = [
           { name: 'home', params: { lang: to.params.lang } },
       },
       {
-        path: 'milet/anniversary',
+        path: 'milet/anniversary/:year(\\d{4})?',
         name: 'miletAnniversary',
-        meta: { renderMode: 'csr' },
+        meta: { renderMode: getConfiguredRenderMode('/milet/anniversary') },
         component: () => import('@/views/milet/MiletAnniversaryView.vue'),
       },
       {

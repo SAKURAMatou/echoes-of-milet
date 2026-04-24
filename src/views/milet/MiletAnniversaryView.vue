@@ -27,7 +27,44 @@
       </span>
     </header>
 
+    <section
+      v-if="showArchiveIndex"
+      class="relative z-10 flex h-full items-center"
+    >
+      <div class="mx-auto w-full max-w-6xl px-5 pt-20 sm:px-8">
+        <div class="grid gap-10 md:grid-cols-[0.82fr_1.18fr] md:items-start">
+          <div>
+            <p class="section-eyebrow">anniversary archive</p>
+            <h1
+              class="mt-4 font-serif text-5xl leading-[0.95] text-[#1d2b36] sm:text-6xl md:text-7xl"
+            >
+              {{ textOf(config.archiveTitle) }}
+            </h1>
+            <p class="mt-6 max-w-xl text-base leading-8 text-[#52636f] sm:text-lg">
+              {{ textOf(config.archiveLead) }}
+            </p>
+          </div>
+
+          <div class="archive-list">
+            <RouterLink
+              v-for="year in availableYears"
+              :key="year"
+              :to="{ name: 'miletAnniversary', params: { lang: routeLang, year } }"
+              class="archive-year-link"
+            >
+              <span class="archive-year-number">{{ year }}</span>
+              <span class="archive-year-copy">
+                <strong>{{ lang === 'ja' ? `${year} anniversary record` : `${year} 周年记录` }}</strong>
+                <em>{{ lang === 'ja' ? 'Open archive story' : '进入当年的周年页面' }}</em>
+              </span>
+            </RouterLink>
+          </div>
+        </div>
+      </div>
+    </section>
+
     <div
+      v-else
       class="anniversary-track relative z-10 flex h-full transition-transform duration-700 ease-[cubic-bezier(0.22,1,0.36,1)]"
       :class="isMobileViewport ? 'is-vertical' : 'is-horizontal'"
       :style="trackTransformStyle"
@@ -212,7 +249,7 @@
       </section>
     </div>
 
-    <nav class="chapter-nav" aria-label="Anniversary chapters">
+    <nav v-if="!showArchiveIndex" class="chapter-nav" aria-label="Anniversary chapters">
       <button
         v-for="(chapter, index) in config.chapters"
         :key="chapter.id"
@@ -226,6 +263,7 @@
     </nav>
 
     <button
+      v-if="!showArchiveIndex"
       class="chapter-control chapter-control-prev"
       type="button"
       aria-label="Previous chapter"
@@ -236,6 +274,7 @@
       <em>prev</em>
     </button>
     <button
+      v-if="!showArchiveIndex"
       class="chapter-control chapter-control-next"
       type="button"
       aria-label="Next chapter"
@@ -253,16 +292,18 @@ import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { RouterLink, useRoute } from 'vue-router'
 
 import {
-  anniversaryConfig,
+  anniversaryArchiveConfig,
   anniversaryLang,
   anniversaryText,
-  anniversaryYear,
+  getAvailableAnniversaryYears,
+  getAnniversaryRecord,
+  isAnniversaryMonth,
   type AnniversaryPhoto,
+  type AnniversaryRecord,
   type AnniversaryText,
 } from '@/composables/miletAnniversary'
 
 const route = useRoute()
-const config = anniversaryConfig
 const activeChapter = ref(0)
 const activeMomentIndex = ref(0)
 const activeReleaseIndex = ref(0)
@@ -280,11 +321,23 @@ let momentTimer = 0
 let releaseTimer = 0
 
 const routeLang = computed(() => String(route.params.lang || 'zh'))
+const routeYear = computed(() => String(route.params.year || ''))
 const lang = computed(() => anniversaryLang(routeLang.value))
-const anniversaryNo = computed(() => anniversaryYear(config.debutDate))
-const currentChapter = computed(() => config.chapters[activeChapter.value])
-const activeMoment = computed(() => config.timeline[activeMomentIndex.value])
-const activeRelease = computed(() => config.releases[activeReleaseIndex.value])
+const availableYears = computed(() => getAvailableAnniversaryYears(anniversaryArchiveConfig))
+const anniversaryMonthNow = computed(() => isAnniversaryMonth(anniversaryArchiveConfig, new Date()))
+const showArchiveIndex = computed(() => !routeYear.value && !anniversaryMonthNow.value)
+const config = computed<AnniversaryRecord>(() => {
+  return getAnniversaryRecord(routeYear.value, anniversaryArchiveConfig) as AnniversaryRecord
+})
+const anniversaryNo = computed(() => config.value.anniversaryNo)
+const currentChapter = computed(() => config.value.chapters[activeChapter.value])
+const activeMoment = computed(() => config.value.timeline[activeMomentIndex.value])
+const activeRelease = computed(() => config.value.releases[activeReleaseIndex.value])
+const pageTitle = computed(() =>
+  lang.value === 'ja'
+    ? `milet anniversary ${config.value.year} | Echoes of milet`
+    : `milet 周年记录 ${config.value.year} | Echoes of milet`,
+)
 const trackTransformStyle = computed(() => {
   return {
     transform: isMobileViewport.value
@@ -298,7 +351,7 @@ function textOf(text: AnniversaryText) {
 }
 
 function goChapter(index: number) {
-  activeChapter.value = Math.max(0, Math.min(config.chapters.length - 1, index))
+  activeChapter.value = Math.max(0, Math.min(config.value.chapters.length - 1, index))
 }
 
 function goPrev() {
@@ -310,11 +363,11 @@ function goNext() {
 }
 
 function nextRelease() {
-  activeReleaseIndex.value = (activeReleaseIndex.value + 1) % config.releases.length
+  activeReleaseIndex.value = (activeReleaseIndex.value + 1) % config.value.releases.length
 }
 
 function nextMoment() {
-  activeMomentIndex.value = (activeMomentIndex.value + 1) % config.timeline.length
+  activeMomentIndex.value = (activeMomentIndex.value + 1) % config.value.timeline.length
 }
 
 function selectRelease(index: number) {
@@ -326,7 +379,7 @@ function selectRelease(index: number) {
 
 function releaseClass(index: number) {
   if (index === activeReleaseIndex.value) return 'is-current'
-  if (index === (activeReleaseIndex.value + 1) % config.releases.length) return 'is-next'
+  if (index === (activeReleaseIndex.value + 1) % config.value.releases.length) return 'is-next'
   return 'is-prev'
 }
 
@@ -382,7 +435,7 @@ function restartPhotoFilm() {
   photoAssembled.value = false
   currentPhotoIndex.value = -1
   photoTimer = window.setInterval(() => {
-    if (currentPhotoIndex.value >= config.photos.length - 1) {
+    if (currentPhotoIndex.value >= config.value.photos.length - 1) {
       clearPhotoTimer()
       window.setTimeout(() => {
         photoAssembled.value = true
@@ -472,14 +525,26 @@ watch(activeChapter, (value) => {
   }
 })
 
+watch(config, () => {
+  activeChapter.value = 0
+  activeMomentIndex.value = 0
+  activeReleaseIndex.value = 0
+  momentProgress.value = 0
+  releaseProgress.value = 0
+  currentPhotoIndex.value = -1
+  photoAssembled.value = false
+})
+
 watch(lang, () => {
-  document.title =
-    lang.value === 'ja' ? 'milet anniversary | Echoes of milet' : 'milet 周年祝福 | Echoes of milet'
+  document.title = pageTitle.value
+})
+
+watch(routeYear, () => {
+  document.title = pageTitle.value
 })
 
 onMounted(() => {
-  document.title =
-    lang.value === 'ja' ? 'milet anniversary | Echoes of milet' : 'milet 周年祝福 | Echoes of milet'
+  document.title = pageTitle.value
   syncViewportMode()
   window.addEventListener('keydown', handleKeydown)
   window.addEventListener('resize', syncViewportMode)
@@ -696,6 +761,65 @@ onBeforeUnmount(() => {
 
 .anniversary-track.is-vertical {
   flex-direction: column;
+}
+
+.archive-list {
+  display: grid;
+  gap: 1rem;
+}
+
+.archive-year-link {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  align-items: center;
+  gap: 1rem;
+  border: 1px solid rgba(255, 255, 255, 0.82);
+  border-radius: 1.7rem;
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, 0.82), rgba(236, 247, 250, 0.74)),
+    linear-gradient(90deg, rgba(49, 127, 141, 0.06), rgba(221, 190, 95, 0.08));
+  padding: 1.15rem 1.25rem;
+  box-shadow: 0 24px 64px -50px rgba(31, 43, 53, 0.8);
+  transition:
+    transform 180ms ease,
+    background 180ms ease,
+    box-shadow 180ms ease;
+}
+
+.archive-year-link:hover {
+  transform: translateY(-2px);
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, 0.94), rgba(241, 250, 251, 0.88)),
+    linear-gradient(90deg, rgba(49, 127, 141, 0.1), rgba(221, 190, 95, 0.12));
+}
+
+.archive-year-number {
+  display: inline-flex;
+  min-width: 5.4rem;
+  min-height: 5.4rem;
+  align-items: center;
+  justify-content: center;
+  border-radius: 1.5rem;
+  background: rgba(39, 109, 123, 0.92);
+  color: white;
+  font-family: Cormorant Garamond, serif;
+  font-size: 2rem;
+  line-height: 1;
+}
+
+.archive-year-copy strong {
+  display: block;
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: #1f2b35;
+}
+
+.archive-year-copy em {
+  display: block;
+  margin-top: 0.35rem;
+  font-size: 0.85rem;
+  font-style: normal;
+  color: #60717b;
 }
 
 .section-eyebrow {
@@ -1342,6 +1466,18 @@ a[role='button'],
   .anniversary-slide {
     align-items: flex-start;
     padding-bottom: 5.8rem;
+  }
+
+  .archive-year-link {
+    grid-template-columns: 1fr;
+    align-items: start;
+    gap: 0.8rem;
+  }
+
+  .archive-year-number {
+    min-width: 4.4rem;
+    min-height: 4.4rem;
+    font-size: 1.7rem;
   }
 
   .anniversary-slide-year > div,

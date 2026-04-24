@@ -23,9 +23,9 @@
         >
           <!-- Sticker -->
 
-          <router-link
-            v-if="item.shown"
-            :to="buildMenuRoute(item.routerName)"
+            <router-link
+              v-if="item.shown"
+            :to="buildMenuRoute(item)"
             class="menu-link relative block focus-visible:outline-none"
             :aria-current="isActiveRoute(item) ? 'page' : false"
             :class="{ 'is-active': isActiveRoute(item) }"
@@ -108,7 +108,7 @@ import { computed, ref } from 'vue'
 import { useRoute } from 'vue-router'
 import LanguageSelect from '@/components/LanguageSelect.vue'
 import type { MenuItem } from '@/composables/SideMenueData'
-import { menu, colorMap } from '@/composables/SideMenueData'
+import { colorMap, getMenu } from '@/composables/SideMenueData'
 import { withLangParam } from '@/composables/useLangRoute'
 
 const BOTTOM_WIDE_STATIONERY_PATH = `
@@ -159,20 +159,25 @@ function getBorderColor(color: MenuItem['color']) {
 const getColor = (c: MenuItem['color']) => colorMap[c]
 
 const route = useRoute()
+const menu = computed(() => getMenu())
 
 function isActiveRoute(item: MenuItem) {
   return route.name === item.routerName
 }
 
-function buildMenuRoute(routerName?: string) {
+function buildMenuRoute(item: MenuItem) {
+  const routerName = item.routerName
   if (!routerName) {
     return '#'
   }
 
-  return withLangParam({ name: routerName }, String(route.params.lang || 'zh'))
+  return withLangParam(
+    { name: routerName, params: item.routeParams || {} },
+    String(route.params.lang || 'zh'),
+  )
 }
 
-const activeItem = computed(() => menu.find((m) => route.name === m.routerName))
+const activeItem = computed(() => menu.value.find((m) => route.name === m.routerName))
 const emit = defineEmits(['closeMenuItem'])
 
 function onMenuItemClick() {

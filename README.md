@@ -74,9 +74,18 @@ Route behavior:
 - `/` uses SSG
 - `/milet/about` uses SSG
 - `/milet` uses SSR
+- `/milet/anniversary` uses SSR
 - `/milet/timeline` uses CSR
 - `/milet/galleryList` uses CSR
 - `/milet/release` uses CSR
+
+Anniversary module notes:
+
+- `/:lang/milet/anniversary/:year?` supports the current record plus year-based archives
+- menu entry is always `ANNIVERSARY`
+- during the anniversary month, the menu links directly to the current year record
+- outside the anniversary month, `/:lang/milet/anniversary` opens an archive year list first, then `/:lang/milet/anniversary/:year` opens the chosen record
+- the frontend data contract for the anniversary backend is documented in [`docs/milet-anniversary-data-contract.md`](/D:/CODE/front/tailwindCSS/echoes%20of%20milet/docs/milet-anniversary-data-contract.md)
 
 ## Notes
 

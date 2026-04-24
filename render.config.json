@@ -3,6 +3,7 @@
   "renderModeByPath": {
     "/": "ssg",
     "/milet": "ssr",
-    "/milet/about": "ssg"
+    "/milet/about": "ssg",
+    "/milet/anniversary": "ssr"
   }
 }

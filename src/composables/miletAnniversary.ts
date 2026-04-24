@@ -37,8 +37,33 @@ export interface AnniversaryPhoto {
   }
 }
 
-export const anniversaryConfig = {
-  debutDate: '2019-03-06',
+export interface AnniversaryRecord {
+  year: number
+  anniversaryNo: number
+  title: AnniversaryText
+  lead: AnniversaryText
+  giftNote: AnniversaryText
+  archiveTitle: AnniversaryText
+  archiveLead: AnniversaryText
+  chapters: Array<{
+    id: string
+    eyebrow: string
+    title: AnniversaryText
+  }>
+  timeline: AnniversaryTimelineMoment[]
+  releases: AnniversaryRelease[]
+  photos: AnniversaryPhoto[]
+}
+
+export interface AnniversaryArchiveConfig {
+  debutDate: string
+  debutMonth: number
+  records: Record<string, AnniversaryRecord>
+}
+
+const record2026: AnniversaryRecord = {
+  year: 2026,
+  anniversaryNo: 7,
   title: {
     zh: 'Happy Anniversary, milet',
     ja: 'Happy Anniversary, milet',
@@ -50,6 +75,14 @@ export const anniversaryConfig = {
   giftNote: {
     zh: '这一页，是一个 miles 小小的祝福。',
     ja: 'このページは、ひとりの miles からの小さなお祝いです。',
+  },
+  archiveTitle: {
+    zh: 'Anniversary Archive',
+    ja: 'Anniversary Archive',
+  },
+  archiveLead: {
+    zh: '按年份回看每一次周年记录，把祝福、活动、发布物和 milet の日 的照片慢慢存下来。',
+    ja: '年ごとに記念ページを振り返りながら、お祝い、活動、作品、milet の日の写真を少しずつ残していく archive です。',
   },
   chapters: [
     {
@@ -104,7 +137,7 @@ export const anniversaryConfig = {
         ja: '告知も、写真も、ライブの余韻も、この fan site に新しい echo を少しずつ増やしてくれました。',
       },
     },
-  ] satisfies AnniversaryTimelineMoment[],
+  ],
   releases: [
     {
       id: 'hanataba',
@@ -139,7 +172,7 @@ export const anniversaryConfig = {
         ja: 'ステージが映像に残って、余韻にも帰れる場所ができました。',
       },
     },
-  ] satisfies AnniversaryRelease[],
+  ],
   photos: [
     {
       id: 'jan',
@@ -237,7 +270,15 @@ export const anniversaryConfig = {
       caption: { zh: '最后一张，像把这一年温柔地合上。', ja: '最後の一枚が、この一年をやさしく閉じてくれる。' },
       final: { x: '63%', y: '68%', w: '15%', r: '7deg', mx: '67%', my: '83%', mw: '23%', mr: '7deg' },
     },
-  ] satisfies AnniversaryPhoto[],
+  ],
+}
+
+export const anniversaryArchiveConfig: AnniversaryArchiveConfig = {
+  debutDate: '2019-03-06',
+  debutMonth: 3,
+  records: {
+    '2026': record2026,
+  },
 }
 
 export function anniversaryLang(value: unknown): AnniversaryLang {
@@ -256,4 +297,47 @@ export function anniversaryYear(debutDate: string, now = new Date()) {
     year -= 1
   }
   return Math.max(year, 0)
+}
+
+export function latestAnniversaryRecordYear(
+  config = anniversaryArchiveConfig,
+  now = new Date(),
+) {
+  const currentYear = now.getFullYear()
+  const beforeAnniversaryMonth = now.getMonth() + 1 < config.debutMonth
+  return beforeAnniversaryMonth ? currentYear - 1 : currentYear
+}
+
+export function isAnniversaryMonth(config = anniversaryArchiveConfig, now = new Date()) {
+  return now.getMonth() + 1 === config.debutMonth
+}
+
+export function getAvailableAnniversaryYears(config = anniversaryArchiveConfig) {
+  return Object.keys(config.records)
+    .map((value) => Number(value))
+    .filter((value) => Number.isFinite(value))
+    .sort((a, b) => b - a)
+}
+
+export function getAnniversaryRecord(year?: number | string, config = anniversaryArchiveConfig) {
+  const keys = getAvailableAnniversaryYears(config)
+
+  const resolvedYear = Number(year)
+  if (Number.isFinite(resolvedYear) && config.records[String(resolvedYear)]) {
+    return config.records[String(resolvedYear)]
+  }
+
+  return config.records[String(keys[0])] ?? null
+}
+
+export function getAnniversaryMenuMeta(config = anniversaryArchiveConfig, now = new Date()) {
+  const currentMonth = isAnniversaryMonth(config, now)
+  const year = latestAnniversaryRecordYear(config, now)
+
+  return {
+    year,
+    label: 'ANNIVERSARY',
+    sub: currentMonth ? `- ${year} celebration` : `- Open anniversary archive`,
+    routeParams: currentMonth ? { year } : undefined,
+  }
 }

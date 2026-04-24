@@ -1,3 +1,5 @@
+import { getAnniversaryMenuMeta } from '@/composables/miletAnniversary'
+
 export type MenuItem = {
   key: string
   label: string
@@ -5,96 +7,112 @@ export type MenuItem = {
   shown: boolean
   color: 'pink' | 'green' | 'teal' | 'amber' | 'sky' | 'violet'
   routerName?: string
+  routeParams?: Record<string, string | number>
   children?: { key: string; label: string; href?: string }[]
 }
 
-const menu: MenuItem[] = [
-  {
-    key: 'home',
-    label: 'HOME',
-    sub: '- Welcome page',
-    color: 'sky',
-    routerName: 'home',
-    shown: true,
-  },
-  {
-    key: 'milet',
-    label: 'MILET',
-    sub: '- About milet',
-    color: 'pink',
-    routerName: 'milet',
-    children: [
-      { key: 'hero', label: 'top', href: '#hero' },
-      { key: 'why', label: 'why milet', href: '#why' },
-      { key: 'highlight', label: 'highlight', href: '#highlight' },
-      { key: 'timeline-preview', label: 'timeline', href: '#timeline' },
-      { key: 'gallery-preview', label: 'gallery', href: '#gallery' },
-      { key: 'official-links', label: 'official', href: '#links' },
-    ],
-    shown: true,
-  },
-  {
-    key: 'timeline',
-    label: 'TIMELINE',
-    sub: '- Activity of milet',
-    color: 'amber',
-    routerName: 'miletTimeLine',
-    shown: true,
-  },
-  {
-    key: 'release',
-    label: 'RELEASE',
-    sub: '- The milet anthology',
-    color: 'violet',
-    routerName: 'miletRelease',
-    children: [
-      { key: 'albums', label: 'albums', href: '#chapter-albums' },
-      { key: 'eps', label: 'EP / Single', href: '#chapter-ep-single' },
-      { key: 'live', label: 'Live BD / DVD', href: '#chapter-live' },
-    ],
-    shown: true,
-  },
-  {
-    key: 'echo-room',
-    label: 'ECHO ROOM',
-    sub: '- Interactive challenge',
-    color: 'sky',
-    routerName: 'miletSongGuess',
-    shown: true,
-  },
-  {
-    key: 'gallery',
-    label: 'GALLERY',
-    sub: '- Visual journey',
-    color: 'teal',
-    routerName: 'miletPicAlbum',
-    children: [
-      { key: 'pickup-gallery', label: 'pickup gallery', href: '#pick-gallery' },
-      { key: 'all-gallery', label: 'all gallery', href: '#all-gallery' },
-    ],
-    shown: false,
-  },
-  {
-    key: 'about',
-    label: 'ABOUT ME',
-    sub: '- Site story & feedback',
-    color: 'green',
-    routerName: 'aboutMe',
-    children: [
-      { key: 'intro', label: 'intro', href: '#about-intro' },
-      { key: 'feedback', label: 'feedback', href: '#about-feedback' },
-    ],
-    shown: true,
-  },
-  {
-    key: 'gallery-detail',
-    label: 'GALLERY DETAIL',
-    sub: '- Gallery detail page',
-    color: 'pink',
-    routerName: 'galleryDetail',
-    shown: false,
-  },
-]
+export function getMenu(now = new Date()): MenuItem[] {
+  const anniversaryMeta = getAnniversaryMenuMeta(undefined, now)
+
+  return [
+    {
+      key: 'home',
+      label: 'HOME',
+      sub: '- Welcome page',
+      color: 'sky',
+      routerName: 'home',
+      shown: true,
+    },
+    {
+      key: 'milet',
+      label: 'MILET',
+      sub: '- About milet',
+      color: 'pink',
+      routerName: 'milet',
+      children: [
+        { key: 'hero', label: 'top', href: '#hero' },
+        { key: 'why', label: 'why milet', href: '#why' },
+        { key: 'highlight', label: 'highlight', href: '#highlight' },
+        { key: 'timeline-preview', label: 'timeline', href: '#timeline' },
+        { key: 'gallery-preview', label: 'gallery', href: '#gallery' },
+        { key: 'official-links', label: 'official', href: '#links' },
+      ],
+      shown: true,
+    },
+    {
+      key: 'timeline',
+      label: 'TIMELINE',
+      sub: '- Activity of milet',
+      color: 'amber',
+      routerName: 'miletTimeLine',
+      shown: true,
+    },
+    {
+      key: 'release',
+      label: 'RELEASE',
+      sub: '- The milet anthology',
+      color: 'violet',
+      routerName: 'miletRelease',
+      children: [
+        { key: 'albums', label: 'albums', href: '#chapter-albums' },
+        { key: 'eps', label: 'EP / Single', href: '#chapter-ep-single' },
+        { key: 'live', label: 'Live BD / DVD', href: '#chapter-live' },
+      ],
+      shown: true,
+    },
+    {
+      key: 'echo-room',
+      label: 'ECHO ROOM',
+      sub: '- Interactive challenge',
+      color: 'sky',
+      routerName: 'miletSongGuess',
+      shown: true,
+    },
+    {
+      key: 'gallery',
+      label: 'GALLERY',
+      sub: '- Visual journey',
+      color: 'teal',
+      routerName: 'miletPicAlbum',
+      children: [
+        { key: 'pickup-gallery', label: 'pickup gallery', href: '#pick-gallery' },
+        { key: 'all-gallery', label: 'all gallery', href: '#all-gallery' },
+      ],
+      shown: false,
+    },
+    {
+      key: 'anniversary',
+      label: anniversaryMeta.label,
+      sub: anniversaryMeta.sub,
+      color: 'violet',
+      routerName: 'miletAnniversary',
+      routeParams: anniversaryMeta.routeParams,
+      shown: true,
+    },
+    {
+      key: 'about',
+      label: 'ABOUT ME',
+      sub: '- Site story & feedback',
+      color: 'green',
+      routerName: 'aboutMe',
+      children: [
+        { key: 'intro', label: 'intro', href: '#about-intro' },
+        { key: 'feedback', label: 'feedback', href: '#about-feedback' },
+      ],
+      shown: true,
+    },
+    {
+      key: 'gallery-detail',
+      label: 'GALLERY DETAIL',
+      sub: '- Gallery detail page',
+      color: 'pink',
+      routerName: 'galleryDetail',
+      shown: false,
+    },
+  ]
+}
+
+const menu = getMenu()
 
 const colorMap = {
   pink: {
