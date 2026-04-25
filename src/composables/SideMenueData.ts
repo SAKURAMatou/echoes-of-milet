@@ -112,8 +112,6 @@ export function getMenu(now = new Date()): MenuItem[] {
   ]
 }
 
-const menu = getMenu()
-
 const colorMap = {
   pink: {
     stroke: 'border-pink-300',
@@ -165,4 +163,4 @@ const colorMap = {
   },
 } as const
 
-export { menu, colorMap }
+export { colorMap }

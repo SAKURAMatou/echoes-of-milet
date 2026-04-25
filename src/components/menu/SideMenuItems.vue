@@ -104,7 +104,7 @@
 </template>
 <script setup lang="ts">
 import StickerSVG from './StickerSVG.vue'
-import { computed, ref } from 'vue'
+import { computed } from 'vue'
 import { useRoute } from 'vue-router'
 import LanguageSelect from '@/components/LanguageSelect.vue'
 import type { MenuItem } from '@/composables/SideMenueData'

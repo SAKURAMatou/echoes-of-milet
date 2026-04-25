@@ -38,10 +38,10 @@
             <h1
               class="mt-4 font-serif text-5xl leading-[0.95] text-[#1d2b36] sm:text-6xl md:text-7xl"
             >
-              {{ textOf(config.archiveTitle) }}
+              {{ content.archiveTitle }}
             </h1>
             <p class="mt-6 max-w-xl text-base leading-8 text-[#52636f] sm:text-lg">
-              {{ textOf(config.archiveLead) }}
+              {{ content.archiveLead }}
             </p>
           </div>
 
@@ -78,13 +78,13 @@
             <h1
               class="mt-4 font-serif text-5xl leading-[0.95] text-[#1d2b36] sm:text-6xl md:text-7xl"
             >
-              {{ textOf(config.title) }}
+              {{ content.title }}
             </h1>
             <p class="mt-6 max-w-xl text-base leading-8 text-[#52636f] sm:text-lg">
-              {{ textOf(config.lead) }}
+              {{ content.lead }}
             </p>
             <p class="mt-3 text-sm leading-7 text-[#7d6a33]">
-              {{ textOf(config.giftNote) }}
+              {{ content.giftNote }}
             </p>
             <button class="primary-action mt-8" type="button" @click="goNext">open the year</button>
           </div>
@@ -110,8 +110,8 @@
           class="mx-auto grid w-full max-w-6xl items-center gap-7 px-5 pt-20 sm:px-8 md:grid-cols-[0.86fr_1.14fr] md:gap-12"
         >
           <div>
-            <p class="section-eyebrow">{{ config.chapters[1].eyebrow }}</p>
-            <h2 class="section-title">{{ textOf(config.chapters[1].title) }}</h2>
+            <p class="section-eyebrow">{{ content.chapters[1].eyebrow }}</p>
+            <h2 class="section-title">{{ content.chapters[1].title }}</h2>
             <p class="mt-5 max-w-md text-sm leading-7 text-[#60717b] sm:text-base">
               {{
                 lang === 'ja'
@@ -128,21 +128,21 @@
                   {{ activeMoment.date }}
                 </p>
                 <h3 class="mt-3 font-serif text-3xl leading-tight text-[#263542] sm:text-4xl">
-                  {{ textOf(activeMoment.title) }}
+                  {{ activeMoment.title }}
                 </h3>
               </div>
               <span
                 class="rounded-full border border-[#d9c27b] px-3 py-1 text-xs font-semibold uppercase text-[#8a6e1b]"
               >
-                {{ textOf(activeMoment.label) }}
+                {{ activeMoment.label }}
               </span>
             </div>
             <p class="mt-5 text-sm leading-7 text-[#586872] sm:text-base">
-              {{ textOf(activeMoment.body) }}
+              {{ activeMoment.body }}
             </p>
             <div class="moment-progress-list" aria-hidden="true">
               <div
-                v-for="(moment, index) in config.timeline"
+                v-for="(moment, index) in content.timeline"
                 :key="moment.id"
                 class="moment-progress"
                 :class="index === activeMomentIndex ? 'is-active' : ''"
@@ -162,8 +162,8 @@
           class="mx-auto grid w-full max-w-6xl items-center gap-8 px-5 pt-20 sm:px-8 md:grid-cols-[0.9fr_1.1fr] md:gap-12"
         >
           <div>
-            <p class="section-eyebrow">{{ config.chapters[2].eyebrow }}</p>
-            <h2 class="section-title">{{ textOf(config.chapters[2].title) }}</h2>
+            <p class="section-eyebrow">{{ content.chapters[2].eyebrow }}</p>
+            <h2 class="section-title">{{ content.chapters[2].title }}</h2>
             <p class="mt-5 max-w-md text-sm leading-7 text-[#60717b] sm:text-base">
               {{
                 lang === 'ja'
@@ -173,7 +173,7 @@
             </p>
             <div class="release-progress-list" aria-hidden="true">
               <span
-                v-for="(release, index) in config.releases"
+                v-for="(release, index) in content.releases"
                 :key="release.id"
                 :class="index === activeReleaseIndex ? 'is-active' : ''"
               >
@@ -186,7 +186,7 @@
 
           <div class="release-stage">
             <div
-              v-for="(release, index) in config.releases"
+              v-for="(release, index) in content.releases"
               :key="release.id"
               class="release-cover"
               :class="releaseClass(index)"
@@ -201,7 +201,7 @@
               <h3 class="mt-2 font-serif text-4xl leading-tight text-[#1f2b35]">
                 {{ activeRelease.title }}
               </h3>
-              <p class="mt-3 text-sm leading-7 text-[#60717b]">{{ textOf(activeRelease.note) }}</p>
+              <p class="mt-3 text-sm leading-7 text-[#60717b]">{{ activeRelease.note }}</p>
             </div>
           </div>
         </div>
@@ -212,8 +212,8 @@
           class="mx-auto grid w-full max-w-6xl items-center gap-5 px-5 pt-20 sm:px-8 md:grid-cols-[0.82fr_1.18fr] md:gap-10"
         >
           <div>
-            <p class="section-eyebrow">{{ config.chapters[3].eyebrow }}</p>
-            <h2 class="section-title">{{ textOf(config.chapters[3].title) }}</h2>
+            <p class="section-eyebrow">{{ content.chapters[3].eyebrow }}</p>
+            <h2 class="section-title">{{ content.chapters[3].title }}</h2>
             <p class="mt-5 max-w-md text-sm leading-7 text-[#60717b] sm:text-base">
               {{
                 lang === 'ja'
@@ -232,16 +232,16 @@
               <strong>milet</strong>
             </div>
             <figure
-              v-for="(photo, index) in config.photos"
+              v-for="(photo, index) in content.photos"
               :key="photo.id"
               class="photo-frame"
               :class="photoFrameClass(index)"
               :style="photoStyle(photo)"
             >
-              <img :src="photo.image" :alt="textOf(photo.alt)" />
+              <img :src="photo.image" :alt="photo.alt" />
               <figcaption>
                 <span>{{ photo.month }}</span>
-                {{ photoAssembled ? 'milet の日' : textOf(photo.caption) }}
+                {{ photoAssembled ? 'milet の日' : photo.caption }}
               </figcaption>
             </figure>
           </div>
@@ -251,7 +251,7 @@
 
     <nav v-if="!showArchiveIndex" class="chapter-nav" aria-label="Anniversary chapters">
       <button
-        v-for="(chapter, index) in config.chapters"
+        v-for="(chapter, index) in content.chapters"
         :key="chapter.id"
         type="button"
         :class="index === activeChapter ? 'is-active' : ''"
@@ -294,13 +294,12 @@ import { RouterLink, useRoute } from 'vue-router'
 import {
   anniversaryArchiveConfig,
   anniversaryLang,
-  anniversaryText,
   getAvailableAnniversaryYears,
   getAnniversaryRecord,
+  getAnniversaryRecordContent,
   isAnniversaryMonth,
   type AnniversaryPhoto,
   type AnniversaryRecord,
-  type AnniversaryText,
 } from '@/composables/miletAnniversary'
 
 const route = useRoute()
@@ -326,17 +325,18 @@ const lang = computed(() => anniversaryLang(routeLang.value))
 const availableYears = computed(() => getAvailableAnniversaryYears(anniversaryArchiveConfig))
 const anniversaryMonthNow = computed(() => isAnniversaryMonth(anniversaryArchiveConfig, new Date()))
 const showArchiveIndex = computed(() => !routeYear.value && !anniversaryMonthNow.value)
-const config = computed<AnniversaryRecord>(() => {
+const record = computed<AnniversaryRecord>(() => {
   return getAnniversaryRecord(routeYear.value, anniversaryArchiveConfig) as AnniversaryRecord
 })
-const anniversaryNo = computed(() => config.value.anniversaryNo)
-const currentChapter = computed(() => config.value.chapters[activeChapter.value])
-const activeMoment = computed(() => config.value.timeline[activeMomentIndex.value])
-const activeRelease = computed(() => config.value.releases[activeReleaseIndex.value])
+const content = computed(() => getAnniversaryRecordContent(record.value, lang.value))
+const anniversaryNo = computed(() => record.value.anniversaryNo)
+const currentChapter = computed(() => content.value.chapters[activeChapter.value])
+const activeMoment = computed(() => content.value.timeline[activeMomentIndex.value])
+const activeRelease = computed(() => content.value.releases[activeReleaseIndex.value])
 const pageTitle = computed(() =>
   lang.value === 'ja'
-    ? `milet anniversary ${config.value.year} | Echoes of milet`
-    : `milet 周年记录 ${config.value.year} | Echoes of milet`,
+    ? `milet anniversary ${record.value.year} | Echoes of milet`
+    : `milet 周年记录 ${record.value.year} | Echoes of milet`,
 )
 const trackTransformStyle = computed(() => {
   return {
@@ -346,12 +346,8 @@ const trackTransformStyle = computed(() => {
   }
 })
 
-function textOf(text: AnniversaryText) {
-  return anniversaryText(text, lang.value)
-}
-
 function goChapter(index: number) {
-  activeChapter.value = Math.max(0, Math.min(config.value.chapters.length - 1, index))
+  activeChapter.value = Math.max(0, Math.min(content.value.chapters.length - 1, index))
 }
 
 function goPrev() {
@@ -363,11 +359,11 @@ function goNext() {
 }
 
 function nextRelease() {
-  activeReleaseIndex.value = (activeReleaseIndex.value + 1) % config.value.releases.length
+  activeReleaseIndex.value = (activeReleaseIndex.value + 1) % content.value.releases.length
 }
 
 function nextMoment() {
-  activeMomentIndex.value = (activeMomentIndex.value + 1) % config.value.timeline.length
+  activeMomentIndex.value = (activeMomentIndex.value + 1) % content.value.timeline.length
 }
 
 function selectRelease(index: number) {
@@ -379,7 +375,7 @@ function selectRelease(index: number) {
 
 function releaseClass(index: number) {
   if (index === activeReleaseIndex.value) return 'is-current'
-  if (index === (activeReleaseIndex.value + 1) % config.value.releases.length) return 'is-next'
+  if (index === (activeReleaseIndex.value + 1) % content.value.releases.length) return 'is-next'
   return 'is-prev'
 }
 
@@ -435,7 +431,7 @@ function restartPhotoFilm() {
   photoAssembled.value = false
   currentPhotoIndex.value = -1
   photoTimer = window.setInterval(() => {
-    if (currentPhotoIndex.value >= config.value.photos.length - 1) {
+    if (currentPhotoIndex.value >= content.value.photos.length - 1) {
       clearPhotoTimer()
       window.setTimeout(() => {
         photoAssembled.value = true
@@ -525,7 +521,7 @@ watch(activeChapter, (value) => {
   }
 })
 
-watch(config, () => {
+watch(record, () => {
   activeChapter.value = 0
   activeMomentIndex.value = 0
   activeReleaseIndex.value = 0
