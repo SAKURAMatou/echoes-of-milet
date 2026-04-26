@@ -75,7 +75,12 @@ function normalizeLang(value) {
     return 'zh'
   }
 
-  if (lowerValue === 'jp' || lowerValue === 'ja' || lowerValue.startsWith('ja-') || lowerValue.includes('jp')) {
+  if (
+    lowerValue === 'jp' ||
+    lowerValue === 'ja' ||
+    lowerValue.startsWith('ja-') ||
+    lowerValue.includes('jp')
+  ) {
     return 'jp'
   }
 
@@ -146,6 +151,7 @@ async function proxyApiRequest(req, res) {
 
   const targetUrl = new URL(requestUrl.pathname + requestUrl.search, upstreamOrigin)
   const bodyAllowed = !['GET', 'HEAD'].includes(req.method || 'GET')
+  console.log(`Proxying API request: ${process.env.MILET_SOURCE_GUARD_TOKEN} `)
   const headers = {
     ...req.headers,
     host: targetUrl.host,
@@ -155,6 +161,7 @@ async function proxyApiRequest(req, res) {
     'x-forwarded-host': req.headers.host || '',
     'x-forwarded-proto': 'http',
     'x-forwarded-origin': publicSiteOrigin,
+    'X-Milet-Source-Token': process.env.MILET_SOURCE_GUARD_TOKEN,
   }
 
   const response = await fetch(targetUrl, {

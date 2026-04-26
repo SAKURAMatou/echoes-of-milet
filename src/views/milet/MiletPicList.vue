@@ -14,7 +14,7 @@
           <path d="M9 12h2V8H9v4zm0 4h2v-2H9v2zm1-14a9 9 0 100 18 9 9 0 000-18z" />
         </svg>
         <h2 class="text-lg font-bold flex-1">
-          {{ $getConfigLang('miletPic')['tip'] }}
+          {{ pageText.tip }}
         </h2>
       </div>
     </div>
@@ -70,7 +70,7 @@
   </div>
 </template>
 <script setup>
-import { onMounted, ref, onUnmounted, nextTick, getCurrentInstance } from 'vue'
+import { computed, onMounted, ref, onUnmounted, nextTick, getCurrentInstance } from 'vue'
 import { useRoute } from 'vue-router'
 
 // import pagination_long from '@/components/Pagination1.vue'
@@ -78,10 +78,18 @@ import { useRoute } from 'vue-router'
 import axiosInstance from '@/AxiosUtil'
 import LazyImage from '@/components/LazyImage.vue'
 import { apiRoutes, buildStaticAssetUrl } from '@/config/api'
+import { MILET_PIC_TEXT } from '@/composables/lang/miletPic'
 import { Fancybox } from '@fancyapps/ui'
 import '@fancyapps/ui/dist/fancybox/fancybox.css'
 
 const route = useRoute()
+const { appContext } = getCurrentInstance()
+const global = appContext.config.globalProperties
+
+const pageText = computed(() => {
+  const lang = global.$lang?.lang ? global.$lang.lang : 'zh'
+  return MILET_PIC_TEXT[lang]
+})
 
 const imgList = ref([])
 const currentPage = ref(1)

@@ -14,7 +14,7 @@
           <path d="M9 12h2V8H9v4zm0 4h2v-2H9v2zm1-14a9 9 0 100 18 9 9 0 000-18z" />
         </svg>
         <h2 class="text-lg font-bold flex-1">
-          {{ $getConfigLang('miletGallery')['tip'] }}
+          {{ pageText.tip }}
         </h2>
       </div>
     </div>
@@ -28,7 +28,7 @@
       <div class="flex items-center mb-6">
         <h2 class="text-2xl font-bold text-gray-800 flex items-center">
           <span class="mr-2">📌</span>
-          {{ $getConfigLang('miletGallery')['topAlbums'] }}
+          {{ pageText.topAlbums }}
         </h2>
         <div
           class="flex-grow ml-4 h-1 bg-gradient-to-r from-pink-300 to-transparent rounded-full"
@@ -66,7 +66,7 @@
                   </h3>
                   <span
                     class="text-xs bg-pink-100 text-pink-700 px-3 py-1 rounded-full font-semibold whitespace-nowrap"
-                    >📌 {{ $getConfigLang('miletGallery')['toptip'] }}</span
+                    >📌 {{ pageText.toptip }}</span
                   >
                 </div>
                 <div class="flex items-center text-sm text-gray-100 drop-shadow-md">
@@ -96,7 +96,7 @@
       <div class="flex items-center mb-6">
         <h2 class="text-2xl font-bold text-gray-800 flex items-center">
           <span class="mr-2">🎞️</span>
-          {{ $getConfigLang('miletGallery')['albums'] }}
+          {{ pageText.albums }}
         </h2>
         <div
           class="flex-grow ml-4 h-1 bg-gradient-to-r from-blue-300 to-transparent rounded-full"
@@ -199,16 +199,22 @@
 </template>
 
 <script setup>
-import { ref, onMounted, onUnmounted, nextTick, getCurrentInstance } from 'vue'
+import { computed, ref, onMounted, onUnmounted, nextTick, getCurrentInstance } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import axiosInstance from '@/AxiosUtil'
 import { withLangParam } from '@/composables/useLangRoute'
 import { apiRoutes, buildStaticAssetUrl } from '@/config/api'
+import { MILET_GALLERY_TEXT } from '@/composables/lang/miletGallery'
 
 const router = useRouter()
 const route = useRoute()
 const { appContext } = getCurrentInstance()
 const global = appContext.config.globalProperties
+
+const pageText = computed(() => {
+  const lang = global.$lang?.lang ? global.$lang.lang : 'zh'
+  return MILET_GALLERY_TEXT[lang]
+})
 
 // 数据相关
 const topAlbumList = ref([])
@@ -226,9 +232,7 @@ const galleryObserver = ref(null)
  */
 const loadAlbums = async (istop, page) => {
   try {
-    const response = await axiosInstance.get(
-      `${apiRoutes.miletGallery}/${istop}/${page}`,
-    )
+    const response = await axiosInstance.get(`${apiRoutes.miletGallery}/${istop}/${page}`)
 
     if (response.code === 200) {
       const albums = Array.isArray(response.data) ? response.data : []
@@ -310,7 +314,10 @@ const getAlbumDescription = (descriptions) => {
  */
 const goToGallery = (galleryId) => {
   router.push(
-    withLangParam({ name: 'galleryDetail', params: { galleryId: galleryId } }, String(route.params.lang || 'zh')),
+    withLangParam(
+      { name: 'galleryDetail', params: { galleryId: galleryId } },
+      String(route.params.lang || 'zh'),
+    ),
   )
 }
 

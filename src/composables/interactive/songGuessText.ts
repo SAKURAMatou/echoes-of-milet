@@ -1,7 +1,7 @@
 import { computed } from 'vue'
 import { useRoute } from 'vue-router'
 
-import { langConfig } from '@/composables/lang'
+import { SONG_GUESS_TEXT } from '@/composables/lang/songGuess'
 
 type SongGuessText = {
   homeTitle: string
@@ -55,7 +55,7 @@ type SongGuessText = {
 }
 
 function songGuessText(lang: SupportedLang): SongGuessText {
-  return langConfig[lang].songGuess as SongGuessText
+  return SONG_GUESS_TEXT[lang] as SongGuessText
 }
 
 function resolveLang(value: unknown): SupportedLang {
@@ -64,5 +64,7 @@ function resolveLang(value: unknown): SupportedLang {
 
 export function useSongGuessText() {
   const route = useRoute()
-  return computed<SongGuessText>(() => songGuessText(resolveLang(route.params.lang)) || songGuessText('zh'))
+  return computed<SongGuessText>(
+    () => songGuessText(resolveLang(route.params.lang)) || songGuessText('zh'),
+  )
 }

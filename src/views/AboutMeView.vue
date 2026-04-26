@@ -296,10 +296,19 @@
 </template>
 
 <script setup>
-import { computed, getCurrentInstance, nextTick, onBeforeUnmount, onMounted, reactive, ref, watch } from 'vue'
+import {
+  computed,
+  getCurrentInstance,
+  nextTick,
+  onBeforeUnmount,
+  onMounted,
+  reactive,
+  ref,
+  watch,
+} from 'vue'
 
 import axiosInstance from '@/AxiosUtil'
-import { ABOUT_COPY } from '@/composables/AboutMedata'
+import { ABOUT_COPY } from '@/composables/lang/AboutMedata'
 import { apiRoutes } from '@/config/api'
 
 const { appContext } = getCurrentInstance()

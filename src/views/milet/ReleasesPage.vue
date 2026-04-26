@@ -97,7 +97,7 @@ import StackMapDrawer from '@/components/milet/music/StackMapDrawer.vue'
 import { ref, computed, onMounted, getCurrentInstance } from 'vue'
 import { useReleaseData } from '@/composables/useReleaseData'
 
-import { RELEASE_PAGE_TEXT } from '@/composables/ReleaseMetaData'
+import { RELEASE_PAGE_TEXT } from '@/composables/lang/ReleaseMetaData'
 
 const { appContext } = getCurrentInstance()
 const global = appContext.config.globalProperties

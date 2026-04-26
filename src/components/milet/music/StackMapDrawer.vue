@@ -55,7 +55,7 @@
 </template>
 <script setup lang="ts">
 import { getCurrentInstance, computed } from 'vue'
-import { RELEASE_PAGE_TEXT } from '@/composables/ReleaseMetaData'
+import { RELEASE_PAGE_TEXT } from '@/composables/lang/ReleaseMetaData'
 const pageText = computed(() => {
   const lang = global.$lang?.lang ? global.$lang.lang : 'zh'
   return RELEASE_PAGE_TEXT[lang]

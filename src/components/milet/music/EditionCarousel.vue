@@ -23,7 +23,9 @@
 
         <div class="text-sm text-slate-700">
           <span class="font-medium">{{ editions[idx]?.editionName }}</span>
-          <span v-if="hasMultipleEditions" class="ml-2 text-slate-400">({{ idx + 1 }}/{{ max }})</span>
+          <span v-if="hasMultipleEditions" class="ml-2 text-slate-400"
+            >({{ idx + 1 }}/{{ max }})</span
+          >
         </div>
 
         <button
@@ -68,10 +70,7 @@
               @pointercancel="handlePointerEnd"
             >
               <div v-for="disc in ed.discs" :key="disc.id">
-                <div
-                  v-if="!isVirtualDisc(disc)"
-                  class="flex items-center justify-between gap-3"
-                >
+                <div v-if="!isVirtualDisc(disc)" class="flex items-center justify-between gap-3">
                   <div class="text-sm font-medium text-slate-700">
                     {{ pageText.discLabel }} {{ getDiscNumber(disc) }}
                     <span v-if="disc.title" class="text-slate-400">- {{ disc.title }}</span>
@@ -123,7 +122,7 @@
 <script setup lang="ts">
 import { computed, getCurrentInstance, ref, watch } from 'vue'
 import { initImgUrl } from '@/composables/ImgUrlUtil'
-import { WORK_TEXT } from '@/composables/ReleaseMetaData'
+import { WORK_TEXT } from '@/composables/lang/ReleaseMetaData'
 import type { Disc, ReleaseEdition, Track } from '@/composables/releaseType'
 import { useSwipe } from '@/composables/useSwipe'
 
