@@ -1,4 +1,6 @@
-import { readFile, stat } from 'node:fs/promises'
+import { spawn } from 'node:child_process'
+import { existsSync, readFileSync, watch } from 'node:fs'
+import { cp, mkdir, readFile, rm, stat } from 'node:fs/promises'
 import http from 'node:http'
 import path from 'node:path'
 import { fileURLToPath, pathToFileURL } from 'node:url'
@@ -9,6 +11,8 @@ import apiProxyConfig from '../api-proxy.config.json' with { type: 'json' }
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const root = path.resolve(__dirname, '..')
 const port = Number(process.env.PORT || 5173)
+const watchMode = process.argv.includes('--watch')
+const runtimeRoot = path.join(root, '.ssr-runtime', 'verify-ssr-local')
 const developmentConfig = apiProxyConfig.origins.development
 const publicSiteUrl = new URL(developmentConfig.site)
 publicSiteUrl.port = String(port)
@@ -16,6 +20,7 @@ const publicSiteOrigin = publicSiteUrl.toString().replace(/\/$/, '')
 const upstreamOrigin = developmentConfig.backend
 const localizedSsgRoutes = new Set(renderConfig.ssgRoutes)
 const allowedApiPrefixes = Object.values(apiProxyConfig.routes)
+const sourceGuardToken = loadSourceGuardToken()
 
 const mimeTypes = {
   '.css': 'text/css; charset=utf-8',
@@ -135,8 +140,108 @@ function buildProxyResponseHeaders(response) {
   return responseHeaders
 }
 
+function parseEnvValue(value = '') {
+  const trimmed = value.trim()
+  if (
+    (trimmed.startsWith('"') && trimmed.endsWith('"')) ||
+    (trimmed.startsWith("'") && trimmed.endsWith("'"))
+  ) {
+    return trimmed.slice(1, -1)
+  }
+
+  return trimmed
+}
+
+function loadEnvFiles() {
+  const envFiles = ['.env', '.env.local', '.env.development', '.env.development.local']
+  const shellEnvKeys = new Set(Object.keys(process.env))
+
+  for (const file of envFiles) {
+    const envPath = path.join(root, file)
+    if (!existsSync(envPath)) {
+      continue
+    }
+
+    const content = readFileSync(envPath, 'utf8')
+    for (const line of content.split(/\r?\n/)) {
+      const trimmed = line.trim()
+      if (!trimmed || trimmed.startsWith('#')) {
+        continue
+      }
+
+      const matched = trimmed.match(/^([A-Za-z_][A-Za-z0-9_]*)=(.*)$/)
+      if (!matched || shellEnvKeys.has(matched[1])) {
+        continue
+      }
+
+      process.env[matched[1]] = parseEnvValue(matched[2])
+    }
+  }
+}
+
+function loadSourceGuardToken() {
+  loadEnvFiles()
+  return process.env.MILET_SOURCE_GUARD_TOKEN || ''
+}
+
+function headerEntries(rawHeaders = {}) {
+  const entries = []
+
+  for (const [key, value] of Object.entries(rawHeaders)) {
+    if (value === undefined) {
+      continue
+    }
+
+    if (Array.isArray(value)) {
+      for (const item of value) {
+        entries.push([key, item])
+      }
+      continue
+    }
+
+    entries.push([key, value])
+  }
+
+  return entries
+}
+
+function getRequestOrigin() {
+  return publicSiteOrigin
+}
+
+function buildProxyHeaders(req, targetUrl) {
+  const requestOrigin = getRequestOrigin()
+  const headers = new Headers(headerEntries(req.headers))
+  headers.set('host', targetUrl.host)
+  headers.set('origin', requestOrigin || headers.get('origin') || '')
+  headers.set('referer', headers.get('referer') || `${requestOrigin}/`)
+  headers.set('accept-encoding', 'identity')
+  headers.set('x-forwarded-host', req.headers.host || '')
+  headers.set('x-forwarded-proto', publicSiteOrigin.startsWith('https://') ? 'https' : 'http')
+  headers.set('x-forwarded-origin', requestOrigin)
+
+  if (sourceGuardToken) {
+    headers.set('X-Milet-Source-Token', sourceGuardToken)
+  }
+
+  return headers
+}
+
+function isPathUnder(pathname = '/', prefix = '/') {
+  if (prefix.endsWith('/')) {
+    return pathname.startsWith(prefix)
+  }
+
+  return pathname === prefix || pathname.startsWith(`${prefix}/`)
+}
+
 function isAllowedApiPath(pathname = '/') {
-  return allowedApiPrefixes.some((prefix) => pathname === prefix || pathname.startsWith(prefix))
+  return allowedApiPrefixes.some((prefix) => isPathUnder(pathname, prefix))
+}
+
+function resolveOtherTargetPath(pathname) {
+  const key = pathname.replace(/^\/other\//, '')
+  return apiProxyConfig.otherRquests?.[key] || null
 }
 
 async function proxyApiRequest(req, res) {
@@ -149,24 +254,25 @@ async function proxyApiRequest(req, res) {
     return
   }
 
-  const targetUrl = new URL(requestUrl.pathname + requestUrl.search, upstreamOrigin)
-  const bodyAllowed = !['GET', 'HEAD'].includes(req.method || 'GET')
-  console.log(`Proxying API request: ${process.env.MILET_SOURCE_GUARD_TOKEN} `)
-  const headers = {
-    ...req.headers,
-    host: targetUrl.host,
-    origin: publicSiteOrigin,
-    referer: `${publicSiteOrigin}/`,
-    'accept-encoding': 'identity',
-    'x-forwarded-host': req.headers.host || '',
-    'x-forwarded-proto': 'http',
-    'x-forwarded-origin': publicSiteOrigin,
-    'X-Milet-Source-Token': process.env.MILET_SOURCE_GUARD_TOKEN,
+  const otherTargetPath = requestUrl.pathname.startsWith('/other/')
+    ? resolveOtherTargetPath(requestUrl.pathname)
+    : null
+
+  if (requestUrl.pathname.startsWith('/other/') && !otherTargetPath) {
+    res.writeHead(404, {
+      'Content-Type': 'text/plain; charset=utf-8',
+    })
+    res.end('Not Found')
+    return
   }
+
+  const targetPath = otherTargetPath || requestUrl.pathname
+  const targetUrl = new URL(targetPath + requestUrl.search, upstreamOrigin)
+  const bodyAllowed = !['GET', 'HEAD'].includes(req.method || 'GET')
 
   const response = await fetch(targetUrl, {
     method: req.method,
-    headers,
+    headers: buildProxyHeaders(req, targetUrl),
     body: bodyAllowed ? req : undefined,
     duplex: bodyAllowed ? 'half' : undefined,
   })
@@ -238,15 +344,127 @@ async function resolveLocalizedSsgFile(urlPath, lang) {
   return null
 }
 
-const template = await readFile(path.join(root, 'dist', 'client', 'ssr-template.html'), 'utf-8')
-const renderModuleUrl = pathToFileURL(path.join(root, 'dist', 'server', 'entry-server.js')).href
-const { render } = await import(renderModuleUrl)
+let runtime = await loadRuntime()
+let isRebuilding = false
+let pendingRebuild = false
+const activeWatchers = []
+
+async function loadRuntime() {
+  const template = await readFile(path.join(root, 'dist', 'client', 'ssr-template.html'), 'utf-8')
+  const runtimeId = `${Date.now()}-${Math.random().toString(36).slice(2)}`
+  const runtimeDir = path.join(runtimeRoot, runtimeId)
+  await mkdir(runtimeRoot, { recursive: true })
+  await cp(path.join(root, 'dist', 'server'), runtimeDir, { recursive: true })
+
+  const renderModuleUrl = pathToFileURL(path.join(runtimeDir, 'entry-server.js')).href
+  const { render } = await import(renderModuleUrl)
+  return {
+    render,
+    template,
+    runtimeDir,
+    loadedAt: new Date(),
+  }
+}
+
+async function cleanupRuntime(runtimeToRemove) {
+  if (!runtimeToRemove?.runtimeDir) {
+    return
+  }
+
+  try {
+    await rm(runtimeToRemove.runtimeDir, { recursive: true, force: true })
+  } catch {
+    // keep serving; stale temp bundles are harmless and can be removed later
+  }
+}
+
+function runBuild() {
+  return new Promise((resolve, reject) => {
+    const command = process.platform === 'win32' ? 'npm.cmd' : 'npm'
+    const child = spawn(command, ['run', 'build:ssr'], {
+      cwd: root,
+      env: process.env,
+      stdio: 'inherit',
+    })
+
+    child.once('error', reject)
+    child.once('exit', (code) => {
+      if (code === 0) {
+        resolve()
+        return
+      }
+
+      reject(new Error(`SSR rebuild failed with exit code ${code}`))
+    })
+  })
+}
+
+async function rebuildRuntime(reason) {
+  if (isRebuilding) {
+    pendingRebuild = true
+    return
+  }
+
+  isRebuilding = true
+  console.log(`[ssr-watch] rebuilding because ${reason}`)
+
+  try {
+    await runBuild()
+    const previousRuntime = runtime
+    runtime = await loadRuntime()
+    cleanupRuntime(previousRuntime)
+    console.log(`[ssr-watch] deployed new SSR bundle at ${runtime.loadedAt.toLocaleTimeString()}`)
+  } catch (error) {
+    console.error('[ssr-watch] rebuild failed; keeping previous SSR bundle')
+    console.error(error)
+  } finally {
+    isRebuilding = false
+  }
+
+  if (pendingRebuild) {
+    pendingRebuild = false
+    rebuildRuntime('additional changes arrived during rebuild')
+  }
+}
+
+function startWatchMode() {
+  const watchTargets = [
+    path.join(root, 'src'),
+    path.join(root, 'functions'),
+    path.join(root, 'api-proxy.config.json'),
+    path.join(root, 'render.config.json'),
+    path.join(root, 'index.html'),
+    path.join(root, 'vite.config.js'),
+  ]
+  let debounceTimer = null
+
+  function scheduleRebuild(eventType, filename) {
+    clearTimeout(debounceTimer)
+    debounceTimer = setTimeout(() => {
+      rebuildRuntime(`${eventType}${filename ? ` ${filename}` : ''}`)
+    }, 300)
+  }
+
+  for (const target of watchTargets) {
+    if (!existsSync(target)) {
+      continue
+    }
+
+    try {
+      activeWatchers.push(watch(target, { recursive: true }, scheduleRebuild))
+    } catch {
+      activeWatchers.push(watch(target, scheduleRebuild))
+    }
+  }
+
+  console.log('[ssr-watch] watching source files for hot deployment')
+}
 
 const server = http.createServer(async (req, res) => {
   try {
     const url = req.url || '/'
 
-    if (url.startsWith('/api/')) {
+    if (url.startsWith('/api/') || url.startsWith('/other/')) {
       await proxyApiRequest(req, res)
       return
     }
@@ -274,10 +492,10 @@ const server = http.createServer(async (req, res) => {
       }
     }
 
-    const rendered = await render(url, {
+    const rendered = await runtime.render(url, {
       headers: req.headers,
     })
-    const html = injectHtml(template, rendered)
+    const html = injectHtml(runtime.template, rendered)
 
     res.writeHead(rendered.status || 200, {
       'Content-Type': 'text/html; charset=utf-8',
@@ -296,4 +514,9 @@ server.listen(port, '127.0.0.1', () => {
   console.log(`Local SSR verify server ready on http://127.0.0.1:${port}`)
   console.log(`API upstream: ${upstreamOrigin}`)
   console.log(`Public origin: ${publicSiteOrigin}`)
+  console.log(`Source guard token: ${sourceGuardToken ? 'loaded' : 'not set'}`)
+
+  if (watchMode) {
+    startWatchMode()
+  }
 })

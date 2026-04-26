@@ -11,6 +11,7 @@
     "build:ssr": "npm run build:client && npm run build:server && node scripts/prerender.mjs",
     "preview": "vite preview",
     "verify:ssr:local": "npm run build:ssr && node scripts/verify-ssr-local.mjs",
+    "verify:ssr:local:watch": "npm run build:ssr && node scripts/verify-ssr-local.mjs --watch",
     "type-check": "vue-tsc --noEmit -p tsconfig.json",
     "format": "prettier --write src/"
   },

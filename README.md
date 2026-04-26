@@ -24,12 +24,19 @@ Before deployment, verify SSR/SSG locally with the built client/server bundles:
 npm run verify:ssr:local
 ```
 
+For a long-running local SSR preview that rebuilds and swaps in the latest SSR bundle after source changes:
+
+```sh
+npm run verify:ssr:local:watch
+```
+
 This command will:
 
 - build the client bundle, server bundle, and SSG pages
 - start a local Node preview server against `dist/client` and `dist/server`
 - serve SSG routes from prerendered files and SSR routes from the built server entry
-- proxy `/api/*` requests to the local backend for data verification
+- proxy `/api/*` and `/other/*` requests to the local backend for data verification
+- forward the local source guard token from `.env.development` as `X-Milet-Source-Token`
 
 Default local preview settings are defined in [`api-proxy.config.json`](/D:/CODE/front/tailwindCSS/echoes%20of%20milet/api-proxy.config.json):
 
