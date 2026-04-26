@@ -9,6 +9,6 @@ export function initImgUrl(url: string): string {
   if (paths.length === 2) {
     return buildStaticAssetUrl(url)
   } else {
-    return ''
+    return url
   }
 }

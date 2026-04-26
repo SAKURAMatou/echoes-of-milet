@@ -1,8 +1,11 @@
 import { reactive } from 'vue'
 
-import { resolveSupportedLang, resolveUrlLangFromPath, toSupportedLang } from '@/composables/useLangRoute'
+import {
+  resolveSupportedLang,
+  resolveUrlLangFromPath,
+  toSupportedLang,
+} from '@/composables/useLangRoute'
 import type { AppState } from '@/composables/useAppState'
-import { langConfig } from '@/composables/lang'
 
 interface LangState {
   lang: SupportedLang
@@ -16,7 +19,6 @@ interface CreateLangPluginOptions {
 
 declare module '@vue/runtime-core' {
   interface ComponentCustomProperties {
-    $getConfigLang: (key: string) => object | string
     $lang: LangState
     $toggleLang: (key: SupportedLang) => void
   }
@@ -113,10 +115,6 @@ export function createLangPlugin(options: CreateLangPluginOptions) {
 
       options.state.lang = langState.lang
 
-      function getConfigLang(key: string) {
-        return langConfig[langState.lang]?.[key] || key
-      }
-
       function setLang(lang: SupportedLang) {
         if (!selectedList.includes(lang)) {
           return
@@ -136,7 +134,6 @@ export function createLangPlugin(options: CreateLangPluginOptions) {
         setLang(key)
       }
 
-      app.config.globalProperties.$getConfigLang = getConfigLang
       app.config.globalProperties.$lang = langState
       app.config.globalProperties.$toggleLang = toggleLang
     },
@@ -147,6 +144,7 @@ export default createLangPlugin({
   state: {
     lang: 'zh',
     miletHomeData: null,
+    miletAnniversaryData: null,
   },
   currentPath: '/',
 })

@@ -18,6 +18,7 @@
     "miletTrackListen": "/api/milet/tracklisten/",
     "miletSongGuess": "/api/milet/interactive/song-guess",
     "miletGallery": "/api/milet/gallery",
+    "miletAnniversary": "/api/milet/anniversary",
     "aboutFeedback": "/api/milet/feedback",
     "blogDetail": "/api/blog/detail/",
     "blogList": "/api/blog/datalist/current/",

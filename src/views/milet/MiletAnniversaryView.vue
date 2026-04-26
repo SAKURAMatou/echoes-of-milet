@@ -16,7 +16,7 @@
     >
       <RouterLink
         :to="{ name: 'milet', params: { lang: routeLang } }"
-        class="brand-pill px-5 py-2.5 font-semibold text-[#276d7b] shadow-sm backdrop-blur transition hover:bg-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#317f8d]"
+        class="brand-pill px-5 py-2.5 font-semibold text-[#276d7b] shadow-sm backdrop-blur transition hover:bg-white focus-visible:outline focus-visible:outline-offset-4 focus-visible:outline-[#317f8d]"
       >
         echoes of milet
       </RouterLink>
@@ -27,10 +27,7 @@
       </span>
     </header>
 
-    <section
-      v-if="showArchiveIndex"
-      class="relative z-10 flex h-full items-center"
-    >
+    <section v-if="showArchiveIndex" class="relative z-10 flex h-full items-center">
       <div class="mx-auto w-full max-w-6xl px-5 pt-20 sm:px-8">
         <div class="grid gap-10 md:grid-cols-[0.82fr_1.18fr] md:items-start">
           <div>
@@ -54,7 +51,9 @@
             >
               <span class="archive-year-number">{{ year }}</span>
               <span class="archive-year-copy">
-                <strong>{{ lang === 'ja' ? `${year} anniversary record` : `${year} 周年记录` }}</strong>
+                <strong>{{
+                  lang === 'ja' ? `${year} anniversary record` : `${year} 周年记录`
+                }}</strong>
                 <em>{{ lang === 'ja' ? 'Open archive story' : '进入当年的周年页面' }}</em>
               </span>
             </RouterLink>
@@ -123,7 +122,7 @@
 
           <div class="year-panel">
             <div class="flex items-start justify-between gap-4">
-              <div>
+              <div class="min-w-0 pr-2">
                 <p class="text-xs font-semibold uppercase tracking-[0.22em] text-[#317f8d]">
                   {{ activeMoment.date }}
                 </p>
@@ -132,7 +131,7 @@
                 </h3>
               </div>
               <span
-                class="rounded-full border border-[#d9c27b] px-3 py-1 text-xs font-semibold uppercase text-[#8a6e1b]"
+                class="moment-label rounded-full border border-[#d9c27b] px-3 py-1 text-xs font-semibold uppercase text-[#8a6e1b]"
               >
                 {{ activeMoment.label }}
               </span>
@@ -192,7 +191,7 @@
               :class="releaseClass(index)"
               @click="selectRelease(index)"
             >
-              <img :src="release.cover" :alt="release.title" />
+              <img :src="initImgUrl(release.cover)" :alt="release.title" />
             </div>
             <div class="release-copy">
               <p class="text-xs font-semibold uppercase tracking-[0.22em] text-[#317f8d]">
@@ -238,7 +237,7 @@
               :class="photoFrameClass(index)"
               :style="photoStyle(photo)"
             >
-              <img :src="photo.image" :alt="photo.alt" />
+              <img :src="initImgUrl(photo.image)" :alt="photo.alt" />
               <figcaption>
                 <span>{{ photo.month }}</span>
                 {{ photoAssembled ? 'milet の日' : photo.caption }}
@@ -288,20 +287,29 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
+import { computed, onBeforeUnmount, onMounted, onServerPrefetch, ref, watch } from 'vue'
 import { RouterLink, useRoute } from 'vue-router'
 
+import axiosInstance from '@/AxiosUtil'
 import {
   anniversaryArchiveConfig,
   anniversaryLang,
+  buildAnniversaryPayloadFromConfig,
   getAvailableAnniversaryYears,
   getAnniversaryRecord,
   getAnniversaryRecordContent,
   isAnniversaryMonth,
+  normalizeAnniversaryPayload,
+  type AnniversaryApiPayload,
   type AnniversaryPhoto,
   type AnniversaryRecord,
 } from '@/composables/miletAnniversary'
+import { useAppState } from '@/composables/useAppState'
+import { apiRoutes } from '@/config/api'
 
+import { initImgUrl } from '@/composables/ImgUrlUtil'
+
+const appState = useAppState()
 const route = useRoute()
 const activeChapter = ref(0)
 const activeMomentIndex = ref(0)
@@ -322,11 +330,28 @@ let releaseTimer = 0
 const routeLang = computed(() => String(route.params.lang || 'zh'))
 const routeYear = computed(() => String(route.params.year || ''))
 const lang = computed(() => anniversaryLang(routeLang.value))
-const availableYears = computed(() => getAvailableAnniversaryYears(anniversaryArchiveConfig))
-const anniversaryMonthNow = computed(() => isAnniversaryMonth(anniversaryArchiveConfig, new Date()))
+const fallbackPayload = buildAnniversaryPayloadFromConfig(anniversaryArchiveConfig)
+const anniversaryPayload = ref<AnniversaryApiPayload | null>(
+  appState.miletAnniversaryData ?? fallbackPayload,
+)
+const loadingAnniversary = ref(false)
+const loadedAnniversaryEndpoint = ref(appState.miletAnniversaryData ? anniversaryApiUrl() : '')
+const availableYears = computed(() =>
+  anniversaryPayload.value?.recordYears?.length
+    ? anniversaryPayload.value.recordYears
+    : getAvailableAnniversaryYears(anniversaryArchiveConfig),
+)
+const anniversaryMonthNow = computed(
+  () =>
+    anniversaryPayload.value?.isAnniversaryMonth ??
+    isAnniversaryMonth(anniversaryArchiveConfig, new Date()),
+)
 const showArchiveIndex = computed(() => !routeYear.value && !anniversaryMonthNow.value)
 const record = computed<AnniversaryRecord>(() => {
-  return getAnniversaryRecord(routeYear.value, anniversaryArchiveConfig) as AnniversaryRecord
+  return (
+    anniversaryPayload.value?.record ??
+    (getAnniversaryRecord(routeYear.value, anniversaryArchiveConfig) as AnniversaryRecord)
+  )
 })
 const content = computed(() => getAnniversaryRecordContent(record.value, lang.value))
 const anniversaryNo = computed(() => record.value.anniversaryNo)
@@ -345,6 +370,36 @@ const trackTransformStyle = computed(() => {
       : `translateX(-${activeChapter.value * 100}%)`,
   }
 })
+
+function anniversaryApiUrl() {
+  return routeYear.value
+    ? `${apiRoutes.miletAnniversary}/${routeYear.value}`
+    : apiRoutes.miletAnniversary
+}
+
+async function loadAnniversaryData(force = false) {
+  const endpoint = anniversaryApiUrl()
+  if (loadingAnniversary.value || (!force && loadedAnniversaryEndpoint.value === endpoint)) {
+    return
+  }
+
+  loadingAnniversary.value = true
+
+  try {
+    const response = await axiosInstance.get(endpoint)
+    const payload = normalizeAnniversaryPayload(response)
+
+    if (payload) {
+      anniversaryPayload.value = payload
+      appState.miletAnniversaryData = payload
+      loadedAnniversaryEndpoint.value = endpoint
+    }
+  } catch (error) {
+    console.error('anniversary data fetch error', error)
+  } finally {
+    loadingAnniversary.value = false
+  }
+}
 
 function goChapter(index: number) {
   activeChapter.value = Math.max(0, Math.min(content.value.chapters.length - 1, index))
@@ -531,16 +586,20 @@ watch(record, () => {
   photoAssembled.value = false
 })
 
+onServerPrefetch(() => loadAnniversaryData())
+
 watch(lang, () => {
   document.title = pageTitle.value
 })
 
 watch(routeYear, () => {
   document.title = pageTitle.value
+  void loadAnniversaryData(true)
 })
 
 onMounted(() => {
   document.title = pageTitle.value
+  void loadAnniversaryData()
   syncViewportMode()
   window.addEventListener('keydown', handleKeydown)
   window.addEventListener('resize', syncViewportMode)
@@ -798,7 +857,9 @@ onBeforeUnmount(() => {
   border-radius: 1.5rem;
   background: rgba(39, 109, 123, 0.92);
   color: white;
-  font-family: Cormorant Garamond, serif;
+  font-family:
+    Cormorant Garamond,
+    serif;
   font-size: 2rem;
   line-height: 1;
 }
@@ -870,9 +931,7 @@ onBeforeUnmount(() => {
   position: relative;
   display: inline-flex;
   align-items: center;
-  font-family:
-    Montserrat,
-    sans-serif;
+  font-family: Montserrat, sans-serif;
   font-size: 1.1rem;
   font-weight: 600;
   letter-spacing: 0;
@@ -955,6 +1014,11 @@ onBeforeUnmount(() => {
   backdrop-filter: blur(18px);
 }
 
+.moment-label {
+  flex: 0 0 auto;
+  white-space: nowrap;
+}
+
 .moment-progress-list {
   margin-top: 1.8rem;
   display: grid;
@@ -1002,7 +1066,7 @@ onBeforeUnmount(() => {
 
 .release-stage {
   position: relative;
-  min-height: 470px;
+  min-height: 560px;
 }
 
 .release-stage::before {
@@ -1021,7 +1085,7 @@ onBeforeUnmount(() => {
 
 .release-cover {
   position: absolute;
-  top: 3.2rem;
+  top: 1.25rem;
   left: 50%;
   width: 46%;
   max-width: 250px;
@@ -1067,8 +1131,10 @@ onBeforeUnmount(() => {
 .release-copy {
   position: absolute;
   right: 4%;
-  bottom: 1.4rem;
+  top: 21rem;
+  bottom: auto;
   left: 4%;
+  z-index: 4;
   border-top: 1px solid rgba(49, 127, 141, 0.16);
   padding-top: 1.1rem;
 }
@@ -1500,16 +1566,45 @@ a[role='button'],
   }
 
   .release-stage {
-    min-height: 28rem;
+    display: flex;
+    min-height: 0;
+    flex-direction: column;
+    justify-content: flex-start;
+    padding-top: 0;
+  }
+
+  .release-stage::before {
+    inset: 0.85rem 8% 10.2rem;
   }
 
   .release-cover {
-    top: 1.5rem;
-    width: 42%;
+    top: 0;
+    width: 38%;
+    max-width: 170px;
+  }
+
+  .release-cover.is-current {
+    transform: translateX(-50%) scale(0.96) rotate(0deg);
+  }
+
+  .release-cover.is-prev {
+    transform: translateX(-106%) translateY(2.45rem) scale(0.7) rotate(-8deg);
+  }
+
+  .release-cover.is-next {
+    transform: translateX(6%) translateY(2.45rem) scale(0.7) rotate(8deg);
   }
 
   .release-copy {
-    bottom: 0.2rem;
+    position: relative;
+    right: auto;
+    top: auto;
+    bottom: auto;
+    left: auto;
+    margin-top: 12.6rem;
+    max-height: calc(100dvh - 33.8rem);
+    overflow: auto;
+    padding-right: 0.25rem;
   }
 
   .photo-stage {

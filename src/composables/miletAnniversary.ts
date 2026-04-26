@@ -68,6 +68,20 @@ export interface AnniversaryArchiveConfig {
   records: Record<string, AnniversaryRecord>
 }
 
+export interface AnniversaryApiPayload {
+  debutDate: string
+  debutMonth: number
+  latestYear: number
+  isAnniversaryMonth: boolean
+  menu: {
+    label: string
+    sub?: string
+    targetYear?: number | null
+  }
+  recordYears: number[]
+  record: AnniversaryRecord
+}
+
 const photoLayout: Array<Pick<AnniversaryPhoto, 'id' | 'month' | 'image' | 'final'>> = [
   {
     id: 'jan',
@@ -325,6 +339,82 @@ export function anniversaryLang(value: unknown): AnniversaryLang {
 
 export function getAnniversaryRecordContent(record: AnniversaryRecord, lang: AnniversaryLang) {
   return record[lang] || record.zh
+}
+
+export function buildAnniversaryPayloadFromConfig(
+  config = anniversaryArchiveConfig,
+  now = new Date(),
+): AnniversaryApiPayload {
+  const recordYears = getAvailableAnniversaryYears(config)
+  const latestYear = latestAnniversaryRecordYear(config, now)
+  const record = getAnniversaryRecord(latestYear, config) ?? getAnniversaryRecord(undefined, config)
+  const menuMeta = getAnniversaryMenuMeta(config, now)
+
+  return {
+    debutDate: config.debutDate,
+    debutMonth: config.debutMonth,
+    latestYear,
+    isAnniversaryMonth: isAnniversaryMonth(config, now),
+    menu: {
+      label: menuMeta.label,
+      sub: menuMeta.sub,
+      targetYear: menuMeta.routeParams?.year ?? null,
+    },
+    recordYears,
+    record: record as AnniversaryRecord,
+  }
+}
+
+function unwrapApiPayload(value: unknown) {
+  if (value && typeof value === 'object' && 'data' in value) {
+    return (value as { data?: unknown }).data
+  }
+
+  return value
+}
+
+export function normalizeAnniversaryPayload(value: unknown) {
+  const payload = unwrapApiPayload(value)
+
+  if (!payload || typeof payload !== 'object') {
+    return null
+  }
+
+  const candidate = payload as Partial<AnniversaryApiPayload>
+  if ('year' in candidate && typeof (candidate as Partial<AnniversaryRecord>).year === 'number') {
+    const record = candidate as AnniversaryRecord
+
+    return {
+      debutDate: anniversaryArchiveConfig.debutDate,
+      debutMonth: anniversaryArchiveConfig.debutMonth,
+      latestYear: record.year,
+      isAnniversaryMonth: isAnniversaryMonth(anniversaryArchiveConfig),
+      menu: {
+        label: 'ANNIVERSARY',
+        targetYear: null,
+      },
+      recordYears: [record.year],
+      record,
+    } satisfies AnniversaryApiPayload
+  }
+
+  if (!candidate.record || typeof candidate.record.year !== 'number') {
+    return null
+  }
+
+  return {
+    debutDate: candidate.debutDate || anniversaryArchiveConfig.debutDate,
+    debutMonth: candidate.debutMonth || anniversaryArchiveConfig.debutMonth,
+    latestYear: candidate.latestYear || candidate.record.year,
+    isAnniversaryMonth: Boolean(candidate.isAnniversaryMonth),
+    menu: {
+      label: candidate.menu?.label || 'ANNIVERSARY',
+      sub: candidate.menu?.sub,
+      targetYear: candidate.menu?.targetYear ?? null,
+    },
+    recordYears: candidate.recordYears?.length ? candidate.recordYears : [candidate.record.year],
+    record: candidate.record,
+  } satisfies AnniversaryApiPayload
 }
 
 export function latestAnniversaryRecordYear(
