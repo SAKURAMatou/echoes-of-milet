@@ -120,7 +120,7 @@
             </p>
           </div>
 
-          <div class="year-panel">
+          <div class="year-panel mobile-scroll-region">
             <div class="moment-heading">
               <div class="moment-meta-row">
                 <p class="text-xs font-semibold uppercase tracking-[0.22em] text-[#317f8d]">
@@ -183,7 +183,7 @@
             </div>
           </div>
 
-          <div class="release-stage">
+          <div class="release-stage mobile-scroll-region">
             <div
               v-for="(release, index) in content.releases"
               :key="release.id"
@@ -225,7 +225,10 @@
             </div>
           </div>
 
-          <div class="photo-stage" :class="photoAssembled ? 'is-assembled' : 'is-playing'">
+          <div
+            class="photo-stage mobile-scroll-region"
+            :class="photoAssembled ? 'is-assembled' : 'is-playing'"
+          >
             <div class="photo-center-copy" :class="photoAssembled ? 'is-visible' : ''">
               <span>Happy Anniversary</span>
               <strong>milet</strong>
@@ -545,7 +548,9 @@ function handleTouchEnd(event: TouchEvent) {
   const dy = touch.clientY - touchStart.value.y
   if (isMobileViewport.value) {
     if (Math.abs(dy) < 44 || Math.abs(dy) < Math.abs(dx)) return
-    const scrollShell = (event.target as HTMLElement | null)?.closest?.('.mobile-slide-shell')
+    const scrollShell = (event.target as HTMLElement | null)?.closest?.(
+      '.mobile-scroll-region, .mobile-slide-shell',
+    )
     if (scrollShell instanceof HTMLElement && scrollShell.scrollHeight > scrollShell.clientHeight) {
       const atTop = scrollShell.scrollTop <= 2
       const atBottom =
@@ -1355,10 +1360,6 @@ onBeforeUnmount(() => {
 }
 
 button,
-a[role='button'],
-.chapter-nav button,
-.chapter-control,
-.primary-action,
 .brand-pill {
   cursor: pointer;
 }
@@ -1454,7 +1455,6 @@ a[role='button'],
 }
 
 .chapter-control span {
-  /* display: block; */
   font-size: 2.2rem;
   font-weight: 800;
   line-height: 1;
@@ -1553,16 +1553,23 @@ a[role='button'],
     height: 100dvh;
     max-height: 100dvh;
     align-content: start;
-    row-gap: 2.35rem;
-    overflow-y: auto;
+    row-gap: 1.6rem;
+    overflow: hidden;
     overscroll-behavior: contain;
     padding-top: 7.8rem !important;
     padding-bottom: 10.5rem;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .mobile-scroll-region {
+    max-height: calc(100dvh - 23.5rem);
+    overflow-y: auto;
+    overscroll-behavior: contain;
     scrollbar-width: none;
     -webkit-overflow-scrolling: touch;
   }
 
-  .mobile-slide-shell::-webkit-scrollbar {
+  .mobile-scroll-region::-webkit-scrollbar {
     display: none;
   }
 
@@ -1587,7 +1594,8 @@ a[role='button'],
   }
 
   .year-panel {
-    min-height: 25rem;
+    min-height: 0;
+    margin-top: 0.8rem;
     padding: 1.1rem;
   }
 
@@ -1596,12 +1604,8 @@ a[role='button'],
   }
 
   .release-stage {
-    display: flex;
     min-height: 0;
-    flex-direction: column;
-    justify-content: flex-start;
     margin-top: 0.5rem;
-    padding-top: 0;
   }
 
   .release-stage::before {
@@ -1633,9 +1637,19 @@ a[role='button'],
     bottom: auto;
     left: auto;
     margin-top: 12.6rem;
-    max-height: none;
-    overflow: visible;
     padding-right: 0.25rem;
+  }
+
+  .anniversary-slide:nth-of-type(4) .mobile-slide-shell {
+    row-gap: 1.2rem;
+  }
+
+  .anniversary-slide:nth-of-type(4) .mt-5 {
+    margin-top: 0.85rem;
+  }
+
+  .anniversary-slide:nth-of-type(4) .mt-6 {
+    margin-top: 1rem;
   }
 
   .photo-stage {
@@ -1723,16 +1737,16 @@ a[role='button'],
     padding-bottom: 9.4rem;
   }
 
+  .mobile-scroll-region {
+    max-height: calc(100dvh - 20.8rem);
+  }
+
   .section-title {
     font-size: 2.08rem;
   }
 
   .anniversary-number {
     width: min(52vw, 210px);
-  }
-
-  .year-panel {
-    min-height: 0;
   }
 
   .release-cover {
