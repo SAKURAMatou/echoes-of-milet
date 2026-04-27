@@ -121,20 +121,20 @@
           </div>
 
           <div class="year-panel">
-            <div class="flex items-start justify-between gap-4">
-              <div class="min-w-0 pr-2">
+            <div class="moment-heading">
+              <div class="moment-meta-row">
                 <p class="text-xs font-semibold uppercase tracking-[0.22em] text-[#317f8d]">
                   {{ activeMoment.date }}
                 </p>
-                <h3 class="mt-3 font-serif text-3xl leading-tight text-[#263542] sm:text-4xl">
-                  {{ activeMoment.title }}
-                </h3>
+                <span
+                  class="moment-label rounded-full border border-[#d9c27b] px-3 py-1 text-xs font-semibold uppercase text-[#8a6e1b]"
+                >
+                  {{ activeMoment.label }}
+                </span>
               </div>
-              <span
-                class="moment-label rounded-full border border-[#d9c27b] px-3 py-1 text-xs font-semibold uppercase text-[#8a6e1b]"
-              >
-                {{ activeMoment.label }}
-              </span>
+              <h3 class="mt-3 font-serif text-3xl leading-tight text-[#263542] sm:text-4xl">
+                {{ activeMoment.title }}
+              </h3>
             </div>
             <p class="mt-5 text-sm leading-7 text-[#586872] sm:text-base">
               {{ activeMoment.body }}
@@ -817,6 +817,10 @@ onBeforeUnmount(() => {
   align-items: center;
 }
 
+.anniversary-slide > .mobile-slide-shell {
+  padding-top: 4rem;
+}
+
 .anniversary-track.is-horizontal {
   flex-direction: row;
 }
@@ -1019,6 +1023,14 @@ onBeforeUnmount(() => {
   padding: 1.5rem;
   box-shadow: 0 24px 70px -48px rgba(31, 43, 53, 0.85);
   backdrop-filter: blur(18px);
+}
+
+.moment-meta-row {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
 }
 
 .moment-label {
@@ -1541,6 +1553,7 @@ a[role='button'],
     height: 100dvh;
     max-height: 100dvh;
     align-content: start;
+    row-gap: 2.35rem;
     overflow-y: auto;
     overscroll-behavior: contain;
     padding-top: 7.8rem !important;
@@ -1587,6 +1600,7 @@ a[role='button'],
     min-height: 0;
     flex-direction: column;
     justify-content: flex-start;
+    margin-top: 0.5rem;
     padding-top: 0;
   }
 
