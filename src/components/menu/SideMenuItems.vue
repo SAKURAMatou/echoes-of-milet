@@ -1,5 +1,9 @@
 <template>
   <div>
+    <div class="mb-5 md:hidden">
+      <LanguageSelect variant="menu" />
+    </div>
+
     <div class="flex justify-around items-center text-xs">
       <div class="tracking-[.18em] text-slate-500/80 mb-3 select-none">MENU</div>
       <div class="mb-3 text-slate-500/70 select-none">
@@ -23,8 +27,8 @@
         >
           <!-- Sticker -->
 
-            <router-link
-              v-if="item.shown"
+          <router-link
+            v-if="item.shown"
             :to="buildMenuRoute(item)"
             class="menu-link relative block focus-visible:outline-none"
             :aria-current="isActiveRoute(item) ? 'page' : false"
@@ -96,10 +100,6 @@
     </nav>
 
     <!-- Optional: active hint -->
-
-    <div class="flex items-center mt-6 relative md:hidden">
-      <LanguageSelect />
-    </div>
   </div>
 </template>
 <script setup lang="ts">
