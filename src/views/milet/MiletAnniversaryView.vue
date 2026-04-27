@@ -70,7 +70,7 @@
     >
       <section class="anniversary-slide">
         <div
-          class="mx-auto grid w-full max-w-6xl items-center gap-8 px-5 pt-20 sm:px-8 md:grid-cols-[0.92fr_1.08fr] md:gap-14"
+          class="mobile-slide-shell mx-auto grid w-full max-w-6xl items-center gap-8 px-5 pt-10 sm:px-8 md:grid-cols-[0.92fr_1.08fr] md:gap-14"
         >
           <div class="order-2 md:order-1">
             <p class="section-eyebrow">{{ currentChapter.eyebrow }}</p>
@@ -106,7 +106,7 @@
 
       <section class="anniversary-slide anniversary-slide-year">
         <div
-          class="mx-auto grid w-full max-w-6xl items-center gap-7 px-5 pt-20 sm:px-8 md:grid-cols-[0.86fr_1.14fr] md:gap-12"
+          class="mobile-slide-shell mx-auto grid w-full max-w-6xl items-center gap-7 px-5 pt-10 sm:px-8 md:grid-cols-[0.86fr_1.14fr] md:gap-12"
         >
           <div>
             <p class="section-eyebrow">{{ content.chapters[1].eyebrow }}</p>
@@ -158,7 +158,7 @@
 
       <section class="anniversary-slide anniversary-slide-songs">
         <div
-          class="mx-auto grid w-full max-w-6xl items-center gap-8 px-5 pt-20 sm:px-8 md:grid-cols-[0.9fr_1.1fr] md:gap-12"
+          class="mobile-slide-shell mx-auto grid w-full max-w-6xl items-center gap-8 px-5 pt-10 sm:px-8 md:grid-cols-[0.9fr_1.1fr] md:gap-12"
         >
           <div>
             <p class="section-eyebrow">{{ content.chapters[2].eyebrow }}</p>
@@ -208,7 +208,7 @@
 
       <section class="anniversary-slide">
         <div
-          class="mx-auto grid w-full max-w-6xl items-center gap-5 px-5 pt-20 sm:px-8 md:grid-cols-[0.82fr_1.18fr] md:gap-10"
+          class="mobile-slide-shell mx-auto grid w-full max-w-6xl items-center gap-5 px-5 pt-10 sm:px-8 md:grid-cols-[0.82fr_1.18fr] md:gap-10"
         >
           <div>
             <p class="section-eyebrow">{{ content.chapters[3].eyebrow }}</p>
@@ -545,6 +545,13 @@ function handleTouchEnd(event: TouchEvent) {
   const dy = touch.clientY - touchStart.value.y
   if (isMobileViewport.value) {
     if (Math.abs(dy) < 44 || Math.abs(dy) < Math.abs(dx)) return
+    const scrollShell = (event.target as HTMLElement | null)?.closest?.('.mobile-slide-shell')
+    if (scrollShell instanceof HTMLElement && scrollShell.scrollHeight > scrollShell.clientHeight) {
+      const atTop = scrollShell.scrollTop <= 2
+      const atBottom =
+        scrollShell.scrollTop + scrollShell.clientHeight >= scrollShell.scrollHeight - 2
+      if ((dy < 0 && !atBottom) || (dy > 0 && !atTop)) return
+    }
     if (dy < 0) goNext()
     else goPrev()
     return
@@ -1522,12 +1529,28 @@ a[role='button'],
 
 @media (max-width: 767px) {
   .anniversary-page {
-    min-height: 680px;
+    min-height: 0;
   }
 
   .anniversary-slide {
-    align-items: flex-start;
-    padding-bottom: 5.8rem;
+    align-items: stretch;
+    padding-bottom: 0;
+  }
+
+  .mobile-slide-shell {
+    height: 100dvh;
+    max-height: 100dvh;
+    align-content: start;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    padding-top: 7.8rem !important;
+    padding-bottom: 10.5rem;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .mobile-slide-shell::-webkit-scrollbar {
+    display: none;
   }
 
   .archive-year-link {
@@ -1540,12 +1563,6 @@ a[role='button'],
     min-width: 4.4rem;
     min-height: 4.4rem;
     font-size: 1.7rem;
-  }
-
-  .anniversary-slide-year > div,
-  .anniversary-slide-songs > div {
-    align-content: start;
-    min-height: calc(100dvh - 10.25rem);
   }
 
   .section-title {
@@ -1602,8 +1619,8 @@ a[role='button'],
     bottom: auto;
     left: auto;
     margin-top: 12.6rem;
-    max-height: calc(100dvh - 33.8rem);
-    overflow: auto;
+    max-height: none;
+    overflow: visible;
     padding-right: 0.25rem;
   }
 
@@ -1634,8 +1651,8 @@ a[role='button'],
 
   .chapter-control {
     left: 50%;
-    width: min(46vw, 13rem);
-    min-height: 4.4rem;
+    width: min(40vw, 10.5rem);
+    min-height: 3.35rem;
     flex-direction: row;
     border-radius: 1.35rem 0.45rem 1.35rem 0.45rem;
     clip-path: polygon(12% 0, 88% 0, 100% 52%, 82% 100%, 18% 100%, 0 52%);
@@ -1647,14 +1664,14 @@ a[role='button'],
   }
 
   .chapter-control-prev {
-    top: 4.9rem;
+    top: 4.65rem;
     right: auto;
   }
 
   .chapter-control-next {
     top: auto;
     right: auto;
-    bottom: 5.2rem;
+    bottom: 4.95rem;
   }
 
   .chapter-control-prev:hover,
@@ -1683,6 +1700,50 @@ a[role='button'],
 
   .chapter-nav em {
     display: none;
+  }
+}
+
+@media (max-width: 767px) and (max-height: 760px) {
+  .mobile-slide-shell {
+    padding-top: 7.1rem !important;
+    padding-bottom: 9.4rem;
+  }
+
+  .section-title {
+    font-size: 2.08rem;
+  }
+
+  .anniversary-number {
+    width: min(52vw, 210px);
+  }
+
+  .year-panel {
+    min-height: 0;
+  }
+
+  .release-cover {
+    width: 34%;
+    max-width: 145px;
+  }
+
+  .release-cover.is-prev {
+    transform: translateX(-105%) translateY(2rem) scale(0.68) rotate(-8deg);
+  }
+
+  .release-cover.is-next {
+    transform: translateX(5%) translateY(2rem) scale(0.68) rotate(8deg);
+  }
+
+  .release-copy {
+    margin-top: 10.7rem;
+  }
+
+  .photo-stage {
+    min-height: 360px;
+  }
+
+  .chapter-control {
+    min-height: 3rem;
   }
 }
 
