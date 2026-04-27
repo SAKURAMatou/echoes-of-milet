@@ -72,7 +72,7 @@
         <div
           class="mobile-slide-shell mx-auto grid w-full max-w-6xl items-center gap-8 px-5 pt-10 sm:px-8 md:grid-cols-[0.92fr_1.08fr] md:gap-14"
         >
-          <div class="order-2 md:order-1">
+          <div class="mobile-scroll-region order-2 md:order-1">
             <p class="section-eyebrow">{{ currentChapter.eyebrow }}</p>
             <h1
               class="mt-4 font-serif text-5xl leading-[0.95] text-[#1d2b36] sm:text-6xl md:text-7xl"
@@ -547,18 +547,6 @@ function handleTouchEnd(event: TouchEvent) {
   const dx = touch.clientX - touchStart.value.x
   const dy = touch.clientY - touchStart.value.y
   if (isMobileViewport.value) {
-    if (Math.abs(dy) < 44 || Math.abs(dy) < Math.abs(dx)) return
-    const scrollShell = (event.target as HTMLElement | null)?.closest?.(
-      '.mobile-scroll-region, .mobile-slide-shell',
-    )
-    if (scrollShell instanceof HTMLElement && scrollShell.scrollHeight > scrollShell.clientHeight) {
-      const atTop = scrollShell.scrollTop <= 2
-      const atBottom =
-        scrollShell.scrollTop + scrollShell.clientHeight >= scrollShell.scrollHeight - 2
-      if ((dy < 0 && !atBottom) || (dy > 0 && !atTop)) return
-    }
-    if (dy < 0) goNext()
-    else goPrev()
     return
   }
 
@@ -1569,6 +1557,10 @@ button,
     -webkit-overflow-scrolling: touch;
   }
 
+  .anniversary-slide:first-child .mobile-scroll-region {
+    max-height: calc(100dvh - 36rem);
+  }
+
   .mobile-scroll-region::-webkit-scrollbar {
     display: none;
   }
@@ -1739,6 +1731,10 @@ button,
 
   .mobile-scroll-region {
     max-height: calc(100dvh - 20.8rem);
+  }
+
+  .anniversary-slide:first-child .mobile-scroll-region {
+    max-height: calc(100dvh - 30rem);
   }
 
   .section-title {
