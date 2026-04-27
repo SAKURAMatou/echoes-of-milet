@@ -1,5 +1,7 @@
 <template>
-  <article class="milet-home rounded-lg min-h-screen text-[#202632]">
+  <article
+    class="milet-home min-h-screen w-full max-w-full overflow-x-hidden rounded-lg text-[#202632]"
+  >
     <MiletHomeHero
       :current-year="currentYear"
       :lead="heroText.lead"
@@ -104,18 +106,10 @@ const highlights = computed(() =>
 const timeline = computed(() =>
   timelineViewSection(homeV2.value, currentLang.value, routeLang.value),
 )
-const gallery = computed(() =>
-  galleryViewSection(homeV2.value, currentLang.value, routeLang.value),
-)
-const official = computed(() =>
-  officialViewSection(homeV2.value, currentLang.value),
-)
-const entries = computed(() =>
-  entryViewItems(homeV2.value, currentLang.value, routeLang.value),
-)
-const cta = computed(() =>
-  ctaView(currentLang.value, routeLang.value),
-)
+const gallery = computed(() => galleryViewSection(homeV2.value, currentLang.value, routeLang.value))
+const official = computed(() => officialViewSection(homeV2.value, currentLang.value))
+const entries = computed(() => entryViewItems(homeV2.value, currentLang.value, routeLang.value))
+const cta = computed(() => ctaView(currentLang.value, routeLang.value))
 
 function scrollToHighlight() {
   document.getElementById('highlight')?.scrollIntoView({ behavior: 'smooth', block: 'start' })

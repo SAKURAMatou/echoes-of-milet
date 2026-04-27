@@ -10,7 +10,7 @@
 
     <div class="mt-7 space-y-8">
       <section
-        class="rounded-lg border border-white/70 bg-white/58 p-5 shadow-[0_18px_54px_-44px_rgba(31,41,55,0.8)]"
+        class="overflow-hidden rounded-lg border border-white/70 bg-white/58 p-4 shadow-[0_18px_54px_-44px_rgba(31,41,55,0.8)] sm:p-5"
       >
         <div class="flex items-center justify-between gap-4">
           <div class="text-sm font-semibold uppercase text-[#8c4855]">official sns</div>
@@ -19,38 +19,48 @@
           ></div>
         </div>
         <div class="mt-5 grid gap-5 md:grid-cols-2">
-          <div class="rounded-lg border border-white/70 bg-white/62 p-4">
+          <div
+            class="min-w-0 overflow-hidden rounded-lg border border-white/70 bg-white/62 p-3 sm:p-4"
+          >
             <a
               :href="official.instagramProfileUrl"
               target="_blank"
               rel="noreferrer"
-              class="mb-3 flex items-center gap-3 text-base font-semibold text-[#26313a]"
+              class="mb-3 flex min-w-0 flex-wrap items-center gap-3 text-base font-semibold text-[#26313a]"
             >
               <img :src="instagramIcon" alt="" class="h-8 w-8 object-contain" />
               Instagram
               <span class="text-xs font-normal text-[#60707a]">@milet_music</span>
             </a>
-            <div ref="instagramContainer" class="min-h-[280px] overflow-hidden rounded-lg"></div>
+            <div
+              ref="instagramContainer"
+              class="official-embed min-h-[280px] max-w-full overflow-hidden rounded-lg"
+            ></div>
           </div>
 
-          <div class="rounded-lg border border-white/70 bg-white/62 p-4">
+          <div
+            class="min-w-0 overflow-hidden rounded-lg border border-white/70 bg-white/62 p-3 sm:p-4"
+          >
             <a
               :href="official.twitterProfileUrl"
               target="_blank"
               rel="noreferrer"
-              class="mb-3 flex items-center gap-3 text-base font-semibold text-[#26313a]"
+              class="mb-3 flex min-w-0 flex-wrap items-center gap-3 text-base font-semibold text-[#26313a]"
             >
               <img :src="twitterIcon" alt="" class="h-8 w-8 object-contain" />
               X / Twitter
               <span class="text-xs font-normal text-[#60707a]">@milet_music</span>
             </a>
-            <div ref="twitterContainer" class="min-h-[280px] overflow-hidden rounded-lg"></div>
+            <div
+              ref="twitterContainer"
+              class="official-embed min-h-[280px] max-w-full overflow-hidden rounded-lg"
+            ></div>
           </div>
         </div>
       </section>
 
       <section
-        class="rounded-lg border border-white/70 bg-white/58 p-5 shadow-[0_18px_54px_-44px_rgba(31,41,55,0.8)]"
+        class="overflow-hidden rounded-lg border border-white/70 bg-white/58 p-4 shadow-[0_18px_54px_-44px_rgba(31,41,55,0.8)] sm:p-5"
       >
         <div class="flex items-center justify-between gap-4">
           <div class="text-sm font-semibold uppercase text-[#317f8d]">official website</div>
@@ -126,5 +136,13 @@ watch(
   font-size: 0.78rem;
   font-weight: 700;
   text-transform: uppercase;
+}
+
+.official-embed :deep(.instagram-media),
+.official-embed :deep(.twitter-tweet),
+.official-embed :deep(iframe) {
+  max-width: 100% !important;
+  min-width: 0 !important;
+  width: 100% !important;
 }
 </style>

@@ -41,7 +41,7 @@
     </div>
 
     <aside
-      class="fixed left-0 top-16 z-50 h-[calc(100dvh-4rem)] w-[310px] md:hidden"
+      class="fixed left-0 top-16 z-50 h-[calc(100dvh-4rem)] w-[min(310px,100vw)] max-w-[100vw] md:hidden"
       role="dialog"
       aria-modal="true"
       aria-label="Mobile menu"

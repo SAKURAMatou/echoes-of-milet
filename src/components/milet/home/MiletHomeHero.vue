@@ -1,7 +1,7 @@
 <template>
   <section
     id="hero"
-    class="relative isolate flex h-[75svh] min-h-[560px] items-end justify-center overflow-hidden px-5 pb-24 pt-24 sm:px-8 md:px-10"
+    class="relative isolate flex h-[75svh] min-h-[560px] w-full max-w-full items-end justify-center overflow-hidden px-5 pb-24 pt-24 sm:px-8 md:px-10"
   >
     <div
       class="absolute rounded-lg inset-0 -z-30 bg-[linear-gradient(135deg,#ffffff_0%,#eef8ff_46%,#d9ecfb_100%)]"
