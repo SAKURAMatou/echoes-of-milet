@@ -113,8 +113,8 @@ const twitterContainer = ref<HTMLElement | null>(null)
 
 async function initializeEmbeds() {
   await Promise.all([
-    loadInstagramEmbed(instagramContainer.value, props.official.instagramPostUrl),
-    loadTwitterEmbed(twitterContainer.value, props.official.twitterPostUrl),
+    loadInstagramEmbed(instagramContainer.value, props.official.insPost),
+    loadTwitterEmbed(twitterContainer.value, props.official.twitterPost),
   ])
 }
 
@@ -123,7 +123,7 @@ onMounted(() => {
 })
 
 watch(
-  () => [props.official.instagramPostUrl, props.official.twitterPostUrl],
+  () => [props.official.insPost, props.official.twitterPost],
   () => {
     initializeEmbeds()
   },

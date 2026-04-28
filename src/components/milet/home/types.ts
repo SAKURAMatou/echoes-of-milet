@@ -120,11 +120,9 @@ export interface MiletLegacyOfficialSite {
 
 export interface MiletHomeOfficialSection {
   instagramProfileUrl: string
-  instagramPostUrl?: string
-  insPost?: string
+  insPost: string
   twitterProfileUrl: string
-  twitterPostUrl?: string
-  twitterPost?: string
+  twitterPost: string
   siteList?: {
     zh?: MiletLegacyOfficialSite[]
     jp?: MiletLegacyOfficialSite[]
@@ -231,9 +229,9 @@ export interface MiletHomeOfficialViewSection {
   title: string
 
   instagramProfileUrl: string
-  instagramPostUrl?: string
+  insPost: string
   twitterProfileUrl: string
-  twitterPostUrl?: string
+  twitterPost: string
   sites: MiletOfficialSiteView[]
 }
 

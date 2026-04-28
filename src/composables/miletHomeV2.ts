@@ -250,9 +250,9 @@ const defaultMiletHomeV2: MiletHomeV2Data = {
   },
   official: {
     instagramProfileUrl: 'https://www.instagram.com/milet_music',
-    instagramPostUrl: defaultInstagramPost,
+    insPost: defaultInstagramPost,
     twitterProfileUrl: 'https://twitter.com/milet_music',
-    twitterPostUrl: defaultTwitterPost,
+    twitterPost: defaultTwitterPost,
     sites: [
       {
         id: 'official-site',
@@ -489,8 +489,8 @@ export function buildMiletHomeV2Data(
     },
     official: {
       ...defaultMiletHomeV2.official,
-      instagramPostUrl: legacySite?.insPost || defaultInstagramPost,
-      twitterPostUrl: legacySite?.twitterPost || defaultTwitterPost,
+      insPost: legacySite?.insPost || defaultInstagramPost,
+      twitterPost: legacySite?.twitterPost || defaultTwitterPost,
       sites: legacySitesToOfficialSites(legacySite),
     },
   }
@@ -644,9 +644,9 @@ export function officialViewSection(
     title: textOf(miletHomeStaticLabels.officialTitle, lang),
 
     instagramProfileUrl: homeV2.official.instagramProfileUrl,
-    instagramPostUrl: homeV2.official.instagramPostUrl || homeV2.official.insPost,
+    insPost: homeV2.official.insPost || homeV2.official.insPost,
     twitterProfileUrl: homeV2.official.twitterProfileUrl,
-    twitterPostUrl: homeV2.official.twitterPostUrl || homeV2.official.twitterPost,
+    twitterPost: homeV2.official.twitterPost || homeV2.official.twitterPost,
     sites: siteViews,
   }
 }
