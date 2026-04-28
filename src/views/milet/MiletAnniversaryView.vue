@@ -1557,7 +1557,7 @@ button,
   }
 
   .mobile-scroll-region {
-    max-height: calc(100dvh - 26rem);
+    max-height: calc(100dvh - 23.5rem);
     overflow-y: auto;
     overscroll-behavior: contain;
     scrollbar-width: none;
@@ -1565,7 +1565,7 @@ button,
   }
 
   .anniversary-slide:first-child .mobile-scroll-region {
-    max-height: calc(100dvh - 38.5rem);
+    max-height: calc(100dvh - 36rem);
   }
 
   .mobile-scroll-region::-webkit-scrollbar {
@@ -1652,7 +1652,8 @@ button,
   }
 
   .photo-stage {
-    min-height: 420px;
+    min-height: 0;
+    height: min(56dvh, 430px);
     border-radius: 1.3rem;
   }
 
@@ -1666,7 +1667,8 @@ button,
   }
 
   .photo-frame {
-    width: 46%;
+    width: 40%;
+    max-width: 165px;
   }
 
   .photo-stage.is-assembled .photo-frame {
@@ -1698,7 +1700,7 @@ button,
   .chapter-control-next {
     top: auto;
     right: auto;
-    bottom: 4.95rem;
+    bottom: 1.05rem;
   }
 
   .chapter-control-prev:hover,
@@ -1738,11 +1740,11 @@ button,
   }
 
   .mobile-scroll-region {
-    max-height: calc(100dvh - 23.3rem);
+    max-height: calc(100dvh - 20.8rem);
   }
 
   .anniversary-slide:first-child .mobile-scroll-region {
-    max-height: calc(100dvh - 32.5rem);
+    max-height: calc(100dvh - 30rem);
   }
 
   .section-title {
@@ -1771,7 +1773,7 @@ button,
   }
 
   .photo-stage {
-    min-height: 360px;
+    height: min(52dvh, 360px);
   }
 
   .chapter-control {
