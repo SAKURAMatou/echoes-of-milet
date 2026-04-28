@@ -63,30 +63,30 @@
   </div>
   <!-- 右侧浮动章节胶囊（替代顶部 Tab）pc,手机屏幕对应的菜单按钮 -->
 
-  <div>
-    <div class="fixed right-3 md:right-6 top-[90px] md:top-[110px] z-[300]">
+  <Teleport to="body">
+    <div class="fixed right-3 top-[90px] z-[300] md:hidden">
       <div class="flex flex-col items-end gap-2">
         <button
-          class="md:hidden rounded-full border bg-white/80 backdrop-blur px-3 py-2 shadow-sm hover:bg-white text-sm"
+          class="rounded-full border bg-white/80 px-3 py-2 text-sm shadow-sm backdrop-blur hover:bg-white"
           @click="drawerOpen = true"
         >
           {{ pageText.stackMap.desc }}
         </button>
       </div>
     </div>
-  </div>
-  <!-- 堆叠地图抽屉：快速跳转到章节 -->
-  <StackMapDrawer
-    :open="drawerOpen"
-    :chapters="chapters"
-    @close="drawerOpen = false"
-    @jump="
-      (anchorId) => {
-        drawerOpen = false
-        scrollToAnchor(anchorId)
-      }
-    "
-  />
+    <!-- 堆叠地图抽屉：快速跳转到章节 -->
+    <StackMapDrawer
+      :open="drawerOpen"
+      :chapters="chapters"
+      @close="drawerOpen = false"
+      @jump="
+        (anchorId) => {
+          drawerOpen = false
+          scrollToAnchor(anchorId)
+        }
+      "
+    />
+  </Teleport>
 </template>
 <!-- src/pages/ReleasesPage.vue -->
 <script setup lang="ts">
