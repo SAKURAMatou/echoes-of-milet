@@ -63,6 +63,19 @@ const loading = ref(false)
 const routeLang = computed(() => String(route.params.lang || 'zh'))
 const currentLang = computed(() => normalizeMiletLang(routeLang.value))
 
+function resolveMiletHomePayload(response: any) {
+  if (!response || typeof response !== 'object') {
+    return null
+  }
+
+  if ('code' in response && Number(response.code) !== 200) {
+    return null
+  }
+
+  const payload = response.data ?? response
+  return payload && typeof payload === 'object' ? payload : null
+}
+
 async function loadMiletHomeData() {
   if (miletDatas.value || loading.value) {
     return
@@ -71,10 +84,11 @@ async function loadMiletHomeData() {
   loading.value = true
   try {
     const resJson = await axiosInstance.post(apiRoutes.miletHome)
+    const payload = resolveMiletHomePayload(resJson)
 
-    if (resJson.code === 200) {
-      miletDatas.value = resJson.data
-      appState.miletHomeData = resJson.data
+    if (payload) {
+      miletDatas.value = payload
+      appState.miletHomeData = payload
     }
   } catch (error) {
     console.error('data fetch error', error)

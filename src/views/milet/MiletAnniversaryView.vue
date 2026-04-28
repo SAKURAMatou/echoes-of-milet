@@ -334,25 +334,24 @@ const routeLang = computed(() => String(route.params.lang || 'zh'))
 const routeYear = computed(() => String(route.params.year || ''))
 const lang = computed(() => anniversaryLang(routeLang.value))
 const fallbackPayload = buildAnniversaryPayloadFromConfig(anniversaryArchiveConfig)
-const anniversaryPayload = ref<AnniversaryApiPayload | null>(
-  appState.miletAnniversaryData ?? fallbackPayload,
-)
+const anniversaryPayload = ref<AnniversaryApiPayload | null>(appState.miletAnniversaryData)
+const resolvedAnniversaryPayload = computed(() => anniversaryPayload.value ?? fallbackPayload)
 const loadingAnniversary = ref(false)
 const loadedAnniversaryEndpoint = ref(appState.miletAnniversaryData ? anniversaryApiUrl() : '')
 const availableYears = computed(() =>
-  anniversaryPayload.value?.recordYears?.length
-    ? anniversaryPayload.value.recordYears
+  resolvedAnniversaryPayload.value.recordYears?.length
+    ? resolvedAnniversaryPayload.value.recordYears
     : getAvailableAnniversaryYears(anniversaryArchiveConfig),
 )
 const anniversaryMonthNow = computed(
   () =>
-    anniversaryPayload.value?.isAnniversaryMonth ??
+    resolvedAnniversaryPayload.value.isAnniversaryMonth ??
     isAnniversaryMonth(anniversaryArchiveConfig, new Date()),
 )
 const showArchiveIndex = computed(() => !routeYear.value && !anniversaryMonthNow.value)
 const record = computed<AnniversaryRecord>(() => {
   return (
-    anniversaryPayload.value?.record ??
+    resolvedAnniversaryPayload.value.record ??
     (getAnniversaryRecord(routeYear.value, anniversaryArchiveConfig) as AnniversaryRecord)
   )
 })

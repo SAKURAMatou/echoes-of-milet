@@ -1,6 +1,6 @@
 import axios from 'axios'
 
-import { getBackendOrigin, getSiteOrigin } from '@/config/api'
+import { getSiteOrigin } from '@/config/api'
 
 import type { AxiosInstance, AxiosRequestConfig } from 'axios'
 
@@ -13,7 +13,7 @@ interface CustomAxiosInstance extends AxiosInstance {
 
 function resolveBaseURL() {
   if (import.meta.env.SSR) {
-    return getBackendOrigin()
+    return getSiteOrigin()
   }
 
   return ''

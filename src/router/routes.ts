@@ -6,7 +6,7 @@ import { buildShortLinkTarget, shortLinks } from '@/config/shortLinks'
 declare module 'vue-router' {
   interface RouteMeta {
     renderMode?: 'ssg' | 'ssr' | 'csr'
-    seoKey?: 'home' | 'milet' | 'about'
+    seoKey?: 'home' | 'milet' | 'about' | 'anniversary'
   }
 }
 
@@ -34,7 +34,7 @@ export const routes: RouteRecordRaw[] = [
       {
         path: 'milet/anniversary/:year(\\d{4})?',
         name: 'miletAnniversary',
-        meta: { renderMode: getConfiguredRenderMode('/milet/anniversary') },
+        meta: { renderMode: getConfiguredRenderMode('/milet/anniversary'), seoKey: 'anniversary' },
         component: () => import('@/views/milet/MiletAnniversaryView.vue'),
       },
       {

@@ -1,8 +1,13 @@
-import { toUrlLang } from '@/composables/useLangRoute'
+import { stripLangPrefix, toUrlLang } from '@/composables/useLangRoute'
+import { getSiteOrigin } from '@/config/api'
+
+export type SeoKey = 'home' | 'milet' | 'about' | 'anniversary'
 
 interface SeoLocaleContent {
   title: string
   description: string
+  keywords: string[]
+  imageAlt: string
 }
 
 interface SeoMeta {
@@ -10,61 +15,169 @@ interface SeoMeta {
   image: string
   canonicalPath: string
   type?: 'website' | 'article'
+  schemaType?: 'WebPage' | 'AboutPage' | 'CollectionPage'
+  allowDynamicPath?: boolean
 }
 
-const siteUrl = 'https://miles-dml.org'
+interface RenderSeoOptions {
+  path?: string
+}
 
-const seoMap: Record<string, SeoMeta> = {
+const siteUrl = getSiteOrigin()
+
+const seoMap: Record<SeoKey, SeoMeta> = {
   home: {
     content: {
       zh: {
         title: 'Echoes of milet | milet 中文站',
         description:
-          'Echoes of milet 是由 miles DML 维护的 milet 中文站，收录站点导览、精选内容入口与围绕 milet 的整理内容。',
+          'Echoes of milet 是由 miles DML 创建并维护的 milet fan site (注意，本站非官方，milet官方的fan site是https://fc.milet.jp)。本站收录milet官方的站点导航、精选内容入口、周年记录、时间线、以及其他围绕 milet 的整理内容。记录了milet带来的感动与美好回忆，欢迎所有喜欢 milet 的朋友们一起交流分享。',
+        keywords: [
+          'Echoes milet',
+          'milet',
+          'Echoes of milet',
+          'milet 中文站',
+          'miles DML',
+          'milet fan site',
+        ],
+        imageAlt: 'Echoes of milet 站点封面',
       },
       jp: {
-        title: 'Echoes of milet | milet 日本語ファンサイト',
+        title: 'Echoes of milet | milet fan site',
         description:
-          'Echoes of milet は miles DML が運営する milet の日本語ファンサイトです。サイト案内、注目コンテンツ、milet に関するまとめを掲載しています。',
+          'Echoes of milet は miles DML が作成・運営している milet fan site です。非公式サイトであり、milet 公式の fan site は https://fc.milet.jp です。本サイトでは milet 公式サイトへのナビゲーション、注目コンテンツ、周年記録、タイムライン、milet にまつわる整理コンテンツを収録しています。milet が届けてくれた感動と美しい思い出を記録し、milet が好きな方々との交流と共有を歓迎します。',
+        keywords: [
+          'Echoes milet',
+          'milet',
+          'Echoes of milet',
+          'milet fan site',
+          'miles DML',
+          'milet 非公式ファンサイト',
+        ],
+        imageAlt: 'Echoes of milet サイトカバー',
       },
     },
     image: '/echoes-of-milet-OG.webp',
     canonicalPath: '/',
     type: 'website',
+    schemaType: 'WebPage',
   },
   milet: {
     content: {
       zh: {
-        title: 'Echoes of milet | milet 首页',
+        title: 'milet 首页 | Echoes of milet',
         description:
-          'Echoes of milet 的 milet 首页，包含人物介绍、时间线亮点、画廊入口与官方链接，帮助用户快速进入核心内容。',
+          'Echoes of milet 的 milet 首页，快速进入 milet 魅力介绍、精选内容、活动时间线、照片图集、小互动游戏、mielt官方SNS入口与官方链接。',
+        keywords: [
+          'Echoes milet',
+          'milet',
+          'Echoes of milet',
+          'milet fan site',
+          'miles DML',
+          'milet 首页',
+          'milet 介绍',
+          'milet 时间线',
+          'milet 图集',
+          'milet 作品',
+        ],
+        imageAlt: 'Echoes of milet 的 milet 首页预览',
       },
       jp: {
-        title: 'Echoes of milet | milet ホーム',
+        title: 'milet home | Echoes of milet',
         description:
-          'Echoes of milet の milet ホームページです。プロフィール、タイムライン、ギャラリー導線、公式リンクをまとめています。',
+          'Echoes of milet の milet ホームです。milet の魅力紹介、注目コンテンツ、活動タイムライン、フォトギャラリー、小さなインタラクティブゲーム、milet 公式 SNS 入口、公式リンクへすばやく移動できます。',
+        keywords: [
+          'Echoes milet',
+          'milet',
+          'Echoes of milet',
+          'milet fan site',
+          'miles DML',
+          'milet home',
+          'milet profile',
+          'milet timeline',
+          'milet gallery',
+          'milet works',
+          'milet 公式SNS',
+        ],
+        imageAlt: 'Echoes of milet の milet ホームプレビュー',
       },
     },
     image: '/echoes-of-milet-OG.webp',
     canonicalPath: '/milet',
     type: 'website',
+    schemaType: 'WebPage',
+  },
+  anniversary: {
+    content: {
+      zh: {
+        title: 'milet 周年记录 | Echoes of milet',
+        description:
+          '查看 Echoes of milet 的 milet 周年模块，给milet的周年祝福、作品节点、milet の日照片与回顾记录。并且按年份进行数据整理。',
+        keywords: [
+          'Echoes milet',
+          'milet',
+          'Echoes of milet',
+          'milet fan site',
+          'miles DML',
+          'milet 周年',
+          'milet anniversary',
+          'milet の日',
+          'milet 纪念',
+          'milet 周年记录',
+        ],
+        imageAlt: 'Echoes of milet milet 周年记录封面',
+      },
+      jp: {
+        title: 'milet anniversary archive | Echoes of milet',
+        description:
+          'Echoes of milet の milet 周年モジュールです。milet への周年メッセージ、作品の節目、milet の日フォト、振り返り記録を年ごとに整理しています。',
+        keywords: [
+          'Echoes milet',
+          'milet',
+          'Echoes of milet',
+          'milet fan site',
+          'miles DML',
+          'milet anniversary',
+          'milet の日',
+          'milet 記念',
+          'milet archive',
+          'milet anniversary record',
+        ],
+        imageAlt: 'Echoes of milet milet 周年記録カバー',
+      },
+    },
+    image: '/echoes-of-milet-OG.webp',
+    canonicalPath: '/milet/anniversary',
+    type: 'website',
+    schemaType: 'CollectionPage',
+    allowDynamicPath: true,
   },
   about: {
     content: {
       zh: {
         title: '关于本站与 miles DML | Echoes of milet',
         description:
-          '了解 Echoes of milet 的建站背景、miles DML 的维护信息，以及与站点相关的留言反馈入口。',
+          '了解 Echoes of milet 的建站背景、miles DML 的维护信息、内容整理方式，以及与站点相关的留言反馈入口。',
+        keywords: ['Echoes of milet 关于', 'miles DML', 'milet 中文站反馈', 'milet fan site'],
+        imageAlt: 'Echoes of milet 关于页面封面',
       },
       jp: {
         title: 'このサイトと miles DML について | Echoes of milet',
         description:
-          'Echoes of milet の制作背景、miles DML の運営情報、フィードバック窓口をまとめた日本語ページです。',
+          'Echoes of milet の制作背景、miles DML の運営・メンテナンス情報、コンテンツ整理方針、サイトに関するメッセージやフィードバックの入口をまとめたページです。',
+        keywords: [
+          'Echoes of milet about',
+          'miles DML',
+          'milet fan site feedback',
+          'milet 非公式ファンサイト',
+        ],
+        imageAlt: 'Echoes of milet についてページのカバー',
       },
     },
     image: '/echoes-of-milet-OG.webp',
     canonicalPath: '/milet/about',
     type: 'website',
+    schemaType: 'AboutPage',
   },
 }
 
@@ -92,6 +205,23 @@ function toOgLocale(lang?: string | null) {
   return resolveLang(lang) === 'jp' ? 'ja_JP' : 'zh_CN'
 }
 
+function normalizeCanonicalPath(pathname: string) {
+  const normalized = stripLangPrefix(pathname.split('?')[0] || '/')
+  if (normalized.length > 1 && normalized.endsWith('/')) {
+    return normalized.slice(0, -1)
+  }
+  return normalized || '/'
+}
+
+function resolveCanonicalPath(meta: SeoMeta, options: RenderSeoOptions) {
+  if (!meta.allowDynamicPath || !options.path) {
+    return meta.canonicalPath
+  }
+
+  const path = normalizeCanonicalPath(options.path)
+  return path.startsWith(meta.canonicalPath) ? path : meta.canonicalPath
+}
+
 function createLocalizedUrl(pathname: string, lang: SupportedLang) {
   return `${siteUrl}/${toUrlLang(lang)}${pathname === '/' ? '' : pathname}`
 }
@@ -100,26 +230,34 @@ function renderAlternateLinks(pathname: string) {
   return [
     `<link rel="alternate" hreflang="zh-CN" href="${createLocalizedUrl(pathname, 'zh')}">`,
     `<link rel="alternate" hreflang="ja-JP" href="${createLocalizedUrl(pathname, 'jp')}">`,
-    `<link rel="alternate" hreflang="x-default" href="${siteUrl}/">`,
+    `<link rel="alternate" hreflang="x-default" href="${siteUrl}${pathname === '/' ? '' : pathname}">`,
   ].join('\n')
 }
 
 function renderStructuredData(
-  title: string,
-  description: string,
+  meta: SeoMeta,
+  localized: SeoLocaleContent,
   canonicalUrl: string,
+  imageUrl: string,
   lang: SupportedLang,
 ) {
   return JSON.stringify({
     '@context': 'https://schema.org',
-    '@type': 'WebPage',
-    name: title,
-    description,
+    '@type': meta.schemaType ?? 'WebPage',
+    name: localized.title,
+    description: localized.description,
     inLanguage: toHtmlLang(lang),
     url: canonicalUrl,
+    image: imageUrl,
+    keywords: localized.keywords.join(', '),
     author: {
       '@type': 'Person',
       name: 'miles DML',
+    },
+    publisher: {
+      '@type': 'Organization',
+      name: 'Echoes of milet',
+      url: siteUrl,
     },
     isPartOf: {
       '@type': 'WebSite',
@@ -134,33 +272,44 @@ function renderStructuredData(
 }
 
 export function resolveSeoMeta(seoKey?: string) {
-  return seoMap[seoKey ?? 'home'] ?? seoMap.home
+  return seoMap[(seoKey as SeoKey) ?? 'home'] ?? seoMap.home
 }
 
-export function renderSeoTags(seoKey?: string, lang?: string | null) {
+export function renderSeoTags(
+  seoKey?: string,
+  lang?: string | null,
+  options: RenderSeoOptions = {},
+) {
   const meta = resolveSeoMeta(seoKey)
   const resolvedLang = resolveLang(lang)
   const localized = meta.content[resolvedLang]
-  const canonicalUrl = createLocalizedUrl(meta.canonicalPath, resolvedLang)
+  const canonicalPath = resolveCanonicalPath(meta, options)
+  const canonicalUrl = createLocalizedUrl(canonicalPath, resolvedLang)
   const imageUrl = meta.image.startsWith('http') ? meta.image : `${siteUrl}${meta.image}`
+  const escapedTitle = escapeHtml(localized.title)
+  const escapedDescription = escapeHtml(localized.description)
+  const escapedImageAlt = escapeHtml(localized.imageAlt)
 
   return [
-    `<title>${escapeHtml(localized.title)}</title>`,
-    `<meta name="description" content="${escapeHtml(localized.description)}">`,
+    `<title>${escapedTitle}</title>`,
+    `<meta name="description" content="${escapedDescription}">`,
+    `<meta name="keywords" content="${escapeHtml(localized.keywords.join(', '))}">`,
     `<link rel="canonical" href="${canonicalUrl}">`,
-    renderAlternateLinks(meta.canonicalPath),
+    renderAlternateLinks(canonicalPath),
     `<meta name="robots" content="index,follow,max-image-preview:large">`,
-    `<meta property="og:title" content="${escapeHtml(localized.title)}">`,
-    `<meta property="og:description" content="${escapeHtml(localized.description)}">`,
+    `<meta property="og:title" content="${escapedTitle}">`,
+    `<meta property="og:description" content="${escapedDescription}">`,
     `<meta property="og:type" content="${meta.type ?? 'website'}">`,
     `<meta property="og:url" content="${canonicalUrl}">`,
     `<meta property="og:image" content="${imageUrl}">`,
+    `<meta property="og:image:alt" content="${escapedImageAlt}">`,
     `<meta property="og:site_name" content="Echoes of milet">`,
     `<meta property="og:locale" content="${toOgLocale(resolvedLang)}">`,
     `<meta name="twitter:card" content="summary_large_image">`,
-    `<meta name="twitter:title" content="${escapeHtml(localized.title)}">`,
-    `<meta name="twitter:description" content="${escapeHtml(localized.description)}">`,
+    `<meta name="twitter:title" content="${escapedTitle}">`,
+    `<meta name="twitter:description" content="${escapedDescription}">`,
     `<meta name="twitter:image" content="${imageUrl}">`,
-    `<script type="application/ld+json">${escapeJsonForHtml(renderStructuredData(localized.title, localized.description, canonicalUrl, resolvedLang))}</script>`,
+    `<meta name="twitter:image:alt" content="${escapedImageAlt}">`,
+    `<script type="application/ld+json">${escapeJsonForHtml(renderStructuredData(meta, localized, canonicalUrl, imageUrl, resolvedLang))}</script>`,
   ].join('\n')
 }

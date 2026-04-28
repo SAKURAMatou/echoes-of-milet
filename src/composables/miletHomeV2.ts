@@ -420,6 +420,51 @@ function mapLegacyTimeline(
   }
 }
 
+function populatedArray<T>(value: T[] | undefined, fallback: T[]) {
+  return Array.isArray(value) && value.length > 0 ? value : fallback
+}
+
+function mergeHomeV2Data(rawHomeV2: Partial<MiletHomeV2Data>): MiletHomeV2Data {
+  return {
+    ...defaultMiletHomeV2,
+    ...rawHomeV2,
+    hero: {
+      ...defaultMiletHomeV2.hero,
+      ...rawHomeV2.hero,
+    },
+    why: populatedArray(rawHomeV2.why, defaultMiletHomeV2.why),
+    sections: populatedArray(rawHomeV2.sections, defaultMiletHomeV2.sections),
+    highlightKindConfig: {
+      ...defaultMiletHomeV2.highlightKindConfig,
+      ...rawHomeV2.highlightKindConfig,
+    },
+    highlights: populatedArray(rawHomeV2.highlights, defaultMiletHomeV2.highlights),
+    timeline: {
+      ...defaultMiletHomeV2.timeline,
+      ...rawHomeV2.timeline,
+      items: populatedArray(rawHomeV2.timeline?.items, defaultMiletHomeV2.timeline.items),
+      moreRoute: rawHomeV2.timeline?.moreRoute || miletHomeStaticRoutes.timelineMore,
+    },
+    gallery: {
+      ...defaultMiletHomeV2.gallery,
+      ...rawHomeV2.gallery,
+      items: populatedArray(rawHomeV2.gallery?.items, defaultMiletHomeV2.gallery.items),
+      moreRoute: rawHomeV2.gallery?.moreRoute || miletHomeStaticRoutes.galleryMore,
+    },
+    official: {
+      ...defaultMiletHomeV2.official,
+      ...rawHomeV2.official,
+      sites: populatedArray(rawHomeV2.official?.sites, defaultMiletHomeV2.official.sites || []),
+    },
+    entries: populatedArray(rawHomeV2.entries, defaultMiletHomeV2.entries),
+    cta: {
+      ...defaultMiletHomeV2.cta,
+      ...rawHomeV2.cta,
+      route: rawHomeV2.cta?.route || miletHomeStaticRoutes.cta,
+    },
+  }
+}
+
 export function buildMiletHomeV2Data(
   rawData: Record<string, any>,
   lang: MiletLang,
@@ -429,34 +474,7 @@ export function buildMiletHomeV2Data(
   const rawHomeV2 = rawData?.homeV2 as MiletHomeV2Data | undefined
 
   if (rawHomeV2) {
-    return {
-      ...defaultMiletHomeV2,
-      ...rawHomeV2,
-      hero: defaultMiletHomeV2.hero,
-      sections: defaultMiletHomeV2.sections,
-      entries: defaultMiletHomeV2.entries,
-      highlightKindConfig: {
-        ...defaultMiletHomeV2.highlightKindConfig,
-        ...rawHomeV2.highlightKindConfig,
-      },
-      timeline: {
-        ...defaultMiletHomeV2.timeline,
-        ...rawHomeV2.timeline,
-        moreLabel: miletHomeStaticLabels.timelineMore,
-        moreRoute: miletHomeStaticRoutes.timelineMore,
-      },
-      gallery: {
-        ...defaultMiletHomeV2.gallery,
-        ...rawHomeV2.gallery,
-        moreLabel: miletHomeStaticLabels.galleryMore,
-        moreRoute: miletHomeStaticRoutes.galleryMore,
-      },
-      cta: {
-        title: miletHomeStaticLabels.ctaTitle,
-        buttonLabel: miletHomeStaticLabels.ctaButton,
-        route: miletHomeStaticRoutes.cta,
-      },
-    }
+    return mergeHomeV2Data(rawHomeV2)
   }
 
   const legacySite = legacyLangData?.site

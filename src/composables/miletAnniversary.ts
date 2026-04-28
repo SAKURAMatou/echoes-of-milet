@@ -366,6 +366,15 @@ export function buildAnniversaryPayloadFromConfig(
 }
 
 function unwrapApiPayload(value: unknown) {
+  if (
+    value &&
+    typeof value === 'object' &&
+    'code' in value &&
+    Number((value as { code?: unknown }).code) !== 200
+  ) {
+    return null
+  }
+
   if (value && typeof value === 'object' && 'data' in value) {
     return (value as { data?: unknown }).data
   }
@@ -406,7 +415,8 @@ export function normalizeAnniversaryPayload(value: unknown) {
     debutDate: candidate.debutDate || anniversaryArchiveConfig.debutDate,
     debutMonth: candidate.debutMonth || anniversaryArchiveConfig.debutMonth,
     latestYear: candidate.latestYear || candidate.record.year,
-    isAnniversaryMonth: Boolean(candidate.isAnniversaryMonth),
+    isAnniversaryMonth:
+      candidate.isAnniversaryMonth ?? isAnniversaryMonth(anniversaryArchiveConfig),
     menu: {
       label: candidate.menu?.label || 'ANNIVERSARY',
       sub: candidate.menu?.sub,

@@ -22,7 +22,11 @@ const baiduVerificationPaths = new Set([
   '/baidu_verify_codeva-HqQ4QBPDlh',
 ])
 const allowedApiPrefixes = Object.values(apiProxyConfig.routes) as string[]
-const upstreamOrigin = apiProxyConfig.origins.production.backend
+const allowedOtherPaths = new Set(
+  Object.keys(apiProxyConfig.otherRquests || {}).map((key) => `/other/${key}`),
+)
+const pagesRuntimeConfig = apiProxyConfig.origins.production
+const upstreamOrigin = pagesRuntimeConfig.backend
 
 function normalizeUrl(url = '/') {
   const [pathname] = url.split('?')
@@ -142,10 +146,10 @@ function injectHtml(
 
 function getRequestOrigin(request: Request) {
   const url = new URL(request.url)
-  return apiProxyConfig.origins.production.site || url.origin
+  return pagesRuntimeConfig.site || url.origin
 }
 
-function buildProxyHeaders(request: Request, env: PagesFunctionEnv) {
+function buildProxyHeaders(request: Request, env?: PagesFunctionEnv | null) {
   const requestOrigin = getRequestOrigin(request)
   const headers = new Headers(request.headers)
   headers.set('origin', requestOrigin || headers.get('origin'))
@@ -205,7 +209,7 @@ async function proxyApiRequest(request: Request, env: PagesFunctionEnv) {
 }
 async function proxyOtherRequest(request: Request) {
   const url = new URL(request.url)
-  if (!isAllowedApiPath(url.pathname)) {
+  if (!allowedOtherPaths.has(url.pathname)) {
     return new Response('Forbidden', {
       status: 403,
       headers: {
@@ -226,7 +230,7 @@ async function proxyOtherRequest(request: Request) {
 
   const response = await fetch(targetUrl.toString(), {
     method: request.method,
-    headers: buildProxyHeaders(request, null),
+    headers: buildProxyHeaders(request),
     body: ['GET', 'HEAD'].includes(request.method) ? undefined : request.body,
   })
   return new Response(response.body, {

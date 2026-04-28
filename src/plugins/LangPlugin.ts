@@ -5,14 +5,13 @@ import {
   resolveUrlLangFromPath,
   toSupportedLang,
 } from '@/composables/useLangRoute'
-import type { AppState } from '@/composables/useAppState'
 
 interface LangState {
   lang: SupportedLang
 }
 
 interface CreateLangPluginOptions {
-  state: AppState
+  state: LangState
   requestHeaders?: Record<string, string | string[] | undefined>
   currentPath?: string
 }
@@ -139,12 +138,3 @@ export function createLangPlugin(options: CreateLangPluginOptions) {
     },
   }
 }
-
-export default createLangPlugin({
-  state: {
-    lang: 'zh',
-    miletHomeData: null,
-    miletAnniversaryData: null,
-  },
-  currentPath: '/',
-})

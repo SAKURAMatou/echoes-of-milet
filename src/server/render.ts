@@ -6,6 +6,7 @@ import {
   resolveSupportedLang,
   resolveUrlLangFromPath,
 } from '@/composables/useLangRoute'
+import { getSiteOrigin } from '@/config/api'
 import { buildShortLinkTarget } from '@/config/shortLinks'
 import { renderSeoTags, toHtmlLang } from '@/server/seo'
 
@@ -23,13 +24,16 @@ export interface RenderResult {
 }
 
 export async function render(url: string, request: RenderRequest = {}): Promise<RenderResult> {
-  const requestUrl = new URL(url, 'https://miles-dml.org')
+  const siteOrigin = getSiteOrigin()
+  const requestUrl = new URL(url, siteOrigin)
   const shortLinkTarget = buildShortLinkTarget(
     requestUrl.pathname,
     resolvePreferredUrlLang(request.headers),
   )
   const renderUrl = shortLinkTarget ? `${shortLinkTarget}${requestUrl.search}` : url
-  const requestLang = resolveSupportedLang(resolveUrlLangFromPath(new URL(renderUrl, 'https://miles-dml.org').pathname))
+  const requestLang = resolveSupportedLang(
+    resolveUrlLangFromPath(new URL(renderUrl, siteOrigin).pathname),
+  )
   const { app, router, state } = createApp({
     initialState: {
       lang: requestLang,
@@ -49,7 +53,9 @@ export async function render(url: string, request: RenderRequest = {}): Promise<
 
   return {
     appHtml,
-    headTags: renderSeoTags(matchedSeoKey, state.lang),
+    headTags: renderSeoTags(matchedSeoKey, state.lang, {
+      path: currentRoute.path,
+    }),
     initialState: state,
     htmlLang: toHtmlLang(state.lang),
     renderMode,

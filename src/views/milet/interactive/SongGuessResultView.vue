@@ -98,8 +98,7 @@ import { RouterLink, useRoute } from 'vue-router'
 
 import { getSongGuessResult, type SongGuessResult } from '@/composables/interactive/songGuess'
 import { useSongGuessText } from '@/composables/interactive/songGuessText'
-
-import apiProxyConfig from '../../../../api-proxy.config.json'
+import { apiRoutes, getSiteOrigin } from '@/config/api'
 
 const PNG_QUALITY = 0.92
 
@@ -194,7 +193,7 @@ async function drawQrCode(ctx: CanvasRenderingContext2D, x: number, y: number, s
 }
 
 function shareUrl() {
-  return `${apiProxyConfig.origins.production.site}/sg`
+  return `${getSiteOrigin()}/sg`
 }
 
 function loadQrImage() {
@@ -202,56 +201,10 @@ function loadQrImage() {
     const image = new Image()
     image.onload = () => resolve(image)
     image.onerror = () => resolve(null)
-    image.src = `${apiProxyConfig.origins.production.site}${apiProxyConfig.routes.qrCode}`
+    image.src = `${getSiteOrigin()}${apiRoutes.qrCode}`
   })
 }
 
-// async function loadQrImage(): Promise<HTMLImageElement | null> {
-//   let objectUrl: string | null = null
-
-//   try {
-//     const response = await fetch(
-//       `${apiProxyConfig.origins.production.backend}${apiProxyConfig.staticRoutes.qrCode}`,
-//       {
-//         method: 'GET',
-//         mode: 'cors',
-//       },
-//     )
-
-//     if (!response.ok) return null
-
-//     const blob = await response.blob()
-//     objectUrl = URL.createObjectURL(blob)
-
-//     return await new Promise<HTMLImageElement | null>((resolve) => {
-//       const image = new Image()
-
-//       image.onload = () => {
-//         if (objectUrl) {
-//           URL.revokeObjectURL(objectUrl)
-//           objectUrl = null
-//         }
-//         resolve(image)
-//       }
-
-//       image.onerror = () => {
-//         if (objectUrl) {
-//           URL.revokeObjectURL(objectUrl)
-//           objectUrl = null
-//         }
-//         resolve(null)
-//       }
-
-//       image.src = objectUrl
-//     })
-//   } catch (error) {
-//     console.error(error)
-//     if (objectUrl) {
-//       URL.revokeObjectURL(objectUrl)
-//     }
-//     return null
-//   }
-// }
 async function copyImageAndLink(blob: Blob, shareText: string) {
   const clipboard = navigator.clipboard as Clipboard & {
     write?: (data: ClipboardItem[]) => Promise<void>
