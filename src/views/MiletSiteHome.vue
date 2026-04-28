@@ -20,7 +20,7 @@
       ></div>
 
       <div
-        class="hero-content-frame mx-auto flex min-h-[calc(92svh-5rem)] w-full max-w-[1180px] items-start px-5 pb-8 pt-[34vh] sm:px-7 md:h-full md:min-h-0 md:items-center md:px-10 md:pb-0 md:pt-20 lg:px-8"
+        class="hero-content-frame mx-auto flex min-h-[calc(92svh-5rem)] w-full max-w-[1180px] items-start px-3 pb-8 pt-[34vh] sm:px-7 md:h-full md:min-h-0 md:items-center md:px-10 md:pb-0 md:pt-20 lg:px-8"
       >
         <div class="hero-copy-wash animate-fadein relative isolate w-full max-w-[640px]">
           <p

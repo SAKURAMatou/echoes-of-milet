@@ -14,7 +14,7 @@
     <div class="relative w-full max-w-[100vw] overflow-x-clip md:h-full md:overflow-x-hidden">
       <!-- 整体容器：页面居中布局 -->
       <div
-        class="flex w-full max-w-full overflow-x-clip pt-18 md:h-full md:box-border md:overflow-x-hidden md:gap-6 lg:gap-8 xl:gap-10"
+        class="flex w-full max-w-full overflow-x-clip pt-12 md:h-full md:box-border md:overflow-x-hidden md:gap-6 lg:gap-8 xl:gap-10"
       >
         <!-- 左侧菜单栏 -->
         <SideMenuLeft :menuOpen="menuOpen" @closeMenu="menuClick" />

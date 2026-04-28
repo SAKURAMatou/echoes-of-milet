@@ -49,125 +49,8 @@
           </svg>
         </div>
       </button>
-      <!-- pc版菜单 -->
-      <!-- <nav style="display: none" class="max-md:hidden">
-        <ul class="flex gap-6">
-          <li>
-            <div
-              class="menue-other hidden relative rounded-full hover:bg-[#336FCC] hover:shadow-[0_2px_6px_rgba(0,0,0,0.1)]"
-            >
-              <input
-                type="text"
-                class="rounded-full h-10 px-5 pr-10 text-sm focus:outline-none transition-all duration-300 ease-in-out w-12 focus:w-64 focus:bg-[#336FCC] focus:shadow-[0_2px_6px_rgba(0,0,0,0.1)]"
-                placeholder="Search..."
-                v-model="searchContent"
-                onfocus="this.classList.remove('w-12'); this.classList.add('w-64');"
-                onblur="if(this.value === '') { this.classList.remove('w-64'); this.classList.add('w-12'); }"
-                @keyup.enter="searchEvent"
-              />
-              <button
-                type="submit"
-                class="absolute right-0 top-0 mt-3 mr-4"
-                @click.prevent="searchEvent"
-              >
-                <svg
-                  class="h-4 w-4 fill-current"
-                  xmlns="http://www.w3.org/2000/svg"
-                  viewBox="0 0 20 20"
-                >
-                  <path
-                    d="M12.9 14.32a8 8 0 1 1 1.41-1.41l5.35 5.33-1.42 1.42-5.33-5.34zM8 14A6 6 0 1 0 8 2a6 6 0 0 0 0 12z"
-                  ></path>
-                </svg>
-              </button>
-            </div>
-          </li>
-          <li>
-            <router-link
-              :to="{ name: 'home' }"
-              class="menue-other group relative font-['Montserrat','sans-serif'] text-[14px] font-medium text-[#546e7a] uppercase tracking-[1.5px] transition-colors duration-300 hover:text-[#1a2c50]"
-              >Home
-              <span
-                class="absolute left-0 -bottom-[6px] h-[2px] w-0 bg-[#1a2c50] transition-all duration-300 group-hover:w-full"
-              ></span
-            ></router-link>
-          </li>
-
-          <li>
-           
-            <router-link
-              :to="{ name: 'milet' }"
-              class="menue-other group relative font-['Montserrat','sans-serif'] text-[14px] font-medium text-[#546e7a] tracking-[1.5px] transition-colors duration-300 hover:text-[#1a2c50]"
-              >milet
-              <span
-                class="absolute left-0 -bottom-[6px] h-[2px] w-0 bg-[#1a2c50] transition-all duration-300 group-hover:w-full"
-              ></span>
-            </router-link>
-          </li>
-          <li>
-            <router-link
-              :to="{ name: 'miletPicAlbum' }"
-              class="menue-other group relative font-['Montserrat','sans-serif'] text-[14px] font-medium text-[#546e7a] uppercase tracking-[1.5px] transition-colors duration-300 hover:text-[#1a2c50]"
-              >gallery
-              <span
-                class="absolute left-0 -bottom-[6px] h-[2px] w-0 bg-[#1a2c50] transition-all duration-300 group-hover:w-full"
-              ></span>
-            </router-link>
-          </li>
-        </ul>
-      </nav> -->
     </div>
   </header>
-  <!-- 移动端弹出菜单 -->
-  <!-- <transition name="slide-down">
-    <nav
-      v-if="false"
-      class="md:hidden fixed w-full top-16 bg-white rounded-xl border border-blue-100 shadow-lg p-6 text-blue-800 z-40 transition-all duration-300"
-    >
-      <div class="relative">
-        <ul class="flex flex-col gap-4 pt-6">
-          <li class="flex items-center justify-center menue-other">
-            <router-link
-              :to="{ name: 'home' }"
-              @click="isMenuOpen = false"
-              class="menue-other group relative font-['Montserrat','sans-serif'] text-[14px] font-medium text-[#546e7a] uppercase tracking-[1.5px] transition-colors duration-300 hover:text-[#1a2c50]"
-              >Home
-              <span
-                class="absolute left-0 -bottom-[6px] h-[2px] w-0 bg-[#1a2c50] transition-all duration-300 group-hover:w-full"
-              ></span
-            ></router-link>
-          </li>
-
-          <li class="flex items-center justify-center">
-            <router-link
-              :to="{ name: 'milet' }"
-              @click="isMenuOpen = false"
-              class="menue-other group relative font-['Montserrat','sans-serif'] text-[14px] font-medium text-[#546e7a] tracking-[1.5px] transition-colors duration-300 hover:text-[#1a2c50]"
-              >milet
-              <span
-                class="absolute left-0 -bottom-[6px] h-[2px] w-0 bg-[#1a2c50] transition-all duration-300 group-hover:w-full"
-              ></span
-            ></router-link>
-          </li>
-          <li class="flex items-center justify-center menue-other">
-            <router-link
-              :to="{ name: 'miletPicAlbum' }"
-              class="menue-other group relative font-['Montserrat','sans-serif'] text-[14px] font-medium text-[#546e7a] uppercase tracking-[1.5px] transition-colors duration-300 hover:text-[#1a2c50]"
-              @click="isMenuOpen = false"
-              >gallery
-              <span
-                class="absolute left-0 -bottom-[6px] h-[2px] w-0 bg-[#1a2c50] transition-all duration-300 group-hover:w-full"
-              ></span
-            ></router-link>
-          </li>
-          
-          <li class="flex justify-center items-center relative">
-            <LanguageSelect />
-          </li>
-        </ul>
-      </div>
-    </nav>
-  </transition> -->
 </template>
 
 <script setup lang="ts">
@@ -180,22 +63,6 @@ import { withLangParam } from '@/composables/useLangRoute'
 const isMenuOpen = ref(false)
 const searchContent = ref(null)
 const route = useRoute()
-// function handleResize() {
-//   if (window.innerWidth >= 768) {
-//     isMenuOpen.value = false
-//   }
-// }
-
-// onMounted(() => {
-//   window.addEventListener('resize', handleResize)
-// })
-
-// onBeforeUnmount(() => {
-//   window.removeEventListener('resize', handleResize)
-// })
-
-// const router = useRouter()
-// const check = ref(true)
 
 const emit = defineEmits(['openMenu', 'closeMenu'])
 const searchEvent = () => {
