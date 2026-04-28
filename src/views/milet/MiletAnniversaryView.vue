@@ -1317,12 +1317,12 @@ onBeforeUnmount(() => {
 
 .chapter-nav {
   position: absolute;
-  right: 1.25rem;
-  bottom: 1.1rem;
-  left: 1.25rem;
+  top: 1rem;
+  right: 14.5rem;
+  left: 17rem;
   z-index: 30;
   display: flex;
-  align-items: flex-end;
+  align-items: flex-start;
   justify-content: center;
   gap: 0.25rem;
 }
@@ -1339,7 +1339,7 @@ onBeforeUnmount(() => {
   padding: 0.8rem 1.35rem 0.85rem 1.15rem;
   text-align: left;
   backdrop-filter: blur(16px);
-  transform: translateY(calc((3 - var(--step, 0)) * 0.22rem));
+  transform: translateY(calc(var(--step, 0) * 0.18rem));
   transition:
     background 180ms ease,
     color 180ms ease,
@@ -1373,7 +1373,7 @@ button,
     linear-gradient(135deg, rgba(39, 109, 123, 0.98), rgba(49, 127, 141, 0.86)),
     linear-gradient(90deg, rgba(221, 190, 95, 0.26), rgba(255, 255, 255, 0));
   color: white;
-  transform: translateY(-0.34rem);
+  transform: translateY(0.36rem);
 }
 
 .chapter-nav button::before {
@@ -1544,13 +1544,20 @@ button,
     row-gap: 1.6rem;
     overflow: hidden;
     overscroll-behavior: contain;
-    padding-top: 7.8rem !important;
+    padding-top: 9.45rem !important;
     padding-bottom: 10.5rem;
     -webkit-overflow-scrolling: touch;
   }
 
+  .chapter-nav {
+    top: 3.05rem;
+    right: 0.75rem;
+    left: 0.75rem;
+    align-items: flex-start;
+  }
+
   .mobile-scroll-region {
-    max-height: calc(100dvh - 23.5rem);
+    max-height: calc(100dvh - 26rem);
     overflow-y: auto;
     overscroll-behavior: contain;
     scrollbar-width: none;
@@ -1558,7 +1565,7 @@ button,
   }
 
   .anniversary-slide:first-child .mobile-scroll-region {
-    max-height: calc(100dvh - 36rem);
+    max-height: calc(100dvh - 38.5rem);
   }
 
   .mobile-scroll-region::-webkit-scrollbar {
@@ -1684,7 +1691,7 @@ button,
   }
 
   .chapter-control-prev {
-    top: 4.65rem;
+    top: 6.85rem;
     right: auto;
   }
 
@@ -1707,6 +1714,7 @@ button,
 
 @media (max-width: 430px) {
   .chapter-nav {
+    top: 4.05rem;
     left: 0.55rem;
     right: 0.55rem;
     gap: 0;
@@ -1725,16 +1733,16 @@ button,
 
 @media (max-width: 767px) and (max-height: 760px) {
   .mobile-slide-shell {
-    padding-top: 7.1rem !important;
+    padding-top: 8.85rem !important;
     padding-bottom: 9.4rem;
   }
 
   .mobile-scroll-region {
-    max-height: calc(100dvh - 20.8rem);
+    max-height: calc(100dvh - 23.3rem);
   }
 
   .anniversary-slide:first-child .mobile-scroll-region {
-    max-height: calc(100dvh - 30rem);
+    max-height: calc(100dvh - 32.5rem);
   }
 
   .section-title {
