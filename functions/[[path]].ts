@@ -1,4 +1,5 @@
 import apiProxyConfig from '../api-proxy.config.json'
+import renderConfig from '../render.config.json'
 import { buildShortLinkTarget } from '../src/config/shortLinks'
 
 interface FetcherLike {
@@ -15,7 +16,8 @@ interface FunctionContext {
   env: PagesFunctionEnv
 }
 
-const ssgRoutes = new Set(['/zh', '/ja', '/zh/milet/about', '/ja/milet/about'])
+const supportedLangs = ['zh', 'ja'] as const
+const ssgRoutes = new Set((renderConfig.ssgRoutes || []).flatMap(localizeConfiguredRoute))
 const baiduVerificationContent = '3c345798cdedc5cdc0a388e198c65a32'
 const baiduVerificationPaths = new Set([
   '/baidu_verify_codeva-HqQ4QBPDlh.html',
@@ -35,6 +37,19 @@ function normalizeUrl(url = '/') {
     return pathname.slice(0, -1)
   }
   return pathname
+}
+
+function localizeConfiguredRoute(route: string) {
+  const cleanPath = normalizeUrl(route)
+  if (cleanPath === '/') {
+    return supportedLangs.map((lang) => `/${lang}`)
+  }
+
+  if (/^\/(?:zh|ja)(?=\/|$)/i.test(cleanPath)) {
+    return [cleanPath]
+  }
+
+  return supportedLangs.map((lang) => `/${lang}${cleanPath}`)
 }
 
 function isAssetRequest(url = '/') {
@@ -91,21 +106,12 @@ function convertLegacyPath(pathname: string, lang: 'zh' | 'ja') {
   return cleanPath === '/' ? `/${lang}` : `/${lang}${cleanPath}`
 }
 
-function stripLangPrefix(pathname: string) {
-  const stripped = normalizeUrl(pathname).replace(/^\/(?:zh|ja)(?=\/|$)/i, '')
-  return stripped || '/'
-}
-
-function buildLegacyRedirect(url: URL) {
-  const queryLang = normalizeLang(url.searchParams.get('lang'))
-  if (!queryLang) {
-    return null
-  }
-
-  const targetUrl = new URL(convertLegacyPath(stripLangPrefix(url.pathname), queryLang), url.origin)
-  return targetUrl.toString()
-}
-
+/**
+ * 给请求添加语言前缀的重定向，例如 /about -> /zh/about 或 /ja/about，具体取决于用户的语言偏好
+ * @param pathname
+ * @param request
+ * @returns
+ */
 function buildBarePathRedirect(pathname: string, request: Request) {
   const cleanPath = normalizeUrl(pathname)
   if (cleanPath === '/' || cleanPath.startsWith('/zh') || cleanPath.startsWith('/ja')) {
@@ -167,9 +173,8 @@ function buildProxyHeaders(request: Request, env?: PagesFunctionEnv | null) {
 
 function stripProxyResponseHeaders(headers: Headers) {
   const cloned = new Headers(headers)
-  ;['content-encoding', 'content-length', 'transfer-encoding', 'connection'].forEach((name) =>
-    cloned.delete(name),
-  )
+  const hopByHopHeaders = ['content-encoding', 'content-length', 'transfer-encoding', 'connection']
+  hopByHopHeaders.forEach((name) => cloned.delete(name))
   return cloned
 }
 function isPathUnder(pathname: string, prefix: string) {
@@ -207,7 +212,7 @@ async function proxyApiRequest(request: Request, env: PagesFunctionEnv) {
     headers: stripProxyResponseHeaders(response.headers),
   })
 }
-async function proxyOtherRequest(request: Request) {
+async function proxyOtherRequest(request: Request, env: PagesFunctionEnv) {
   const url = new URL(request.url)
   if (!allowedOtherPaths.has(url.pathname)) {
     return new Response('Forbidden', {
@@ -230,7 +235,7 @@ async function proxyOtherRequest(request: Request) {
 
   const response = await fetch(targetUrl.toString(), {
     method: request.method,
-    headers: buildProxyHeaders(request),
+    headers: buildProxyHeaders(request, env),
     body: ['GET', 'HEAD'].includes(request.method) ? undefined : request.body,
   })
   return new Response(response.body, {
@@ -314,11 +319,6 @@ export const onRequest = async (context: FunctionContext) => {
       return env.ASSETS.fetch(createStaticAssetRequest(request, pathname))
     }
 
-    // const legacyRedirect = buildLegacyRedirect(url)
-    // if (legacyRedirect) {
-    //   return createRedirectResponse(legacyRedirect, 301)
-    // }
-
     if (pathname === '/') {
       return createRedirectResponse(`/${resolvePreferredLang(request)}`, 302)
     }
@@ -338,7 +338,7 @@ export const onRequest = async (context: FunctionContext) => {
     }
     if (pathname.startsWith('/other/')) {
       //特殊处理的请求，例如二维码等
-      return proxyOtherRequest(request)
+      return proxyOtherRequest(request, env)
     }
 
     if (isSsgRoute(pathname)) {
