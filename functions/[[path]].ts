@@ -314,10 +314,10 @@ export const onRequest = async (context: FunctionContext) => {
       return env.ASSETS.fetch(createStaticAssetRequest(request, pathname))
     }
 
-    const legacyRedirect = buildLegacyRedirect(url)
-    if (legacyRedirect) {
-      return createRedirectResponse(legacyRedirect, 301)
-    }
+    // const legacyRedirect = buildLegacyRedirect(url)
+    // if (legacyRedirect) {
+    //   return createRedirectResponse(legacyRedirect, 301)
+    // }
 
     if (pathname === '/') {
       return createRedirectResponse(`/${resolvePreferredLang(request)}`, 302)
