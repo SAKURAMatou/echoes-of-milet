@@ -10,6 +10,9 @@
       <p class="mt-4 max-w-2xl text-sm leading-7 text-slate-600">
         {{ pageText.lead }}
       </p>
+      <p class="mt-4 max-w-3xl rounded-lg border border-sky-100 bg-sky-50/55 px-4 py-3 text-[13px] leading-6 text-slate-500">
+        {{ pageText.disclaimer }}
+      </p>
     </header>
 
     <div v-if="loading && items.length === 0" class="space-y-4">
@@ -165,6 +168,8 @@ const pageText = computed(() => {
       end: 'no more news',
       noSummary: 'No summary yet.',
       open: 'Open article',
+      disclaimer:
+        'このページは公開ニュースリンクの収集と紹介のみを目的としており、ニュース本文の保存や転載は行いません。全文は元のニュースページでご確認ください。',
     }
   }
 
@@ -175,6 +180,8 @@ const pageText = computed(() => {
     end: '没有更多新闻了',
     noSummary: '暂无摘要',
     open: '打开新闻',
+    disclaimer:
+      '本页仅用于收藏和转载公开新闻链接，不保存、不转载新闻正文内容；完整内容请以原始新闻页面为准。',
   }
 })
 
