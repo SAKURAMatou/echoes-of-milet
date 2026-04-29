@@ -48,6 +48,14 @@ export function getMenu(now = new Date()): MenuItem[] {
       shown: true,
     },
     {
+      key: 'news',
+      label: 'NEWS',
+      sub: '- Curated news links',
+      color: 'green',
+      routerName: 'miletNews',
+      shown: true,
+    },
+    {
       key: 'release',
       label: 'RELEASE',
       sub: '- The milet anthology',

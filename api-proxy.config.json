@@ -13,6 +13,7 @@
     "miletHome": "/api/milet/homedata",
     "miletPiclist": "/api/milet/piclist/current",
     "miletTimeline": "/api/milet/timelinedata",
+    "miletNews": "/api/milet/news",
     "miletRelease": "/api/milet/release/type/",
     "miletReleaseDetail": "/api/milet/release/worker/detail/",
     "miletTrackListen": "/api/milet/tracklisten/",
