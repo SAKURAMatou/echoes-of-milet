@@ -7,6 +7,7 @@ declare module 'vue-router' {
   interface RouteMeta {
     renderMode?: 'ssg' | 'ssr' | 'csr'
     seoKey?: 'home' | 'milet' | 'about' | 'anniversary'
+    widePage?: boolean
   }
 }
 
@@ -97,6 +98,12 @@ export const routes: RouteRecordRaw[] = [
             name: 'miletSongGuessResult',
             meta: { renderMode: 'csr' },
             component: () => import('@/views/milet/interactive/SongGuessResultView.vue'),
+          },
+          {
+            path: 'pilgrimage',
+            name: 'miletPilgrimage',
+            meta: { renderMode: 'csr', widePage: true },
+            component: () => import('@/views/milet/MiletPilgrimageView.vue'),
           },
           {
             path: 'about',
