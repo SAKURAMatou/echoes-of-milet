@@ -88,6 +88,32 @@
               </button>
             </div>
           </div>
+
+          <div v-if="routes.length > 0" class="flex min-w-0 items-center gap-2">
+            <span class="shrink-0 text-xs font-semibold uppercase tracking-[0.15em] text-[#7c9197]">
+              {{ pageText.routeLabel }}
+            </span>
+            <div class="selector-scroll flex min-w-0 flex-1 gap-2 overflow-x-auto pb-1">
+              <button
+                type="button"
+                class="shrink-0 rounded-lg border px-3 py-1.5 text-sm font-medium transition focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-teal-100 lg:py-2"
+                :class="!selectedRouteId ? 'border-[#5ca8a6] bg-[#e9f7f4] text-[#1d6564]' : 'border-white/80 bg-white/62 text-[#60717a] hover:border-[#8bc8bf] hover:bg-white'"
+                @click="selectRoute('')"
+              >
+                {{ pageText.allRoutes }}
+              </button>
+              <button
+                v-for="routeItem in routes"
+                :key="routeItem.id"
+                type="button"
+                class="max-w-[14rem] shrink-0 rounded-lg border px-3 py-1.5 text-sm font-medium transition focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-teal-100 lg:py-2"
+                :class="selectedRouteId === routeItem.id ? 'border-[#5ca8a6] bg-[#e9f7f4] text-[#1d6564]' : 'border-white/80 bg-white/62 text-[#60717a] hover:border-[#8bc8bf] hover:bg-white'"
+                @click="selectRoute(routeItem.id)"
+              >
+                <span class="block truncate">{{ routeItem.title }}</span>
+              </button>
+            </div>
+          </div>
         </div>
 
         <div id="pilgrimage-map" class="relative h-full min-h-0 overflow-hidden border-t border-white/70">
@@ -266,6 +292,7 @@ import {
   type PilgrimageCity,
   type PilgrimageDistrict,
   type PilgrimageRegionTreeResponse,
+  type PilgrimageRoute,
   type PilgrimageSpotDetail,
   type PilgrimageSpotDetailResponse,
   type PilgrimageSpotListResponse,
@@ -281,6 +308,7 @@ const useLocalPreviewData =
 const mapContainer = ref<HTMLElement | null>(null)
 const mapRef = shallowRef<any>(null)
 const markerLayerRef = shallowRef<any>(null)
+const routeLayerRef = shallowRef<any>(null)
 const leafletRef = shallowRef<LeafletModule | null>(null)
 
 const regionTree = ref<PilgrimageRegionTreeResponse>(fallbackRegionTree)
@@ -289,6 +317,7 @@ const spotDetailPayload = ref<PilgrimageSpotDetailResponse | null>(null)
 const selectedCityId = ref('')
 const selectedDistrictId = ref('')
 const selectedSpotId = ref('')
+const selectedRouteId = ref('')
 const usingFallbackData = ref(false)
 const mapLoading = ref(true)
 const spotsLoading = ref(false)
@@ -306,6 +335,16 @@ const selectedDistrict = computed<PilgrimageDistrict | null>(() => {
 })
 const localizedSpots = computed(() => getLocalizedBranch(spotsPayload.value, currentLang.value))
 const spots = computed<PilgrimageSpotSummary[]>(() => localizedSpots.value?.spots || [])
+const routes = computed<PilgrimageRoute[]>(() => localizedSpots.value?.routes || [])
+const selectedRoute = computed(() => routes.value.find((item) => item.id === selectedRouteId.value) || null)
+const routeSpotIds = computed(() => new Set(selectedRoute.value?.spots.map((item) => item.spotId) || []))
+const routeOrderMap = computed(() => {
+  const map = new Map<string, number>()
+  selectedRoute.value?.spots.forEach((item, index) => {
+    map.set(item.spotId, index + 1)
+  })
+  return map
+})
 const localizedSpotDetail = computed(() => getLocalizedBranch(spotDetailPayload.value, currentLang.value))
 const selectedSpotDetail = computed<PilgrimageSpotDetail | null>(() => localizedSpotDetail.value?.spot || null)
 const navigationUrl = computed(() =>
@@ -425,11 +464,18 @@ function selectCity(cityId: string) {
 
 function selectDistrict(districtId: string) {
   selectedDistrictId.value = districtId
+  selectedRouteId.value = ''
 }
 
 async function selectSpot(spotId: string) {
   selectedSpotId.value = spotId
   await loadSpotDetail(spotId)
+}
+
+function selectRoute(routeId: string) {
+  selectedRouteId.value = routeId
+  renderMarkers()
+  renderRoutes()
 }
 
 function closeSpotDetail() {
@@ -467,6 +513,7 @@ async function initMap() {
     attribution: '&copy; OpenStreetMap contributors',
   }).addTo(mapRef.value)
 
+  routeLayerRef.value = L.layerGroup().addTo(mapRef.value)
   markerLayerRef.value = L.layerGroup().addTo(mapRef.value)
   mapLoading.value = false
   renderMarkers()
@@ -481,10 +528,12 @@ function renderMarkers() {
 
   spots.value.forEach((spot) => {
     const active = spot.id === selectedSpotId.value
+    const inRoute = routeSpotIds.value.has(spot.id)
+    const routeOrder = routeOrderMap.value.get(spot.id)
     const marker = L.marker([spot.displayLat, spot.displayLng], {
       icon: L.divIcon({
         className: '',
-        html: `<button class="pilgrimage-marker${active ? ' is-active' : ''}" type="button" aria-label="${spot.title}"><span></span></button>`,
+        html: `<button class="pilgrimage-marker${active ? ' is-active' : ''}${inRoute ? ' is-route' : ''}" type="button" aria-label="${spot.title}"><span></span>${routeOrder ? `<b>${routeOrder}</b>` : ''}</button>`,
         iconSize: active ? [42, 42] : [34, 34],
         iconAnchor: active ? [21, 40] : [17, 32],
       }),
@@ -494,6 +543,49 @@ function renderMarkers() {
       selectSpot(spot.id)
     })
     marker.addTo(markerLayer)
+  })
+}
+
+function renderRoutes() {
+  const L = leafletRef.value
+  const routeLayer = routeLayerRef.value
+  if (!L || !routeLayer) return
+
+  routeLayer.clearLayers()
+  const routeItem = selectedRoute.value
+  if (!routeItem) return
+
+  const spotMap = new Map(spots.value.map((spot) => [spot.id, spot]))
+  const points = routeItem.spots
+    .map((item) => spotMap.get(item.spotId))
+    .filter(Boolean)
+    .map((spot) => [spot!.displayLat, spot!.displayLng] as [number, number])
+
+  if (points.length < 2) return
+  L.polyline(points, {
+    color: routeItem.color || '#2f8f83',
+    weight: 5,
+    opacity: 0.78,
+    lineCap: 'round',
+    lineJoin: 'round',
+  }).addTo(routeLayer)
+
+  points.slice(0, -1).forEach((point, index) => {
+    const nextPoint = points[index + 1]
+    if (!nextPoint) return
+    const midPoint: [number, number] = [(point[0] + nextPoint[0]) / 2, (point[1] + nextPoint[1]) / 2]
+    const from = mapRef.value.latLngToLayerPoint(point)
+    const to = mapRef.value.latLngToLayerPoint(nextPoint)
+    const angle = Math.atan2(to.y - from.y, to.x - from.x) * (180 / Math.PI)
+    L.marker(midPoint, {
+      interactive: false,
+      icon: L.divIcon({
+        className: '',
+        html: `<span class="pilgrimage-route-arrow" style="--route-color:${routeItem.color || '#2f8f83'}; transform: rotate(${angle}deg)">➤</span>`,
+        iconSize: [28, 28],
+        iconAnchor: [14, 14],
+      }),
+    }).addTo(routeLayer)
   })
 }
 
@@ -537,6 +629,7 @@ watch(
     if (!districtId) return
     moveMapToDistrict()
     await loadDistrictSpots(districtId)
+    renderRoutes()
   },
 )
 
@@ -544,6 +637,7 @@ watch(
   () => [spots.value, selectedSpotId.value, currentLang.value],
   () => {
     renderMarkers()
+    renderRoutes()
   },
   { deep: true },
 )
@@ -679,6 +773,25 @@ onBeforeUnmount(() => {
   transform: rotate(45deg);
 }
 
+:global(.pilgrimage-marker b) {
+  position: absolute;
+  right: -9px;
+  top: -9px;
+  display: grid;
+  height: 20px;
+  min-width: 20px;
+  place-items: center;
+  border: 2px solid #fff;
+  border-radius: 999px;
+  background: #c98791;
+  color: #fff;
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1;
+  transform: rotate(45deg);
+  box-shadow: 0 10px 20px -14px rgba(31, 41, 55, 0.9);
+}
+
 :global(.pilgrimage-marker.is-active) {
   height: 42px;
   width: 42px;
@@ -690,6 +803,26 @@ onBeforeUnmount(() => {
   height: 16px;
   width: 16px;
   background: #c98791;
+}
+
+:global(.pilgrimage-marker.is-route span) {
+  background: #2f8f83;
+}
+
+:global(.pilgrimage-route-arrow) {
+  display: grid;
+  height: 28px;
+  width: 28px;
+  place-items: center;
+  color: var(--route-color, #2f8f83);
+  font-size: 21px;
+  line-height: 1;
+  text-shadow:
+    0 1px 0 #fff,
+    0 -1px 0 #fff,
+    1px 0 0 #fff,
+    -1px 0 0 #fff,
+    0 10px 22px rgba(31, 41, 55, 0.28);
 }
 
 @media (max-width: 1023px) {

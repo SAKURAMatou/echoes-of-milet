@@ -43,6 +43,19 @@ export interface PilgrimageSpotSummary {
   tags: string[]
 }
 
+export interface PilgrimageRoute {
+  id: string
+  districtId: string
+  title: string
+  description: string
+  color: string
+  sortOrder: number
+  spots: Array<{
+    spotId: string
+    sortOrder: number
+  }>
+}
+
 export interface PilgrimageSpotDetail extends PilgrimageSpotSummary {
   description: string
   address: string
@@ -60,6 +73,7 @@ export interface LocalizedRegionTree {
 
 export interface LocalizedSpotList {
   spots: PilgrimageSpotSummary[]
+  routes?: PilgrimageRoute[]
 }
 
 export interface LocalizedSpotDetail {
@@ -86,6 +100,8 @@ export interface PilgrimagePageText {
   subtitle: string
   cityLabel: string
   districtLabel: string
+  routeLabel: string
+  allRoutes: string
   allCities: string
   mapLabel: string
   detailLabel: string
@@ -105,6 +121,8 @@ export const PILGRIMAGE_TEXT: Record<PilgrimageLang, PilgrimagePageText> = {
     subtitle: '把作品里留下的街角、车站和光线，整理成可以慢慢走近的地图。',
     cityLabel: '城市',
     districtLabel: '区划',
+    routeLabel: '路线',
+    allRoutes: '全部',
     allCities: '全部城市',
     mapLabel: '地图',
     detailLabel: '地点详情',
@@ -122,6 +140,8 @@ export const PILGRIMAGE_TEXT: Record<PilgrimageLang, PilgrimagePageText> = {
     subtitle: '作品に残った街角、駅、光を、少しずつ辿れる地図に整える。',
     cityLabel: '都市',
     districtLabel: 'エリア',
+    routeLabel: 'ルート',
+    allRoutes: 'すべて',
     allCities: 'すべての都市',
     mapLabel: '地図',
     detailLabel: 'スポット詳細',
@@ -191,7 +211,7 @@ export const fallbackRegionTree: PilgrimageRegionTreeResponse = {
             centerLat: 35.6618,
             centerLng: 139.7041,
             defaultZoom: 14,
-            spotCount: 2,
+            spotCount: 3,
           },
           {
             id: 'minato',
@@ -242,7 +262,7 @@ export const fallbackRegionTree: PilgrimageRegionTreeResponse = {
             centerLat: 35.6618,
             centerLng: 139.7041,
             defaultZoom: 14,
-            spotCount: 2,
+            spotCount: 3,
           },
           {
             id: 'minato',
@@ -302,6 +322,44 @@ export const fallbackSpotLists: Record<string, PilgrimageSpotListResponse> = {
           category: '路口',
           tags: ['城市', '行人'],
         },
+        {
+          id: 'jingumae-crosswalk',
+          title: '神宫前人行道',
+          workTitle: 'Wake Me Up',
+          displayLat: 35.667,
+          displayLng: 139.7072,
+          coverImageUrl: fallbackPhotos.omotesando[1].thumbUrl,
+          category: '街角',
+          tags: ['步行', '白天', '转角'],
+        },
+      ],
+      routes: [
+        {
+          id: 'shibuya-route-1',
+          districtId: 'shibuya',
+          title: '表参道到涩谷路线',
+          description: '从神宫前走到表参道，再慢慢转向涩谷路口，适合预览路线连线和 spot 顺序。',
+          color: '#2f8f83',
+          sortOrder: 0,
+          spots: [
+            { spotId: 'jingumae-crosswalk', sortOrder: 0 },
+            { spotId: 'omotesando-street', sortOrder: 1 },
+            { spotId: 'shibuya-crossing', sortOrder: 2 },
+          ],
+        },
+        {
+          id: 'shibuya-route-2',
+          districtId: 'shibuya',
+          title: '涩谷回游路线',
+          description: '从涩谷路口回到表参道，再延伸到神宫前，用于验证多路线横向滚动。',
+          color: '#c98791',
+          sortOrder: 1,
+          spots: [
+            { spotId: 'shibuya-crossing', sortOrder: 0 },
+            { spotId: 'omotesando-street', sortOrder: 1 },
+            { spotId: 'jingumae-crosswalk', sortOrder: 2 },
+          ],
+        },
       ],
     },
     jp: {
@@ -325,6 +383,44 @@ export const fallbackSpotLists: Record<string, PilgrimageSpotListResponse> = {
           coverImageUrl: fallbackPhotos.shibuya[0].thumbUrl,
           category: '交差点',
           tags: ['都市', '歩道'],
+        },
+        {
+          id: 'jingumae-crosswalk',
+          title: '神宮前の歩道',
+          workTitle: 'Wake Me Up',
+          displayLat: 35.667,
+          displayLng: 139.7072,
+          coverImageUrl: fallbackPhotos.omotesando[1].thumbUrl,
+          category: '街角',
+          tags: ['散歩', '昼', '曲がり角'],
+        },
+      ],
+      routes: [
+        {
+          id: 'shibuya-route-1',
+          districtId: 'shibuya',
+          title: '表参道から渋谷へ',
+          description: '神宮前から表参道を通り、渋谷の交差点へ向かう、ルート表示確認用の巡礼ルート。',
+          color: '#2f8f83',
+          sortOrder: 0,
+          spots: [
+            { spotId: 'jingumae-crosswalk', sortOrder: 0 },
+            { spotId: 'omotesando-street', sortOrder: 1 },
+            { spotId: 'shibuya-crossing', sortOrder: 2 },
+          ],
+        },
+        {
+          id: 'shibuya-route-2',
+          districtId: 'shibuya',
+          title: '渋谷回遊ルート',
+          description: '渋谷の交差点から表参道へ戻り、神宮前まで歩く、複数ルート確認用の巡礼ルート。',
+          color: '#c98791',
+          sortOrder: 1,
+          spots: [
+            { spotId: 'shibuya-crossing', sortOrder: 0 },
+            { spotId: 'omotesando-street', sortOrder: 1 },
+            { spotId: 'jingumae-crosswalk', sortOrder: 2 },
+          ],
         },
       ],
     },
@@ -454,6 +550,41 @@ export const fallbackSpotDetails: Record<string, PilgrimageSpotDetailResponse> =
         navigationProvider: 'google',
         navigationMode: 'walking',
         photos: fallbackPhotos.shibuya,
+      },
+    },
+  },
+  'jingumae-crosswalk': {
+    zh: {
+      spot: {
+        ...fallbackSpotLists.shibuya.zh.spots[2],
+        description: '靠近神宫前的人行道适合验证三点路线和箭头方向，在地图上会形成更明显的折线。',
+        address: '东京都涩谷区神宫前附近',
+        countryCode: 'JP',
+        navLat: 35.667,
+        navLng: 139.7072,
+        navigationProvider: 'google',
+        navigationMode: 'walking',
+        photos: fallbackPhotos.omotesando,
+      },
+    },
+    jp: {
+      spot: {
+        ...fallbackSpotLists.shibuya.jp.spots[2],
+        description: '神宮前に近い歩道。三点ルートと矢印の向きを確認しやすいよう、地図上で折れ線になる位置に置いている。',
+        address: '東京都渋谷区神宮前付近',
+        countryCode: 'JP',
+        navLat: 35.667,
+        navLng: 139.7072,
+        navigationProvider: 'google',
+        navigationMode: 'walking',
+        photos: fallbackPhotos.omotesando.map((photo) => ({
+          ...photo,
+          alt: photo.alt.replace('表参道街景照片', '神宮前の歩道写真'),
+          caption:
+            photo.id === 'photo-omotesando-1'
+              ? '昼の街並みと歩道の光。'
+              : '曲がり角、横断歩道、街路樹。',
+        })),
       },
     },
   },

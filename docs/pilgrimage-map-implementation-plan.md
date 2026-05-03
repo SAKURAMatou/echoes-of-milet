@@ -745,3 +745,88 @@ Google Maps、高德地图分享链接格式可能变化，短链接也可能需
 - 发布后定向删除相关缓存，并提供管理端独立删除巡礼缓存按钮。
 
 批量导入、坐标质量评分、重复检测、marker 聚合、商业瓦片服务可以作为第二阶段。
+
+## 17. 已确认的照片管理方案
+
+本节覆盖前文 8.3 中“新建 pilgrimage_spot_images 关联表”的早期设想，第一版不再为圣地巡礼单独维护地点-照片关联表。
+
+### 17.1 复用现有图库结构
+
+圣地巡礼地点照片复用现有图片系统：
+
+- 图片文件继续存储在现有 R2 / img_info 体系中。
+- `img_info.img_type` 增加业务类型 `spot`，用于区分圣地巡礼照片。
+- 现有 milet 相关公开图库照片继续使用 `img_type = M`。
+- spot 详情不直接关联照片 ID，而是关联一个现有图片系列 / 相册。
+
+相册表 `img_series` 新增公开标识：
+
+```txt
+img_series.is_public INTEGER NOT NULL DEFAULT 1
+```
+
+规则：
+
+- 普通公开图库相册：`is_public = 1`。
+- 圣地巡礼 spot 关联相册：建议 `is_public = 0`，不进入公开图库列表。
+- 相册自身仍通过现有图片系列管理维护名称、描述、封面、照片排序。
+
+### 17.2 Spot 与相册关联
+
+`pilgrimage_spots` 新增字段：
+
+```txt
+image_series_id INTEGER
+```
+
+公开端数据组装规则：
+
+- spot 详情顶部封面图：读取 `image_series_id` 对应相册的 `cover_img`。
+- spot 详情下方照片列表：读取 `img_series_items` 中该相册的照片。
+- 照片 URL、缩略图、宽高继续来自 `img_info`。
+- 照片说明第一版复用 `img_info.comment`，不在巡礼模块单独维护每张照片的多语言说明。
+
+### 17.3 管理端照片流程
+
+照片上传：
+
+- 批量上传组件需要允许选择图片类型。
+- 默认类型仍为 `M`。
+- 上传圣地巡礼相关照片时选择 `spot`。
+
+图片选择：
+
+- 管理端图片选择器改用管理端图片列表 API，不再复用公开端图片分页 API。
+- 图片选择器支持按 `img_type` 筛选，例如 `M` / `spot`。
+
+相册维护：
+
+- 图片系列管理页支持设置相册是否公开。
+- 图片系列管理页支持设置相册类型，圣地巡礼相册建议使用 `series_type = spot`。
+- 圣地巡礼管理页只选择一个关联相册，不直接选择单张照片。
+
+### 17.4 公开端与缓存
+
+公开端 API 返回结构保持 `{ "jp": {}, "zh": {} }` 整体结构不变。
+
+缓存 key 不因照片方案变化而增加：
+
+```txt
+pilgrimage:region-tree
+pilgrimage:spots:{district_id}
+pilgrimage:spot:{spot_id}
+```
+
+当 spot 关联相册、相册封面或相册内照片变化时，需要主动删除对应 spot 详情缓存和该地区 spots 列表缓存。管理端保留独立的“删除巡礼缓存”按钮用于人工修复缓存异常。
+
+## 18. 巡礼路线方案
+
+一个地区可以配置多条巡礼路线。路线作为独立数据管理，不直接修改 spot 本身：
+
+- `pilgrimage_routes` 保存路线主数据：`id`、`district_id`、`color`、`status`、`sort_order`。
+- `pilgrimage_route_i18n` 保存路线多语言标题和说明。
+- `pilgrimage_route_spots` 保存路线内 spot 的顺序。
+- 公开端地区 spots 接口在返回 spots 的同时返回 routes，数据仍保持 `{ "jp": {}, "zh": {} }` 整体结构。
+- 管理端在圣地巡礼模块中维护路线：选择地区，填写路线多语言名称，按顺序追加该地区下的 spot。
+- 公开端在地图上选择路线后，按配置顺序绘制 polyline，并高亮路线内 spot。
+- 保存或删除路线时主动删除对应 district 的 spots/routes 缓存。
