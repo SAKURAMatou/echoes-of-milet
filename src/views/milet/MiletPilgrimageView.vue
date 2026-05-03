@@ -1,9 +1,11 @@
 <template>
-  <article class="pilgrimage-page overflow-hidden rounded-lg text-[#24323a] lg:mb-10">
+  <article class="pilgrimage-page overflow-hidden rounded-lg text-[#24323a] lg:mb-6">
     <section
       class="pilgrimage-workspace relative h-[calc(100dvh-4rem)] min-h-[620px] overflow-hidden lg:grid lg:h-[calc(100vh-7.5rem)] lg:min-h-[760px] lg:grid-cols-[minmax(0,1fr)_360px] lg:overflow-visible xl:grid-cols-[minmax(0,1fr)_400px]"
     >
-      <div class="relative h-full min-w-0 border-b border-white/70 lg:grid lg:grid-rows-[auto_auto_minmax(0,1fr)] lg:border-b-0 lg:border-r">
+      <div
+        class="relative h-full min-w-0 border-b border-white/70 lg:grid lg:grid-rows-[auto_auto_minmax(0,1fr)] lg:border-b-0 lg:border-r"
+      >
         <header class="hidden border-b border-white/70 px-7 py-5 lg:block">
           <div class="flex items-end justify-between gap-5">
             <div class="min-w-0">
@@ -15,8 +17,12 @@
               </p>
             </div>
 
-            <div class="shrink-0 rounded-lg border border-white/70 bg-white/64 px-4 py-3 text-sm text-[#526670]">
-              <span class="block text-[11px] font-semibold uppercase tracking-[0.16em] text-[#7c9197]">
+            <div
+              class="shrink-0 rounded-lg border border-white/70 bg-white/64 px-4 py-3 text-sm text-[#526670]"
+            >
+              <span
+                class="block text-[11px] font-semibold uppercase tracking-[0.16em] text-[#7c9197]"
+              >
                 {{ pageText.currentArea }}
               </span>
               <span class="mt-1 block max-w-[190px] truncate font-medium text-[#26313a]">
@@ -27,245 +33,40 @@
           </div>
         </header>
 
-        <div
-          class="absolute left-3 right-3 top-3 z-20 space-y-3 rounded-lg border border-white/80 bg-white/82 p-3 shadow-[0_18px_54px_-42px_rgba(31,41,55,0.8)] backdrop-blur lg:static lg:min-h-0 lg:space-y-3 lg:overflow-hidden lg:border-0 lg:bg-transparent lg:px-7 lg:py-4 lg:shadow-none lg:backdrop-blur-0"
-        >
-          <div class="flex items-center justify-between gap-3 lg:hidden">
-            <div>
-              <span class="block text-[10px] font-semibold uppercase tracking-[0.14em] text-[#7c9197]">
-                {{ pageText.currentArea }}
-              </span>
-              <span class="mt-0.5 block text-sm font-medium text-[#26313a]">
-                {{ selectedCity?.name || pageText.allCities }}
-                <span v-if="selectedDistrict">/ {{ selectedDistrict.name }}</span>
-              </span>
-            </div>
-          </div>
+        <PilgrimageAreaControls
+          :page-text="pageText"
+          :cities="cities"
+          :selected-city="selectedCity"
+          :selected-district="selectedDistrict"
+          :selected-city-id="selectedCityId"
+          :selected-district-id="selectedDistrictId"
+          :routes="routes"
+          :selected-route-id="selectedRouteId"
+          @select-city="selectCity"
+          @select-district="selectDistrict"
+          @select-route="selectRoute"
+        />
 
-          <div class="flex flex-col gap-3 xl:flex-row xl:items-center xl:justify-between">
-            <div class="flex min-w-0 items-center gap-2">
-              <span class="shrink-0 text-xs font-semibold uppercase tracking-[0.15em] text-[#7c9197]">
-                {{ pageText.cityLabel }}
-              </span>
-              <div class="selector-scroll flex min-w-0 flex-1 gap-2 overflow-x-auto pb-1">
-                <button
-                  v-for="city in cities"
-                  :key="city.id"
-                  type="button"
-                  class="max-w-[9.5rem] shrink-0 rounded-lg border px-3 py-1.5 text-sm font-medium transition focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-teal-100 lg:max-w-[12rem] lg:py-2"
-                  :class="
-                    selectedCityId === city.id
-                      ? 'border-[#5ca8a6] bg-[#e9f7f4] text-[#1d6564] shadow-sm'
-                      : 'border-white/80 bg-white/68 text-[#566b73] hover:border-[#8bc8bf] hover:bg-white'
-                  "
-                  @click="selectCity(city.id)"
-                >
-                  <span class="block truncate">{{ city.name }}</span>
-                </button>
-              </div>
-            </div>
-          </div>
-
-          <div class="flex min-w-0 items-center gap-2">
-            <span class="shrink-0 text-xs font-semibold uppercase tracking-[0.15em] text-[#7c9197]">
-              {{ pageText.districtLabel }}
-            </span>
-            <div class="selector-scroll flex min-w-0 flex-1 gap-2 overflow-x-auto pb-1">
-              <button
-                v-for="district in selectedCity?.districts || []"
-                :key="district.id"
-                type="button"
-                class="flex max-w-[11rem] shrink-0 items-center rounded-lg border px-3 py-1.5 text-sm transition focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-rose-100 lg:max-w-[14rem] lg:py-2"
-                :class="
-                  selectedDistrictId === district.id
-                    ? 'border-[#c98791] bg-[#fff1f2] text-[#8f3f4b]'
-                    : 'border-white/80 bg-white/62 text-[#60717a] hover:border-[#e7aeb7] hover:bg-white'
-                "
-                @click="selectDistrict(district.id)"
-              >
-                <span class="truncate font-medium">{{ district.name }}</span>
-                <span class="ml-2 text-xs text-[#8a9ca2]">{{ district.spotCount }}</span>
-              </button>
-            </div>
-          </div>
-
-          <div v-if="routes.length > 0" class="flex min-w-0 items-center gap-2">
-            <span class="shrink-0 text-xs font-semibold uppercase tracking-[0.15em] text-[#7c9197]">
-              {{ pageText.routeLabel }}
-            </span>
-            <div class="selector-scroll flex min-w-0 flex-1 gap-2 overflow-x-auto pb-1">
-              <button
-                type="button"
-                class="shrink-0 rounded-lg border px-3 py-1.5 text-sm font-medium transition focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-teal-100 lg:py-2"
-                :class="!selectedRouteId ? 'border-[#5ca8a6] bg-[#e9f7f4] text-[#1d6564]' : 'border-white/80 bg-white/62 text-[#60717a] hover:border-[#8bc8bf] hover:bg-white'"
-                @click="selectRoute('')"
-              >
-                {{ pageText.allRoutes }}
-              </button>
-              <button
-                v-for="routeItem in routes"
-                :key="routeItem.id"
-                type="button"
-                class="max-w-[14rem] shrink-0 rounded-lg border px-3 py-1.5 text-sm font-medium transition focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-teal-100 lg:py-2"
-                :class="selectedRouteId === routeItem.id ? 'border-[#5ca8a6] bg-[#e9f7f4] text-[#1d6564]' : 'border-white/80 bg-white/62 text-[#60717a] hover:border-[#8bc8bf] hover:bg-white'"
-                @click="selectRoute(routeItem.id)"
-              >
-                <span class="block truncate">{{ routeItem.title }}</span>
-              </button>
-            </div>
-          </div>
-        </div>
-
-        <div id="pilgrimage-map" class="relative h-full min-h-0 overflow-hidden border-t border-white/70">
-          <div ref="mapContainer" class="absolute inset-0 z-0 bg-[#e9f2ef]" />
-
-          <div
-            v-if="mapLoading"
-            class="absolute inset-0 z-20 flex items-center justify-center bg-white/60 text-sm text-[#526670] backdrop-blur-sm"
-          >
-            {{ pageText.loading }}
-          </div>
-
-          <div
-            v-if="!selectedDistrict"
-            class="absolute left-5 top-5 z-10 max-w-xs rounded-lg border border-white/80 bg-white/80 p-4 text-sm text-[#60717a] shadow-[0_20px_54px_-38px_rgba(31,41,55,0.75)] backdrop-blur"
-          >
-            {{ pageText.emptyDistrict }}
-          </div>
-
-          <div
-            v-if="selectedDistrict && spots.length === 0 && !spotsLoading"
-            class="absolute left-5 top-5 z-10 max-w-xs rounded-lg border border-white/80 bg-white/80 p-4 text-sm text-[#60717a] shadow-[0_20px_54px_-38px_rgba(31,41,55,0.75)] backdrop-blur"
-          >
-            {{ pageText.emptySpot }}
-          </div>
-
-          <div
-            class="absolute bottom-4 left-4 z-10 rounded-lg border border-white/80 bg-white/82 px-3 py-2 text-xs text-[#526670] shadow-[0_18px_45px_-35px_rgba(31,41,55,0.8)] backdrop-blur"
-          >
-            {{ pageText.mapLabel }} / OpenStreetMap
-          </div>
-        </div>
+        <PilgrimageMapPane
+          ref="mapPaneRef"
+          :page-text="pageText"
+          :map-loading="mapLoading"
+          :map-transitioning="mapTransitioning"
+          :spots-loading="spotsLoading"
+          :markers-visible="markersVisible"
+          :selected-district="selectedDistrict"
+          :spots-count="spots.length"
+        />
       </div>
 
-      <aside
-        id="pilgrimage-detail"
-        class="absolute inset-x-0 bottom-0 z-[1000] max-h-[72%] overflow-y-auto rounded-t-2xl border-t border-white/80 bg-[linear-gradient(180deg,rgba(255,255,255,0.94),rgba(245,250,248,0.96))] px-4 pb-5 pt-3 shadow-[0_-24px_70px_-42px_rgba(31,41,55,0.86)] transition-transform duration-300 sm:px-6 lg:static lg:z-auto lg:max-h-full lg:min-h-0 lg:translate-y-0 lg:overflow-y-auto lg:rounded-none lg:border-t-0 lg:bg-[linear-gradient(180deg,rgba(255,255,255,0.72),rgba(245,250,248,0.82))] lg:px-5 lg:py-5 lg:shadow-none"
-        :class="
-          selectedSpotDetail
-            ? 'translate-y-0'
-            : 'pointer-events-none translate-y-[calc(100%+1rem)] lg:pointer-events-auto'
-        "
-      >
-        <div v-if="selectedSpotDetail" class="flex h-full flex-col">
-          <div
-            class="sticky top-0 z-30 -mx-4 mb-3 flex h-10 items-center justify-center bg-[linear-gradient(180deg,rgba(255,255,255,0.98),rgba(255,255,255,0.9))] px-4 pt-1 sm:-mx-6 sm:px-6 lg:hidden"
-          >
-            <span class="mx-auto h-1.5 w-12 rounded-full bg-[#c8d7d4]" aria-hidden="true" />
-            <button
-              type="button"
-              class="absolute right-4 top-1 flex h-8 w-8 items-center justify-center rounded-lg border border-[#d9e7e4] bg-white/92 text-lg leading-none text-[#60717a] shadow-[0_12px_30px_-22px_rgba(31,41,55,0.9)] sm:right-6"
-              aria-label="Close spot detail"
-              @click="closeSpotDetail"
-            >
-              x
-            </button>
-          </div>
-
-          <div class="overflow-hidden rounded-lg border border-white/80 bg-white/78 shadow-[0_22px_60px_-42px_rgba(31,41,55,0.8)]">
-            <img
-              :src="selectedSpotDetail.coverImageUrl"
-              :alt="selectedSpotDetail.title"
-              class="h-48 w-full object-cover"
-            />
-            <div class="p-4">
-              <div class="flex items-start justify-between gap-3">
-                <div class="min-w-0">
-                  <p class="text-xs font-semibold uppercase tracking-[0.16em] text-[#789096]">
-                    {{ selectedSpotDetail.category }}
-                  </p>
-                  <h2 class="mt-1 break-words font-serif text-3xl leading-tight text-[#26313a]">
-                    {{ selectedSpotDetail.title }}
-                  </h2>
-                </div>
-                <a
-                  :href="navigationUrl"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  class="shrink-0 rounded-lg border border-[#6fb8ad] bg-[#e8f8f4] px-3 py-2 text-sm font-semibold text-[#1f6a66] transition hover:border-[#4f9f99] hover:bg-white focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-teal-100"
-                >
-                  {{ pageText.navigation }}
-                </a>
-              </div>
-
-              <dl class="mt-4 space-y-3 text-sm">
-                <div>
-                  <dt class="text-xs font-semibold uppercase tracking-[0.14em] text-[#82939a]">
-                    {{ pageText.works }}
-                  </dt>
-                  <dd class="mt-1 text-[#34444b]">{{ selectedSpotDetail.workTitle }}</dd>
-                </div>
-                <div>
-                  <dt class="text-xs font-semibold uppercase tracking-[0.14em] text-[#82939a]">
-                    {{ pageText.address }}
-                  </dt>
-                  <dd class="mt-1 leading-6 text-[#526670]">{{ selectedSpotDetail.address }}</dd>
-                </div>
-              </dl>
-
-              <p class="mt-4 text-sm leading-7 text-[#526670]">
-                {{ selectedSpotDetail.description }}
-              </p>
-
-              <div class="mt-4 flex flex-wrap gap-2">
-                <span
-                  v-for="tag in selectedSpotDetail.tags"
-                  :key="tag"
-                  class="rounded-lg border border-[#dbe7e4] bg-[#f7fbfa] px-2.5 py-1 text-xs text-[#60717a]"
-                >
-                  {{ tag }}
-                </span>
-              </div>
-            </div>
-          </div>
-
-          <section class="mt-5 min-h-0 flex-1">
-            <div class="mb-3 flex items-center justify-between">
-              <h3 class="text-sm font-semibold uppercase tracking-[0.14em] text-[#64777f]">
-                {{ pageText.photoLabel }}
-              </h3>
-              <span class="text-xs text-[#8a9ca2]">{{ selectedSpotDetail.photos.length }}</span>
-            </div>
-
-            <div class="photo-grid grid gap-3">
-              <a
-                v-for="photo in selectedSpotDetail.photos"
-                :key="photo.id"
-                :href="photo.fullUrl"
-                :data-fancybox="galleryName"
-                :data-caption="photo.caption"
-                :data-width="photo.width"
-                :data-height="photo.height"
-                :data-download-src="photo.downloadUrl || photo.fullUrl"
-                class="pilgrimage-photo block overflow-hidden rounded-lg border border-white/80 bg-white/78 p-1 shadow-[0_16px_42px_-34px_rgba(31,41,55,0.78)] transition hover:-translate-y-0.5 hover:border-[#9bd0c8]"
-              >
-                <LazyImage
-                  :src="photo.thumbUrl || photo.fullUrl"
-                  :alt="photo.alt"
-                  :downloadSrc="photo.downloadUrl || photo.fullUrl"
-                />
-              </a>
-            </div>
-          </section>
-        </div>
-
-        <div
-          v-else
-          class="flex min-h-[480px] items-center justify-center rounded-lg border border-dashed border-[#cadbd7] bg-white/48 p-8 text-center text-sm leading-7 text-[#60717a]"
-        >
-          {{ spotsLoading ? pageText.loading : pageText.emptySpot }}
-        </div>
-      </aside>
+      <PilgrimageSpotDetailPanel
+        :page-text="pageText"
+        :selected-spot-detail="selectedSpotDetail"
+        :navigation-url="navigationUrl"
+        :gallery-name="galleryName"
+        :spots-loading="spotsLoading"
+        @close="closeSpotDetail"
+      />
     </section>
   </article>
 </template>
@@ -279,7 +80,9 @@ import { computed, nextTick, onBeforeUnmount, onMounted, ref, shallowRef, watch 
 import { useRoute } from 'vue-router'
 
 import axiosInstance from '@/AxiosUtil'
-import LazyImage from '@/components/LazyImage.vue'
+import PilgrimageAreaControls from '@/components/milet/pilgrimage/PilgrimageAreaControls.vue'
+import PilgrimageMapPane from '@/components/milet/pilgrimage/PilgrimageMapPane.vue'
+import PilgrimageSpotDetailPanel from '@/components/milet/pilgrimage/PilgrimageSpotDetailPanel.vue'
 import {
   buildNavigationUrl,
   fallbackRegionTree,
@@ -301,11 +104,16 @@ import {
 import { apiRoutes } from '@/config/api'
 
 type LeafletModule = typeof import('leaflet')
+type PilgrimageMapPaneExpose = {
+  mapContainer: HTMLElement | { value: HTMLElement | null } | null
+}
+
+const MAP_BOUNDS_PADDING_RATIO = 1
 
 const route = useRoute()
 const useLocalPreviewData =
   import.meta.env.DEV && import.meta.env.VITE_USE_PILGRIMAGE_API !== 'true'
-const mapContainer = ref<HTMLElement | null>(null)
+const mapPaneRef = ref<PilgrimageMapPaneExpose | null>(null)
 const mapRef = shallowRef<any>(null)
 const markerLayerRef = shallowRef<any>(null)
 const routeLayerRef = shallowRef<any>(null)
@@ -321,7 +129,10 @@ const selectedRouteId = ref('')
 const usingFallbackData = ref(false)
 const mapLoading = ref(true)
 const spotsLoading = ref(false)
+const mapTransitioning = ref(false)
+const markersVisible = ref(false)
 const isMobileViewport = ref(false)
+let districtLoadToken = 0
 
 const currentLang = computed(() => normalizePilgrimageLang(String(route.params.lang || 'zh')))
 const pageText = computed(() => PILGRIMAGE_TEXT[currentLang.value])
@@ -331,13 +142,20 @@ const selectedCity = computed<PilgrimageCity | null>(
   () => cities.value.find((city) => city.id === selectedCityId.value) || cities.value[0] || null,
 )
 const selectedDistrict = computed<PilgrimageDistrict | null>(() => {
-  return selectedCity.value?.districts.find((district) => district.id === selectedDistrictId.value) || null
+  return (
+    selectedCity.value?.districts.find((district) => district.id === selectedDistrictId.value) ||
+    null
+  )
 })
 const localizedSpots = computed(() => getLocalizedBranch(spotsPayload.value, currentLang.value))
 const spots = computed<PilgrimageSpotSummary[]>(() => localizedSpots.value?.spots || [])
 const routes = computed<PilgrimageRoute[]>(() => localizedSpots.value?.routes || [])
-const selectedRoute = computed(() => routes.value.find((item) => item.id === selectedRouteId.value) || null)
-const routeSpotIds = computed(() => new Set(selectedRoute.value?.spots.map((item) => item.spotId) || []))
+const selectedRoute = computed(
+  () => routes.value.find((item) => item.id === selectedRouteId.value) || null,
+)
+const routeSpotIds = computed(
+  () => new Set(selectedRoute.value?.spots.map((item) => item.spotId) || []),
+)
 const routeOrderMap = computed(() => {
   const map = new Map<string, number>()
   selectedRoute.value?.spots.forEach((item, index) => {
@@ -345,8 +163,12 @@ const routeOrderMap = computed(() => {
   })
   return map
 })
-const localizedSpotDetail = computed(() => getLocalizedBranch(spotDetailPayload.value, currentLang.value))
-const selectedSpotDetail = computed<PilgrimageSpotDetail | null>(() => localizedSpotDetail.value?.spot || null)
+const localizedSpotDetail = computed(() =>
+  getLocalizedBranch(spotDetailPayload.value, currentLang.value),
+)
+const selectedSpotDetail = computed<PilgrimageSpotDetail | null>(
+  () => localizedSpotDetail.value?.spot || null,
+)
 const navigationUrl = computed(() =>
   selectedSpotDetail.value ? buildNavigationUrl(selectedSpotDetail.value) : '#',
 )
@@ -382,9 +204,10 @@ async function loadRegionTree() {
   usingFallbackData.value = true
 }
 
-async function loadDistrictSpots(districtId: string) {
+async function loadDistrictSpots(districtId: string, options: { autoSelect?: boolean } = {}) {
   if (!districtId) return
 
+  const autoSelect = options.autoSelect ?? true
   spotsLoading.value = true
   selectedSpotId.value = ''
   spotDetailPayload.value = null
@@ -394,7 +217,7 @@ async function loadDistrictSpots(districtId: string) {
     usingFallbackData.value = true
     spotsLoading.value = false
     const firstSpot = spots.value[0]
-    if (firstSpot && !isMobileViewport.value) {
+    if (autoSelect && firstSpot && !isMobileViewport.value) {
       await selectSpot(firstSpot.id)
     }
     return
@@ -421,7 +244,7 @@ async function loadDistrictSpots(districtId: string) {
   }
 
   const firstSpot = spots.value[0]
-  if (firstSpot && !isMobileViewport.value) {
+  if (autoSelect && firstSpot && !isMobileViewport.value) {
     await selectSpot(firstSpot.id)
   }
 }
@@ -430,7 +253,10 @@ async function loadSpotDetail(spotId: string) {
   if (!spotId) return
 
   if (useLocalPreviewData) {
-    spotDetailPayload.value = fallbackSpotDetails[spotId] || { zh: { spot: null }, jp: { spot: null } }
+    spotDetailPayload.value = fallbackSpotDetails[spotId] || {
+      zh: { spot: null },
+      jp: { spot: null },
+    }
     usingFallbackData.value = true
     return
   }
@@ -447,7 +273,10 @@ async function loadSpotDetail(spotId: string) {
     console.warn('Failed to load pilgrimage spot detail, using fallback data.', error)
   }
 
-  spotDetailPayload.value = fallbackSpotDetails[spotId] || { zh: { spot: null }, jp: { spot: null } }
+  spotDetailPayload.value = fallbackSpotDetails[spotId] || {
+    zh: { spot: null },
+    jp: { spot: null },
+  }
   usingFallbackData.value = true
 }
 
@@ -469,18 +298,26 @@ function selectDistrict(districtId: string) {
 
 async function selectSpot(spotId: string) {
   selectedSpotId.value = spotId
+  applyMapZoomLimits()
   await loadSpotDetail(spotId)
 }
 
-function selectRoute(routeId: string) {
+async function selectRoute(routeId: string) {
   selectedRouteId.value = routeId
+  applyMapZoomLimits()
+  markersVisible.value = false
   renderMarkers()
   renderRoutes()
+  await moveMapToDistrict({ duration: 0.45 })
+  requestAnimationFrame(() => {
+    markersVisible.value = true
+  })
 }
 
 function closeSpotDetail() {
   selectedSpotId.value = ''
   spotDetailPayload.value = null
+  applyMapZoomLimits()
   renderMarkers()
 }
 
@@ -492,31 +329,69 @@ function updateViewportMode() {
   })
 }
 
+function getMapContainer() {
+  const exposed = mapPaneRef.value?.mapContainer
+  if (!exposed) return null
+  return exposed instanceof HTMLElement ? exposed : exposed.value
+}
+
 async function initMap() {
-  if (!mapContainer.value || mapRef.value) return
+  const mapContainer = getMapContainer()
+  if (!mapContainer || mapRef.value) return
 
   const L = await import('leaflet')
   leafletRef.value = L
 
-  const district = selectedDistrict.value || findInitialDistrict(regionTree.value, currentLang.value)
+  const district =
+    selectedDistrict.value || findInitialDistrict(regionTree.value, currentLang.value)
   const center: [number, number] = district
     ? [district.centerLat, district.centerLng]
     : [35.6762, 139.6503]
 
-  mapRef.value = L.map(mapContainer.value, {
+  mapRef.value = L.map(mapContainer, {
     zoomControl: true,
     attributionControl: true,
-  }).setView(center, district?.defaultZoom || 12)
+    inertia: false,
+    minZoom: 11,
+    maxZoom: 20,
+    maxBoundsViscosity: 0.52,
+  }).setView(center, district?.defaultZoom || 14)
 
-  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-    maxZoom: 19,
-    attribution: '&copy; OpenStreetMap contributors',
+  L.tileLayer('https://tiles.stadiamaps.com/tiles/osm_bright/{z}/{x}/{y}{r}.png', {
+    maxNativeZoom: 19,
+    maxZoom: 20,
+    detectRetina: false,
+    keepBuffer: 2,
+    updateWhenIdle: true,
+    updateWhenZooming: false,
+    attribution: '&copy; Stadia Maps &copy; OpenMapTiles &copy; OpenStreetMap contributors',
   }).addTo(mapRef.value)
 
   routeLayerRef.value = L.layerGroup().addTo(mapRef.value)
   markerLayerRef.value = L.layerGroup().addTo(mapRef.value)
+  mapRef.value.on('zoomend moveend', () => {
+    renderRoutes()
+  })
+  applyMapZoomLimits()
   mapLoading.value = false
   renderMarkers()
+  applyMapBrowseBounds()
+  requestAnimationFrame(() => {
+    markersVisible.value = true
+  })
+}
+
+function escapeMapHtml(value: string) {
+  return value
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;')
+}
+
+function getSpotMarkerTitle(spot: PilgrimageSpotSummary) {
+  return selectedSpotDetail.value?.id === spot.id ? selectedSpotDetail.value.title : spot.title
 }
 
 function renderMarkers() {
@@ -530,12 +405,14 @@ function renderMarkers() {
     const active = spot.id === selectedSpotId.value
     const inRoute = routeSpotIds.value.has(spot.id)
     const routeOrder = routeOrderMap.value.get(spot.id)
+    const markerTitle = getSpotMarkerTitle(spot)
+    const escapedTitle = escapeMapHtml(markerTitle)
     const marker = L.marker([spot.displayLat, spot.displayLng], {
       icon: L.divIcon({
         className: '',
-        html: `<button class="pilgrimage-marker${active ? ' is-active' : ''}${inRoute ? ' is-route' : ''}" type="button" aria-label="${spot.title}"><span></span>${routeOrder ? `<b>${routeOrder}</b>` : ''}</button>`,
-        iconSize: active ? [42, 42] : [34, 34],
-        iconAnchor: active ? [21, 40] : [17, 32],
+        html: `<button class="pilgrimage-marker${active ? ' is-active' : ''}${inRoute ? ' is-route' : ''}" type="button" aria-label="${escapedTitle}"><span class="pilgrimage-marker-pin"><i></i></span>${routeOrder ? `<b>${routeOrder}</b>` : ''}<em>${escapedTitle}</em></button>`,
+        iconSize: [160, 72],
+        iconAnchor: active ? [80, 43] : [80, 35],
       }),
     })
 
@@ -573,7 +450,10 @@ function renderRoutes() {
   points.slice(0, -1).forEach((point, index) => {
     const nextPoint = points[index + 1]
     if (!nextPoint) return
-    const midPoint: [number, number] = [(point[0] + nextPoint[0]) / 2, (point[1] + nextPoint[1]) / 2]
+    const midPoint: [number, number] = [
+      (point[0] + nextPoint[0]) / 2,
+      (point[1] + nextPoint[1]) / 2,
+    ]
     const from = mapRef.value.latLngToLayerPoint(point)
     const to = mapRef.value.latLngToLayerPoint(nextPoint)
     const angle = Math.atan2(to.y - from.y, to.x - from.x) * (180 / Math.PI)
@@ -581,7 +461,7 @@ function renderRoutes() {
       interactive: false,
       icon: L.divIcon({
         className: '',
-        html: `<span class="pilgrimage-route-arrow" style="--route-color:${routeItem.color || '#2f8f83'}; transform: rotate(${angle}deg)">➤</span>`,
+        html: `<span class="pilgrimage-route-arrow" style="--route-color:${routeItem.color || '#2f8f83'}; transform: rotate(${angle}deg)">&#10148;</span>`,
         iconSize: [28, 28],
         iconAnchor: [14, 14],
       }),
@@ -589,20 +469,105 @@ function renderRoutes() {
   })
 }
 
-function moveMapToDistrict() {
-  if (!mapRef.value || !selectedDistrict.value) return
-  mapRef.value.flyTo(
-    [selectedDistrict.value.centerLat, selectedDistrict.value.centerLng],
-    selectedDistrict.value.defaultZoom,
-    { duration: 0.7 },
+function applyMapZoomLimits() {
+  const map = mapRef.value
+  if (!map) return
+  const minZoom = 11
+  const maxZoom = selectedSpotId.value || selectedRouteId.value ? 20 : 19
+  map.setMinZoom(minZoom)
+  map.setMaxZoom(maxZoom)
+  const currentZoom = map.getZoom()
+  if (currentZoom < minZoom) map.setZoom(minZoom, { animate: false })
+  if (currentZoom > maxZoom) map.setZoom(maxZoom, { animate: false })
+}
+
+function clampMapZoom(zoom: number, maxZoom = 20) {
+  return Math.min(Math.max(zoom, 11), maxZoom)
+}
+
+function districtDefaultZoom() {
+  return clampMapZoom(selectedDistrict.value?.defaultZoom || 14, 19)
+}
+
+function clearMapBrowseBounds() {
+  mapRef.value?.setMaxBounds(null)
+}
+
+function buildMapBrowseBounds() {
+  const L = leafletRef.value
+  const district = selectedDistrict.value
+  if (!L || !district) return null
+
+  const coordinates =
+    spots.value.length > 0
+      ? spots.value.map((spot) => [spot.displayLat, spot.displayLng] as [number, number])
+      : ([[district.centerLat, district.centerLng]] as [number, number][])
+
+  let minLat = Math.min(...coordinates.map((point) => point[0]))
+  let maxLat = Math.max(...coordinates.map((point) => point[0]))
+  let minLng = Math.min(...coordinates.map((point) => point[1]))
+  let maxLng = Math.max(...coordinates.map((point) => point[1]))
+
+  if (minLat === maxLat) {
+    minLat -= 0.006
+    maxLat += 0.006
+  }
+  if (minLng === maxLng) {
+    minLng -= 0.008
+    maxLng += 0.008
+  }
+
+  const latPad = (maxLat - minLat) * MAP_BOUNDS_PADDING_RATIO
+  const lngPad = (maxLng - minLng) * MAP_BOUNDS_PADDING_RATIO
+  return L.latLngBounds(
+    [Math.max(minLat - latPad, -85), Math.max(minLng - lngPad, -180)],
+    [Math.min(maxLat + latPad, 85), Math.min(maxLng + lngPad, 180)],
   )
+}
+
+function applyMapBrowseBounds(options: { panInside?: boolean } = {}) {
+  const map = mapRef.value
+  const bounds = buildMapBrowseBounds()
+  if (!map || !bounds) return
+
+  map.setMaxBounds(bounds)
+  if (options.panInside) {
+    map.panInsideBounds(bounds, { animate: false })
+  }
+}
+
+function moveMapToDistrict(options: { duration?: number } = {}) {
+  if (!mapRef.value || !selectedDistrict.value) return Promise.resolve()
+  applyMapZoomLimits()
+  return new Promise<void>((resolve) => {
+    let resolved = false
+    const finish = () => {
+      if (resolved) return
+      resolved = true
+      mapRef.value?.off('moveend', finish)
+      resolve()
+    }
+    mapRef.value.once('moveend', finish)
+    window.setTimeout(finish, 920)
+    const bounds = buildMapBrowseBounds()
+    const districtCenter = leafletRef.value?.latLng(
+      selectedDistrict.value.centerLat,
+      selectedDistrict.value.centerLng,
+    )
+    const targetCenter =
+      bounds && districtCenter && !bounds.contains(districtCenter)
+        ? bounds.getCenter()
+        : [selectedDistrict.value.centerLat, selectedDistrict.value.centerLng]
+    mapRef.value.flyTo(targetCenter, districtDefaultZoom(), { duration: options.duration ?? 0.7 })
+  })
 }
 
 function moveMapToSpot() {
   if (!mapRef.value || !selectedSpotDetail.value) return
+  applyMapZoomLimits()
   mapRef.value.flyTo(
     [selectedSpotDetail.value.displayLat, selectedSpotDetail.value.displayLng],
-    Math.max(selectedDistrict.value?.defaultZoom || 14, 15),
+    clampMapZoom(Math.max(selectedDistrict.value?.defaultZoom || 14, 15), 20),
     { duration: 0.45 },
   )
 }
@@ -627,9 +592,23 @@ watch(
   () => selectedDistrictId.value,
   async (districtId) => {
     if (!districtId) return
-    moveMapToDistrict()
-    await loadDistrictSpots(districtId)
+    const token = ++districtLoadToken
+    mapTransitioning.value = true
+    markersVisible.value = false
+    clearMapBrowseBounds()
+    await loadDistrictSpots(districtId, { autoSelect: false })
+    if (token !== districtLoadToken) return
+    applyMapZoomLimits()
+    await moveMapToDistrict()
+    if (token !== districtLoadToken) return
+    applyMapBrowseBounds({ panInside: true })
+    renderMarkers()
     renderRoutes()
+    requestAnimationFrame(() => {
+      if (token !== districtLoadToken) return
+      markersVisible.value = true
+      mapTransitioning.value = false
+    })
   },
 )
 
@@ -655,9 +634,7 @@ watch(
   () => currentLang.value,
   () => {
     document.title =
-      currentLang.value === 'jp'
-        ? 'Echoes of milet | 聖地巡礼'
-        : 'Echoes of milet | 圣地巡礼'
+      currentLang.value === 'jp' ? 'Echoes of milet | 聖地巡礼' : 'Echoes of milet | 圣地巡礼'
   },
   { immediate: true },
 )
@@ -692,36 +669,6 @@ onBeforeUnmount(() => {
     linear-gradient(135deg, rgba(232, 248, 244, 0.64), rgba(255, 241, 242, 0.52));
 }
 
-.selector-scroll {
-  scrollbar-width: thin;
-  scrollbar-color: rgba(111, 184, 173, 0.52) transparent;
-}
-
-.selector-scroll::-webkit-scrollbar {
-  height: 6px;
-}
-
-.selector-scroll::-webkit-scrollbar-thumb {
-  border-radius: 999px;
-  background: rgba(111, 184, 173, 0.42);
-}
-
-.photo-grid {
-  grid-template-columns: repeat(auto-fill, minmax(128px, 1fr));
-}
-
-.pilgrimage-photo :deep(.preview-image) {
-  height: 112px;
-  width: 100%;
-  object-fit: cover;
-  border-radius: 6px;
-}
-
-.pilgrimage-photo :deep(.group) {
-  display: block;
-  width: 100%;
-}
-
 :deep(.leaflet-container) {
   height: 100%;
   width: 100%;
@@ -750,6 +697,34 @@ onBeforeUnmount(() => {
 
 :global(.pilgrimage-marker) {
   position: relative;
+  display: block;
+  height: 72px;
+  width: 160px;
+  border: 0;
+  background: transparent;
+  padding: 0;
+  place-items: center;
+  cursor: pointer;
+  transition:
+    opacity 240ms ease,
+    transform 160ms ease,
+    filter 160ms ease;
+}
+
+.pilgrimage-map-shell :global(.pilgrimage-marker),
+.pilgrimage-map-shell :global(.pilgrimage-route-arrow) {
+  opacity: 0;
+}
+
+.pilgrimage-map-shell--markers-visible :global(.pilgrimage-marker),
+.pilgrimage-map-shell--markers-visible :global(.pilgrimage-route-arrow) {
+  opacity: 1;
+}
+
+:global(.pilgrimage-marker-pin) {
+  position: absolute;
+  left: 50%;
+  top: 0;
   display: grid;
   height: 34px;
   width: 34px;
@@ -758,14 +733,14 @@ onBeforeUnmount(() => {
   border-radius: 999px 999px 999px 6px;
   background: #fff;
   box-shadow: 0 16px 32px -18px rgba(31, 41, 55, 0.75);
-  transform: rotate(-45deg);
+  transform: translateX(-50%) rotate(-45deg);
   transition:
     transform 160ms ease,
     box-shadow 160ms ease,
     background 160ms ease;
 }
 
-:global(.pilgrimage-marker span) {
+:global(.pilgrimage-marker-pin i) {
   height: 13px;
   width: 13px;
   border-radius: 999px;
@@ -775,8 +750,8 @@ onBeforeUnmount(() => {
 
 :global(.pilgrimage-marker b) {
   position: absolute;
-  right: -9px;
-  top: -9px;
+  left: calc(50% + 9px);
+  top: -7px;
   display: grid;
   height: 20px;
   min-width: 20px;
@@ -788,24 +763,51 @@ onBeforeUnmount(() => {
   font-size: 12px;
   font-weight: 700;
   line-height: 1;
-  transform: rotate(45deg);
   box-shadow: 0 10px 20px -14px rgba(31, 41, 55, 0.9);
 }
 
-:global(.pilgrimage-marker.is-active) {
+:global(.pilgrimage-marker em) {
+  position: absolute;
+  left: 50%;
+  top: 41px;
+  max-width: 138px;
+  transform: translateX(-50%);
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.86);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.86);
+  box-shadow: 0 14px 30px -24px rgba(31, 41, 55, 0.82);
+  color: #33474f;
+  font-size: 11px;
+  font-style: normal;
+  font-weight: 700;
+  line-height: 1.2;
+  padding: 3px 8px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+:global(.pilgrimage-marker.is-active .pilgrimage-marker-pin) {
   height: 42px;
   width: 42px;
   background: #fff1f2;
   box-shadow: 0 20px 40px -18px rgba(143, 63, 75, 0.72);
 }
 
-:global(.pilgrimage-marker.is-active span) {
+:global(.pilgrimage-marker.is-active .pilgrimage-marker-pin i) {
   height: 16px;
   width: 16px;
   background: #c98791;
 }
 
-:global(.pilgrimage-marker.is-route span) {
+:global(.pilgrimage-marker.is-active em) {
+  top: 48px;
+  border-color: rgba(255, 241, 242, 0.94);
+  background: rgba(255, 241, 242, 0.94);
+  color: #8f3f4b;
+}
+
+:global(.pilgrimage-marker.is-route .pilgrimage-marker-pin i) {
   background: #2f8f83;
 }
 
@@ -828,10 +830,6 @@ onBeforeUnmount(() => {
 @media (max-width: 1023px) {
   .pilgrimage-page {
     min-height: auto;
-  }
-
-  .photo-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
 </style>
