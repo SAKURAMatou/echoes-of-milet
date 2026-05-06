@@ -6,10 +6,14 @@ declare global {
   }
 }
 
+const appRoot = document.querySelector('#app')
+const shouldHydrate = Boolean(appRoot?.innerHTML.trim())
+
 const { app, router } = createApp({
   initialState: window.__INITIAL_STATE__,
+  hydrate: shouldHydrate,
 })
 
 router.isReady().then(() => {
-  app.mount('#app', true)
+  app.mount(appRoot || '#app')
 })

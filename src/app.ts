@@ -1,6 +1,6 @@
 import './assets/main.css'
 
-import { createSSRApp, reactive } from 'vue'
+import { createApp as createClientApp, createSSRApp, reactive } from 'vue'
 import VueLazyLoad from 'vue3-lazyload'
 
 import App from './App.vue'
@@ -13,10 +13,12 @@ interface CreateAppOptions {
   initialState?: Partial<AppState>
   requestHeaders?: Record<string, string | string[] | undefined>
   currentPath?: string
+  hydrate?: boolean
 }
 
 export function createApp(options: CreateAppOptions = {}) {
-  const app = createSSRApp(App)
+  const shouldHydrate = import.meta.env.SSR || options.hydrate !== false
+  const app = shouldHydrate ? createSSRApp(App) : createClientApp(App)
   const router = createAppRouter(import.meta.env.SSR)
   const state = reactive(createInitialState(options.initialState))
 
