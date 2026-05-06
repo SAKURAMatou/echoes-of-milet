@@ -1,5 +1,5 @@
 <template>
-  <section id="timeline" class="mt-16 scroll-mt-24">
+  <section :id="sectionId || undefined" class="mt-16 scroll-mt-24">
     <MiletHomeSectionTitle :kicker="title.kicker" :title="title.title" :subtitle="title.subtitle" />
 
     <div
@@ -63,10 +63,16 @@ import type {
   TimelineColor,
 } from './types'
 
-defineProps<{
-  title: MiletHomeSectionTitleView
-  timeline: MiletHomeTimelineViewSection
-}>()
+withDefaults(
+  defineProps<{
+    title: MiletHomeSectionTitleView
+    timeline: MiletHomeTimelineViewSection
+    sectionId?: string | null
+  }>(),
+  {
+    sectionId: 'timeline',
+  },
+)
 
 const timelineColorMap = {
   blue: {

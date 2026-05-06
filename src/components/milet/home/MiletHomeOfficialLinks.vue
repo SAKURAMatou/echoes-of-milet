@@ -1,5 +1,5 @@
 <template>
-  <section id="links" class="mt-16 scroll-mt-24">
+  <section :id="sectionId || undefined" class="mt-16 scroll-mt-24">
     <div class="flex flex-wrap gap-x-4 gap-y-2 items-baseline">
       <div class="section-kicker">official</div>
       <h2 class="font-serif text-3xl text-[#26313a]">{{ official.title }}</h2>
@@ -104,9 +104,15 @@ import twitterIcon from '@/assets/nav-twitter-4.png'
 import { loadInstagramEmbed, loadTwitterEmbed } from '@/composables/useOfficialEmbeds'
 import type { MiletHomeOfficialViewSection } from './types'
 
-const props = defineProps<{
-  official: MiletHomeOfficialViewSection
-}>()
+const props = withDefaults(
+  defineProps<{
+    official: MiletHomeOfficialViewSection
+    sectionId?: string | null
+  }>(),
+  {
+    sectionId: 'links',
+  },
+)
 
 const instagramContainer = ref<HTMLElement | null>(null)
 const twitterContainer = ref<HTMLElement | null>(null)

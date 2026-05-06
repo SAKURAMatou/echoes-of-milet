@@ -61,19 +61,25 @@
         <EditionCarousel :editions="work.editions" @select-track="openTrack" />
       </div>
     </div>
-    <TrackModal :open="modalOpen" :track="modalTrack" @close="modalOpen = false" />
+    <TrackModal
+      v-if="modalMounted"
+      :open="modalOpen"
+      :track="modalTrack"
+      @close="closeTrackModal"
+    />
   </article>
 </template>
 
 <script setup lang="ts">
-import { computed, getCurrentInstance, ref } from 'vue'
+import { computed, defineAsyncComponent, getCurrentInstance, ref } from 'vue'
 import axiosInstance from '@/AxiosUtil'
 import { initImgUrl } from '@/composables/ImgUrlUtil'
 import { apiRoutes } from '@/config/api'
 import { WORK_TEXT } from '@/composables/lang/ReleaseMetaData'
 import type { Track, Work } from '@/composables/releaseType'
 import EditionCarousel from './EditionCarousel.vue'
-import TrackModal from './TrackModal.vue'
+
+const TrackModal = defineAsyncComponent(() => import('./TrackModal.vue'))
 
 const { appContext } = getCurrentInstance()!
 const global = appContext.config.globalProperties
@@ -83,6 +89,7 @@ const pageText = computed(() => {
 })
 
 const modalOpen = ref(false)
+const modalMounted = ref(false)
 const modalTrack = ref<Track | null>(null)
 const props = defineProps<{
   work: Work
@@ -148,6 +155,18 @@ async function openTrack(t: Track) {
     }
   }
   modalTrack.value = t
+  modalMounted.value = true
   modalOpen.value = true
+}
+
+function closeTrackModal() {
+  modalOpen.value = false
+
+  window.setTimeout(() => {
+    if (!modalOpen.value) {
+      modalMounted.value = false
+      modalTrack.value = null
+    }
+  }, 320)
 }
 </script>

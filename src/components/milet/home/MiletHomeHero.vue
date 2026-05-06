@@ -1,7 +1,9 @@
 <template>
   <section
     id="hero"
+    ref="heroSection"
     class="relative isolate flex h-[75svh] min-h-[560px] w-full max-w-full items-end justify-center overflow-hidden px-5 pb-24 pt-24 sm:px-8 md:px-10"
+    :class="{ 'is-animation-paused': !isAnimationActive }"
   >
     <div
       class="absolute rounded-lg inset-0 -z-30 bg-[linear-gradient(135deg,#ffffff_0%,#eef8ff_46%,#d9ecfb_100%)]"
@@ -84,6 +86,8 @@
 </template>
 
 <script setup lang="ts">
+import { onBeforeUnmount, onMounted, ref } from 'vue'
+
 defineProps<{
   currentYear: number
   lead: string
@@ -95,6 +99,34 @@ defineProps<{
 defineEmits<{
   scrollToHighlight: []
 }>()
+
+const heroSection = ref<HTMLElement | null>(null)
+const isAnimationActive = ref(true)
+let observer: IntersectionObserver | null = null
+
+onMounted(() => {
+  if (!('IntersectionObserver' in window)) {
+    return
+  }
+
+  observer = new IntersectionObserver(
+    ([entry]) => {
+      isAnimationActive.value = Boolean(entry?.isIntersecting)
+    },
+    {
+      rootMargin: '160px 0px',
+    },
+  )
+
+  if (heroSection.value) {
+    observer.observe(heroSection.value)
+  }
+})
+
+onBeforeUnmount(() => {
+  observer?.disconnect()
+  observer = null
+})
 </script>
 
 <style scoped>
@@ -196,7 +228,6 @@ defineEmits<{
   stroke-linecap: round;
   stroke-linejoin: round;
   transform-origin: left center;
-  will-change: transform, opacity;
 }
 
 .hero-sine-primary {
@@ -233,6 +264,13 @@ defineEmits<{
   background: radial-gradient(circle, rgba(255, 255, 255, 0.74) 0%, rgba(255, 255, 255, 0) 72%);
   box-shadow: 0 14px 36px -26px rgba(49, 127, 141, 0.9);
   animation: hero-scroll-pulse 1.8s ease-in-out infinite;
+}
+
+.is-animation-paused .hero-live-beams,
+.is-animation-paused .hero-live-haze,
+.is-animation-paused .hero-sine,
+.is-animation-paused .hero-scroll-indicator {
+  animation-play-state: paused;
 }
 
 @keyframes live-beam-drift {
@@ -303,6 +341,19 @@ defineEmits<{
   50% {
     opacity: 1;
     transform: translateY(8px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hero-live-beams,
+  .hero-live-haze,
+  .hero-sine,
+  .hero-scroll-indicator {
+    animation: none;
+  }
+
+  .hero-sine {
+    transform: none;
   }
 }
 </style>

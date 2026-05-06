@@ -1,6 +1,6 @@
 <template>
   <section
-    id="cta"
+    :id="sectionId || undefined"
     class="mt-16 scroll-mt-24 rounded-lg border border-[#bddbd5] bg-[#eef8f4]/80 px-6 py-10 text-center"
   >
     <p class="font-serif text-3xl leading-tight text-[#26313a]">{{ title }}</p>
@@ -16,9 +16,15 @@
 <script setup lang="ts">
 import { RouterLink, type RouteLocationRaw } from 'vue-router'
 
-defineProps<{
-  title: string
-  buttonLabel: string
-  to: RouteLocationRaw
-}>()
+withDefaults(
+  defineProps<{
+    title: string
+    buttonLabel: string
+    to: RouteLocationRaw
+    sectionId?: string | null
+  }>(),
+  {
+    sectionId: 'cta',
+  },
+)
 </script>

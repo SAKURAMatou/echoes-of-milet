@@ -18,39 +18,58 @@
         :items="highlights"
         @select-music="openHighlightTrack"
       />
-      <MiletHomeEchoRoom />
-      <MiletHomeTimelinePreview :title="sectionTitles.timeline" :timeline="timeline" />
-      <MiletHomeGallery :title="sectionTitles.gallery" :gallery="gallery" />
-      <MiletHomeOfficialLinks :official="official" />
-      <MiletHomeEntryGrid :entries="entries" />
-      <MiletHomeCta :title="cta.title" :button-label="cta.buttonLabel" :to="cta.to" />
+      <LazyHomeSection section-id="echo-room" :min-height="240">
+        <MiletHomeEchoRoom :section-id="null" />
+      </LazyHomeSection>
+      <LazyHomeSection section-id="timeline" :min-height="620">
+        <MiletHomeTimelinePreview
+          :title="sectionTitles.timeline"
+          :timeline="timeline"
+          :section-id="null"
+        />
+      </LazyHomeSection>
+      <LazyHomeSection section-id="gallery" :min-height="820">
+        <MiletHomeGallery
+          :title="sectionTitles.gallery"
+          :gallery="gallery"
+          :section-id="null"
+        />
+      </LazyHomeSection>
+      <LazyHomeSection section-id="links" :min-height="960">
+        <MiletHomeOfficialLinks :official="official" :section-id="null" />
+      </LazyHomeSection>
+      <LazyHomeSection section-id="entry" :min-height="260">
+        <MiletHomeEntryGrid :entries="entries" :section-id="null" />
+      </LazyHomeSection>
+      <LazyHomeSection section-id="cta" :min-height="220">
+        <MiletHomeCta
+          :title="cta.title"
+          :button-label="cta.buttonLabel"
+          :to="cta.to"
+          :section-id="null"
+        />
+      </LazyHomeSection>
     </div>
 
     <TrackModal
-      v-if="trackModalReady"
+      v-if="trackModalMounted"
       :open="trackModalOpen"
       :track="trackModalTrack"
-      @close="trackModalOpen = false"
+      @close="closeTrackModal"
     />
   </article>
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, onServerPrefetch, ref, watchEffect } from 'vue'
+import { computed, defineAsyncComponent, onMounted, onServerPrefetch, ref, watchEffect } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 
 import axiosInstance from '@/AxiosUtil'
 import type { MiletHomeHighlightViewItem } from '@/components/milet/home/types'
-import MiletHomeCta from '@/components/milet/home/MiletHomeCta.vue'
-import MiletHomeEchoRoom from '@/components/milet/home/MiletHomeEchoRoom.vue'
-import MiletHomeEntryGrid from '@/components/milet/home/MiletHomeEntryGrid.vue'
-import MiletHomeGallery from '@/components/milet/home/MiletHomeGallery.vue'
 import MiletHomeHero from '@/components/milet/home/MiletHomeHero.vue'
 import MiletHomeHighlight from '@/components/milet/home/MiletHomeHighlight.vue'
-import MiletHomeOfficialLinks from '@/components/milet/home/MiletHomeOfficialLinks.vue'
-import MiletHomeTimelinePreview from '@/components/milet/home/MiletHomeTimelinePreview.vue'
 import MiletHomeWhy from '@/components/milet/home/MiletHomeWhy.vue'
-import TrackModal from '@/components/milet/music/TrackModal.vue'
+import LazyHomeSection from '@/components/milet/home/LazyHomeSection.vue'
 import {
   buildMiletHomeV2Data,
   ctaView,
@@ -71,12 +90,29 @@ import { apiRoutes } from '@/config/api'
 const appState = useAppState()
 const route = useRoute()
 const router = useRouter()
+const MiletHomeCta = defineAsyncComponent(() => import('@/components/milet/home/MiletHomeCta.vue'))
+const MiletHomeEchoRoom = defineAsyncComponent(
+  () => import('@/components/milet/home/MiletHomeEchoRoom.vue'),
+)
+const MiletHomeEntryGrid = defineAsyncComponent(
+  () => import('@/components/milet/home/MiletHomeEntryGrid.vue'),
+)
+const MiletHomeGallery = defineAsyncComponent(
+  () => import('@/components/milet/home/MiletHomeGallery.vue'),
+)
+const MiletHomeOfficialLinks = defineAsyncComponent(
+  () => import('@/components/milet/home/MiletHomeOfficialLinks.vue'),
+)
+const MiletHomeTimelinePreview = defineAsyncComponent(
+  () => import('@/components/milet/home/MiletHomeTimelinePreview.vue'),
+)
+const TrackModal = defineAsyncComponent(() => import('@/components/milet/music/TrackModal.vue'))
 const currentYear = new Date().getFullYear()
 const miletDatas = ref<Record<string, any> | null>(appState.miletHomeData)
 const loading = ref(false)
 const trackModalOpen = ref(false)
 const trackModalTrack = ref<Track | null>(null)
-const trackModalReady = ref(false)
+const trackModalMounted = ref(false)
 
 const routeLang = computed(() => String(route.params.lang || 'zh'))
 const currentLang = computed(() => normalizeMiletLang(routeLang.value))
@@ -234,6 +270,7 @@ async function openHighlightTrack(item: MiletHomeHighlightViewItem) {
 
     if (track?.showId) {
       trackModalTrack.value = await loadTrackDetail(track)
+      trackModalMounted.value = true
       trackModalOpen.value = true
       return
     }
@@ -246,6 +283,17 @@ async function openHighlightTrack(item: MiletHomeHighlightViewItem) {
   }
 }
 
+function closeTrackModal() {
+  trackModalOpen.value = false
+
+  window.setTimeout(() => {
+    if (!trackModalOpen.value) {
+      trackModalMounted.value = false
+      trackModalTrack.value = null
+    }
+  }, 320)
+}
+
 watchEffect(() => {
   if (typeof document === 'undefined') {
     return
@@ -256,8 +304,6 @@ watchEffect(() => {
 })
 
 onMounted(async () => {
-  trackModalReady.value = true
-
   if (!miletDatas.value) {
     await loadMiletHomeData()
   }

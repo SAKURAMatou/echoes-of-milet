@@ -1,5 +1,5 @@
 <template>
-  <section id="gallery" class="mt-16 scroll-mt-24">
+  <section :id="sectionId || undefined" class="mt-16 scroll-mt-24">
     <MiletHomeSectionTitle
       :kicker="title.kicker"
       :title="title.title"
@@ -51,10 +51,16 @@ import type {
   MiletHomeSectionTitleView,
 } from './types'
 
-defineProps<{
-  title: MiletHomeSectionTitleView
-  gallery: MiletHomeGalleryViewSection
-}>()
+withDefaults(
+  defineProps<{
+    title: MiletHomeSectionTitleView
+    gallery: MiletHomeGalleryViewSection
+    sectionId?: string | null
+  }>(),
+  {
+    sectionId: 'gallery',
+  },
+)
 
 const aspectMap: Record<GalleryAspect, string> = {
   '4/5': 'aspect-[4/5]',

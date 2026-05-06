@@ -1,6 +1,6 @@
 <template>
   <section
-    id="echo-room"
+    :id="sectionId || undefined"
     class="mt-4 grid grid-cols-[minmax(0,1fr)_minmax(230px,0.54fr)] items-stretch gap-5 border-t border-[#317f8d]/15 pt-[30px] max-md:grid-cols-1"
   >
     <div>
@@ -28,6 +28,15 @@
 import { computed } from 'vue'
 import { RouterLink, useRoute } from 'vue-router'
 import { useSongGuessText } from '@/composables/interactive/songGuessText'
+
+withDefaults(
+  defineProps<{
+    sectionId?: string | null
+  }>(),
+  {
+    sectionId: 'echo-room',
+  },
+)
 
 const route = useRoute()
 const text = useSongGuessText()

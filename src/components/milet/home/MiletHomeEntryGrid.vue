@@ -1,5 +1,5 @@
 <template>
-  <section id="entry" class="mt-16 grid gap-3 sm:grid-cols-2 lg:hidden">
+  <section :id="sectionId || undefined" class="mt-16 grid gap-3 sm:grid-cols-2 lg:hidden">
     <RouterLink
       v-for="entry in entries"
       :key="entry.id"
@@ -16,7 +16,13 @@
 import { RouterLink } from 'vue-router'
 import type { MiletHomeEntryViewItem } from './types'
 
-defineProps<{
-  entries: MiletHomeEntryViewItem[]
-}>()
+withDefaults(
+  defineProps<{
+    entries: MiletHomeEntryViewItem[]
+    sectionId?: string | null
+  }>(),
+  {
+    sectionId: 'entry',
+  },
+)
 </script>
