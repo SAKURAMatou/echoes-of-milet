@@ -15,15 +15,70 @@
       </p>
     </header>
 
+    <div
+      v-if="topicTags.length > 0"
+      class="topic-filter mb-8"
+      :class="{ 'is-expanded': showAllTags, 'has-topic-next': hasTopicRailNext }"
+    >
+      <div ref="topicRailEl" class="topic-rail" @scroll="updateTopicRailHint">
+        <button
+          type="button"
+          class="news-tag news-tag-all"
+          :class="!selectedTag ? 'is-active' : ''"
+          :style="topicTagStyle(-1)"
+          @click="selectTag('')"
+        >
+          {{ pageText.allTags }}
+        </button>
+        <button
+          v-for="(tag, index) in visibleTopicTags"
+          :key="tag.topic"
+          type="button"
+          class="news-tag"
+          :class="selectedTag === tag.topic ? 'is-active' : ''"
+          :style="topicTagStyle(index)"
+          :title="tag.topic"
+          @click="selectTag(tag.topic)"
+        >
+          <span>{{ tag.topic }}</span>
+          <em>{{ tag.count }}</em>
+        </button>
+        <button
+          v-if="hasHiddenTopicTags"
+          type="button"
+          class="topic-more"
+          :aria-expanded="showAllTags"
+          @click="toggleTopicPanel"
+        >
+          <span>{{ showAllTags ? 'Less' : `+${hiddenTopicCount}` }}</span>
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            aria-hidden="true"
+          >
+            <path d="m6 9 6 6 6-6" />
+          </svg>
+        </button>
+      </div>
+    </div>
+
     <div v-if="loading && items.length === 0" class="space-y-4">
-      <div v-for="i in 3" :key="i" class="h-36 animate-pulse rounded-lg border border-sky-100 bg-white/60" />
+      <div
+        v-for="i in 3"
+        :key="i"
+        class="h-36 animate-pulse rounded-lg border border-sky-100 bg-white/60"
+      />
     </div>
 
     <div
       v-else-if="!loading && items.length === 0"
       class="rounded-lg border border-dashed border-sky-200 bg-white/60 px-6 py-12 text-center text-sm text-slate-500"
     >
-      {{ pageText.empty }}
+      {{ selectedTag ? pageText.filteredEmpty : pageText.empty }}
     </div>
 
     <div v-else class="space-y-10">
@@ -34,27 +89,32 @@
         class="scroll-mt-24"
       >
         <div class="mb-4 flex items-center gap-4">
-          <h2 class="shrink-0 font-['Montserrat','sans-serif'] text-[15px] font-semibold uppercase text-[#546e7a]">
+          <button
+            type="button"
+            class="shrink-0 font-['Montserrat','sans-serif'] text-[15px] font-semibold uppercase text-[#546e7a] transition hover:text-sky-700"
+            :title="pageText.filterByTopic"
+            @click="selectTag(group.topic)"
+          >
             {{ group.topic }}
-          </h2>
-          <div
-            class="h-[3px] flex-1 rounded-full"
-            :class="topicAccentClass(groupIndex)"
-          />
+          </button>
+          <div class="h-[3px] flex-1 rounded-full" :class="topicAccentClass(groupIndex)" />
           <span class="text-xs text-slate-400">{{ group.items.length }}</span>
         </div>
 
         <div class="grid gap-4 md:grid-cols-2">
-          <a
+          <article
             v-for="item in group.items"
             :key="item.id"
-            class="news-card group grid min-h-[164px] grid-cols-[104px_1fr] overflow-hidden rounded-lg border bg-white/72 text-left shadow-sm backdrop-blur transition hover:-translate-y-0.5 hover:shadow-md focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-sky-200/80 sm:grid-cols-[132px_1fr]"
+            class="news-card group grid min-h-[164px] grid-cols-[104px_1fr] overflow-hidden rounded-lg border bg-white/72 text-left shadow-sm backdrop-blur transition hover:-translate-y-0.5 hover:shadow-md sm:grid-cols-[132px_1fr]"
             :class="topicCardClass(groupIndex)"
-            :href="item.url"
-            target="_blank"
-            rel="noopener noreferrer"
           >
-            <div class="relative min-h-full overflow-hidden bg-sky-50">
+            <a
+              class="relative min-h-full overflow-hidden bg-sky-50"
+              :href="item.url"
+              target="_blank"
+              rel="noopener noreferrer"
+              :aria-label="`${pageText.open}: ${item.title}`"
+            >
               <img
                 v-if="item.coverImage"
                 :src="item.coverImage"
@@ -62,27 +122,47 @@
                 class="h-full w-full object-cover transition duration-300 group-hover:scale-105"
                 loading="lazy"
               />
-              <div v-else class="grid h-full min-h-[164px] place-items-center bg-gradient-to-br from-sky-50 to-pink-50 px-3 text-center">
+              <div
+                v-else
+                class="grid h-full min-h-[164px] place-items-center bg-gradient-to-br from-sky-50 to-pink-50 px-3 text-center"
+              >
                 <span class="font-['Montserrat','sans-serif'] text-[11px] font-semibold uppercase tracking-[.18em] text-slate-400">
                   news
                 </span>
               </div>
-            </div>
+            </a>
 
             <div class="flex min-w-0 flex-col p-4">
               <div class="mb-2 flex items-center justify-between gap-3 text-[11px] uppercase tracking-[.12em] text-slate-400">
-                <span class="truncate">{{ item.sourceHost || sourceFromUrl(item.url) }}</span>
+                <button
+                  type="button"
+                  class="truncate transition hover:text-sky-700"
+                  :title="pageText.filterByTopic"
+                  @click="selectTag(item.topic || 'General')"
+                >
+                  {{ item.topic || 'General' }}
+                </button>
                 <time class="shrink-0 tabular-nums">{{ formatDate(item.publishDate) }}</time>
               </div>
 
-              <h3 class="line-clamp-2 text-[15px] font-semibold leading-6 text-slate-800">
+              <a
+                class="line-clamp-2 text-left text-[15px] font-semibold leading-6 text-slate-800 transition hover:text-sky-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-200"
+                :href="item.url"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
                 {{ item.title }}
-              </h3>
+              </a>
               <p class="mt-2 line-clamp-3 text-[13px] leading-6 text-slate-500">
                 {{ item.summary || pageText.noSummary }}
               </p>
 
-              <div class="mt-auto flex items-center justify-end pt-3 text-xs font-medium text-sky-700/80">
+              <a
+                class="mt-auto flex items-center justify-end pt-3 text-xs font-medium text-sky-700/80"
+                :href="item.url"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
                 <span>{{ pageText.open }}</span>
                 <svg
                   class="ml-1 h-3.5 w-3.5 transition group-hover:translate-x-0.5 group-hover:-translate-y-0.5"
@@ -97,9 +177,9 @@
                   <path d="M7 17 17 7" />
                   <path d="M9 7h8v8" />
                 </svg>
-              </div>
+              </a>
             </div>
-          </a>
+          </article>
         </div>
       </section>
     </div>
@@ -123,7 +203,7 @@ import axiosInstance from '@/AxiosUtil'
 import { apiRoutes } from '@/config/api'
 
 type PublicNewsItem = {
-  id: string
+  id: number
   lang: 'zh-CN' | 'ja-JP' | 'en-US'
   title: string
   url: string
@@ -144,48 +224,69 @@ type PublicNewsResponse = {
   message?: string
 }
 
+type PublicNewsTopic = {
+  topic: string
+  count: number
+}
+
+type PublicNewsTopicsResponse = {
+  success?: boolean
+  items?: PublicNewsTopic[]
+  message?: string
+}
+
 const route = useRoute()
 const instance = getCurrentInstance()
 const global = instance?.appContext.config.globalProperties as any
 
 const items = ref<PublicNewsItem[]>([])
+const topicTags = ref<PublicNewsTopic[]>([])
 const page = ref(1)
 const pageSize = ref(12)
 const hasMore = ref(true)
 const loading = ref(false)
 const hasLoadedOnce = ref(false)
 const loadMoreEl = ref<HTMLElement | null>(null)
+const topicRailEl = ref<HTMLElement | null>(null)
+const selectedTag = ref('')
+const showAllTags = ref(false)
+const hasTopicRailNext = ref(false)
 
 let observer: IntersectionObserver | null = null
+let topicResizeObserver: ResizeObserver | null = null
 
 const pageText = computed(() => {
   const lang = global?.$lang?.lang || route.params.lang || 'zh'
   if (lang === 'ja' || lang === 'jp') {
     return {
-      lead: '公開ニュースから、インタビュー、ライブ、リリース情報をテーマ別にまとめています。',
+      lead: '公開ニュースからインタビュー、ライブ、リリース情報をテーマごとに整理しています。',
       empty: '公開中のニュースはまだありません。',
+      filteredEmpty: 'この topic のニュースはまだありません。',
       loading: 'Loading more news...',
       end: 'no more news',
       noSummary: 'No summary yet.',
       open: 'Open article',
+      allTags: 'All',
+      filterByTopic: 'Filter by this topic',
       disclaimer:
-        'このページは公開ニュースリンクの収集と紹介のみを目的としており、ニュース本文の保存や転載は行いません。全文は元のニュースページでご確認ください。',
+        'このページは公開ニュースリンクの収集と紹介を目的としており、ニュース本文の保存や転載は行いません。全文は元のニュースページでご確認ください。',
     }
   }
 
   return {
     lead: '从公开新闻中整理采访、Live、发行等主题，按发布时间持续更新。',
     empty: '暂无公开新闻。',
+    filteredEmpty: '当前 topic 下暂无新闻。',
     loading: '正在加载更多新闻...',
     end: '没有更多新闻了',
     noSummary: '暂无摘要',
     open: '打开新闻',
+    allTags: '全部',
+    filterByTopic: '按这个 topic 筛选',
     disclaimer:
-      '本页仅用于收藏和转载公开新闻链接，不保存、不转载新闻正文内容；完整内容请以原始新闻页面为准。',
+      '本页仅用于收藏和转引公开新闻链接，不保存、不转载新闻正文内容；完整内容请以原始新闻页面为准。',
   }
 })
-
-const requestLang = computed(() => (String(route.params.lang || 'zh') === 'ja' ? 'ja' : 'zh'))
 
 const groupedNews = computed(() => {
   const groups = new Map<string, PublicNewsItem[]>()
@@ -202,6 +303,16 @@ const groupedNews = computed(() => {
     items: [...groupItems].sort((a, b) => comparePublishDate(b.publishDate, a.publishDate)),
   }))
 })
+
+const topicPreviewLimit = 10
+
+const visibleTopicTags = computed(() =>
+  showAllTags.value ? topicTags.value : topicTags.value.slice(0, topicPreviewLimit),
+)
+
+const hiddenTopicCount = computed(() => Math.max(0, topicTags.value.length - topicPreviewLimit))
+
+const hasHiddenTopicTags = computed(() => topicTags.value.length > topicPreviewLimit)
 
 function comparePublishDate(a: string, b: string) {
   return new Date(a || 0).getTime() - new Date(b || 0).getTime()
@@ -220,6 +331,24 @@ function topicCardClass(index: number) {
   ][index % 4]
 }
 
+function topicTagStyle(index: number) {
+  const palette = [
+    ['rgba(14, 165, 233, 0.28)', 'rgba(240, 249, 255, 0.82)', '#075985', 'rgba(2, 132, 199, 0.14)'],
+    ['rgba(236, 72, 153, 0.24)', 'rgba(253, 242, 248, 0.82)', '#9d174d', 'rgba(219, 39, 119, 0.13)'],
+    ['rgba(16, 185, 129, 0.24)', 'rgba(236, 253, 245, 0.82)', '#047857', 'rgba(5, 150, 105, 0.13)'],
+    ['rgba(245, 158, 11, 0.25)', 'rgba(255, 251, 235, 0.84)', '#92400e', 'rgba(217, 119, 6, 0.14)'],
+    ['rgba(99, 102, 241, 0.22)', 'rgba(238, 242, 255, 0.82)', '#3730a3', 'rgba(79, 70, 229, 0.13)'],
+    ['rgba(20, 184, 166, 0.24)', 'rgba(240, 253, 250, 0.82)', '#0f766e', 'rgba(13, 148, 136, 0.13)'],
+  ]
+  const color = palette[Math.max(0, index) % palette.length]
+  return {
+    '--tag-border': color[0],
+    '--tag-bg': color[1],
+    '--tag-text': color[2],
+    '--tag-active-bg': color[3],
+  }
+}
+
 function formatDate(value: string) {
   if (!value) return '--'
   const date = new Date(value)
@@ -227,12 +356,60 @@ function formatDate(value: string) {
   return date.toISOString().slice(0, 10)
 }
 
-function sourceFromUrl(value: string) {
+function resetNewsList() {
+  items.value = []
+  page.value = 1
+  hasMore.value = true
+  hasLoadedOnce.value = false
+}
+
+async function selectTag(tag: string) {
+  selectedTag.value = selectedTag.value === tag ? '' : tag
+  resetNewsList()
+  await loadNews()
+  await nextTick()
+  updateTopicRailHint()
+}
+
+async function loadNewsTopics() {
   try {
-    return new URL(value).hostname
-  } catch {
-    return value
+    const response = await axiosInstance.get<PublicNewsTopicsResponse>(apiRoutes.miletNewsTopics)
+    if (response.success === false) {
+      throw new Error(response.message || 'Failed to load news topics')
+    }
+    topicTags.value = Array.isArray(response.items) ? response.items : []
+    await nextTick()
+    updateTopicRailHint()
+  } catch (error) {
+    console.error('Failed to load public news topics:', error)
+    topicTags.value = []
   }
+}
+
+function updateTopicRailHint() {
+  const rail = topicRailEl.value
+  if (!rail || showAllTags.value) {
+    hasTopicRailNext.value = false
+    return
+  }
+
+  hasTopicRailNext.value = rail.scrollLeft + rail.clientWidth < rail.scrollWidth - 4
+}
+
+async function toggleTopicPanel() {
+  showAllTags.value = !showAllTags.value
+  await nextTick()
+  updateTopicRailHint()
+}
+
+function setupTopicRailObserver() {
+  topicResizeObserver?.disconnect()
+  if (!topicRailEl.value || typeof ResizeObserver === 'undefined') return
+
+  topicResizeObserver = new ResizeObserver(() => {
+    updateTopicRailHint()
+  })
+  topicResizeObserver.observe(topicRailEl.value)
 }
 
 async function loadNews() {
@@ -240,13 +417,15 @@ async function loadNews() {
 
   loading.value = true
   try {
-    const response = await axiosInstance.get<PublicNewsResponse>(apiRoutes.miletNews, {
-      params: {
-        page: page.value,
-        pageSize: pageSize.value,
-        lang: requestLang.value,
-      },
-    })
+    const params: Record<string, string | number> = {
+      page: page.value,
+      pageSize: pageSize.value,
+    }
+    if (selectedTag.value) {
+      params.tag = selectedTag.value
+    }
+
+    const response = await axiosInstance.get<PublicNewsResponse>(apiRoutes.miletNews, { params })
 
     if (response.success === false) {
       throw new Error(response.message || 'Failed to load news')
@@ -282,13 +461,16 @@ function setupObserver() {
 
 onMounted(async () => {
   document.title = 'milet news collection'
-  await loadNews()
+  await Promise.all([loadNewsTopics(), loadNews()])
   await nextTick()
+  setupTopicRailObserver()
+  updateTopicRailHint()
   setupObserver()
 })
 
 onBeforeUnmount(() => {
   observer?.disconnect()
+  topicResizeObserver?.disconnect()
 })
 </script>
 
@@ -299,6 +481,219 @@ onBeforeUnmount(() => {
 
 .news-card {
   text-decoration: none;
+}
+
+.topic-filter {
+  position: relative;
+  overflow: hidden;
+  border: 1px solid rgba(186, 230, 253, 0.72);
+  border-radius: 0.75rem;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.82), rgba(248, 252, 255, 0.72)),
+    rgba(255, 255, 255, 0.64);
+  padding: 0.75rem;
+}
+
+.topic-filter.has-topic-next:not(.is-expanded)::before {
+  content: '';
+  position: absolute;
+  top: 0.75rem;
+  right: 0.75rem;
+  bottom: 0.75rem;
+  z-index: 2;
+  width: 4.8rem;
+  pointer-events: none;
+  background: linear-gradient(90deg, rgba(255, 255, 255, 0), rgba(249, 252, 255, 0.98) 62%);
+}
+
+.topic-filter.has-topic-next:not(.is-expanded)::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  right: 1.25rem;
+  z-index: 3;
+  width: 0.72rem;
+  height: 0.72rem;
+  border-top: 2px solid rgba(49, 127, 141, 0.76);
+  border-right: 2px solid rgba(49, 127, 141, 0.76);
+  pointer-events: none;
+  filter: drop-shadow(0 2px 7px rgba(49, 127, 141, 0.26));
+  transform: translateY(-50%) rotate(45deg);
+  animation: topic-next-hint 1.65s ease-in-out infinite;
+}
+
+.topic-rail {
+  display: flex;
+  max-height: 6.9rem;
+  align-items: center;
+  gap: 0.55rem;
+  overflow: hidden;
+  overflow-x: auto;
+  padding-right: 3.25rem;
+  padding-bottom: 0;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.topic-rail::-webkit-scrollbar {
+  display: none;
+}
+
+.topic-filter.is-expanded .topic-rail {
+  max-height: none;
+  flex-wrap: wrap;
+  overflow-x: visible;
+  padding-right: 0;
+}
+
+.news-tag {
+  display: inline-flex;
+  max-width: min(100%, 22rem);
+  flex: 0 0 auto;
+  align-items: center;
+  gap: 0.45rem;
+  overflow: hidden;
+  border: 1px solid var(--tag-border, rgba(125, 211, 252, 0.45));
+  border-radius: 999px;
+  background: var(--tag-bg, rgba(240, 249, 255, 0.72));
+  padding: 0.46rem 0.78rem;
+  color: var(--tag-text, #47606d);
+  font-size: 0.78rem;
+  font-weight: 600;
+  line-height: 1.2;
+  transition:
+    background 160ms ease,
+    border-color 160ms ease,
+    color 160ms ease;
+}
+
+.news-tag-all,
+.news-tag-all.is-active {
+  position: sticky;
+  left: 0;
+  z-index: 1;
+  background: #ffffff;
+  box-shadow: 0 0 0 0.45rem #ffffff;
+}
+
+.news-tag.is-active {
+  border-color: currentColor;
+  background: var(--tag-active-bg, rgba(2, 132, 199, 0.1));
+  color: var(--tag-text, #075985);
+  box-shadow: inset 0 0 0 1px currentColor;
+}
+
+.news-tag span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.news-tag em {
+  flex: 0 0 auto;
+  font-style: normal;
+  color: #7a93a1;
+}
+
+.topic-more {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: 0.3rem;
+  min-height: 2.05rem;
+  border: 1px solid rgba(100, 116, 139, 0.18);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.78);
+  padding: 0 0.72rem;
+  color: #425866;
+  font-size: 0.76rem;
+  font-weight: 800;
+  transition:
+    background 160ms ease,
+    border-color 160ms ease,
+    color 160ms ease;
+}
+
+.topic-more svg {
+  width: 0.9rem;
+  height: 0.9rem;
+  transition: transform 160ms ease;
+}
+
+.topic-more[aria-expanded='true'] svg {
+  transform: rotate(180deg);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .news-tag:hover {
+    border-color: currentColor;
+    background: var(--tag-active-bg, rgba(2, 132, 199, 0.1));
+  }
+
+  .topic-more:hover {
+    border-color: rgba(14, 116, 144, 0.3);
+    background: rgba(240, 249, 255, 0.94);
+    color: #075985;
+  }
+}
+
+@keyframes topic-next-hint {
+  0%,
+  100% {
+    opacity: 0.28;
+    transform: translate(-0.1rem, -50%) rotate(45deg);
+  }
+
+  45% {
+    opacity: 0.95;
+    transform: translate(0.16rem, -50%) rotate(45deg);
+  }
+}
+
+@media (max-width: 640px) {
+  .topic-filter {
+    margin-right: -1rem;
+    margin-left: -1rem;
+    border-right: 0;
+    border-left: 0;
+    border-radius: 0;
+    padding-right: 1rem;
+    padding-left: 1rem;
+  }
+
+  .topic-filter.has-topic-next:not(.is-expanded)::before {
+    top: 0;
+    right: 0;
+    bottom: 0;
+    width: 4.6rem;
+    background: linear-gradient(90deg, rgba(255, 255, 255, 0), rgba(249, 252, 255, 0.98) 58%);
+  }
+
+  .topic-filter.has-topic-next:not(.is-expanded)::after {
+    right: 1.2rem;
+  }
+
+  .topic-rail {
+    max-height: 6.4rem;
+    padding-right: 3.65rem;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+
+  .topic-rail::-webkit-scrollbar {
+    display: none;
+  }
+
+  .topic-filter.is-expanded .topic-rail {
+    padding-right: 0;
+  }
+
+  .news-tag-all,
+  .news-tag-all.is-active {
+    background: #ffffff;
+    box-shadow: 0 0 0 0.55rem #ffffff;
+  }
 }
 
 .line-clamp-2,

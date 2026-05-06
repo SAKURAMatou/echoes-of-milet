@@ -7,11 +7,12 @@
     />
     <div class="mt-5 grid gap-4 md:grid-cols-[1.1fr_0.9fr]">
       <component
-        :is="item.href ? 'a' : RouterLink"
+        :is="componentTag(item)"
         v-for="item in items"
         :key="item.id"
         v-bind="linkProps(item)"
-        :class="item.variant === 'imageHero' ? imageHeroClass : softCardClass"
+        :class="cardClass(item)"
+        @click="handleClick($event, item)"
       >
         <template v-if="item.variant === 'imageHero'">
           <img
@@ -64,12 +65,38 @@ defineProps<{
   items: MiletHomeHighlightViewItem[]
 }>()
 
+const emit = defineEmits<{
+  (event: 'selectMusic', item: MiletHomeHighlightViewItem): void
+}>()
+
 const imageHeroClass =
-  'group relative min-h-[330px] overflow-hidden rounded-lg border border-white/70 bg-[#1f2933] text-white shadow-[0_26px_70px_-46px_rgba(15,23,42,0.95)]'
+  'group relative min-h-[330px] overflow-hidden rounded-lg border border-white/70 bg-[#1f2933] text-left text-white shadow-[0_26px_70px_-46px_rgba(15,23,42,0.95)] transition duration-300 hover:-translate-y-1 hover:shadow-[0_34px_82px_-44px_rgba(15,23,42,0.98)] focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-sky-200/70'
 const softCardClass =
-  'group flex min-h-[330px] flex-col justify-between rounded-lg border border-[#ead7a6]/70 bg-[#fff8e4]/80 p-6 shadow-[0_18px_58px_-42px_rgba(85,70,36,0.85)]'
+  'group flex min-h-[330px] flex-col justify-between rounded-lg border border-[#ead7a6]/70 bg-[#fff8e4]/80 p-6 text-left shadow-[0_18px_58px_-42px_rgba(85,70,36,0.85)] transition duration-300 hover:-translate-y-1 hover:border-[#d9bb66] hover:bg-[#fff5d4] hover:shadow-[0_26px_68px_-42px_rgba(85,70,36,0.92)] focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-amber-100'
+
+function isMusicItem(item: MiletHomeHighlightViewItem) {
+  return item.kind === 'music' || item.kind === 'release'
+}
+
+function cardClass(item: MiletHomeHighlightViewItem) {
+  return [
+    item.variant === 'imageHero' ? imageHeroClass : softCardClass,
+    isMusicItem(item) ? 'cursor-pointer' : '',
+  ]
+}
+
+function componentTag(item: MiletHomeHighlightViewItem) {
+  if (isMusicItem(item)) return 'button'
+  return item.href ? 'a' : RouterLink
+}
 
 function linkProps(item: MiletHomeHighlightViewItem) {
+  if (isMusicItem(item)) {
+    return {
+      type: 'button',
+    }
+  }
+
   if (item.href) {
     return {
       href: item.href,
@@ -81,5 +108,11 @@ function linkProps(item: MiletHomeHighlightViewItem) {
   return {
     to: item.to || '#',
   }
+}
+
+function handleClick(event: MouseEvent, item: MiletHomeHighlightViewItem) {
+  if (!isMusicItem(item)) return
+  event.preventDefault()
+  emit('selectMusic', item)
 }
 </script>

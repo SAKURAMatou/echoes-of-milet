@@ -132,21 +132,22 @@ const summaryText = computed(() => {
 })
 
 async function openTrack(t: Track) {
-  if (!t.lyric) {
-    const detail = await axiosInstance.get(apiRoutes.miletReleaseDetail + t.showId)
+  if (!t.lyric || !t.listenData) {
+    const detail = await axiosInstance.get<{ data?: Partial<Track> }>(
+      apiRoutes.miletReleaseDetail + t.showId,
+    )
     if (detail && Object.keys(detail).length > 0) {
-      const d = detail.data as Track
-      t.lyric = d.lyric
-      t.arrangers = d.arrangers
-      t.composers = d.composers
-      t.lyricists = d.lyricists
-      t.recorded_at = d.recorded_at
-      t.singer = d.singer
-      modalOpen.value = true
+      const d = detail.data || {}
+      t.lyric = d.lyric || t.lyric
+      t.arrangers = d.arrangers || t.arrangers
+      t.composers = d.composers || t.composers
+      t.lyricists = d.lyricists || t.lyricists
+      t.recorded_at = d.recorded_at || t.recorded_at
+      t.singer = d.singer || t.singer
+      t.listenData = d.listenData || t.listenData
     }
-  } else {
-    modalOpen.value = true
   }
   modalTrack.value = t
+  modalOpen.value = true
 }
 </script>

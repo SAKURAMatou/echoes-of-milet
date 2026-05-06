@@ -2,7 +2,7 @@ import type { RouteLocationRaw } from 'vue-router'
 
 export type MiletLang = 'zh' | 'ja'
 export type SectionKey = 'highlight' | 'timeline' | 'gallery'
-export type HighlightKind = 'live' | 'release' | 'article' | 'gallery'
+export type HighlightKind = 'live' | 'release' | 'music' | 'article' | 'gallery'
 export type HighlightVariant = 'imageHero' | 'softCard'
 export type TimelineColor = 'blue' | 'pink' | 'green' | 'violet' | 'yellow' | 'orange'
 export type GalleryAspect = '4/5' | '16/10' | '3/4' | '5/3' | '1/1'
@@ -52,6 +52,8 @@ export interface MiletHomeHighlightItem {
   actionLabel?: LocalizedText
   route?: RouteTarget
   href?: string
+  trackShowId?: string
+  trackTitle?: LocalizedText | string
   priority: number
   publishedAt?: string
 }
@@ -171,6 +173,7 @@ export interface MiletHomeWhyViewItem {
 
 export interface MiletHomeHighlightViewItem {
   id: string
+  kind: HighlightKind
   variant: HighlightVariant
   badge: string
   title: string
@@ -180,6 +183,8 @@ export interface MiletHomeHighlightViewItem {
   actionLabel: string
   to?: RouteLocationRaw
   href?: string
+  trackShowId?: string
+  trackTitle?: string
 }
 
 export interface MiletHomeTimelineViewItem {

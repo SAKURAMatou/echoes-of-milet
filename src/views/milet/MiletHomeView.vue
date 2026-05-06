@@ -13,7 +13,11 @@
 
     <div class="px-5 py-12 sm:px-8 md:px-10">
       <MiletHomeWhy :items="whyCards" />
-      <MiletHomeHighlight :title="sectionTitles.highlight" :items="highlights" />
+      <MiletHomeHighlight
+        :title="sectionTitles.highlight"
+        :items="highlights"
+        @select-music="openHighlightTrack"
+      />
       <MiletHomeEchoRoom />
       <MiletHomeTimelinePreview :title="sectionTitles.timeline" :timeline="timeline" />
       <MiletHomeGallery :title="sectionTitles.gallery" :gallery="gallery" />
@@ -21,14 +25,17 @@
       <MiletHomeEntryGrid :entries="entries" />
       <MiletHomeCta :title="cta.title" :button-label="cta.buttonLabel" :to="cta.to" />
     </div>
+
+    <TrackModal :open="trackModalOpen" :track="trackModalTrack" @close="trackModalOpen = false" />
   </article>
 </template>
 
 <script setup lang="ts">
 import { computed, onMounted, onServerPrefetch, ref, watchEffect } from 'vue'
-import { useRoute } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 
 import axiosInstance from '@/AxiosUtil'
+import type { MiletHomeHighlightViewItem } from '@/components/milet/home/types'
 import MiletHomeCta from '@/components/milet/home/MiletHomeCta.vue'
 import MiletHomeEchoRoom from '@/components/milet/home/MiletHomeEchoRoom.vue'
 import MiletHomeEntryGrid from '@/components/milet/home/MiletHomeEntryGrid.vue'
@@ -38,6 +45,7 @@ import MiletHomeHighlight from '@/components/milet/home/MiletHomeHighlight.vue'
 import MiletHomeOfficialLinks from '@/components/milet/home/MiletHomeOfficialLinks.vue'
 import MiletHomeTimelinePreview from '@/components/milet/home/MiletHomeTimelinePreview.vue'
 import MiletHomeWhy from '@/components/milet/home/MiletHomeWhy.vue'
+import TrackModal from '@/components/milet/music/TrackModal.vue'
 import {
   buildMiletHomeV2Data,
   ctaView,
@@ -51,14 +59,18 @@ import {
   timelineViewSection,
   whyViewItems,
 } from '@/composables/miletHomeV2'
+import type { Track, Work } from '@/composables/releaseType'
 import { useAppState } from '@/composables/useAppState'
 import { apiRoutes } from '@/config/api'
 
 const appState = useAppState()
 const route = useRoute()
+const router = useRouter()
 const currentYear = new Date().getFullYear()
 const miletDatas = ref<Record<string, any> | null>(appState.miletHomeData)
 const loading = ref(false)
+const trackModalOpen = ref(false)
+const trackModalTrack = ref<Track | null>(null)
 
 const routeLang = computed(() => String(route.params.lang || 'zh'))
 const currentLang = computed(() => normalizeMiletLang(routeLang.value))
@@ -127,6 +139,105 @@ const cta = computed(() => ctaView(currentLang.value, routeLang.value))
 
 function scrollToHighlight() {
   document.getElementById('highlight')?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+}
+
+function emptyTrack(showId: string, title: string): Track {
+  return {
+    showId,
+    no: 0,
+    title,
+    durationSec: 0,
+    lyric: '',
+    singer: '',
+    lyricists: '',
+    composers: '',
+    arrangers: '',
+    recorded_at: '',
+    performers: '',
+    language: '',
+  }
+}
+
+function normalizeTrackTitle(value: string) {
+  return value
+    .toLowerCase()
+    .replace(/\s+/g, '')
+    .replace(/[()[\]{}'"“”‘’.,:;!?！？。・]/g, '')
+}
+
+function titleCandidates(item: MiletHomeHighlightViewItem) {
+  return Array.from(
+    new Set(
+      [item.trackTitle, item.title, ...item.title.split(/[\/|｜]/)]
+        .map((value) => String(value || '').trim())
+        .filter(Boolean),
+    ),
+  )
+}
+
+async function loadTrackDetail(track: Track) {
+  try {
+    const detail = await axiosInstance.get<{ code?: number; data?: Partial<Track> }>(
+      apiRoutes.miletReleaseDetail + track.showId,
+    )
+    const data = detail?.data || {}
+    return {
+      ...track,
+      ...data,
+      showId: track.showId,
+      title: data.title || track.title,
+      no: track.no,
+      durationSec: track.durationSec,
+    }
+  } catch (error) {
+    console.error('Failed to load highlight track detail:', error)
+    return track
+  }
+}
+
+async function findTrackFromReleaseList(item: MiletHomeHighlightViewItem) {
+  const candidates = titleCandidates(item).map(normalizeTrackTitle)
+  if (candidates.length === 0) return null
+
+  const releasePage = await axiosInstance.get<{ data?: Work[] }>(`${apiRoutes.miletRelease}2`, {
+    params: { page: 1, pageSize: 60 },
+  })
+  const works = Array.isArray(releasePage.data) ? releasePage.data : []
+
+  for (const work of works) {
+    for (const edition of work.editions || []) {
+      for (const disc of edition.discs || []) {
+        for (const track of disc.tracks || []) {
+          const normalizedTitle = normalizeTrackTitle(track.title || '')
+          if (candidates.some((candidate) => normalizedTitle === candidate)) {
+            return track as Track
+          }
+        }
+      }
+    }
+  }
+
+  return null
+}
+
+async function openHighlightTrack(item: MiletHomeHighlightViewItem) {
+  try {
+    const track = item.trackShowId
+      ? emptyTrack(item.trackShowId, item.trackTitle || item.title)
+      : await findTrackFromReleaseList(item)
+
+    if (track?.showId) {
+      trackModalTrack.value = await loadTrackDetail(track)
+      trackModalOpen.value = true
+      return
+    }
+  } catch (error) {
+    console.error('Failed to open highlight track:', error)
+  }
+
+  if (item.to) {
+    await router.push(item.to)
+  }
 }
 
 watchEffect(() => {

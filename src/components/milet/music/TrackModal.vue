@@ -238,7 +238,12 @@
                           <div
                             v-for="item in currentListenItems"
                             :key="`inline-${item.platformCode}-${item.url}`"
-                            class="group relative overflow-hidden rounded-[16px] border border-slate-200/80 bg-white/95 p-4 shadow-[0_18px_45px_-28px_rgba(15,23,42,0.35)] ring-1 ring-white/80 transition hover:-translate-y-0.5 hover:border-sky-200 hover:shadow-[0_24px_52px_-26px_rgba(14,165,233,0.28)] lg:mx-auto lg:w-full lg:max-w-[340px]"
+                            class="group relative overflow-hidden rounded-[16px] border border-slate-200/80 bg-white/95 p-4 shadow-[0_18px_45px_-28px_rgba(15,23,42,0.35)] ring-1 ring-white/80 transition hover:-translate-y-0.5 hover:border-sky-200 hover:bg-white hover:shadow-[0_24px_52px_-26px_rgba(14,165,233,0.28)] focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-sky-100 lg:mx-auto lg:w-full lg:max-w-[340px]"
+                            role="link"
+                            tabindex="0"
+                            @click="openTrackListenLink(item.url)"
+                            @keydown.enter="openTrackListenLink(item.url)"
+                            @keydown.space.prevent="openTrackListenLink(item.url)"
                           >
                             <div
                               class="absolute inset-x-0 top-0 h-16 bg-[linear-gradient(135deg,rgba(186,230,253,0.28),rgba(255,255,255,0))] opacity-80"
@@ -277,6 +282,7 @@
                                 target="_blank"
                                 rel="noreferrer"
                                 class="inline-flex w-full items-center justify-center gap-1 rounded-xl border border-sky-200 bg-sky-50 px-3.5 py-2 text-xs font-semibold tracking-[0.01em] text-sky-700 transition hover:border-sky-300 hover:bg-sky-100 hover:text-sky-800 active:translate-y-[1px]"
+                                @click.stop
                               >
                                 {{ modalText.listenAction }}
                                 <svg
@@ -366,7 +372,12 @@
                           <div
                             v-for="item in currentListenItems"
                             :key="`${item.platformCode}-${item.url}`"
-                            class="group relative overflow-hidden rounded-[16px] border border-slate-200/80 bg-white/95 p-4 shadow-[0_18px_45px_-28px_rgba(15,23,42,0.35)] ring-1 ring-white/80 transition hover:-translate-y-0.5 hover:border-sky-200 hover:shadow-[0_24px_52px_-26px_rgba(14,165,233,0.28)]"
+                            class="group relative overflow-hidden rounded-[16px] border border-slate-200/80 bg-white/95 p-4 shadow-[0_18px_45px_-28px_rgba(15,23,42,0.35)] ring-1 ring-white/80 transition hover:-translate-y-0.5 hover:border-sky-200 hover:bg-white hover:shadow-[0_24px_52px_-26px_rgba(14,165,233,0.28)] focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-sky-100"
+                            role="link"
+                            tabindex="0"
+                            @click="openTrackListenLink(item.url)"
+                            @keydown.enter="openTrackListenLink(item.url)"
+                            @keydown.space.prevent="openTrackListenLink(item.url)"
                           >
                             <div
                               class="absolute inset-x-0 top-0 h-16 bg-[linear-gradient(135deg,rgba(186,230,253,0.28),rgba(255,255,255,0))] opacity-80"
@@ -405,6 +416,7 @@
                                 target="_blank"
                                 rel="noreferrer"
                                 class="inline-flex w-full items-center justify-center gap-1 rounded-xl border border-sky-200 bg-sky-50 px-3.5 py-2 text-xs font-semibold tracking-[0.01em] text-sky-700 transition hover:border-sky-300 hover:bg-sky-100 hover:text-sky-800 active:translate-y-[1px]"
+                                @click.stop
                               >
                                 {{ modalText.listenAction }}
                                 <svg
@@ -441,28 +453,8 @@
 
 <script setup lang="ts">
 import { computed, getCurrentInstance, ref, watch } from 'vue'
-import axiosInstance from '@/AxiosUtil'
-import { apiRoutes } from '@/config/api'
-import type { Track } from '@/composables/releaseType'
+import type { Track, TrackListenData } from '@/composables/releaseType'
 import TrackListenPlatformIcon from './TrackListenPlatformIcon.vue'
-
-type TrackListenEntry = {
-  platformCode: string
-  platformLabel: string
-  platformIcon: string
-  language: string
-  url: string
-  sourceType: string
-  title: string
-  artist: string
-  album: string
-  isValid: boolean
-}
-
-type TrackListenResponse = {
-  jp: TrackListenEntry[]
-  zh: TrackListenEntry[]
-}
 
 const TRACK_MODAL_TEXT = {
   zh: {
@@ -505,9 +497,11 @@ const emit = defineEmits<{ (e: 'close'): void }>()
 const { appContext } = getCurrentInstance()!
 const global = appContext.config.globalProperties
 
+const emptyListenData = (): TrackListenData => ({ jp: [], zh: [] })
+
 const listenLoading = ref(false)
 const listenDrawerOpen = ref(false)
-const listenData = ref<TrackListenResponse>({ jp: [], zh: [] })
+const listenData = ref<TrackListenData>(emptyListenData())
 
 const currentLang = computed(() => (global.$lang?.lang === 'jp' ? 'jp' : 'zh'))
 const modalText = computed(() => TRACK_MODAL_TEXT[currentLang.value])
@@ -522,23 +516,6 @@ const currentLanguageLabel = computed(() =>
   currentLang.value === 'jp' ? modalText.value.jpLabel : modalText.value.zhLabel,
 )
 
-function normalizeTrackListenEntry(item: Partial<TrackListenEntry>): TrackListenEntry {
-  const platformCode = String(item.platformCode || '')
-
-  return {
-    platformCode,
-    platformLabel: String(item.platformLabel || platformCode),
-    platformIcon: String(item.platformIcon || platformCode),
-    language: String(item.language || ''),
-    url: String(item.url || ''),
-    sourceType: String(item.sourceType || 'auto'),
-    title: String(item.title || ''),
-    artist: String(item.artist || ''),
-    album: String(item.album || ''),
-    isValid: Boolean(item.isValid),
-  }
-}
-
 function formatSourceTypeTag(sourceType: string) {
   const isManual = String(sourceType || '').trim().toLowerCase() === 'manual'
 
@@ -550,44 +527,17 @@ function formatSourceTypeTag(sourceType: string) {
 }
 
 watch(
-  () => props.open,
-  async (open) => {
-    if (!open || !props.track?.showId) {
-      listenDrawerOpen.value = false
-      return
-    }
+  () => [props.open, props.track?.showId, props.track?.listenData] as const,
+  ([open]) => {
+    listenLoading.value = false
+    listenData.value = props.track?.listenData || emptyListenData()
 
-    await loadTrackListen(props.track.showId)
+    if (!open) {
+      listenDrawerOpen.value = false
+    }
   },
   { immediate: true },
 )
-
-watch(
-  () => props.track?.showId,
-  async (showId) => {
-    if (!props.open || !showId) return
-    await loadTrackListen(showId)
-  },
-)
-
-async function loadTrackListen(showId: string) {
-  listenLoading.value = true
-  listenDrawerOpen.value = false
-  try {
-    const data = await axiosInstance.get<TrackListenResponse>(
-      `${apiRoutes.miletTrackListen}${showId}`,
-    )
-    listenData.value = {
-      jp: Array.isArray(data.jp) ? data.jp.map(normalizeTrackListenEntry) : [],
-      zh: Array.isArray(data.zh) ? data.zh.map(normalizeTrackListenEntry) : [],
-    }
-  } catch (error) {
-    console.error('Failed to load track listen links:', error)
-    listenData.value = { jp: [], zh: [] }
-  } finally {
-    listenLoading.value = false
-  }
-}
 
 function openListenDrawer() {
   if (!hasListenData.value) {
@@ -595,6 +545,11 @@ function openListenDrawer() {
     return
   }
   listenDrawerOpen.value = true
+}
+
+function openTrackListenLink(url: string) {
+  if (!url) return
+  window.open(url, '_blank', 'noopener,noreferrer')
 }
 
 function closeAll() {
@@ -612,6 +567,16 @@ function closeAll() {
 .panel-scroll {
   -webkit-overflow-scrolling: touch;
   overscroll-behavior: contain;
+}
+
+.modal-panel button:not(:disabled),
+.modal-panel a[href],
+.modal-panel [role='link'] {
+  cursor: pointer;
+}
+
+.modal-panel button:disabled {
+  cursor: not-allowed;
 }
 
 .track-modal-enter-active,

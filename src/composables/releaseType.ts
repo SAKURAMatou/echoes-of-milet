@@ -1,6 +1,24 @@
 export type ReleaseType = 'ALBUM' | 'EP' | 'SINGLE' | 'LIVE' | 'LIVE_BD' | 'LIVE_DVD'
 export type DistributionType = 'PHYSICAL' | 'STREAMING'
 
+export type TrackListenEntry = {
+  platformCode: string
+  platformLabel: string
+  platformIcon: string
+  language: string
+  url: string
+  sourceType: string
+  title: string
+  artist: string
+  album: string
+  isValid: boolean
+}
+
+export type TrackListenData = {
+  jp: TrackListenEntry[]
+  zh: TrackListenEntry[]
+}
+
 export interface Track {
   showId: string
   no: number
@@ -14,6 +32,7 @@ export interface Track {
   recorded_at: string
   performers: string
   language: string
+  listenData?: TrackListenData
 }
 
 export interface Disc {

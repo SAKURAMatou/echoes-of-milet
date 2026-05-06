@@ -531,6 +531,7 @@ export function highlightViewItems(
       const kindConfig = homeV2.highlightKindConfig?.[item.kind]
       return {
         id: item.id,
+        kind: item.kind,
         variant: item.variant,
         badge: textOf(item.badge || kindConfig?.badge, lang),
         title: textOf(item.title, lang),
@@ -542,6 +543,8 @@ export function highlightViewItems(
           (lang === 'ja' ? '詳しく見る' : '查看详情'),
         to: routeToLocation(item.route, routeLang),
         href: item.href,
+        trackShowId: item.trackShowId,
+        trackTitle: textOf(item.trackTitle, lang),
       }
     })
 }
