@@ -26,7 +26,12 @@
       <MiletHomeCta :title="cta.title" :button-label="cta.buttonLabel" :to="cta.to" />
     </div>
 
-    <TrackModal :open="trackModalOpen" :track="trackModalTrack" @close="trackModalOpen = false" />
+    <TrackModal
+      v-if="trackModalReady"
+      :open="trackModalOpen"
+      :track="trackModalTrack"
+      @close="trackModalOpen = false"
+    />
   </article>
 </template>
 
@@ -71,6 +76,7 @@ const miletDatas = ref<Record<string, any> | null>(appState.miletHomeData)
 const loading = ref(false)
 const trackModalOpen = ref(false)
 const trackModalTrack = ref<Track | null>(null)
+const trackModalReady = ref(false)
 
 const routeLang = computed(() => String(route.params.lang || 'zh'))
 const currentLang = computed(() => normalizeMiletLang(routeLang.value))
@@ -250,6 +256,8 @@ watchEffect(() => {
 })
 
 onMounted(async () => {
+  trackModalReady.value = true
+
   if (!miletDatas.value) {
     await loadMiletHomeData()
   }
