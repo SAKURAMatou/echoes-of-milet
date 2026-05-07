@@ -18,7 +18,11 @@
     <div
       v-if="topicTags.length > 0"
       class="topic-filter mb-8"
-      :class="{ 'is-expanded': showAllTags, 'has-topic-next': hasTopicRailNext }"
+      :class="{
+        'is-expanded': showAllTags,
+        'has-topic-prev': hasTopicRailPrev,
+        'has-topic-next': hasTopicRailNext,
+      }"
     >
       <div ref="topicRailEl" class="topic-rail" @scroll="updateTopicRailHint">
         <button
@@ -64,6 +68,44 @@
           </svg>
         </button>
       </div>
+      <button
+        v-if="!showAllTags && hasTopicRailPrev"
+        type="button"
+        class="topic-scroll-control topic-scroll-control-prev"
+        aria-label="Scroll topics left"
+        @click="scrollTopicRail('prev')"
+      >
+        <svg
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2.2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          aria-hidden="true"
+        >
+          <path d="m15 18-6-6 6-6" />
+        </svg>
+      </button>
+      <button
+        v-if="!showAllTags && hasTopicRailNext"
+        type="button"
+        class="topic-scroll-control topic-scroll-control-next"
+        aria-label="Scroll topics right"
+        @click="scrollTopicRail('next')"
+      >
+        <svg
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2.2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          aria-hidden="true"
+        >
+          <path d="m9 18 6-6-6-6" />
+        </svg>
+      </button>
     </div>
 
     <div v-if="loading && items.length === 0" class="space-y-4">
@@ -250,6 +292,7 @@ const loadMoreEl = ref<HTMLElement | null>(null)
 const topicRailEl = ref<HTMLElement | null>(null)
 const selectedTag = ref('')
 const showAllTags = ref(false)
+const hasTopicRailPrev = ref(false)
 const hasTopicRailNext = ref(false)
 
 let observer: IntersectionObserver | null = null
@@ -389,11 +432,25 @@ async function loadNewsTopics() {
 function updateTopicRailHint() {
   const rail = topicRailEl.value
   if (!rail || showAllTags.value) {
+    hasTopicRailPrev.value = false
     hasTopicRailNext.value = false
     return
   }
 
+  hasTopicRailPrev.value = rail.scrollLeft > 4
   hasTopicRailNext.value = rail.scrollLeft + rail.clientWidth < rail.scrollWidth - 4
+}
+
+function scrollTopicRail(direction: 'prev' | 'next') {
+  const rail = topicRailEl.value
+  if (!rail) return
+
+  const distance = Math.max(220, Math.floor(rail.clientWidth * 0.72))
+  rail.scrollBy({
+    left: direction === 'next' ? distance : -distance,
+    behavior: 'smooth',
+  })
+  window.setTimeout(updateTopicRailHint, 260)
 }
 
 async function toggleTopicPanel() {
@@ -494,34 +551,6 @@ onBeforeUnmount(() => {
   padding: 0.75rem;
 }
 
-.topic-filter.has-topic-next:not(.is-expanded)::before {
-  content: '';
-  position: absolute;
-  top: 0.75rem;
-  right: 0.75rem;
-  bottom: 0.75rem;
-  z-index: 2;
-  width: 4.8rem;
-  pointer-events: none;
-  background: linear-gradient(90deg, rgba(255, 255, 255, 0), rgba(249, 252, 255, 0.98) 62%);
-}
-
-.topic-filter.has-topic-next:not(.is-expanded)::after {
-  content: '';
-  position: absolute;
-  top: 50%;
-  right: 1.25rem;
-  z-index: 3;
-  width: 0.72rem;
-  height: 0.72rem;
-  border-top: 2px solid rgba(49, 127, 141, 0.76);
-  border-right: 2px solid rgba(49, 127, 141, 0.76);
-  pointer-events: none;
-  filter: drop-shadow(0 2px 7px rgba(49, 127, 141, 0.26));
-  transform: translateY(-50%) rotate(45deg);
-  animation: topic-next-hint 1.65s ease-in-out infinite;
-}
-
 .topic-rail {
   display: flex;
   max-height: 6.9rem;
@@ -544,6 +573,63 @@ onBeforeUnmount(() => {
   flex-wrap: wrap;
   overflow-x: visible;
   padding-right: 0;
+}
+
+.topic-scroll-control {
+  position: absolute;
+  top: 0.75rem;
+  bottom: 0.75rem;
+  z-index: 4;
+  display: grid;
+  width: 3.45rem;
+  place-items: center;
+  border: 0;
+  background: transparent;
+  color: rgba(49, 127, 141, 0.78);
+  cursor: pointer;
+  padding: 0;
+}
+
+.topic-scroll-control::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.topic-scroll-control svg {
+  position: relative;
+  z-index: 1;
+  width: 1.28rem;
+  height: 1.28rem;
+  filter: drop-shadow(0 2px 7px rgba(49, 127, 141, 0.26));
+  transition:
+    color 160ms ease,
+    transform 160ms ease;
+}
+
+.topic-scroll-control-prev {
+  left: 0.75rem;
+}
+
+.topic-scroll-control-next {
+  right: 0.75rem;
+}
+
+.topic-scroll-control-prev::before {
+  background: linear-gradient(270deg, rgba(255, 255, 255, 0), rgba(249, 252, 255, 0.98) 66%);
+}
+
+.topic-scroll-control-next::before {
+  background: linear-gradient(90deg, rgba(255, 255, 255, 0), rgba(249, 252, 255, 0.98) 66%);
+}
+
+.topic-scroll-control-prev svg {
+  animation: topic-prev-hint 1.65s ease-in-out infinite;
+}
+
+.topic-scroll-control-next svg {
+  animation: topic-next-hint 1.65s ease-in-out infinite;
 }
 
 .news-tag {
@@ -635,18 +721,43 @@ onBeforeUnmount(() => {
     background: rgba(240, 249, 255, 0.94);
     color: #075985;
   }
+
+  .topic-scroll-control:hover {
+    color: rgba(14, 116, 144, 0.96);
+  }
+
+  .topic-scroll-control-prev:hover svg {
+    transform: translateX(-0.12rem);
+  }
+
+  .topic-scroll-control-next:hover svg {
+    transform: translateX(0.12rem);
+  }
+}
+
+@keyframes topic-prev-hint {
+  0%,
+  100% {
+    opacity: 0.28;
+    transform: translate(0.1rem, 0);
+  }
+
+  45% {
+    opacity: 0.95;
+    transform: translate(-0.16rem, 0);
+  }
 }
 
 @keyframes topic-next-hint {
   0%,
   100% {
     opacity: 0.28;
-    transform: translate(-0.1rem, -50%) rotate(45deg);
+    transform: translate(-0.1rem, 0);
   }
 
   45% {
     opacity: 0.95;
-    transform: translate(0.16rem, -50%) rotate(45deg);
+    transform: translate(0.16rem, 0);
   }
 }
 
@@ -661,16 +772,29 @@ onBeforeUnmount(() => {
     padding-left: 1rem;
   }
 
-  .topic-filter.has-topic-next:not(.is-expanded)::before {
+  .topic-scroll-control {
     top: 0;
     right: 0;
     bottom: 0;
-    width: 4.6rem;
-    background: linear-gradient(90deg, rgba(255, 255, 255, 0), rgba(249, 252, 255, 0.98) 58%);
+    width: 3.85rem;
   }
 
-  .topic-filter.has-topic-next:not(.is-expanded)::after {
-    right: 1.2rem;
+  .topic-scroll-control-prev {
+    left: 0;
+    right: auto;
+  }
+
+  .topic-scroll-control-next {
+    left: auto;
+    right: 0;
+  }
+
+  .topic-scroll-control-prev::before {
+    background: linear-gradient(270deg, rgba(255, 255, 255, 0), rgba(249, 252, 255, 0.98) 58%);
+  }
+
+  .topic-scroll-control-next::before {
+    background: linear-gradient(90deg, rgba(255, 255, 255, 0), rgba(249, 252, 255, 0.98) 58%);
   }
 
   .topic-rail {
