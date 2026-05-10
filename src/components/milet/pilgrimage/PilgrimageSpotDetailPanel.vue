@@ -94,18 +94,18 @@
           <a
             v-for="photo in selectedSpotDetail.photos"
             :key="photo.id"
-            :href="photo.fullUrl"
+            :href="buildStaticAssetUrl(photo.fullUrl)"
             :data-fancybox="galleryName"
             :data-caption="photo.caption"
             :data-width="photo.width"
             :data-height="photo.height"
-            :data-download-src="photo.downloadUrl || photo.fullUrl"
+            :data-download-src="buildStaticAssetUrl(photo.downloadUrl || photo.fullUrl)"
             class="pilgrimage-photo block overflow-hidden rounded-lg border border-white/80 bg-white/78 p-1 shadow-[0_16px_42px_-34px_rgba(31,41,55,0.78)] transition hover:-translate-y-0.5 hover:border-[#9bd0c8]"
           >
             <LazyImage
               :src="buildStaticAssetUrl(photo.thumbUrl || photo.fullUrl)"
               :alt="photo.alt"
-              :downloadSrc="photo.downloadUrl || photo.fullUrl"
+              :downloadSrc="buildStaticAssetUrl(photo.downloadUrl || photo.fullUrl)"
             />
           </a>
         </div>
