@@ -77,6 +77,18 @@ export function getMenu(now = new Date()): MenuItem[] {
       shown: true,
     },
     {
+      key: 'pilgrimage',
+      label: 'PILGRIMAGE',
+      sub: '- Places on the map',
+      color: 'teal',
+      routerName: 'miletPilgrimage',
+      children: [
+        { key: 'pilgrimage-map', label: 'map', href: '#pilgrimage-map' },
+        { key: 'pilgrimage-detail', label: 'detail', href: '#pilgrimage-detail' },
+      ],
+      shown: true,
+    },
+    {
       key: 'gallery',
       label: 'GALLERY',
       sub: '- Visual journey',
