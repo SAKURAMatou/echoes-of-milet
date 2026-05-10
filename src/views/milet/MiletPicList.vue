@@ -134,10 +134,8 @@ const loadPage = async () => {
     const resImgList = Array.isArray(resData.data) ? resData.data : []
     totalPages.value = resData.maxPage
     resImgList.forEach((img) => {
-      img.link = buildStaticAssetUrl(img.link)
-      if (img.prelink && img.prelink != '') {
-        img.prelink = buildStaticAssetUrl(img.prelink)
-      }
+      img.link = buildStaticAssetUrl(img.url_original || img.link)
+      img.prelink = buildStaticAssetUrl(img.url_webp || img.prelink || img.link)
     })
     imgList.value.push(...resImgList)
   }

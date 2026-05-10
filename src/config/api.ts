@@ -16,6 +16,9 @@ export function getRuntimeConfig(runtime = resolveRuntime()) {
 export function getBackendOrigin() {
   return getRuntimeConfig().backend
 }
+export function getImginOrigin() {
+  return apiProxyConfig.origins.production.backend.replace(/\/+$/, '')
+}
 
 export function getSiteOrigin() {
   return getRuntimeConfig().site
@@ -24,5 +27,6 @@ export function getSiteOrigin() {
 export function buildStaticAssetUrl(assetPath: string, staticBase = staticRoutes.miletImage) {
   if (!assetPath) return ''
   if (/^https?:\/\//i.test(assetPath)) return assetPath
-  return `${getBackendOrigin()}${staticBase}${assetPath}`
+  if (assetPath.startsWith('/static/')) return `${getImginOrigin()}${assetPath}`
+  return `${getImginOrigin()}${staticBase}${assetPath}`
 }
