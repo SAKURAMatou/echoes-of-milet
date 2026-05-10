@@ -104,6 +104,7 @@ const releaseLink = computed(() => withLangParam({ name: 'miletRelease' }, curre
 const aboutLink = computed(() => withLangParam({ name: 'aboutMe' }, currentLang.value))
 const galleryLink = computed(() => withLangParam({ name: 'miletPicAlbum' }, currentLang.value))
 const timelineLink = computed(() => withLangParam({ name: 'miletTimeLine' }, currentLang.value))
+const newsCollectionLink = computed(() => withLangParam({ name: 'miletNews' }, currentLang.value))
 
 const copy = computed(() => ({
   zh: {
@@ -133,6 +134,17 @@ const copy = computed(() => ({
       //   description: '按主题整理公开图像资料，尽量避开受限素材。',
       //   // to: galleryLink.value,
       // },
+      {
+        label: 'NEWS-COLLECTION',
+        title: '访谈收藏',
+        description: '收集杂志、访谈，记录那些藏在话语里的情绪与想法。',
+        to: newsCollectionLink.value,
+      },
+      {
+        label: 'PILGRIMAGE',
+        title: '朝圣之旅',
+        description: '沿着声音留下的轨迹，重新遇见那些被轻轻提起的地方。',
+      },
     ],
   },
   jp: {
@@ -162,6 +174,18 @@ const copy = computed(() => ({
       //   description: '公開されている画像を中心に、テーマごとに整理しています。',
       //   // to: galleryLink.value,
       // },
+      {
+        label: 'NEWS-COLLECTION',
+        title: 'インタビュー記録',
+        description:
+          '雑誌やインタビュー、公開コメントを集めながら、言葉の奥に残る想いや空気も記録しています。',
+        to: newsCollectionLink.value,
+      },
+      {
+        label: 'PILGRIMAGE',
+        title: '聖地巡礼',
+        description: '声の余韻をたどりながら、ふと語られた景色や場所を静かに辿っています。',
+      },
     ],
   },
 }))
