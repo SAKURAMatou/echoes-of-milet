@@ -102,7 +102,7 @@ const currentLang = computed(() => String(route.params.lang || global?.$lang?.la
 const miletLink = computed(() => withLangParam({ name: 'milet' }, currentLang.value))
 const releaseLink = computed(() => withLangParam({ name: 'miletRelease' }, currentLang.value))
 const aboutLink = computed(() => withLangParam({ name: 'aboutMe' }, currentLang.value))
-const galleryLink = computed(() => withLangParam({ name: 'miletPicAlbum' }, currentLang.value))
+const pilgrimageLink = computed(() => withLangParam({ name: 'miletPilgrimage' }, currentLang.value))
 const timelineLink = computed(() => withLangParam({ name: 'miletTimeLine' }, currentLang.value))
 const newsCollectionLink = computed(() => withLangParam({ name: 'miletNews' }, currentLang.value))
 
@@ -144,6 +144,7 @@ const copy = computed(() => ({
         label: 'PILGRIMAGE',
         title: '朝圣之旅',
         description: '沿着声音留下的轨迹，重新遇见那些被轻轻提起的地方。',
+        to: pilgrimageLink.value,
       },
     ],
   },
@@ -185,6 +186,7 @@ const copy = computed(() => ({
         label: 'PILGRIMAGE',
         title: '聖地巡礼',
         description: '声の余韻をたどりながら、ふと語られた景色や場所を静かに辿っています。',
+        to: pilgrimageLink.value,
       },
     ],
   },
