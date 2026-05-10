@@ -40,10 +40,17 @@
       {{ pageText.emptySpot }}
     </div>
 
-    <div
-      class="absolute bottom-4 left-4 z-10 rounded-lg border border-white/80 bg-white/82 px-3 py-2 text-xs text-[#526670] shadow-[0_18px_45px_-35px_rgba(31,41,55,0.8)] backdrop-blur"
-    >
-      {{ pageText.mapLabel }} / OpenMapTiles
+    <div class="absolute bottom-4 left-4 right-4 z-10 flex min-w-0 items-center gap-2 text-xs">
+      <span
+        class="shrink-0 rounded-lg border border-white/80 bg-white/82 px-3 py-2 text-[#526670] shadow-[0_18px_45px_-35px_rgba(31,41,55,0.8)] backdrop-blur"
+      >
+        {{ pageText.mapLabel }} / OpenMapTiles
+      </span>
+      <span
+        class="min-w-0 truncate rounded-lg border border-[#9bd0c8]/70 bg-[#f0fbf8]/88 px-3 py-2 text-[#2f6f69] shadow-[0_18px_45px_-35px_rgba(31,41,55,0.8)] backdrop-blur lg:hidden"
+      >
+        {{ pageText.dataCreditShort }}
+      </span>
     </div>
   </div>
 </template>

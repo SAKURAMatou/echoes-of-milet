@@ -6,15 +6,25 @@
       <div
         class="relative h-full min-w-0 border-b border-white/70 lg:grid lg:grid-rows-[auto_auto_minmax(0,1fr)] lg:border-b-0 lg:border-r"
       >
-        <header class="hidden border-b border-white/70 px-7 py-5 lg:block">
+        <header class="hidden border-b border-white/70 px-7 py-4 lg:block">
           <div class="flex items-end justify-between gap-5">
             <div class="min-w-0">
-              <h1 class="font-serif text-[clamp(3.4rem,6vw,5.4rem)] leading-none text-[#26313a]">
+              <h1 class="font-serif text-[clamp(2.7rem,4.8vw,4.1rem)] leading-none text-[#26313a]">
                 {{ pageText.title }}
               </h1>
-              <p class="mt-3 max-w-2xl text-sm leading-7 text-[#5f7178]">
+              <p class="mt-2 max-w-2xl text-sm leading-6 text-[#5f7178]">
                 {{ pageText.subtitle }}
               </p>
+              <div
+                class="mt-3 max-w-2xl rounded-lg border border-[#9bd0c8]/70 bg-[#f0fbf8]/88 px-3 py-2 shadow-[0_14px_34px_-30px_rgba(31,41,55,0.72)]"
+              >
+                <div class="text-[10px] font-semibold uppercase tracking-[0.18em] text-[#2f8f83]">
+                  {{ pageText.dataCreditLabel }}
+                </div>
+                <p class="mt-1 text-[13px] leading-5 text-[#45646b]">
+                  {{ pageText.dataCredit }}
+                </p>
+              </div>
             </div>
 
             <div
@@ -111,8 +121,6 @@ type PilgrimageMapPaneExpose = {
 const MAP_BOUNDS_PADDING_RATIO = 1
 
 const route = useRoute()
-const useLocalPreviewData =
-  import.meta.env.DEV && import.meta.env.VITE_USE_PILGRIMAGE_API !== 'true'
 const mapPaneRef = ref<PilgrimageMapPaneExpose | null>(null)
 const mapRef = shallowRef<any>(null)
 const markerLayerRef = shallowRef<any>(null)
@@ -182,12 +190,6 @@ function unwrapPayload<T>(response: any): T | null {
 }
 
 async function loadRegionTree() {
-  if (useLocalPreviewData) {
-    regionTree.value = fallbackRegionTree
-    usingFallbackData.value = true
-    return
-  }
-
   try {
     const response = await axiosInstance.get(apiRoutes.miletPilgrimageRegionTree)
     const payload = unwrapPayload<PilgrimageRegionTreeResponse>(response)
@@ -211,17 +213,6 @@ async function loadDistrictSpots(districtId: string, options: { autoSelect?: boo
   spotsLoading.value = true
   selectedSpotId.value = ''
   spotDetailPayload.value = null
-
-  if (useLocalPreviewData) {
-    spotsPayload.value = fallbackSpotLists[districtId] || { zh: { spots: [] }, jp: { spots: [] } }
-    usingFallbackData.value = true
-    spotsLoading.value = false
-    const firstSpot = spots.value[0]
-    if (autoSelect && firstSpot && !isMobileViewport.value) {
-      await selectSpot(firstSpot.id)
-    }
-    return
-  }
 
   try {
     const response = await axiosInstance.get(
@@ -251,15 +242,6 @@ async function loadDistrictSpots(districtId: string, options: { autoSelect?: boo
 
 async function loadSpotDetail(spotId: string) {
   if (!spotId) return
-
-  if (useLocalPreviewData) {
-    spotDetailPayload.value = fallbackSpotDetails[spotId] || {
-      zh: { spot: null },
-      jp: { spot: null },
-    }
-    usingFallbackData.value = true
-    return
-  }
 
   try {
     const response = await axiosInstance.get(`${apiRoutes.miletPilgrimageSpot}/${spotId}`)

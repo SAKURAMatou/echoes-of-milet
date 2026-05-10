@@ -24,9 +24,10 @@ export function getSiteOrigin() {
   return getRuntimeConfig().site
 }
 
-export function buildStaticAssetUrl(assetPath: string, staticBase = staticRoutes.miletImage) {
+export function buildStaticAssetUrl(assetPath: string, baseType = 'milet') {
   if (!assetPath) return ''
   if (/^https?:\/\//i.test(assetPath)) return assetPath
   if (assetPath.startsWith('/static/')) return `${getImginOrigin()}${assetPath}`
-  return `${getImginOrigin()}${staticBase}${assetPath}`
+  const baseRoute = baseType === 'milet' ? staticRoutes.miletImage : staticRoutes.blogImage
+  return `${getImginOrigin()}${baseRoute}${assetPath}`
 }

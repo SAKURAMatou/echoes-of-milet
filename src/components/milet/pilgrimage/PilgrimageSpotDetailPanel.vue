@@ -23,9 +23,11 @@
         </button>
       </div>
 
-      <div class="overflow-hidden rounded-lg border border-white/80 bg-white/78 shadow-[0_22px_60px_-42px_rgba(31,41,55,0.8)]">
+      <div
+        class="overflow-hidden rounded-lg border border-white/80 bg-white/78 shadow-[0_22px_60px_-42px_rgba(31,41,55,0.8)]"
+      >
         <img
-          :src="selectedSpotDetail.coverImageUrl"
+          :src="buildStaticAssetUrl(selectedSpotDetail.coverImageUrl)"
           :alt="selectedSpotDetail.title"
           class="h-48 w-full object-cover"
         />
@@ -101,7 +103,7 @@
             class="pilgrimage-photo block overflow-hidden rounded-lg border border-white/80 bg-white/78 p-1 shadow-[0_16px_42px_-34px_rgba(31,41,55,0.78)] transition hover:-translate-y-0.5 hover:border-[#9bd0c8]"
           >
             <LazyImage
-              :src="photo.thumbUrl || photo.fullUrl"
+              :src="buildStaticAssetUrl(photo.thumbUrl || photo.fullUrl)"
               :alt="photo.alt"
               :downloadSrc="photo.downloadUrl || photo.fullUrl"
             />
@@ -122,6 +124,7 @@
 <script setup lang="ts">
 import LazyImage from '@/components/LazyImage.vue'
 import type { PilgrimagePageText, PilgrimageSpotDetail } from '@/composables/miletPilgrimage'
+import { buildStaticAssetUrl } from '@/config/api'
 
 defineProps<{
   pageText: PilgrimagePageText

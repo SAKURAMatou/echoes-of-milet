@@ -62,7 +62,7 @@
 
     <section class="relative px-5 pb-14 sm:px-7 md:px-10 md:pb-8 lg:px-8">
       <div
-        class="mx-auto grid max-w-[1180px] gap-5 border-t border-[#c8e5f2] pt-7 md:grid-cols-3 md:gap-0 md:pt-5"
+        class="mx-auto grid max-w-[1180px] gap-5 border-t border-[#c8e5f2] pt-7 md:grid-cols-4 md:gap-0 md:pt-5"
       >
         <router-link
           v-for="item in homeCopy.highlights"

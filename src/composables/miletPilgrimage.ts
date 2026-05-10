@@ -113,6 +113,9 @@ export interface PilgrimagePageText {
   currentArea: string
   address: string
   works: string
+  dataCreditLabel: string
+  dataCredit: string
+  dataCreditShort: string
 }
 
 export const PILGRIMAGE_TEXT: Record<PilgrimageLang, PilgrimagePageText> = {
@@ -134,6 +137,9 @@ export const PILGRIMAGE_TEXT: Record<PilgrimageLang, PilgrimagePageText> = {
     currentArea: '当前区域',
     address: '地址',
     works: '作品',
+    dataCreditLabel: 'Special thanks',
+    dataCredit: '感谢提供巡礼数据的 miles 的支持(Affogato)，让这些地点可以被整理、确认并继续补完。',
+    dataCreditShort: '感谢 miles (Affogato)提供巡礼数据',
   },
   jp: {
     title: '聖地巡礼',
@@ -153,6 +159,10 @@ export const PILGRIMAGE_TEXT: Record<PilgrimageLang, PilgrimagePageText> = {
     currentArea: '現在のエリア',
     address: '住所',
     works: '作品',
+    dataCreditLabel: 'Special thanks',
+    dataCredit:
+      '巡礼データを提供してくれた miles の皆さん(Affogato)に感謝します。地点の整理と確認を続ける支えになっています。',
+    dataCreditShort: 'miles (Affogato)の巡礼データ提供に感謝',
   },
 }
 
@@ -400,7 +410,8 @@ export const fallbackSpotLists: Record<string, PilgrimageSpotListResponse> = {
           id: 'shibuya-route-1',
           districtId: 'shibuya',
           title: '表参道から渋谷へ',
-          description: '神宮前から表参道を通り、渋谷の交差点へ向かう、ルート表示確認用の巡礼ルート。',
+          description:
+            '神宮前から表参道を通り、渋谷の交差点へ向かう、ルート表示確認用の巡礼ルート。',
           color: '#2f8f83',
           sortOrder: 0,
           spots: [
@@ -413,7 +424,8 @@ export const fallbackSpotLists: Record<string, PilgrimageSpotListResponse> = {
           id: 'shibuya-route-2',
           districtId: 'shibuya',
           title: '渋谷回遊ルート',
-          description: '渋谷の交差点から表参道へ戻り、神宮前まで歩く、複数ルート確認用の巡礼ルート。',
+          description:
+            '渋谷の交差点から表参道へ戻り、神宮前まで歩く、複数ルート確認用の巡礼ルート。',
           color: '#c98791',
           sortOrder: 1,
           spots: [
@@ -570,7 +582,8 @@ export const fallbackSpotDetails: Record<string, PilgrimageSpotDetailResponse> =
     jp: {
       spot: {
         ...fallbackSpotLists.shibuya.jp.spots[2],
-        description: '神宮前に近い歩道。三点ルートと矢印の向きを確認しやすいよう、地図上で折れ線になる位置に置いている。',
+        description:
+          '神宮前に近い歩道。三点ルートと矢印の向きを確認しやすいよう、地図上で折れ線になる位置に置いている。',
         address: '東京都渋谷区神宮前付近',
         countryCode: 'JP',
         navLat: 35.667,
