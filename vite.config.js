@@ -35,8 +35,7 @@ function buildProxyResponseHeaders(response) {
 }
 
 export default defineConfig(({ mode }) => {
-  // const runtimeConfig = apiProxyConfig.origins[mode] || apiProxyConfig.origins.production
-  const runtimeConfig = apiProxyConfig.origins.production
+  const runtimeConfig = apiProxyConfig.origins[mode] || apiProxyConfig.origins.production
   const apiOrigin = runtimeConfig.backend
   const publicSiteOrigin = runtimeConfig.site
   const env = loadEnv(mode, process.cwd(), '')

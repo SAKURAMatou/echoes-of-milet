@@ -14,11 +14,12 @@ const port = Number(process.env.PORT || 5173)
 const watchMode = process.argv.includes('--watch')
 const runtimeRoot = path.join(root, '.ssr-runtime', 'verify-ssr-local')
 const developmentConfig = apiProxyConfig.origins.development
+const productionConfig = apiProxyConfig.origins.production
 const publicSiteUrl = new URL(developmentConfig.site)
 publicSiteUrl.port = String(port)
 const publicSiteOrigin = publicSiteUrl.toString().replace(/\/$/, '')
-// const upstreamOrigin = developmentConfig.backend
-const upstreamOrigin = apiProxyConfig.origins.production.backend
+const proxyPublicSiteOrigin = productionConfig.site
+const upstreamOrigin = productionConfig.backend
 const localizedSsgRoutes = new Set(renderConfig.ssgRoutes)
 const allowedApiPrefixes = Object.values(apiProxyConfig.routes)
 const sourceGuardToken = loadSourceGuardToken()
@@ -207,7 +208,7 @@ function headerEntries(rawHeaders = {}) {
 }
 
 function getRequestOrigin() {
-  return publicSiteOrigin
+  return proxyPublicSiteOrigin
 }
 
 function buildProxyHeaders(req, targetUrl) {
@@ -218,7 +219,7 @@ function buildProxyHeaders(req, targetUrl) {
   headers.set('referer', headers.get('referer') || `${requestOrigin}/`)
   headers.set('accept-encoding', 'identity')
   headers.set('x-forwarded-host', req.headers.host || '')
-  headers.set('x-forwarded-proto', publicSiteOrigin.startsWith('https://') ? 'https' : 'http')
+  headers.set('x-forwarded-proto', requestOrigin.startsWith('https://') ? 'https' : 'http')
   headers.set('x-forwarded-origin', requestOrigin)
 
   if (sourceGuardToken) {
@@ -514,7 +515,8 @@ const server = http.createServer(async (req, res) => {
 server.listen(port, '127.0.0.1', () => {
   console.log(`Local SSR verify server ready on http://127.0.0.1:${port}`)
   console.log(`API upstream: ${upstreamOrigin}`)
-  console.log(`Public origin: ${publicSiteOrigin}`)
+  console.log(`Local public origin: ${publicSiteOrigin}`)
+  console.log(`Proxy public origin: ${proxyPublicSiteOrigin}`)
   console.log(`Source guard token: ${sourceGuardToken ? 'loaded' : 'not set'}`)
 
   if (watchMode) {
