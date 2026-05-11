@@ -1,7 +1,7 @@
 <template>
   <div
     id="pilgrimage-map"
-    class="pilgrimage-map-shell relative h-full min-h-0 overflow-hidden border-t border-white/70"
+    class="pilgrimage-map-shell relative h-full min-h-0 scroll-mt-[5.5rem] overflow-hidden border-t border-white/70 md:scroll-mt-[6.5rem]"
     :class="{ 'pilgrimage-map-shell--markers-visible': markersVisible }"
   >
     <div ref="mapContainer" class="absolute inset-0 z-0 bg-[#e9f2ef]" />

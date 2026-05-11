@@ -1,7 +1,7 @@
 <template>
   <article class="pilgrimage-page overflow-hidden rounded-lg text-[#24323a] lg:mb-6">
     <section
-      class="pilgrimage-workspace relative h-[calc(100dvh-4rem)] min-h-[620px] overflow-hidden lg:grid lg:h-[calc(100vh-7.5rem)] lg:min-h-[760px] lg:grid-cols-[minmax(0,1fr)_360px] lg:overflow-visible xl:grid-cols-[minmax(0,1fr)_400px]"
+      class="pilgrimage-workspace relative h-[calc(100svh-4rem)] min-h-[620px] overflow-hidden lg:grid lg:h-[calc(100vh-7.5rem)] lg:min-h-[760px] lg:grid-cols-[minmax(0,1fr)_360px] lg:overflow-visible xl:grid-cols-[minmax(0,1fr)_400px]"
     >
       <div
         class="relative h-full min-w-0 border-b border-white/70 lg:grid lg:grid-rows-[auto_auto_minmax(0,1fr)] lg:border-b-0 lg:border-r"
@@ -93,6 +93,7 @@ import axiosInstance from '@/AxiosUtil'
 import PilgrimageAreaControls from '@/components/milet/pilgrimage/PilgrimageAreaControls.vue'
 import PilgrimageMapPane from '@/components/milet/pilgrimage/PilgrimageMapPane.vue'
 import PilgrimageSpotDetailPanel from '@/components/milet/pilgrimage/PilgrimageSpotDetailPanel.vue'
+import { pilgrimageMapConfig } from '@/components/milet/pilgrimage/pilgrimageMapConfig'
 import {
   buildNavigationUrl,
   fallbackRegionTree,
@@ -111,7 +112,7 @@ import {
   type PilgrimageSpotListResponse,
   type PilgrimageSpotSummary,
 } from '@/composables/miletPilgrimage'
-import { apiRoutes } from '@/config/api'
+import { apiRoutes, buildStaticAssetUrl } from '@/config/api'
 
 type LeafletModule = typeof import('leaflet')
 type PilgrimageMapPaneExpose = {
@@ -141,6 +142,8 @@ const mapTransitioning = ref(false)
 const markersVisible = ref(false)
 const isMobileViewport = ref(false)
 let districtLoadToken = 0
+let resizeFrame = 0
+let lastViewportWidth = 0
 
 const currentLang = computed(() => normalizePilgrimageLang(String(route.params.lang || 'zh')))
 const pageText = computed(() => PILGRIMAGE_TEXT[currentLang.value])
@@ -287,13 +290,8 @@ async function selectSpot(spotId: string) {
 async function selectRoute(routeId: string) {
   selectedRouteId.value = routeId
   applyMapZoomLimits()
-  markersVisible.value = false
   renderMarkers()
   renderRoutes()
-  await moveMapToDistrict({ duration: 0.45 })
-  requestAnimationFrame(() => {
-    markersVisible.value = true
-  })
 }
 
 function closeSpotDetail() {
@@ -305,9 +303,20 @@ function closeSpotDetail() {
 
 function updateViewportMode() {
   if (typeof window === 'undefined') return
-  isMobileViewport.value = window.matchMedia('(max-width: 1023px)').matches
-  requestAnimationFrame(() => {
-    mapRef.value?.invalidateSize()
+  const nextMobile = window.matchMedia('(max-width: 1023px)').matches
+  const modeChanged = nextMobile !== isMobileViewport.value
+  const widthChanged = Math.abs(window.innerWidth - lastViewportWidth) > 24
+
+  isMobileViewport.value = nextMobile
+  lastViewportWidth = window.innerWidth
+
+  cancelAnimationFrame(resizeFrame)
+  resizeFrame = requestAnimationFrame(() => {
+    if (!nextMobile || modeChanged || widthChanged) {
+      mapRef.value?.invalidateSize({ pan: false })
+    }
+    renderMarkers()
+    renderRoutes()
   })
 }
 
@@ -352,6 +361,7 @@ async function initMap() {
   routeLayerRef.value = L.layerGroup().addTo(mapRef.value)
   markerLayerRef.value = L.layerGroup().addTo(mapRef.value)
   mapRef.value.on('zoomend moveend', () => {
+    renderMarkers()
     renderRoutes()
   })
   applyMapZoomLimits()
@@ -376,6 +386,53 @@ function getSpotMarkerTitle(spot: PilgrimageSpotSummary) {
   return selectedSpotDetail.value?.id === spot.id ? selectedSpotDetail.value.title : spot.title
 }
 
+function spotMarkerCollisionPoint(spot: PilgrimageSpotSummary) {
+  const map = mapRef.value
+  if (!map) return null
+  return map.latLngToContainerPoint([spot.displayLat, spot.displayLng])
+}
+
+function shouldShowPhotoBubble(
+  spot: PilgrimageSpotSummary,
+  active: boolean,
+  occupiedPoints: Array<{ x: number; y: number }>,
+) {
+  if (!spot.coverImageUrl || !mapRef.value) return false
+
+  const zoom = mapRef.value.getZoom()
+  const bubbleConfig = isMobileViewport.value
+    ? pilgrimageMapConfig.photoBubble.mobile
+    : pilgrimageMapConfig.photoBubble.desktop
+  if (zoom < bubbleConfig.minZoom) return false
+
+  const point = spotMarkerCollisionPoint(spot)
+  if (!point) return false
+
+  const crowded = occupiedPoints.some(
+    (occupied) =>
+      Math.abs(occupied.x - point.x) < bubbleConfig.collisionGap.x &&
+      Math.abs(occupied.y - point.y) < bubbleConfig.collisionGap.y,
+  )
+
+  if (!crowded || active) {
+    occupiedPoints.push({ x: point.x, y: point.y })
+    return true
+  }
+
+  return false
+}
+
+function photoMarkerLayout(active: boolean) {
+  const bubbleConfig = isMobileViewport.value
+    ? pilgrimageMapConfig.photoBubble.mobile
+    : pilgrimageMapConfig.photoBubble.desktop
+
+  return {
+    iconSize: bubbleConfig.iconSize,
+    iconAnchor: active ? bubbleConfig.iconAnchor.active : bubbleConfig.iconAnchor.inactive,
+  }
+}
+
 function renderMarkers() {
   const L = leafletRef.value
   const markerLayer = markerLayerRef.value
@@ -383,24 +440,48 @@ function renderMarkers() {
 
   markerLayer.clearLayers()
 
-  spots.value.forEach((spot) => {
+  const occupiedPhotoPoints: Array<{ x: number; y: number }> = []
+  const orderedSpots = spots.value.slice().sort((a, b) => {
+    if (a.id === selectedSpotId.value) return -1
+    if (b.id === selectedSpotId.value) return 1
+    return (routeOrderMap.value.get(a.id) || 9999) - (routeOrderMap.value.get(b.id) || 9999)
+  })
+
+  orderedSpots.forEach((spot) => {
     const active = spot.id === selectedSpotId.value
     const inRoute = routeSpotIds.value.has(spot.id)
     const routeOrder = routeOrderMap.value.get(spot.id)
     const markerTitle = getSpotMarkerTitle(spot)
     const escapedTitle = escapeMapHtml(markerTitle)
+    const showPhotoBubble = shouldShowPhotoBubble(spot, active, occupiedPhotoPoints)
+    const coverImage = showPhotoBubble
+      ? `<span class="pilgrimage-marker-card" aria-hidden="true"><img src="${escapeMapHtml(buildStaticAssetUrl(spot.coverImageUrl))}" alt="" loading="lazy" decoding="async" /></span>`
+      : ''
+    const layout = showPhotoBubble
+      ? photoMarkerLayout(active)
+      : {
+          iconSize: pilgrimageMapConfig.defaultMarker.iconSize,
+          iconAnchor: active
+            ? pilgrimageMapConfig.defaultMarker.iconAnchor.active
+            : pilgrimageMapConfig.defaultMarker.iconAnchor.inactive,
+        }
     const marker = L.marker([spot.displayLat, spot.displayLng], {
       icon: L.divIcon({
         className: '',
-        html: `<button class="pilgrimage-marker${active ? ' is-active' : ''}${inRoute ? ' is-route' : ''}" type="button" aria-label="${escapedTitle}"><span class="pilgrimage-marker-pin"><i></i></span>${routeOrder ? `<b>${routeOrder}</b>` : ''}<em>${escapedTitle}</em></button>`,
-        iconSize: [160, 72],
-        iconAnchor: active ? [80, 43] : [80, 35],
+        html: `<button class="pilgrimage-marker${active ? ' is-active' : ''}${inRoute ? ' is-route' : ''}${showPhotoBubble ? ' is-photo-visible' : ''}" type="button" aria-label="${escapedTitle}">${coverImage}<span class="pilgrimage-marker-pin"><i></i></span>${routeOrder ? `<b>${routeOrder}</b>` : ''}<em>${escapedTitle}</em></button>`,
+        iconSize: layout.iconSize,
+        iconAnchor: layout.iconAnchor,
       }),
     })
 
     marker.on('click', () => {
       selectSpot(spot.id)
     })
+    if (active) {
+      marker.setZIndexOffset(1000)
+    } else if (showPhotoBubble) {
+      marker.setZIndexOffset(500)
+    }
     marker.addTo(markerLayer)
   })
 }
@@ -544,16 +625,6 @@ function moveMapToDistrict(options: { duration?: number } = {}) {
   })
 }
 
-function moveMapToSpot() {
-  if (!mapRef.value || !selectedSpotDetail.value) return
-  applyMapZoomLimits()
-  mapRef.value.flyTo(
-    [selectedSpotDetail.value.displayLat, selectedSpotDetail.value.displayLng],
-    clampMapZoom(Math.max(selectedDistrict.value?.defaultZoom || 14, 15), 20),
-    { duration: 0.45 },
-  )
-}
-
 async function setupFancybox() {
   await nextTick()
   Fancybox.destroy()
@@ -607,7 +678,6 @@ watch(
   () => selectedSpotDetail.value?.id,
   () => {
     renderMarkers()
-    moveMapToSpot()
     setupFancybox()
   },
 )
@@ -637,6 +707,7 @@ onMounted(async () => {
 
 onBeforeUnmount(() => {
   window.removeEventListener('resize', updateViewportMode)
+  cancelAnimationFrame(resizeFrame)
   Fancybox.destroy()
   if (mapRef.value) {
     mapRef.value.remove()
@@ -693,6 +764,11 @@ onBeforeUnmount(() => {
     filter 160ms ease;
 }
 
+:global(.pilgrimage-marker.is-photo-visible) {
+  height: 176px;
+  width: 168px;
+}
+
 .pilgrimage-map-shell :global(.pilgrimage-marker),
 .pilgrimage-map-shell :global(.pilgrimage-route-arrow) {
   opacity: 0;
@@ -701,6 +777,43 @@ onBeforeUnmount(() => {
 .pilgrimage-map-shell--markers-visible :global(.pilgrimage-marker),
 .pilgrimage-map-shell--markers-visible :global(.pilgrimage-route-arrow) {
   opacity: 1;
+}
+
+:global(.pilgrimage-marker-card) {
+  position: absolute;
+  left: 50%;
+  top: 0;
+  width: 132px;
+  transform: translateX(-50%);
+  border: 1px solid rgba(255, 255, 255, 0.92);
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.92);
+  box-shadow: 0 18px 38px -22px rgba(31, 41, 55, 0.78);
+  padding: 4px;
+  pointer-events: none;
+}
+
+:global(.pilgrimage-marker-card::after) {
+  position: absolute;
+  left: 50%;
+  bottom: -7px;
+  height: 14px;
+  width: 14px;
+  transform: translateX(-50%) rotate(45deg);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.92);
+  border-right: 1px solid rgba(255, 255, 255, 0.92);
+  background: rgba(255, 255, 255, 0.92);
+  content: '';
+}
+
+:global(.pilgrimage-marker-card img) {
+  position: relative;
+  z-index: 1;
+  display: block;
+  height: 88px;
+  width: 100%;
+  border-radius: 7px;
+  object-fit: cover;
 }
 
 :global(.pilgrimage-marker-pin) {
@@ -720,6 +833,10 @@ onBeforeUnmount(() => {
     transform 160ms ease,
     box-shadow 160ms ease,
     background 160ms ease;
+}
+
+:global(.pilgrimage-marker.is-photo-visible .pilgrimage-marker-pin) {
+  top: 102px;
 }
 
 :global(.pilgrimage-marker-pin i) {
@@ -769,6 +886,10 @@ onBeforeUnmount(() => {
   white-space: nowrap;
 }
 
+:global(.pilgrimage-marker.is-photo-visible em) {
+  top: 143px;
+}
+
 :global(.pilgrimage-marker.is-active .pilgrimage-marker-pin) {
   height: 42px;
   width: 42px;
@@ -787,6 +908,10 @@ onBeforeUnmount(() => {
   border-color: rgba(255, 241, 242, 0.94);
   background: rgba(255, 241, 242, 0.94);
   color: #8f3f4b;
+}
+
+:global(.pilgrimage-marker.is-photo-visible.is-active em) {
+  top: 150px;
 }
 
 :global(.pilgrimage-marker.is-route .pilgrimage-marker-pin i) {
@@ -812,6 +937,32 @@ onBeforeUnmount(() => {
 @media (max-width: 1023px) {
   .pilgrimage-page {
     min-height: auto;
+  }
+
+  :global(.pilgrimage-marker.is-photo-visible) {
+    height: 156px;
+    width: 136px;
+  }
+
+  :global(.pilgrimage-marker-card) {
+    width: 112px;
+  }
+
+  :global(.pilgrimage-marker-card img) {
+    height: 72px;
+  }
+
+  :global(.pilgrimage-marker.is-photo-visible .pilgrimage-marker-pin) {
+    top: 91px;
+  }
+
+  :global(.pilgrimage-marker.is-photo-visible em) {
+    top: 132px;
+    max-width: 118px;
+  }
+
+  :global(.pilgrimage-marker.is-photo-visible.is-active em) {
+    top: 138px;
   }
 }
 </style>

@@ -1106,3 +1106,75 @@ POST /admin/pilgrimage/import
   state?: PilgrimageAdminState
 }
 ```
+
+## 20. 公开端地图显示配置
+
+公开端地图的 marker、封面气泡和拥挤避让参数集中放在：
+
+```txt
+src/components/milet/pilgrimage/pilgrimageMapConfig.ts
+```
+
+### 20.1 `photoBubble`
+
+`photoBubble` 控制地图放大后 spot 封面图片气泡的显示规则，分为 `desktop` 和 `mobile` 两套配置。
+
+```ts
+photoBubble: {
+  desktop: {
+    minZoom: 17,
+    collisionGap: { x: 138, y: 118 },
+    iconSize: [168, 176],
+    iconAnchor: {
+      active: [84, 141],
+      inactive: [84, 137],
+    },
+  },
+  mobile: {
+    minZoom: 18,
+    collisionGap: { x: 112, y: 96 },
+    iconSize: [136, 156],
+    iconAnchor: {
+      active: [68, 129],
+      inactive: [68, 124],
+    },
+  },
+}
+```
+
+参数含义：
+
+- `minZoom`：开始显示封面图片气泡的最小 Leaflet zoom 等级。数值越小，气泡越早出现；数值越大，需要更放大地图才会出现。调试封面出现时机时优先改这个值。
+- `collisionGap.x` / `collisionGap.y`：气泡拥挤避让的屏幕像素距离。两个 spot 在屏幕上的距离小于该范围时，后渲染的非选中 spot 不显示封面气泡，只保留普通 marker。数值越大，显示的气泡越少、更疏；数值越小，气泡越多、更密。
+- `iconSize`：Leaflet `divIcon` 的占位尺寸，格式为 `[width, height]`。气泡样式尺寸变大或变小时，需要同步调整这个值，避免点击区域和视觉位置不一致。
+- `iconAnchor.active`：选中 spot 显示封面气泡时的锚点。锚点表示 icon 内哪个像素点对准地图坐标，格式为 `[x, y]`。
+- `iconAnchor.inactive`：未选中 spot 显示封面气泡时的锚点。
+
+调参建议：
+
+- 如果封面出现太早、地图显得拥挤，先提高 `minZoom`，例如 desktop 从 `17` 调到 `18`。
+- 如果 spot 很密集时气泡仍然重叠，增大 `collisionGap.x` 和 `collisionGap.y`。
+- 如果气泡箭头没有准确指向 spot，微调 `iconAnchor` 的 `y` 值；`y` 变大时，视觉气泡整体会相对地图坐标上移。
+- mobile 通常应比 desktop 更晚显示气泡，因此 `mobile.minZoom` 建议大于或等于 `desktop.minZoom`。
+
+### 20.2 `defaultMarker`
+
+`defaultMarker` 控制没有显示封面气泡时的普通 spot marker 尺寸和锚点。
+
+```ts
+defaultMarker: {
+  iconSize: [160, 72],
+  iconAnchor: {
+    active: [80, 43],
+    inactive: [80, 35],
+  },
+}
+```
+
+参数含义：
+
+- `iconSize`：普通 marker 的 Leaflet `divIcon` 占位尺寸。
+- `iconAnchor.active`：选中普通 marker 时，icon 内对准地图坐标的点。
+- `iconAnchor.inactive`：未选中普通 marker 时，icon 内对准地图坐标的点。
+
+普通 marker 的 CSS 如果调整了 pin、标题标签或 active 状态高度，需要同步检查这里的 `iconAnchor`，否则 marker 视觉位置可能会偏离实际 spot 坐标。
