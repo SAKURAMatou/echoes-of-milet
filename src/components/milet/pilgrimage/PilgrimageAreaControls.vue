@@ -40,7 +40,7 @@
               v-for="city in cities"
               :key="city.id"
               type="button"
-              class="max-w-[9.5rem] shrink-0 rounded-lg border px-3 py-1.5 text-sm font-medium transition focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-teal-100 lg:max-w-[12rem] lg:py-2"
+              class="max-w-[9.5rem] shrink-0 rounded-lg border px-3 py-1 text-xs font-medium transition focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-teal-100 lg:max-w-[12rem] lg:py-1.5"
               :class="
                 selectedCityId === city.id
                   ? 'border-[#5ca8a6] bg-[#e9f7f4] text-[#1d6564] shadow-sm'
@@ -63,7 +63,7 @@
             v-for="district in selectedCity?.districts || []"
             :key="district.id"
             type="button"
-            class="flex max-w-[11rem] shrink-0 items-center rounded-lg border px-3 py-1.5 text-sm transition focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-rose-100 lg:max-w-[14rem] lg:py-2"
+            class="flex max-w-[11rem] shrink-0 items-center rounded-lg border px-3 py-1 text-xs transition focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-rose-100 lg:max-w-[14rem] lg:py-1.5"
             :class="
               selectedDistrictId === district.id
                 ? 'border-[#c98791] bg-[#fff1f2] text-[#8f3f4b]'
@@ -84,7 +84,7 @@
         <div class="selector-scroll flex min-w-0 flex-1 gap-2 overflow-x-auto pb-1">
           <button
             type="button"
-            class="shrink-0 rounded-lg border px-3 py-1.5 text-sm font-medium transition focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-teal-100 lg:py-2"
+            class="shrink-0 rounded-lg border px-3 py-1 text-xs font-medium transition focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-teal-100 lg:py-1.5"
             :class="
               !selectedRouteId
                 ? 'border-[#5ca8a6] bg-[#e9f7f4] text-[#1d6564]'
@@ -98,7 +98,7 @@
             v-for="routeItem in routes"
             :key="routeItem.id"
             type="button"
-            class="max-w-[14rem] shrink-0 rounded-lg border px-3 py-1.5 text-sm font-medium transition focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-teal-100 lg:py-2"
+            class="max-w-[14rem] shrink-0 rounded-lg border px-3 py-1 text-xs font-medium transition focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-teal-100 lg:py-1.5"
             :class="
               selectedRouteId === routeItem.id
                 ? 'border-[#5ca8a6] bg-[#e9f7f4] text-[#1d6564]'

@@ -382,8 +382,8 @@ async function cleanupRuntime(runtimeToRemove) {
 
 function runBuild() {
   return new Promise((resolve, reject) => {
-    const command = process.platform === 'win32' ? 'npm.cmd' : 'npm'
-    const child = spawn(command, ['run', 'build:ssr'], {
+    const npmRunner = resolveNpmRunner()
+    const child = spawn(npmRunner.command, [...npmRunner.args, 'run', 'build:ssr'], {
       cwd: root,
       env: process.env,
       stdio: 'inherit',
@@ -399,6 +399,42 @@ function runBuild() {
       reject(new Error(`SSR rebuild failed with exit code ${code}`))
     })
   })
+}
+
+function resolveNpmRunner() {
+  const npmExecPath = process.env.npm_execpath
+  if (npmExecPath && !/\.(cmd|bat)$/i.test(npmExecPath) && existsSync(npmExecPath)) {
+    return {
+      command: process.execPath,
+      args: [npmExecPath],
+    }
+  }
+
+  const nodeInstallNpmCli = path.join(
+    path.dirname(process.execPath),
+    'node_modules',
+    'npm',
+    'bin',
+    'npm-cli.js',
+  )
+  if (existsSync(nodeInstallNpmCli)) {
+    return {
+      command: process.execPath,
+      args: [nodeInstallNpmCli],
+    }
+  }
+
+  if (process.platform === 'win32') {
+    return {
+      command: process.env.ComSpec || 'cmd.exe',
+      args: ['/d', '/s', '/c', 'npm.cmd'],
+    }
+  }
+
+  return {
+    command: 'npm',
+    args: [],
+  }
 }
 
 async function rebuildRuntime(reason) {
@@ -465,6 +501,12 @@ function startWatchMode() {
 const server = http.createServer(async (req, res) => {
   try {
     const url = req.url || '/'
+
+    if (normalizeUrl(url) === '/.well-known/appspecific/com.chrome.devtools.json') {
+      res.writeHead(204)
+      res.end()
+      return
+    }
 
     if (url.startsWith('/api/') || url.startsWith('/other/')) {
       await proxyApiRequest(req, res)
