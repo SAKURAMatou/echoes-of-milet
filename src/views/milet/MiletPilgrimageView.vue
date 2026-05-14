@@ -7,16 +7,21 @@
         class="relative h-full min-w-0 border-b border-white/70 lg:grid lg:grid-rows-[auto_auto_minmax(0,1fr)] lg:border-b-0 lg:border-r"
       >
         <header class="hidden border-b border-white/70 px-7 py-4 lg:block">
-          <div class="flex items-end justify-between gap-5">
+          <div class="grid max-w-3xl grid-cols-1 gap-3">
             <div class="min-w-0">
-              <h1 class="font-serif text-[clamp(2.7rem,4.8vw,4.1rem)] leading-none text-[#26313a]">
+              <h1
+                class="font-serif text-[clamp(2.7rem,4.8vw,4.1rem)] leading-none text-[#26313a]"
+              >
                 {{ pageText.title }}
               </h1>
-              <p class="mt-2 max-w-2xl text-sm leading-6 text-[#5f7178]">
+              <p class="mt-2 text-sm leading-6 text-[#5f7178]">
                 {{ pageText.subtitle }}
               </p>
+            </div>
+
+            <div class="grid grid-cols-1 gap-3">
               <div
-                class="mt-3 max-w-2xl rounded-lg border border-[#9bd0c8]/70 bg-[#f0fbf8]/88 px-3 py-2 shadow-[0_14px_34px_-30px_rgba(31,41,55,0.72)]"
+                class="rounded-lg border border-[#9bd0c8]/70 bg-[#f0fbf8]/88 px-3 py-2 shadow-[0_14px_34px_-30px_rgba(31,41,55,0.72)]"
               >
                 <div class="text-[10px] font-semibold uppercase tracking-[0.18em] text-[#2f8f83]">
                   {{ pageText.dataCreditLabel }}
@@ -25,20 +30,20 @@
                   {{ pageText.dataCredit }}
                 </p>
               </div>
-            </div>
 
-            <div
-              class="shrink-0 rounded-lg border border-white/70 bg-white/64 px-4 py-3 text-sm text-[#526670]"
-            >
-              <span
-                class="block text-[11px] font-semibold uppercase tracking-[0.16em] text-[#7c9197]"
+              <div
+                class="rounded-lg border border-white/70 bg-white/64 px-3 py-2 text-sm text-[#526670]"
               >
-                {{ pageText.currentArea }}
-              </span>
-              <span class="mt-1 block max-w-[190px] truncate font-medium text-[#26313a]">
-                {{ selectedCity?.name || pageText.allCities }}
-                <span v-if="selectedDistrict">/ {{ selectedDistrict.name }}</span>
-              </span>
+                <span
+                  class="block text-[11px] font-semibold uppercase tracking-[0.16em] text-[#7c9197]"
+                >
+                  {{ pageText.currentArea }}
+                </span>
+                <span class="mt-1 block truncate font-medium text-[#26313a]">
+                  {{ selectedCity?.name || pageText.allCities }}
+                  <span v-if="selectedDistrict">/ {{ selectedDistrict.name }}</span>
+                </span>
+              </div>
             </div>
           </div>
         </header>
