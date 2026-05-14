@@ -77,9 +77,10 @@
             </div>
           </dl>
 
-          <p class="mt-4 text-sm leading-7 text-[#526670]">
-            {{ selectedSpotDetail.description }}
-          </p>
+          <FormattedPlainText
+            class="mt-4 text-sm leading-7 text-[#526670]"
+            :text="selectedSpotDetail.description"
+          />
 
           <div class="mt-4 flex flex-wrap gap-2">
             <span
@@ -134,6 +135,7 @@
 
 <script setup lang="ts">
 import { computed } from 'vue'
+import FormattedPlainText from '@/components/FormattedPlainText.vue'
 import LazyImage from '@/components/LazyImage.vue'
 import type { PilgrimagePageText, PilgrimageSpotDetail } from '@/composables/miletPilgrimage'
 import { buildStaticAssetUrl } from '@/config/api'
