@@ -1,7 +1,7 @@
 import { stripLangPrefix, toUrlLang } from '@/composables/useLangRoute'
 import { getSiteOrigin } from '@/config/api'
 
-export type SeoKey = 'home' | 'milet' | 'about' | 'anniversary'
+export type SeoKey = 'home' | 'milet' | 'about' | 'anniversary' | 'pilgrimage'
 
 interface SeoLocaleContent {
   title: string
@@ -106,6 +106,50 @@ const seoMap: Record<SeoKey, SeoMeta> = {
     canonicalPath: '/milet',
     type: 'website',
     schemaType: 'WebPage',
+  },
+  pilgrimage: {
+    content: {
+      zh: {
+        title: 'milet 圣地巡礼地图 | Echoes of milet',
+        description:
+          'Echoes of milet 圣地巡礼地图，整理 milet 作品、MV、街景与拍摄地相关地点，支持按城市、区域和路线查看巡礼 spot、照片、导航与地点说明。',
+        keywords: [
+          'milet 圣地巡礼',
+          '圣地巡礼',
+          '巡礼地图',
+          'milet 巡礼地图',
+          'milet 拍摄地',
+          'milet MV 拍摄地',
+          'milet spot',
+          'milet 地图',
+          'Echoes of milet',
+          'miles DML',
+        ],
+        imageAlt: 'Echoes of milet milet 圣地巡礼地图预览',
+      },
+      jp: {
+        title: 'milet 聖地巡礼マップ | Echoes of milet',
+        description:
+          'Echoes of milet の聖地巡礼マップです。milet の作品、MV、街並み、撮影地に関係する spot を都市、エリア、ルート別に整理し、写真、ナビ、場所の説明を表示します。',
+        keywords: [
+          'milet 聖地巡礼',
+          '聖地巡礼',
+          '聖地巡礼マップ',
+          'milet 巡礼マップ',
+          'milet ロケ地',
+          'milet MV ロケ地',
+          'milet spot',
+          'milet map',
+          'Echoes of milet',
+          'miles DML',
+        ],
+        imageAlt: 'Echoes of milet milet 聖地巡礼マップのプレビュー',
+      },
+    },
+    image: '/echoes-of-milet-OG.webp',
+    canonicalPath: '/milet/pilgrimage',
+    type: 'website',
+    schemaType: 'CollectionPage',
   },
   anniversary: {
     content: {

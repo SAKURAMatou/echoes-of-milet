@@ -41,14 +41,25 @@
                 {{ selectedSpotDetail.title }}
               </h2>
             </div>
-            <a
-              :href="navigationUrl"
-              target="_blank"
-              rel="noopener noreferrer"
-              class="shrink-0 rounded-lg border border-[#6fb8ad] bg-[#e8f8f4] px-3 py-2 text-sm font-semibold text-[#1f6a66] transition hover:border-[#4f9f99] hover:bg-white focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-teal-100"
-            >
-              {{ pageText.navigation }}
-            </a>
+            <div class="flex shrink-0 flex-col gap-2 sm:flex-row">
+              <a
+                :href="navigationUrl"
+                target="_blank"
+                rel="noopener noreferrer"
+                class="rounded-lg border border-[#6fb8ad] bg-[#e8f8f4] px-3 py-2 text-center text-sm font-semibold text-[#1f6a66] transition hover:border-[#4f9f99] hover:bg-white focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-teal-100"
+              >
+                {{ pageText.navigation }}
+              </a>
+              <a
+                v-if="spotLinkUrl"
+                :href="spotLinkUrl"
+                target="_blank"
+                rel="noopener noreferrer"
+                class="rounded-lg border border-[#d7e5e1] bg-white/88 px-3 py-2 text-center text-sm font-semibold text-[#526670] transition hover:border-[#9bd0c8] hover:bg-[#f7fbfa] focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-teal-100"
+              >
+                {{ pageText.spotLink }}
+              </a>
+            </div>
           </div>
 
           <dl class="mt-4 space-y-3 text-sm">
@@ -122,11 +133,12 @@
 </template>
 
 <script setup lang="ts">
+import { computed } from 'vue'
 import LazyImage from '@/components/LazyImage.vue'
 import type { PilgrimagePageText, PilgrimageSpotDetail } from '@/composables/miletPilgrimage'
 import { buildStaticAssetUrl } from '@/config/api'
 
-defineProps<{
+const props = defineProps<{
   pageText: PilgrimagePageText
   selectedSpotDetail: PilgrimageSpotDetail | null
   navigationUrl: string
@@ -137,6 +149,24 @@ defineProps<{
 defineEmits<{
   close: []
 }>()
+
+function safeSpotHref(value?: string | null) {
+  const href = (value || '').trim()
+  if (!href) return ''
+  const lowerHref = href.toLowerCase()
+  if (lowerHref.startsWith('javascript:') || lowerHref.startsWith('data:') || lowerHref.startsWith('vbscript:')) {
+    return ''
+  }
+  if (href.startsWith('/')) return href
+  try {
+    const url = new URL(href)
+    return url.protocol === 'http:' || url.protocol === 'https:' ? href : ''
+  } catch {
+    return ''
+  }
+}
+
+const spotLinkUrl = computed(() => safeSpotHref(props.selectedSpotDetail?.linkUrl))
 </script>
 
 <style scoped>

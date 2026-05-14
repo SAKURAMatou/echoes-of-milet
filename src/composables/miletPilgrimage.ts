@@ -64,6 +64,7 @@ export interface PilgrimageSpotDetail extends PilgrimageSpotSummary {
   navLng: number
   navigationProvider: 'auto' | 'amap' | 'google'
   navigationMode: 'walking' | 'driving' | 'transit'
+  linkUrl: string
   photos: PilgrimagePhoto[]
 }
 
@@ -95,6 +96,16 @@ export interface PilgrimageSpotDetailResponse {
   zh: LocalizedSpotDetail
 }
 
+export interface PilgrimageSsrPayload {
+  regionTree: PilgrimageRegionTreeResponse | null
+  spotsByDistrictId: Record<string, PilgrimageSpotListResponse>
+  spotDetailsBySpotId: Record<string, PilgrimageSpotDetailResponse>
+  selectedCityId: string
+  selectedDistrictId: string
+  selectedSpotId: string
+  usingFallbackData: boolean
+}
+
 export interface PilgrimagePageText {
   title: string
   subtitle: string
@@ -110,6 +121,7 @@ export interface PilgrimagePageText {
   emptySpot: string
   photoLabel: string
   navigation: string
+  spotLink: string
   currentArea: string
   address: string
   works: string
@@ -134,6 +146,7 @@ export const PILGRIMAGE_TEXT: Record<PilgrimageLang, PilgrimagePageText> = {
     emptySpot: '选择地图上的标记，查看照片和地点说明。',
     photoLabel: '照片',
     navigation: '导航',
+    spotLink: '查看页面',
     currentArea: '当前区域',
     address: '地址',
     works: '作品',
@@ -156,6 +169,7 @@ export const PILGRIMAGE_TEXT: Record<PilgrimageLang, PilgrimagePageText> = {
     emptySpot: '地図上のマーカーを選ぶと、写真と説明を表示します。',
     photoLabel: '写真',
     navigation: 'ナビ',
+    spotLink: 'ページを見る',
     currentArea: '現在のエリア',
     address: '住所',
     works: '作品',
@@ -512,6 +526,7 @@ export const fallbackSpotDetails: Record<string, PilgrimageSpotDetailResponse> =
         navLng: 139.7124,
         navigationProvider: 'google',
         navigationMode: 'walking',
+        linkUrl: 'https://www.youtube.com/@miletOfficialYouTube',
         photos: fallbackPhotos.omotesando,
       },
     },
@@ -526,6 +541,7 @@ export const fallbackSpotDetails: Record<string, PilgrimageSpotDetailResponse> =
         navLng: 139.7124,
         navigationProvider: 'google',
         navigationMode: 'walking',
+        linkUrl: 'https://www.youtube.com/@miletOfficialYouTube',
         photos: fallbackPhotos.omotesando.map((photo) => ({
           ...photo,
           alt: photo.alt.replace('表参道街景照片', '表参道の街角写真'),
@@ -548,6 +564,7 @@ export const fallbackSpotDetails: Record<string, PilgrimageSpotDetailResponse> =
         navLng: 139.7005,
         navigationProvider: 'google',
         navigationMode: 'walking',
+        linkUrl: '',
         photos: fallbackPhotos.shibuya,
       },
     },
@@ -561,6 +578,7 @@ export const fallbackSpotDetails: Record<string, PilgrimageSpotDetailResponse> =
         navLng: 139.7005,
         navigationProvider: 'google',
         navigationMode: 'walking',
+        linkUrl: '',
         photos: fallbackPhotos.shibuya,
       },
     },
@@ -576,6 +594,7 @@ export const fallbackSpotDetails: Record<string, PilgrimageSpotDetailResponse> =
         navLng: 139.7072,
         navigationProvider: 'google',
         navigationMode: 'walking',
+        linkUrl: '',
         photos: fallbackPhotos.omotesando,
       },
     },
@@ -590,6 +609,7 @@ export const fallbackSpotDetails: Record<string, PilgrimageSpotDetailResponse> =
         navLng: 139.7072,
         navigationProvider: 'google',
         navigationMode: 'walking',
+        linkUrl: '',
         photos: fallbackPhotos.omotesando.map((photo) => ({
           ...photo,
           alt: photo.alt.replace('表参道街景照片', '神宮前の歩道写真'),
@@ -612,6 +632,7 @@ export const fallbackSpotDetails: Record<string, PilgrimageSpotDetailResponse> =
         navLng: 139.7454,
         navigationProvider: 'google',
         navigationMode: 'walking',
+        linkUrl: '',
         photos: fallbackPhotos.omotesando,
       },
     },
@@ -625,6 +646,7 @@ export const fallbackSpotDetails: Record<string, PilgrimageSpotDetailResponse> =
         navLng: 139.7454,
         navigationProvider: 'google',
         navigationMode: 'walking',
+        linkUrl: '',
         photos: fallbackPhotos.omotesando,
       },
     },
@@ -640,6 +662,7 @@ export const fallbackSpotDetails: Record<string, PilgrimageSpotDetailResponse> =
         navLng: 121.4998,
         navigationProvider: 'amap',
         navigationMode: 'walking',
+        linkUrl: '',
         photos: fallbackPhotos.shibuya,
       },
     },
@@ -653,6 +676,7 @@ export const fallbackSpotDetails: Record<string, PilgrimageSpotDetailResponse> =
         navLng: 121.4998,
         navigationProvider: 'amap',
         navigationMode: 'walking',
+        linkUrl: '',
         photos: fallbackPhotos.shibuya,
       },
     },

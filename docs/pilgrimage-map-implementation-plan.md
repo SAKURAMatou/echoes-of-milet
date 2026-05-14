@@ -331,6 +331,7 @@ pilgrimage_spots
 
   source_map_provider
   source_map_url
+  link_url
   source_place_id
   source_poi_id
 
@@ -401,6 +402,7 @@ photos
 navigation_provider
 navigation_mode
 navigation_url
+link_url
 ```
 
 其中 `photos` 建议返回：
@@ -880,7 +882,7 @@ pilgrimage:spot:{spot_id}
 id	level	parent_id	country_code	center_lat	center_lng	default_zoom	sort_order	status	name_zh	name_jp
 
 [spots]
-import_key	id	city_id	district_id	country_code	category	display_lat	display_lng	nav_lat	nav_lng	source_map_provider	source_map_url	image_series_id	coordinate_quality	status	sort_order	title_zh	title_jp	work_title_zh	work_title_jp	address_zh	address_jp	description_zh	description_jp	tags_zh	tags_jp
+import_key	id	city_id	district_id	country_code	category	display_lat	display_lng	nav_lat	nav_lng	source_map_provider	source_map_url	link_url	image_series_id	coordinate_quality	status	sort_order	title_zh	title_jp	work_title_zh	work_title_jp	address_zh	address_jp	description_zh	description_jp	tags_zh	tags_jp
 
 [routes]
 import_key	id	district_id	color	status	sort_order	title_zh	title_jp	description_zh	description_jp	spot_refs
@@ -944,6 +946,7 @@ shibuya	district	tokyo	JP	35.6618	139.7041	15	0	published	涩谷区	渋谷区
 - `nav_lat` / `nav_lng`：可留空，留空时服务端默认使用显示坐标。
 - `source_map_provider`：默认 `manual`，也可为 `google` / `amap` / `osm` / `import`。
 - `source_map_url`：原始地图链接，便于后续排查。
+- `link_url`：选填。地点详情中的外部跳转链接；公开端有值时显示“查看页面”按钮，点击在新标签页打开，无值时不显示。
 - `image_series_id`：关联现有相册 ID。建议关联 `series_type = spot` 且非公开的相册。
 - `coordinate_quality`：`exact` / `approximate` / `unchecked`，默认 `unchecked`。
 - `status`：默认 `draft`。批量导入默认不直接发布，由管理员确认后再发布。
@@ -953,9 +956,9 @@ shibuya	district	tokyo	JP	35.6618	139.7041	15	0	published	涩谷区	渋谷区
 
 ```txt
 [spots]
-import_key	id	city_id	district_id	country_code	category	display_lat	display_lng	nav_lat	nav_lng	source_map_provider	source_map_url	image_series_id	coordinate_quality	status	sort_order	title_zh	title_jp	work_title_zh	work_title_jp	address_zh	address_jp	description_zh	description_jp	tags_zh	tags_jp
-shibuya-crossing		tokyo	shibuya	JP	街景	35.6595	139.7005			manual			exact	draft	0	涩谷路口	渋谷の交差点	us	us					城市,街景	街,交差点
-omotesando-street		tokyo	shibuya	JP	街景	35.6652	139.7124			manual			exact	draft	1	表参道街景	表参道の街角	inside you	inside you					MV,街角	MV,街
+import_key	id	city_id	district_id	country_code	category	display_lat	display_lng	nav_lat	nav_lng	source_map_provider	source_map_url	link_url	image_series_id	coordinate_quality	status	sort_order	title_zh	title_jp	work_title_zh	work_title_jp	address_zh	address_jp	description_zh	description_jp	tags_zh	tags_jp
+shibuya-crossing		tokyo	shibuya	JP	街景	35.6595	139.7005			manual		https://example.com/shibuya-crossing		exact	draft	0	涩谷路口	渋谷の交差点	us	us					城市,街景	街,交差点
+omotesando-street		tokyo	shibuya	JP	街景	35.6652	139.7124			manual				exact	draft	1	表参道街景	表参道の街角	inside you	inside you					MV,街角	MV,街
 ```
 
 ### 19.5 Routes 字段

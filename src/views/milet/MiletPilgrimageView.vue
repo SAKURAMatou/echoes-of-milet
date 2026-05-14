@@ -85,8 +85,7 @@
 import 'leaflet/dist/leaflet.css'
 import '@fancyapps/ui/dist/fancybox/fancybox.css'
 
-import { Fancybox } from '@fancyapps/ui'
-import { computed, nextTick, onBeforeUnmount, onMounted, ref, shallowRef, watch } from 'vue'
+import { computed, nextTick, onBeforeUnmount, onMounted, onServerPrefetch, ref, shallowRef, watch } from 'vue'
 import { useRoute } from 'vue-router'
 
 import axiosInstance from '@/AxiosUtil'
@@ -111,7 +110,9 @@ import {
   type PilgrimageSpotDetailResponse,
   type PilgrimageSpotListResponse,
   type PilgrimageSpotSummary,
+  type PilgrimageSsrPayload,
 } from '@/composables/miletPilgrimage'
+import { useAppState } from '@/composables/useAppState'
 import { apiRoutes, buildStaticAssetUrl } from '@/config/api'
 
 type LeafletModule = typeof import('leaflet')
@@ -121,6 +122,8 @@ type PilgrimageMapPaneExpose = {
 
 const MAP_BOUNDS_PADDING_RATIO = 1
 
+const appState = useAppState()
+const initialPilgrimageData = appState.miletPilgrimageData
 const route = useRoute()
 const mapPaneRef = ref<PilgrimageMapPaneExpose | null>(null)
 const mapRef = shallowRef<any>(null)
@@ -128,15 +131,23 @@ const markerLayerRef = shallowRef<any>(null)
 const routeLayerRef = shallowRef<any>(null)
 const leafletRef = shallowRef<LeafletModule | null>(null)
 
-const regionTree = ref<PilgrimageRegionTreeResponse>(fallbackRegionTree)
-const spotsPayload = ref<PilgrimageSpotListResponse | null>(null)
-const spotDetailPayload = ref<PilgrimageSpotDetailResponse | null>(null)
-const selectedCityId = ref('')
-const selectedDistrictId = ref('')
-const selectedSpotId = ref('')
+const regionTree = ref<PilgrimageRegionTreeResponse>(initialPilgrimageData?.regionTree || fallbackRegionTree)
+const spotsPayload = ref<PilgrimageSpotListResponse | null>(
+  initialPilgrimageData?.selectedDistrictId
+    ? initialPilgrimageData.spotsByDistrictId[initialPilgrimageData.selectedDistrictId] || null
+    : null,
+)
+const spotDetailPayload = ref<PilgrimageSpotDetailResponse | null>(
+  initialPilgrimageData?.selectedSpotId
+    ? initialPilgrimageData.spotDetailsBySpotId[initialPilgrimageData.selectedSpotId] || null
+    : null,
+)
+const selectedCityId = ref(initialPilgrimageData?.selectedCityId || '')
+const selectedDistrictId = ref(initialPilgrimageData?.selectedDistrictId || '')
+const selectedSpotId = ref(initialPilgrimageData?.selectedSpotId || '')
 const selectedRouteId = ref('')
-const usingFallbackData = ref(false)
-const mapLoading = ref(true)
+const usingFallbackData = ref(initialPilgrimageData?.usingFallbackData || false)
+const mapLoading = ref(!initialPilgrimageData?.regionTree)
 const spotsLoading = ref(false)
 const mapTransitioning = ref(false)
 const markersVisible = ref(false)
@@ -144,6 +155,8 @@ const isMobileViewport = ref(false)
 let districtLoadToken = 0
 let resizeFrame = 0
 let lastViewportWidth = 0
+let suppressDistrictWatch = false
+let fancyboxApi: typeof import('@fancyapps/ui')['Fancybox'] | null = null
 
 const currentLang = computed(() => normalizePilgrimageLang(String(route.params.lang || 'zh')))
 const pageText = computed(() => PILGRIMAGE_TEXT[currentLang.value])
@@ -192,13 +205,63 @@ function unwrapPayload<T>(response: any): T | null {
   return payload && typeof payload === 'object' ? (payload as T) : null
 }
 
+function currentPilgrimageState(): PilgrimageSsrPayload {
+  const spotsByDistrictId = {
+    ...(appState.miletPilgrimageData?.spotsByDistrictId || {}),
+  }
+  const spotDetailsBySpotId = {
+    ...(appState.miletPilgrimageData?.spotDetailsBySpotId || {}),
+  }
+
+  if (selectedDistrictId.value && spotsPayload.value) {
+    spotsByDistrictId[selectedDistrictId.value] = spotsPayload.value
+  }
+  if (selectedSpotId.value && spotDetailPayload.value) {
+    spotDetailsBySpotId[selectedSpotId.value] = spotDetailPayload.value
+  }
+
+  return {
+    regionTree: regionTree.value,
+    spotsByDistrictId,
+    spotDetailsBySpotId,
+    selectedCityId: selectedCityId.value,
+    selectedDistrictId: selectedDistrictId.value,
+    selectedSpotId: selectedSpotId.value,
+    usingFallbackData: usingFallbackData.value,
+  }
+}
+
+function syncPilgrimageState() {
+  appState.miletPilgrimageData = currentPilgrimageState()
+}
+
+function applyInitialDistrictSelection() {
+  const district = findInitialDistrict(regionTree.value, currentLang.value)
+  if (district) {
+    selectedCityId.value = district.cityId
+    selectedDistrictId.value = district.id
+    return district
+  }
+
+  selectedCityId.value = cities.value[0]?.id || ''
+  selectedDistrictId.value = ''
+  return null
+}
+
 async function loadRegionTree() {
+  if (appState.miletPilgrimageData?.regionTree) {
+    regionTree.value = appState.miletPilgrimageData.regionTree
+    usingFallbackData.value = appState.miletPilgrimageData.usingFallbackData
+    return
+  }
+
   try {
     const response = await axiosInstance.get(apiRoutes.miletPilgrimageRegionTree)
     const payload = unwrapPayload<PilgrimageRegionTreeResponse>(response)
     if (payload?.zh?.cities?.length || payload?.jp?.cities?.length) {
       regionTree.value = payload
       usingFallbackData.value = false
+      syncPilgrimageState()
       return
     }
   } catch (error) {
@@ -207,6 +270,7 @@ async function loadRegionTree() {
 
   regionTree.value = fallbackRegionTree
   usingFallbackData.value = true
+  syncPilgrimageState()
 }
 
 async function loadDistrictSpots(districtId: string, options: { autoSelect?: boolean } = {}) {
@@ -217,6 +281,19 @@ async function loadDistrictSpots(districtId: string, options: { autoSelect?: boo
   selectedSpotId.value = ''
   spotDetailPayload.value = null
 
+  const cachedPayload = appState.miletPilgrimageData?.spotsByDistrictId[districtId]
+  if (cachedPayload) {
+    spotsPayload.value = cachedPayload
+    usingFallbackData.value = appState.miletPilgrimageData?.usingFallbackData || false
+    spotsLoading.value = false
+    syncPilgrimageState()
+    const firstSpot = spots.value[0]
+    if (autoSelect && firstSpot && !isMobileViewport.value) {
+      await selectSpot(firstSpot.id)
+    }
+    return
+  }
+
   try {
     const response = await axiosInstance.get(
       `${apiRoutes.miletPilgrimageDistrictSpots}/${districtId}/spots`,
@@ -225,14 +302,17 @@ async function loadDistrictSpots(districtId: string, options: { autoSelect?: boo
     if (payload) {
       spotsPayload.value = payload
       usingFallbackData.value = false
+      syncPilgrimageState()
     } else {
       spotsPayload.value = fallbackSpotLists[districtId] || { zh: { spots: [] }, jp: { spots: [] } }
       usingFallbackData.value = true
+      syncPilgrimageState()
     }
   } catch (error) {
     console.warn('Failed to load pilgrimage spots, using fallback data.', error)
     spotsPayload.value = fallbackSpotLists[districtId] || { zh: { spots: [] }, jp: { spots: [] } }
     usingFallbackData.value = true
+    syncPilgrimageState()
   } finally {
     spotsLoading.value = false
   }
@@ -246,12 +326,21 @@ async function loadDistrictSpots(districtId: string, options: { autoSelect?: boo
 async function loadSpotDetail(spotId: string) {
   if (!spotId) return
 
+  const cachedPayload = appState.miletPilgrimageData?.spotDetailsBySpotId[spotId]
+  if (cachedPayload) {
+    spotDetailPayload.value = cachedPayload
+    usingFallbackData.value = appState.miletPilgrimageData?.usingFallbackData || false
+    syncPilgrimageState()
+    return
+  }
+
   try {
     const response = await axiosInstance.get(`${apiRoutes.miletPilgrimageSpot}/${spotId}`)
     const payload = unwrapPayload<PilgrimageSpotDetailResponse>(response)
     if (payload) {
       spotDetailPayload.value = payload
       usingFallbackData.value = false
+      syncPilgrimageState()
       return
     }
   } catch (error) {
@@ -263,6 +352,23 @@ async function loadSpotDetail(spotId: string) {
     jp: { spot: null },
   }
   usingFallbackData.value = true
+  syncPilgrimageState()
+}
+
+async function loadInitialPilgrimageData() {
+  suppressDistrictWatch = true
+  try {
+    await loadRegionTree()
+    const district = applyInitialDistrictSelection()
+    if (district) {
+      await loadDistrictSpots(district.id, { autoSelect: false })
+    }
+    mapLoading.value = false
+    syncPilgrimageState()
+  } finally {
+    await nextTick()
+    suppressDistrictWatch = false
+  }
 }
 
 function selectCity(cityId: string) {
@@ -274,17 +380,20 @@ function selectCity(cityId: string) {
   if (nextDistrict) {
     selectDistrict(nextDistrict.id)
   }
+  syncPilgrimageState()
 }
 
 function selectDistrict(districtId: string) {
   selectedDistrictId.value = districtId
   selectedRouteId.value = ''
+  syncPilgrimageState()
 }
 
 async function selectSpot(spotId: string) {
   selectedSpotId.value = spotId
   applyMapZoomLimits()
   await loadSpotDetail(spotId)
+  syncPilgrimageState()
 }
 
 async function selectRoute(routeId: string) {
@@ -299,6 +408,7 @@ function closeSpotDetail() {
   spotDetailPayload.value = null
   applyMapZoomLimits()
   renderMarkers()
+  syncPilgrimageState()
 }
 
 function updateViewportMode() {
@@ -626,9 +736,14 @@ function moveMapToDistrict(options: { duration?: number } = {}) {
 }
 
 async function setupFancybox() {
+  if (import.meta.env.SSR) return
+  if (!fancyboxApi) {
+    fancyboxApi = (await import('@fancyapps/ui')).Fancybox
+  }
+
   await nextTick()
-  Fancybox.destroy()
-  Fancybox.bind(`[data-fancybox='${galleryName.value}']`, {
+  fancyboxApi.destroy()
+  fancyboxApi.bind(`[data-fancybox='${galleryName.value}']`, {
     Carousel: {
       Toolbar: {
         display: {
@@ -644,6 +759,7 @@ async function setupFancybox() {
 watch(
   () => selectedDistrictId.value,
   async (districtId) => {
+    if (import.meta.env.SSR || suppressDistrictWatch) return
     if (!districtId) return
     const token = ++districtLoadToken
     mapTransitioning.value = true
@@ -657,6 +773,7 @@ watch(
     applyMapBrowseBounds({ panInside: true })
     renderMarkers()
     renderRoutes()
+    syncPilgrimageState()
     requestAnimationFrame(() => {
       if (token !== districtLoadToken) return
       markersVisible.value = true
@@ -677,6 +794,7 @@ watch(
 watch(
   () => selectedSpotDetail.value?.id,
   () => {
+    if (import.meta.env.SSR) return
     renderMarkers()
     setupFancybox()
   },
@@ -685,22 +803,20 @@ watch(
 watch(
   () => currentLang.value,
   () => {
+    if (typeof document === 'undefined') return
     document.title =
       currentLang.value === 'jp' ? 'Echoes of milet | 聖地巡礼' : 'Echoes of milet | 圣地巡礼'
   },
   { immediate: true },
 )
 
+onServerPrefetch(loadInitialPilgrimageData)
+
 onMounted(async () => {
   updateViewportMode()
   window.addEventListener('resize', updateViewportMode)
-  await loadRegionTree()
-  const district = findInitialDistrict(regionTree.value, currentLang.value)
-  if (district) {
-    selectedCityId.value = district.cityId
-    selectedDistrictId.value = district.id
-  } else {
-    selectedCityId.value = cities.value[0]?.id || ''
+  if (!appState.miletPilgrimageData?.regionTree || !selectedDistrictId.value) {
+    await loadInitialPilgrimageData()
   }
   await initMap()
 })
@@ -708,7 +824,7 @@ onMounted(async () => {
 onBeforeUnmount(() => {
   window.removeEventListener('resize', updateViewportMode)
   cancelAnimationFrame(resizeFrame)
-  Fancybox.destroy()
+  fancyboxApi?.destroy()
   if (mapRef.value) {
     mapRef.value.remove()
   }
