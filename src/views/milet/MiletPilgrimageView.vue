@@ -203,11 +203,27 @@ const navigationUrl = computed(() =>
 )
 const galleryName = computed(() => `pilgrimage-photos-${selectedSpotDetail.value?.id || 'empty'}`)
 
+type LatLngTuple = [number, number]
+
 function unwrapPayload<T>(response: any): T | null {
   if (!response || typeof response !== 'object') return null
   if ('code' in response && Number(response.code) !== 200) return null
   const payload = response.data ?? response
   return payload && typeof payload === 'object' ? (payload as T) : null
+}
+
+function fallbackSpotListPayload(districtId: string): PilgrimageSpotListResponse {
+  return fallbackSpotLists[districtId] || { zh: { spots: [] }, jp: { spots: [] } }
+}
+
+function spotPayloadMatchesDistrict(districtId: string, payload?: PilgrimageSpotListResponse) {
+  if (!payload) return false
+  const expectedSpotCount =
+    selectedDistrict.value?.id === districtId ? selectedDistrict.value.spotCount : null
+  if (expectedSpotCount === null) return true
+
+  const cachedSpots = getLocalizedBranch(payload, currentLang.value)?.spots || []
+  return Number(expectedSpotCount) === cachedSpots.length
 }
 
 function currentPilgrimageState(): PilgrimageSsrPayload {
@@ -287,7 +303,7 @@ async function loadDistrictSpots(districtId: string, options: { autoSelect?: boo
   spotDetailPayload.value = null
 
   const cachedPayload = appState.miletPilgrimageData?.spotsByDistrictId[districtId]
-  if (cachedPayload) {
+  if (spotPayloadMatchesDistrict(districtId, cachedPayload)) {
     spotsPayload.value = cachedPayload
     usingFallbackData.value = appState.miletPilgrimageData?.usingFallbackData || false
     spotsLoading.value = false
@@ -299,6 +315,8 @@ async function loadDistrictSpots(districtId: string, options: { autoSelect?: boo
     return
   }
 
+  spotsPayload.value = null
+
   try {
     const response = await axiosInstance.get(
       `${apiRoutes.miletPilgrimageDistrictSpots}/${districtId}/spots`,
@@ -309,13 +327,13 @@ async function loadDistrictSpots(districtId: string, options: { autoSelect?: boo
       usingFallbackData.value = false
       syncPilgrimageState()
     } else {
-      spotsPayload.value = fallbackSpotLists[districtId] || { zh: { spots: [] }, jp: { spots: [] } }
+      spotsPayload.value = fallbackSpotListPayload(districtId)
       usingFallbackData.value = true
       syncPilgrimageState()
     }
   } catch (error) {
     console.warn('Failed to load pilgrimage spots, using fallback data.', error)
-    spotsPayload.value = fallbackSpotLists[districtId] || { zh: { spots: [] }, jp: { spots: [] } }
+    spotsPayload.value = fallbackSpotListPayload(districtId)
     usingFallbackData.value = true
     syncPilgrimageState()
   } finally {
@@ -381,7 +399,8 @@ function selectCity(cityId: string) {
   if (!city) return
 
   selectedCityId.value = city.id
-  const nextDistrict = city.districts[0]
+  const nextDistrict =
+    city.districts.find((district) => Number(district.spotCount) > 0) || city.districts[0]
   if (nextDistrict) {
     const districtChanged = selectedDistrictId.value !== nextDistrict.id
     selectDistrict(nextDistrict.id)
@@ -498,8 +517,10 @@ async function initMap() {
     renderRoutes()
   })
   applyMapZoomLimits()
+  await moveMapToCurrentArea({ duration: 0 })
   mapLoading.value = false
   renderMarkers()
+  renderRoutes()
   applyMapBrowseBounds()
   requestAnimationFrame(() => {
     markersVisible.value = true
@@ -694,22 +715,33 @@ function clearMapBrowseBounds() {
   mapRef.value?.setMaxBounds(null)
 }
 
-function buildMapBrowseBounds() {
-  const L = leafletRef.value
+function validLatLng(lat: unknown, lng: unknown): LatLngTuple | null {
+  const nextLat = Number(lat)
+  const nextLng = Number(lng)
+  if (!Number.isFinite(nextLat) || !Number.isFinite(nextLng)) return null
+  return [nextLat, nextLng]
+}
+
+function areaCenter() {
   const area = currentMapArea()
-  if (!L || !area) return null
+  return area ? validLatLng(area.centerLat, area.centerLng) : null
+}
 
-  const coordinates = [
-    [area.centerLat, area.centerLng],
-    ...(selectedDistrict.value
-      ? spots.value.map((spot) => [spot.displayLat, spot.displayLng] as [number, number])
-      : []),
-  ] as [number, number][]
+function currentSpotCoordinates() {
+  if (!selectedDistrict.value) return []
+  return spots.value
+    .map((spot) => validLatLng(spot.displayLat, spot.displayLng))
+    .filter((point): point is LatLngTuple => Boolean(point))
+}
 
-  let minLat = Math.min(...coordinates.map((point) => point[0]))
-  let maxLat = Math.max(...coordinates.map((point) => point[0]))
-  let minLng = Math.min(...coordinates.map((point) => point[1]))
-  let maxLng = Math.max(...coordinates.map((point) => point[1]))
+function expandedBounds(coordinates: LatLngTuple[]) {
+  const L = leafletRef.value
+  if (!L || coordinates.length === 0) return null
+
+  let minLat = Math.min(...coordinates.map(([lat]) => lat))
+  let maxLat = Math.max(...coordinates.map(([lat]) => lat))
+  let minLng = Math.min(...coordinates.map(([, lng]) => lng))
+  let maxLng = Math.max(...coordinates.map(([, lng]) => lng))
 
   if (minLat === maxLat) {
     minLat -= 0.006
@@ -728,6 +760,15 @@ function buildMapBrowseBounds() {
   )
 }
 
+function buildMapBrowseBounds() {
+  const center = areaCenter()
+  const coordinates = [
+    ...(center ? [center] : []),
+    ...currentSpotCoordinates(),
+  ]
+  return expandedBounds(coordinates)
+}
+
 function applyMapBrowseBounds(options: { panInside?: boolean } = {}) {
   const map = mapRef.value
   const bounds = buildMapBrowseBounds()
@@ -739,27 +780,62 @@ function applyMapBrowseBounds(options: { panInside?: boolean } = {}) {
   }
 }
 
-function moveMapToDistrict(options: { duration?: number } = {}) {
-  const area = currentMapArea()
-  if (!mapRef.value || !area) return Promise.resolve()
-  applyMapZoomLimits()
+function waitForMapMove(action: () => void, timeout = 920) {
+  const map = mapRef.value
+  if (!map) return Promise.resolve()
   return new Promise<void>((resolve) => {
     let resolved = false
     const finish = () => {
       if (resolved) return
       resolved = true
-      mapRef.value?.off('moveend', finish)
+      map.off('moveend', finish)
       resolve()
     }
-    mapRef.value.once('moveend', finish)
-    window.setTimeout(finish, 920)
-    const bounds = buildMapBrowseBounds()
-    const areaCenter = leafletRef.value?.latLng(area.centerLat, area.centerLng)
-    const targetCenter =
-      bounds && areaCenter && !bounds.contains(areaCenter)
-        ? bounds.getCenter()
-        : [area.centerLat, area.centerLng]
-    mapRef.value.flyTo(targetCenter, defaultMapZoom(), { duration: options.duration ?? 0.7 })
+    map.once('moveend', finish)
+    window.setTimeout(finish, timeout)
+    action()
+  })
+}
+
+function moveMapToCurrentArea(options: { duration?: number } = {}) {
+  const map = mapRef.value
+  const L = leafletRef.value
+  const center = areaCenter()
+  if (!map || !L || !center) return Promise.resolve()
+
+  applyMapZoomLimits()
+  const duration = options.duration ?? 0.7
+  const spotCoordinates = currentSpotCoordinates()
+
+  if (spotCoordinates.length > 1) {
+    const bounds = L.latLngBounds(spotCoordinates)
+    if (duration <= 0) {
+      map.fitBounds(bounds, {
+        animate: false,
+        maxZoom: defaultMapZoom(),
+        padding: [56, 56],
+      })
+      return Promise.resolve()
+    }
+
+    return waitForMapMove(() => {
+      map.fitBounds(bounds, {
+        animate: true,
+        duration,
+        maxZoom: defaultMapZoom(),
+        padding: [56, 56],
+      })
+    })
+  }
+
+  const targetCenter = spotCoordinates[0] || center
+  if (duration <= 0) {
+    map.setView(targetCenter, defaultMapZoom(), { animate: false })
+    return Promise.resolve()
+  }
+
+  return waitForMapMove(() => {
+    map.flyTo(targetCenter, defaultMapZoom(), { duration })
   })
 }
 
@@ -783,7 +859,7 @@ async function transitionSelectedArea(districtId: string) {
 
   if (token !== districtLoadToken) return
   applyMapZoomLimits()
-  await moveMapToDistrict()
+  await moveMapToCurrentArea()
   if (token !== districtLoadToken) return
   applyMapBrowseBounds({ panInside: true })
   renderMarkers()
