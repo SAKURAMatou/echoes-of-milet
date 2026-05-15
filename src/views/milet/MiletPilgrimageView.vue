@@ -383,14 +383,32 @@ function selectCity(cityId: string) {
   selectedCityId.value = city.id
   const nextDistrict = city.districts[0]
   if (nextDistrict) {
+    const districtChanged = selectedDistrictId.value !== nextDistrict.id
     selectDistrict(nextDistrict.id)
+    if (!districtChanged) {
+      void transitionSelectedArea(nextDistrict.id)
+    }
+  } else {
+    const districtChanged = selectedDistrictId.value !== ''
+    selectedDistrictId.value = ''
+    selectedRouteId.value = ''
+    selectedSpotId.value = ''
+    spotsPayload.value = null
+    spotDetailPayload.value = null
+    if (!districtChanged) {
+      void transitionSelectedArea('')
+    }
   }
   syncPilgrimageState()
 }
 
 function selectDistrict(districtId: string) {
+  const districtChanged = selectedDistrictId.value !== districtId
   selectedDistrictId.value = districtId
   selectedRouteId.value = ''
+  if (!districtChanged) {
+    void transitionSelectedArea(districtId)
+  }
   syncPilgrimageState()
 }
 
@@ -663,8 +681,13 @@ function clampMapZoom(zoom: number, maxZoom = 20) {
   return Math.min(Math.max(zoom, 11), maxZoom)
 }
 
-function districtDefaultZoom() {
-  return clampMapZoom(selectedDistrict.value?.defaultZoom || 14, 19)
+function currentMapArea() {
+  return selectedDistrict.value || selectedCity.value
+}
+
+function defaultMapZoom() {
+  const fallbackZoom = selectedDistrict.value ? 14 : 12
+  return clampMapZoom(currentMapArea()?.defaultZoom || fallbackZoom, 19)
 }
 
 function clearMapBrowseBounds() {
@@ -673,13 +696,15 @@ function clearMapBrowseBounds() {
 
 function buildMapBrowseBounds() {
   const L = leafletRef.value
-  const district = selectedDistrict.value
-  if (!L || !district) return null
+  const area = currentMapArea()
+  if (!L || !area) return null
 
-  const coordinates =
-    spots.value.length > 0
+  const coordinates = [
+    [area.centerLat, area.centerLng],
+    ...(selectedDistrict.value
       ? spots.value.map((spot) => [spot.displayLat, spot.displayLng] as [number, number])
-      : ([[district.centerLat, district.centerLng]] as [number, number][])
+      : []),
+  ] as [number, number][]
 
   let minLat = Math.min(...coordinates.map((point) => point[0]))
   let maxLat = Math.max(...coordinates.map((point) => point[0]))
@@ -715,7 +740,8 @@ function applyMapBrowseBounds(options: { panInside?: boolean } = {}) {
 }
 
 function moveMapToDistrict(options: { duration?: number } = {}) {
-  if (!mapRef.value || !selectedDistrict.value) return Promise.resolve()
+  const area = currentMapArea()
+  if (!mapRef.value || !area) return Promise.resolve()
   applyMapZoomLimits()
   return new Promise<void>((resolve) => {
     let resolved = false
@@ -728,15 +754,45 @@ function moveMapToDistrict(options: { duration?: number } = {}) {
     mapRef.value.once('moveend', finish)
     window.setTimeout(finish, 920)
     const bounds = buildMapBrowseBounds()
-    const districtCenter = leafletRef.value?.latLng(
-      selectedDistrict.value.centerLat,
-      selectedDistrict.value.centerLng,
-    )
+    const areaCenter = leafletRef.value?.latLng(area.centerLat, area.centerLng)
     const targetCenter =
-      bounds && districtCenter && !bounds.contains(districtCenter)
+      bounds && areaCenter && !bounds.contains(areaCenter)
         ? bounds.getCenter()
-        : [selectedDistrict.value.centerLat, selectedDistrict.value.centerLng]
-    mapRef.value.flyTo(targetCenter, districtDefaultZoom(), { duration: options.duration ?? 0.7 })
+        : [area.centerLat, area.centerLng]
+    mapRef.value.flyTo(targetCenter, defaultMapZoom(), { duration: options.duration ?? 0.7 })
+  })
+}
+
+async function transitionSelectedArea(districtId: string) {
+  if (import.meta.env.SSR || suppressDistrictWatch) return
+  const token = ++districtLoadToken
+  mapTransitioning.value = true
+  markersVisible.value = false
+  clearMapBrowseBounds()
+
+  if (districtId && selectedDistrict.value) {
+    await loadDistrictSpots(districtId, { autoSelect: false })
+  } else {
+    spotsLoading.value = false
+    selectedSpotId.value = ''
+    selectedRouteId.value = ''
+    spotDetailPayload.value = null
+    spotsPayload.value = null
+    syncPilgrimageState()
+  }
+
+  if (token !== districtLoadToken) return
+  applyMapZoomLimits()
+  await moveMapToDistrict()
+  if (token !== districtLoadToken) return
+  applyMapBrowseBounds({ panInside: true })
+  renderMarkers()
+  renderRoutes()
+  syncPilgrimageState()
+  requestAnimationFrame(() => {
+    if (token !== districtLoadToken) return
+    markersVisible.value = true
+    mapTransitioning.value = false
   })
 }
 
@@ -764,26 +820,7 @@ async function setupFancybox() {
 watch(
   () => selectedDistrictId.value,
   async (districtId) => {
-    if (import.meta.env.SSR || suppressDistrictWatch) return
-    if (!districtId) return
-    const token = ++districtLoadToken
-    mapTransitioning.value = true
-    markersVisible.value = false
-    clearMapBrowseBounds()
-    await loadDistrictSpots(districtId, { autoSelect: false })
-    if (token !== districtLoadToken) return
-    applyMapZoomLimits()
-    await moveMapToDistrict()
-    if (token !== districtLoadToken) return
-    applyMapBrowseBounds({ panInside: true })
-    renderMarkers()
-    renderRoutes()
-    syncPilgrimageState()
-    requestAnimationFrame(() => {
-      if (token !== districtLoadToken) return
-      markersVisible.value = true
-      mapTransitioning.value = false
-    })
+    await transitionSelectedArea(districtId)
   },
 )
 
