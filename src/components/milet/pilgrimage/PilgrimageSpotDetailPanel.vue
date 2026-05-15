@@ -8,7 +8,7 @@
         : 'pointer-events-none translate-y-[calc(100%+1rem)] lg:pointer-events-auto'
     "
   >
-    <div v-if="selectedSpotDetail" class="flex h-full flex-col">
+    <div v-if="selectedSpotDetail" class="flex min-h-full flex-col">
       <div
         class="sticky top-0 z-30 -mx-4 mb-3 flex h-10 items-center justify-center bg-[linear-gradient(180deg,rgba(255,255,255,0.98),rgba(255,255,255,0.9))] px-4 pt-1 sm:-mx-6 sm:px-6 lg:hidden"
       >
@@ -24,7 +24,7 @@
       </div>
 
       <div
-        class="overflow-hidden rounded-lg border border-white/80 bg-white/78 shadow-[0_22px_60px_-42px_rgba(31,41,55,0.8)]"
+        class="shrink-0 overflow-hidden rounded-lg border border-white/80 bg-white/78 shadow-[0_22px_60px_-42px_rgba(31,41,55,0.8)]"
       >
         <img
           :src="buildStaticAssetUrl(selectedSpotDetail.coverImageUrl)"
@@ -77,11 +77,6 @@
             </div>
           </dl>
 
-          <FormattedPlainText
-            class="mt-4 text-sm leading-7 text-[#526670]"
-            :text="selectedSpotDetail.description"
-          />
-
           <div class="mt-4 flex flex-wrap gap-2">
             <span
               v-for="tag in selectedSpotDetail.tags"
@@ -91,10 +86,15 @@
               {{ tag }}
             </span>
           </div>
+
+          <FormattedPlainText
+            class="mt-4 text-sm leading-7 text-[#526670]"
+            :text="selectedSpotDetail.description"
+          />
         </div>
       </div>
 
-      <section class="mt-5 min-h-0 flex-1">
+      <section class="mt-5 shrink-0">
         <div class="mb-3 flex items-center justify-between">
           <h3 class="text-sm font-semibold uppercase tracking-[0.14em] text-[#64777f]">
             {{ pageText.photoLabel }}
