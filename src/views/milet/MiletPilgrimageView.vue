@@ -923,7 +923,9 @@ watch(
   () => {
     if (typeof document === 'undefined') return
     document.title =
-      currentLang.value === 'jp' ? 'Echoes of milet | 聖地巡礼' : 'Echoes of milet | 圣地巡礼'
+      currentLang.value === 'jp'
+        ? 'milet 聖地巡礼マップ | Echoes of milet'
+        : 'milet 圣地巡礼地图 | Echoes of milet'
   },
   { immediate: true },
 )

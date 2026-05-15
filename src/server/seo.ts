@@ -112,7 +112,7 @@ const seoMap: Record<SeoKey, SeoMeta> = {
       zh: {
         title: 'milet 圣地巡礼地图 | Echoes of milet',
         description:
-          'Echoes of milet 圣地巡礼地图，整理 milet 作品、MV、街景与拍摄地相关地点，支持按城市、区域和路线查看巡礼 spot、照片、导航与地点说明。',
+          'milet 圣地巡礼地图由 Echoes of milet 整理 milet 作品、MV、街景与拍摄地相关地点，支持按城市、区域和路线查看巡礼 spot、照片、导航与地点说明。',
         keywords: [
           'milet 圣地巡礼',
           '圣地巡礼',
@@ -130,7 +130,7 @@ const seoMap: Record<SeoKey, SeoMeta> = {
       jp: {
         title: 'milet 聖地巡礼マップ | Echoes of milet',
         description:
-          'Echoes of milet の聖地巡礼マップです。milet の作品、MV、街並み、撮影地に関係する spot を都市、エリア、ルート別に整理し、写真、ナビ、場所の説明を表示します。',
+          'milet 聖地巡礼マップとして、Echoes of milet が milet の作品、MV、街並み、撮影地に関係する spot を都市、エリア、ルート別に整理し、写真、ナビ、場所の説明を表示します。',
         keywords: [
           'milet 聖地巡礼',
           '聖地巡礼',

@@ -132,8 +132,8 @@ export interface PilgrimagePageText {
 
 export const PILGRIMAGE_TEXT: Record<PilgrimageLang, PilgrimagePageText> = {
   zh: {
-    title: '圣地巡礼',
-    subtitle: '把作品里留下的街角、车站和光线，整理成可以慢慢走近的地图。',
+    title: 'milet 圣地巡礼地图',
+    subtitle: '整理 milet 作品、MV 拍摄地与巡礼 spot，把街角、车站和光线变成可以慢慢走近的圣地巡礼路线。',
     cityLabel: '城市',
     districtLabel: '区划',
     routeLabel: '路线',
@@ -155,8 +155,8 @@ export const PILGRIMAGE_TEXT: Record<PilgrimageLang, PilgrimagePageText> = {
     dataCreditShort: '感谢 miles (Affogato)提供巡礼数据',
   },
   jp: {
-    title: '聖地巡礼',
-    subtitle: '作品に残った街角、駅、光を、少しずつ辿れる地図に整える。',
+    title: 'milet 聖地巡礼マップ',
+    subtitle: 'milet の作品、MV ロケ地、巡礼 spot を整理し、街角、駅、光を少しずつ辿れる聖地巡礼ルートに整える。',
     cityLabel: '都市',
     districtLabel: 'エリア',
     routeLabel: 'ルート',
