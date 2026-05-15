@@ -83,6 +83,13 @@
         @close="closeSpotDetail"
       />
     </section>
+
+    <PilgrimageSeoSpotList
+      :spots="spots"
+      :selected-city="selectedCity"
+      :selected-district="selectedDistrict"
+      :lang="currentLang"
+    />
   </article>
 </template>
 
@@ -96,6 +103,7 @@ import { useRoute } from 'vue-router'
 import axiosInstance from '@/AxiosUtil'
 import PilgrimageAreaControls from '@/components/milet/pilgrimage/PilgrimageAreaControls.vue'
 import PilgrimageMapPane from '@/components/milet/pilgrimage/PilgrimageMapPane.vue'
+import PilgrimageSeoSpotList from '@/components/milet/pilgrimage/PilgrimageSeoSpotList.vue'
 import PilgrimageSpotDetailPanel from '@/components/milet/pilgrimage/PilgrimageSpotDetailPanel.vue'
 import { pilgrimageMapConfig } from '@/components/milet/pilgrimage/pilgrimageMapConfig'
 import {

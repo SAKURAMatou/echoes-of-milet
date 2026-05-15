@@ -21,6 +21,19 @@ interface SeoMeta {
 
 interface RenderSeoOptions {
   path?: string
+  pilgrimageSpots?: PilgrimageSeoSpot[]
+}
+
+export interface PilgrimageSeoSpot {
+  id: string
+  title: string
+  workTitle?: string
+  category?: string
+  tags?: string[]
+  description?: string
+  displayLat?: number
+  displayLng?: number
+  coverImageUrl?: string
 }
 
 const siteUrl = getSiteOrigin()
@@ -237,6 +250,13 @@ function escapeJsonForHtml(value: string) {
   return value.replace(/</g, '\\u003c')
 }
 
+function toAbsoluteUrl(value?: string | null) {
+  const url = (value || '').trim()
+  if (!url) return undefined
+  if (/^https?:\/\//i.test(url)) return url
+  return `${siteUrl}${url.startsWith('/') ? url : `/${url}`}`
+}
+
 function resolveLang(lang?: string | null): SupportedLang {
   return lang === 'jp' ? 'jp' : 'zh'
 }
@@ -315,6 +335,72 @@ function renderStructuredData(
   })
 }
 
+function renderPilgrimageSpotListStructuredData(
+  localized: SeoLocaleContent,
+  canonicalUrl: string,
+  lang: SupportedLang,
+  spots: PilgrimageSeoSpot[],
+) {
+  const itemListElement = spots.map((spot, index) => {
+    const anchorUrl = `${canonicalUrl}#pilgrimage-spot-${encodeURIComponent(spot.id)}`
+    const lat = Number(spot.displayLat)
+    const lng = Number(spot.displayLng)
+    const additionalProperty = [
+      spot.workTitle
+        ? {
+            '@type': 'PropertyValue',
+            name: lang === 'jp' ? '作品' : '作品',
+            value: spot.workTitle,
+          }
+        : undefined,
+      spot.category
+        ? {
+            '@type': 'PropertyValue',
+            name: lang === 'jp' ? 'カテゴリ' : '分类',
+            value: spot.category,
+          }
+        : undefined,
+    ].filter(Boolean)
+
+    return {
+      '@type': 'ListItem',
+      position: index + 1,
+      url: anchorUrl,
+      item: {
+        '@type': 'Place',
+        '@id': `${canonicalUrl}#place-${encodeURIComponent(spot.id)}`,
+        name: spot.title,
+        description:
+          spot.description ||
+          [spot.workTitle, spot.category, ...(spot.tags || [])].filter(Boolean).join(' / '),
+        url: anchorUrl,
+        image: toAbsoluteUrl(spot.coverImageUrl),
+        keywords: spot.tags?.join(', '),
+        geo:
+          Number.isFinite(lat) && Number.isFinite(lng)
+            ? {
+                '@type': 'GeoCoordinates',
+                latitude: lat,
+                longitude: lng,
+              }
+            : undefined,
+        additionalProperty,
+      },
+    }
+  })
+
+  return JSON.stringify({
+    '@context': 'https://schema.org',
+    '@type': 'ItemList',
+    name: `${localized.title} spots`,
+    description: localized.description,
+    inLanguage: toHtmlLang(lang),
+    url: canonicalUrl,
+    numberOfItems: itemListElement.length,
+    itemListElement,
+  })
+}
+
 export function resolveSeoMeta(seoKey?: string) {
   return seoMap[(seoKey as SeoKey) ?? 'home'] ?? seoMap.home
 }
@@ -333,6 +419,22 @@ export function renderSeoTags(
   const escapedTitle = escapeHtml(localized.title)
   const escapedDescription = escapeHtml(localized.description)
   const escapedImageAlt = escapeHtml(localized.imageAlt)
+  const structuredDataScripts = [
+    `<script type="application/ld+json">${escapeJsonForHtml(renderStructuredData(meta, localized, canonicalUrl, imageUrl, resolvedLang))}</script>`,
+  ]
+
+  if (seoKey === 'pilgrimage' && options.pilgrimageSpots?.length) {
+    structuredDataScripts.push(
+      `<script type="application/ld+json">${escapeJsonForHtml(
+        renderPilgrimageSpotListStructuredData(
+          localized,
+          canonicalUrl,
+          resolvedLang,
+          options.pilgrimageSpots,
+        ),
+      )}</script>`,
+    )
+  }
 
   return [
     `<title>${escapedTitle}</title>`,
@@ -354,6 +456,6 @@ export function renderSeoTags(
     `<meta name="twitter:description" content="${escapedDescription}">`,
     `<meta name="twitter:image" content="${imageUrl}">`,
     `<meta name="twitter:image:alt" content="${escapedImageAlt}">`,
-    `<script type="application/ld+json">${escapeJsonForHtml(renderStructuredData(meta, localized, canonicalUrl, imageUrl, resolvedLang))}</script>`,
+    ...structuredDataScripts,
   ].join('\n')
 }

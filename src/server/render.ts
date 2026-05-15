@@ -1,6 +1,7 @@
 import { renderToString } from 'vue/server-renderer'
 
 import { createApp } from '@/app'
+import { getLocalizedBranch } from '@/composables/miletPilgrimage'
 import {
   resolvePreferredUrlLang,
   resolveSupportedLang,
@@ -8,7 +9,7 @@ import {
 } from '@/composables/useLangRoute'
 import { getSiteOrigin } from '@/config/api'
 import { buildShortLinkTarget } from '@/config/shortLinks'
-import { renderSeoTags, toHtmlLang } from '@/server/seo'
+import { renderSeoTags, toHtmlLang, type PilgrimageSeoSpot } from '@/server/seo'
 
 interface RenderRequest {
   headers?: Record<string, string | string[] | undefined>
@@ -21,6 +22,32 @@ export interface RenderResult {
   htmlLang: string
   renderMode: 'ssg' | 'ssr' | 'csr'
   status: number
+}
+
+function collectPilgrimageSeoSpots(
+  state: ReturnType<typeof createApp>['state'],
+): PilgrimageSeoSpot[] {
+  const payload = state.miletPilgrimageData
+  if (!payload?.selectedDistrictId) return []
+
+  const spotListPayload = payload.spotsByDistrictId[payload.selectedDistrictId]
+  const localizedSpotList = getLocalizedBranch(spotListPayload, state.lang)?.spots || []
+
+  return localizedSpotList.map((spot) => {
+    const localizedDetail = getLocalizedBranch(payload.spotDetailsBySpotId[spot.id], state.lang)
+    const detail = localizedDetail?.spot
+    return {
+      id: spot.id,
+      title: detail?.title || spot.title,
+      workTitle: detail?.workTitle || spot.workTitle,
+      category: detail?.category || spot.category,
+      tags: detail?.tags || spot.tags,
+      description: detail?.description,
+      displayLat: detail?.displayLat ?? spot.displayLat,
+      displayLng: detail?.displayLng ?? spot.displayLng,
+      coverImageUrl: detail?.coverImageUrl || spot.coverImageUrl,
+    }
+  })
 }
 
 export async function render(url: string, request: RenderRequest = {}): Promise<RenderResult> {
@@ -55,6 +82,7 @@ export async function render(url: string, request: RenderRequest = {}): Promise<
     appHtml,
     headTags: renderSeoTags(matchedSeoKey, state.lang, {
       path: currentRoute.path,
+      pilgrimageSpots: collectPilgrimageSeoSpots(state),
     }),
     initialState: state,
     htmlLang: toHtmlLang(state.lang),
