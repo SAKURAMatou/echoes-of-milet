@@ -8,6 +8,7 @@ export interface PilgrimageDistrict {
   centerLng: number
   defaultZoom: number
   spotCount: number
+  spots?: PilgrimageSpotSummary[]
 }
 
 export interface PilgrimageCity {

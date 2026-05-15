@@ -28,13 +28,20 @@ function collectPilgrimageSeoSpots(
   state: ReturnType<typeof createApp>['state'],
 ): PilgrimageSeoSpot[] {
   const payload = state.miletPilgrimageData
-  if (!payload?.selectedDistrictId) return []
-
-  const spotListPayload = payload.spotsByDistrictId[payload.selectedDistrictId]
-  const localizedSpotList = getLocalizedBranch(spotListPayload, state.lang)?.spots || []
+  const localizedTree = getLocalizedBranch(payload?.regionTree, state.lang)
+  const regionSpots =
+    localizedTree?.cities.flatMap((city) =>
+      city.districts.flatMap((district) => district.spots || []),
+    ) || []
+  const localizedSpotList =
+    regionSpots.length > 0
+      ? regionSpots
+      : Object.values(payload?.spotsByDistrictId || {}).flatMap(
+          (spotListPayload) => getLocalizedBranch(spotListPayload, state.lang)?.spots || [],
+        )
 
   return localizedSpotList.map((spot) => {
-    const localizedDetail = getLocalizedBranch(payload.spotDetailsBySpotId[spot.id], state.lang)
+    const localizedDetail = getLocalizedBranch(payload?.spotDetailsBySpotId[spot.id], state.lang)
     const detail = localizedDetail?.spot
     return {
       id: spot.id,

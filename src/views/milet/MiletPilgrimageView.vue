@@ -85,9 +85,7 @@
     </section>
 
     <PilgrimageSeoSpotList
-      :spots="spots"
-      :selected-city="selectedCity"
-      :selected-district="selectedDistrict"
+      :cities="seoSpotListCities"
       :lang="currentLang"
     />
   </article>
@@ -175,6 +173,23 @@ const currentLang = computed(() => normalizePilgrimageLang(String(route.params.l
 const pageText = computed(() => PILGRIMAGE_TEXT[currentLang.value])
 const localizedTree = computed(() => getLocalizedBranch(regionTree.value, currentLang.value))
 const cities = computed(() => localizedTree.value?.cities || [])
+const seoSpotListCities = computed(() =>
+  cities.value
+    .map((city) => ({
+      id: city.id,
+      name: city.name,
+      countryCode: city.countryCode,
+      districts: city.districts
+        .map((district) => ({
+          ...district,
+          spots: district.spots?.length
+            ? district.spots
+            : fallbackSpotLists[district.id]?.[currentLang.value].spots || [],
+        }))
+        .filter((district) => district.spots.length > 0),
+    }))
+    .filter((city) => city.districts.length > 0),
+)
 const selectedCity = computed<PilgrimageCity | null>(
   () => cities.value.find((city) => city.id === selectedCityId.value) || cities.value[0] || null,
 )
