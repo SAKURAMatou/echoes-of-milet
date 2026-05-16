@@ -630,6 +630,83 @@ pilgrimage:spot:{spot_id}
 
 如果当前缓存后端不支持按前缀扫描删除，管理端按钮应通过 D1 查询城市、区划、地点 ID 后批量拼出固定 key 删除。
 
+### 11.5 公开端地区数据状态缓存
+
+本节描述公开端页面运行时的内存状态缓存，和 Worker 侧 KV / Cache API 缓存不是同一层。Worker 缓存负责减少 D1 查询；公开端状态缓存负责避免地区切换时复用错误数据、减少重复请求，并保持地图切换过程稳定。
+
+当前公开端采用“一次加载全部地区树 + 按区划补充 spots/routes”的结构：
+
+- `regionTree`：页面初始化或 SSR 时加载全部城市、区划和区划下的轻量 spot 概要，用于城市/区划选择、SEO spot 列表、地图切换前的点位概要。
+- `spotPayloadCache`：页面运行时按 `districtId` 保存已经加载过的区划 spots 响应。
+- `spotsPayload`：当前地图正在展示的区划 spots 数据。
+- `spotsPayloadDistrictId`：记录 `spotsPayload` 实际属于哪个区划，不能简单认为它永远等于当前选中的 `selectedDistrictId`。
+
+`spotsPayloadDistrictId` 是必要的。地区切换时，`selectedDistrictId` 会先变更，新的区划 spots 请求还没有返回；如果这时把旧的 `spotsPayload` 写入 `spotsByDistrictId[selectedDistrictId]`，就会把旧地区数据缓存到新地区名下。只要两个地区 spot 数量相同，后续再按数量判断缓存是否可用就会误命中，地图中心和 marker 会出现不一致。
+
+公开端写入区划 spots 时必须统一走 `applyDistrictSpotPayload(districtId, payload)`：
+
+```txt
+spotsPayload = payload
+spotsPayloadDistrictId = districtId
+spotPayloadCache[districtId] = payload
+```
+
+不要在业务流程中直接把当前 `spotsPayload` 存到当前 `selectedDistrictId` 下。
+
+缓存命中校验不能只比较 spot 数量。正确校验规则：
+
+- 从 `regionTree` 中按 `districtId` 找到中日文两个语言分支的区划。
+- 优先比较该区划下的 spot id 集合，只有 id 集合完全一致才认为缓存属于该区划。
+- 如果地区树里暂时没有 spot id，才退回比较 `spotCount`。
+- 如果某个语言分支不存在该区划，但缓存 payload 中该语言分支有 spots，视为不匹配。
+
+地区树中的 spot 概要可以作为切换时的临时数据，用于先显示 marker 和计算地图范围；但完整的路线数据仍以 `GET /api/milet/pilgrimage/districts/:districtId/spots` 返回为准。判断一个区划缓存是否完整时，需要检查中日文分支是否都包含 `routes`。如果缓存来自地区树概要，虽然 spots 可用，也应该继续请求区划 spots 接口补齐路线。
+
+地区切换需要处理异步请求竞态：
+
+```txt
+用户选择 district A
+  -> 发起 A 的 spots 请求
+用户很快选择 district B
+  -> 发起 B 的 spots 请求
+A 请求晚于 B 返回
+  -> 必须丢弃 A 的响应，不能覆盖当前 B 的 spotsPayload
+```
+
+实现上，地区切换流程应维护递增的 `districtLoadToken`。每次切换地区时生成新的 token，并传给本次 `loadDistrictSpots`；请求返回、fallback 写入、loading 结束、自动选中首个 spot 前，都要确认：
+
+```txt
+selectedDistrictId === requestDistrictId
+token === districtLoadToken
+```
+
+不满足时直接返回，保留当前地区状态。
+
+地区切换流程建议固定为：
+
+```txt
+selectDistrict(districtId)
+  -> selectedDistrictId = districtId
+  -> 清空 selectedRouteId / selectedSpotId / spotDetailPayload
+  -> 清空当前 spotsPayload 和 spotsPayloadDistrictId
+  -> transitionSelectedArea(districtId)
+
+transitionSelectedArea(districtId)
+  -> 生成 districtLoadToken
+  -> 清除旧地图 maxBounds
+  -> loadDistrictSpots(districtId, token)
+  -> token 仍有效时移动地图到当前区划
+  -> 应用新的浏览范围限制
+  -> 渲染 marker 和 route
+  -> marker 淡入
+```
+
+这样可以同时避免三类问题：
+
+- 旧区划 payload 被写入新区划缓存。
+- 两个区划 spot 数量相同导致缓存误命中。
+- 旧请求晚返回覆盖新地区地图数据。
+
 ## 12. 地图底图与交互策略
 
 第一版采用 Leaflet + OpenMapTiles/Stadia `osm_bright` 兼容瓦片服务。底图选择以当前实现为准：视觉上弱化路网和文字干扰，让巡礼路线、marker、名称标签和详情内容成为主要信息。
@@ -882,7 +959,7 @@ pilgrimage:spot:{spot_id}
 id	level	parent_id	country_code	center_lat	center_lng	default_zoom	sort_order	status	name_zh	name_jp
 
 [spots]
-import_key	id	city_id	district_id	country_code	category	display_lat	display_lng	nav_lat	nav_lng	source_map_provider	source_map_url	link_url	image_series_id	coordinate_quality	status	sort_order	title_zh	title_jp	work_title_zh	work_title_jp	address_zh	address_jp	description_zh	description_jp	tags_zh	tags_jp
+import_key	id	city_id	district_id	country_code	category	source_map_url	link_url	image_series_id	status	sort_order	title_zh	title_jp	address_zh	address_jp	description_zh	description_jp	tags_zh	tags_jp
 
 [routes]
 import_key	id	district_id	color	status	sort_order	title_zh	title_jp	description_zh	description_jp	spot_refs
@@ -895,6 +972,7 @@ import_key	id	district_id	color	status	sort_order	title_zh	title_jp	description_
 - 空行和以 `#` 开头的行忽略。
 - 分段顺序建议为 `regions` -> `spots` -> `routes`，便于人工阅读。
 - `regions`、`spots`、`routes` 都可以为空；只导入其中一类数据也允许。
+- `description_zh`、`description_jp`、`address_zh`、`address_jp` 等文本字段如果需要换行，使用 `\n` 转义；管理端解析后转换为真实换行。TSV 中不直接粘贴单元格内真实换行，避免破坏“一行一条记录”的解析规则。
 
 ### 19.3 Regions 字段
 
@@ -933,8 +1011,7 @@ shibuya	district	tokyo	JP	35.6618	139.7041	15	0	published	涩谷区	渋谷区
 
 - `city_id`
 - `district_id`
-- `display_lat`
-- `display_lng`
+- `source_map_url`
 - `title_zh`
 - `title_jp`
 
@@ -943,12 +1020,10 @@ shibuya	district	tokyo	JP	35.6618	139.7041	15	0	published	涩谷区	渋谷区
 - `import_key`：导入文本内部使用的临时引用，可用于路线 `spot_refs`。建议填写易读短名，例如 `shibuya-crossing`。
 - `id`：可留空。留空时服务端按 `city_id-district_id-数字` 自动生成。
 - `category`：地点类别，例如街景、车站、路口。
-- `nav_lat` / `nav_lng`：可留空，留空时服务端默认使用显示坐标。
-- `source_map_provider`：默认 `manual`，也可为 `google` / `amap` / `osm` / `import`。
-- `source_map_url`：原始地图链接，便于后续排查。
+- `source_map_url`：原始地图链接，必须包含可解析的经纬度。导入时服务端从该链接解析显示坐标、导航坐标、地图来源和坐标质量；旧模板仍可传 `display_lat` / `display_lng` 作为兼容字段。
 - `link_url`：选填。地点详情中的外部跳转链接；公开端有值时显示“查看页面”按钮，点击在新标签页打开，无值时不显示。
-- `image_series_id`：关联现有相册 ID。建议关联 `series_type = spot` 且非公开的相册。
-- `coordinate_quality`：`exact` / `approximate` / `unchecked`，默认 `unchecked`。
+- `image_series_id`：选填。首次批量整理时可留空，后续在单条地点维护中手动绑定相册；填写时建议关联 `series_type = spot` 且非公开的相册。
+- `work_title_zh` / `work_title_jp`：非模板字段，系统不强制填写；如后续需要可在单条地点维护中补充。
 - `status`：默认 `draft`。批量导入默认不直接发布，由管理员确认后再发布。
 - `tags_zh` / `tags_jp`：用逗号、顿号或竖线分隔。
 
@@ -956,9 +1031,9 @@ shibuya	district	tokyo	JP	35.6618	139.7041	15	0	published	涩谷区	渋谷区
 
 ```txt
 [spots]
-import_key	id	city_id	district_id	country_code	category	display_lat	display_lng	nav_lat	nav_lng	source_map_provider	source_map_url	link_url	image_series_id	coordinate_quality	status	sort_order	title_zh	title_jp	work_title_zh	work_title_jp	address_zh	address_jp	description_zh	description_jp	tags_zh	tags_jp
-shibuya-crossing		tokyo	shibuya	JP	街景	35.6595	139.7005			manual		https://example.com/shibuya-crossing		exact	draft	0	涩谷路口	渋谷の交差点	us	us					城市,街景	街,交差点
-omotesando-street		tokyo	shibuya	JP	街景	35.6652	139.7124			manual				exact	draft	1	表参道街景	表参道の街角	inside you	inside you					MV,街角	MV,街
+import_key	id	city_id	district_id	country_code	category	source_map_url	link_url	image_series_id	status	sort_order	title_zh	title_jp	address_zh	address_jp	description_zh	description_jp	tags_zh	tags_jp
+shibuya-crossing		tokyo	shibuya	JP	街景	https://www.openstreetmap.org/#map=18/35.6595/139.7005	https://example.com/shibuya-crossing		draft	0	涩谷路口	渋谷の交差点					城市,街景	街,交差点
+omotesando-street		tokyo	shibuya	JP	街景	https://www.openstreetmap.org/#map=18/35.6652/139.7124			draft	1	表参道街景	表参道の街角					MV,街角	MV,街
 ```
 
 ### 19.5 Routes 字段
@@ -1009,9 +1084,9 @@ shibuya-route		shibuya	#2f8f83	draft	0	涩谷巡礼路线	渋谷巡礼ルート	
 - district 是否填写 `parent_id`。
 - region 双语名称是否完整。
 - spot 所属 city / district 是否存在，或是否在本次导入中创建。
-- spot 显示坐标是否完整。
+- spot 的 `source_map_url` 是否能解析出坐标；兼容旧模板中直接提供的显示坐标。
 - spot 双语 title 是否完整。
-- `image_series_id` 是否存在；若不是 `spot` 类型或不是非公开相册，给出 warning。
+- `image_series_id` 留空时允许导入；填写时校验是否存在，若不是 `spot` 类型或不是非公开相册，给出 warning。
 - route 双语 title 是否完整。
 - route 至少包含 2 个 spot。
 - route 的 `spot_refs` 是否能解析到已有 spot 或本次导入 spot。
@@ -1047,19 +1122,19 @@ shibuya-route		shibuya	#2f8f83	draft	0	涩谷巡礼路线	渋谷巡礼ルート	
 ```txt
 管理员确认预览无误
   -> POST /admin/pilgrimage/import，dryRun = false
-  -> Worker 按 regions -> spots -> routes 顺序 upsert
+  -> Worker 校验通过后使用 ctx.waitUntil() 提交后台导入
+  -> Worker 按 regions -> spots -> routes 顺序批量 upsert
   -> 自动生成缺失的 spot id 和 route id
   -> 写入 D1
   -> 主动删除全部巡礼缓存
-  -> 返回最新管理端 state
-  -> 管理端刷新页面数据
+  -> 管理端提示已提交后台处理，稍后可刷新页面确认结果
 ```
 
 采用 upsert 策略：
 
 - ID 已存在：更新。
 - ID 不存在：新增。
-- spot ID 留空：按 `city_id-district_id-数字` 自动生成。
+- spot ID 留空：按 `city_id-district_id-数字` 自动生成。生成前会同时扫描数据库已有 spot ID，以及本次导入中手动填写的同规则 spot ID，取最大数字后继续递增，避免和手动录入或同批导入数据重复。
 - route ID 留空：按 `district_id-route-数字` 自动生成。
 
 缓存策略：
@@ -1067,6 +1142,13 @@ shibuya-route		shibuya	#2f8f83	draft	0	涩谷巡礼路线	渋谷巡礼ルート	
 - 批量导入可能同时影响地区树、多个 district spots、多个 spot detail 和路线。
 - 为避免逐条计算缓存范围过于复杂，正式导入成功后统一调用 `deletePilgrimageCache({ type: "all" })`。
 - 缓存仍采用主动删除方式失效，不依赖自动过期。
+
+批处理策略：
+
+- dry run 校验仍同步执行，确保正式导入前可以看到错误、警告和自动生成 ID。
+- 正式导入返回时不等待全部 D1 写入完成，使用 `ctx.waitUntil()` 在 Worker 后台继续执行。
+- regions、region i18n、spots、spot i18n、routes、route i18n、route spots 按固定批次写入，避免一次导入中产生过多单条写入调用。
+- 当前方案适合中等规模导入；如果后续确认需要稳定处理几千条以上并展示实时进度，应升级为导入任务表 + Queue / Workflow 的异步任务模式。
 
 ### 19.8 API
 

@@ -115,6 +115,7 @@ import {
   PILGRIMAGE_TEXT,
   type PilgrimageCity,
   type PilgrimageDistrict,
+  type PilgrimageLang,
   type PilgrimageRegionTreeResponse,
   type PilgrimageRoute,
   type PilgrimageSpotDetail,
@@ -147,6 +148,12 @@ const spotsPayload = ref<PilgrimageSpotListResponse | null>(
   initialPilgrimageData?.selectedDistrictId
     ? initialPilgrimageData.spotsByDistrictId[initialPilgrimageData.selectedDistrictId] || null
     : null,
+)
+const spotsPayloadDistrictId = ref(
+  spotsPayload.value ? initialPilgrimageData?.selectedDistrictId || '' : '',
+)
+const spotPayloadCache = new Map<string, PilgrimageSpotListResponse>(
+  Object.entries(initialPilgrimageData?.spotsByDistrictId || {}),
 )
 const spotDetailPayload = ref<PilgrimageSpotDetailResponse | null>(
   initialPilgrimageData?.selectedSpotId
@@ -236,29 +243,87 @@ function unwrapPayload<T>(response: any): T | null {
 }
 
 function fallbackSpotListPayload(districtId: string): PilgrimageSpotListResponse {
-  return fallbackSpotLists[districtId] || { zh: { spots: [] }, jp: { spots: [] } }
+  return (
+    spotListPayloadFromRegionTree(districtId) ||
+    fallbackSpotLists[districtId] || { zh: { spots: [] }, jp: { spots: [] } }
+  )
+}
+
+function applyDistrictSpotPayload(districtId: string, payload: PilgrimageSpotListResponse) {
+  spotsPayload.value = payload
+  spotsPayloadDistrictId.value = districtId
+  spotPayloadCache.set(districtId, payload)
+}
+
+function findDistrictById(districtId: string, lang: PilgrimageLang = currentLang.value) {
+  const treeCities = getLocalizedBranch(regionTree.value, lang)?.cities || []
+  for (const city of treeCities) {
+    const district = city.districts.find((item) => item.id === districtId)
+    if (district) return district
+  }
+  return null
+}
+
+function spotListPayloadFromRegionTree(districtId: string): PilgrimageSpotListResponse | null {
+  const zhSpots = findDistrictById(districtId, 'zh')?.spots || []
+  const jpSpots = findDistrictById(districtId, 'jp')?.spots || []
+  if (zhSpots.length === 0 && jpSpots.length === 0) return null
+  return {
+    zh: { spots: zhSpots },
+    jp: { spots: jpSpots },
+  }
+}
+
+function spotPayloadHasRouteData(payload: PilgrimageSpotListResponse) {
+  return (['zh', 'jp'] as const).every((lang) =>
+    Array.isArray(getLocalizedBranch(payload, lang)?.routes),
+  )
 }
 
 function spotPayloadMatchesDistrict(districtId: string, payload?: PilgrimageSpotListResponse) {
   if (!payload) return false
-  const expectedSpotCount =
-    selectedDistrict.value?.id === districtId ? selectedDistrict.value.spotCount : null
-  if (expectedSpotCount === null) return true
+  let hasDistrict = false
+  for (const lang of ['zh', 'jp'] as const) {
+    const district = findDistrictById(districtId, lang)
+    const cachedSpots = getLocalizedBranch(payload, lang)?.spots || []
+    if (!district) {
+      if (cachedSpots.length > 0) return false
+      continue
+    }
 
-  const cachedSpots = getLocalizedBranch(payload, currentLang.value)?.spots || []
-  return Number(expectedSpotCount) === cachedSpots.length
+    hasDistrict = true
+    const expectedSpotIds = district?.spots?.map((spot) => spot.id).filter(Boolean) || []
+
+    if (expectedSpotIds.length > 0) {
+      const cachedSpotIds = new Set(cachedSpots.map((spot) => spot.id))
+      if (
+        cachedSpotIds.size !== expectedSpotIds.length ||
+        !expectedSpotIds.every((spotId) => cachedSpotIds.has(spotId))
+      ) {
+        return false
+      }
+      continue
+    }
+
+    if (district && Number(district.spotCount) !== cachedSpots.length) return false
+  }
+
+  return hasDistrict
+}
+
+function isActiveDistrictLoad(districtId: string, token?: number) {
+  return selectedDistrictId.value === districtId && (!token || token === districtLoadToken)
 }
 
 function currentPilgrimageState(): PilgrimageSsrPayload {
-  const spotsByDistrictId = {
-    ...(appState.miletPilgrimageData?.spotsByDistrictId || {}),
-  }
+  const spotsByDistrictId = Object.fromEntries(spotPayloadCache)
   const spotDetailsBySpotId = {
     ...(appState.miletPilgrimageData?.spotDetailsBySpotId || {}),
   }
 
-  if (selectedDistrictId.value && spotsPayload.value) {
-    spotsByDistrictId[selectedDistrictId.value] = spotsPayload.value
+  if (spotsPayloadDistrictId.value && spotsPayload.value) {
+    spotsByDistrictId[spotsPayloadDistrictId.value] = spotsPayload.value
+    spotPayloadCache.set(spotsPayloadDistrictId.value, spotsPayload.value)
   }
   if (selectedSpotId.value && spotDetailPayload.value) {
     spotDetailsBySpotId[selectedSpotId.value] = spotDetailPayload.value
@@ -317,52 +382,72 @@ async function loadRegionTree() {
   syncPilgrimageState()
 }
 
-async function loadDistrictSpots(districtId: string, options: { autoSelect?: boolean } = {}) {
+async function loadDistrictSpots(
+  districtId: string,
+  options: { autoSelect?: boolean; transitionToken?: number } = {},
+) {
   if (!districtId) return
 
   const autoSelect = options.autoSelect ?? true
+  const transitionToken = options.transitionToken
   spotsLoading.value = true
   selectedSpotId.value = ''
   spotDetailPayload.value = null
 
-  const cachedPayload = appState.miletPilgrimageData?.spotsByDistrictId[districtId]
+  const cachedPayload = spotPayloadCache.get(districtId)
   if (spotPayloadMatchesDistrict(districtId, cachedPayload)) {
-    spotsPayload.value = cachedPayload
+    applyDistrictSpotPayload(districtId, cachedPayload)
     usingFallbackData.value = appState.miletPilgrimageData?.usingFallbackData || false
-    spotsLoading.value = false
     syncPilgrimageState()
-    const firstSpot = spots.value[0]
-    if (autoSelect && firstSpot && !isMobileViewport.value) {
-      await selectSpot(firstSpot.id)
+    if (spotPayloadHasRouteData(cachedPayload)) {
+      spotsLoading.value = false
+      const firstSpot = spots.value[0]
+      if (autoSelect && firstSpot && !isMobileViewport.value) {
+        await selectSpot(firstSpot.id)
+      }
+      return
     }
-    return
   }
 
-  spotsPayload.value = null
+  const treePayload = spotListPayloadFromRegionTree(districtId)
+  if (!spotPayloadMatchesDistrict(districtId, spotsPayload.value) && treePayload) {
+    applyDistrictSpotPayload(districtId, treePayload)
+    syncPilgrimageState()
+  }
+
+  if (!spotPayloadMatchesDistrict(districtId, spotsPayload.value)) {
+    spotsPayload.value = null
+    spotsPayloadDistrictId.value = ''
+  }
 
   try {
     const response = await axiosInstance.get(
       `${apiRoutes.miletPilgrimageDistrictSpots}/${districtId}/spots`,
     )
+    if (!isActiveDistrictLoad(districtId, transitionToken)) return
     const payload = unwrapPayload<PilgrimageSpotListResponse>(response)
     if (payload) {
-      spotsPayload.value = payload
+      applyDistrictSpotPayload(districtId, payload)
       usingFallbackData.value = false
       syncPilgrimageState()
     } else {
-      spotsPayload.value = fallbackSpotListPayload(districtId)
+      applyDistrictSpotPayload(districtId, fallbackSpotListPayload(districtId))
       usingFallbackData.value = true
       syncPilgrimageState()
     }
   } catch (error) {
+    if (!isActiveDistrictLoad(districtId, transitionToken)) return
     console.warn('Failed to load pilgrimage spots, using fallback data.', error)
-    spotsPayload.value = fallbackSpotListPayload(districtId)
+    applyDistrictSpotPayload(districtId, fallbackSpotListPayload(districtId))
     usingFallbackData.value = true
     syncPilgrimageState()
   } finally {
-    spotsLoading.value = false
+    if (isActiveDistrictLoad(districtId, transitionToken)) {
+      spotsLoading.value = false
+    }
   }
 
+  if (!isActiveDistrictLoad(districtId, transitionToken)) return
   const firstSpot = spots.value[0]
   if (autoSelect && firstSpot && !isMobileViewport.value) {
     await selectSpot(firstSpot.id)
@@ -425,32 +510,27 @@ function selectCity(cityId: string) {
   const nextDistrict =
     city.districts.find((district) => Number(district.spotCount) > 0) || city.districts[0]
   if (nextDistrict) {
-    const districtChanged = selectedDistrictId.value !== nextDistrict.id
     selectDistrict(nextDistrict.id)
-    if (!districtChanged) {
-      void transitionSelectedArea(nextDistrict.id)
-    }
   } else {
-    const districtChanged = selectedDistrictId.value !== ''
     selectedDistrictId.value = ''
     selectedRouteId.value = ''
     selectedSpotId.value = ''
     spotsPayload.value = null
+    spotsPayloadDistrictId.value = ''
     spotDetailPayload.value = null
-    if (!districtChanged) {
-      void transitionSelectedArea('')
-    }
+    void transitionSelectedArea('')
   }
   syncPilgrimageState()
 }
 
 function selectDistrict(districtId: string) {
-  const districtChanged = selectedDistrictId.value !== districtId
   selectedDistrictId.value = districtId
   selectedRouteId.value = ''
-  if (!districtChanged) {
-    void transitionSelectedArea(districtId)
-  }
+  selectedSpotId.value = ''
+  spotsPayload.value = null
+  spotsPayloadDistrictId.value = ''
+  spotDetailPayload.value = null
+  void transitionSelectedArea(districtId)
   syncPilgrimageState()
 }
 
@@ -870,13 +950,14 @@ async function transitionSelectedArea(districtId: string) {
   clearMapBrowseBounds()
 
   if (districtId && selectedDistrict.value) {
-    await loadDistrictSpots(districtId, { autoSelect: false })
+    await loadDistrictSpots(districtId, { autoSelect: false, transitionToken: token })
   } else {
     spotsLoading.value = false
     selectedSpotId.value = ''
     selectedRouteId.value = ''
     spotDetailPayload.value = null
     spotsPayload.value = null
+    spotsPayloadDistrictId.value = ''
     syncPilgrimageState()
   }
 
@@ -915,13 +996,6 @@ async function setupFancybox() {
     },
   })
 }
-
-watch(
-  () => selectedDistrictId.value,
-  async (districtId) => {
-    await transitionSelectedArea(districtId)
-  },
-)
 
 watch(
   () => [spots.value, selectedSpotId.value, currentLang.value],
