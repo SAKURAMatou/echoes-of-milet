@@ -1,6 +1,6 @@
 <template>
   <div
-    class="absolute left-3 right-3 top-3 z-20 rounded-lg border border-white/80 bg-white/86 p-2 shadow-[0_18px_54px_-42px_rgba(31,41,55,0.8)] backdrop-blur lg:static lg:min-h-0 lg:space-y-3 lg:overflow-hidden lg:border-0 lg:bg-transparent lg:px-7 lg:py-4 lg:shadow-none lg:backdrop-blur-0"
+    class="absolute left-3 right-3 top-3 z-30 rounded-lg border border-white/80 bg-white/88 p-2 shadow-[0_18px_54px_-42px_rgba(31,41,55,0.8)] backdrop-blur lg:left-5 lg:right-5"
   >
     <button
       type="button"
@@ -30,7 +30,7 @@
       class="mt-2 space-y-3 lg:mt-0 lg:block"
       :class="controlsExpanded ? 'block' : 'hidden'"
     >
-      <div class="flex flex-col gap-3 xl:flex-row xl:items-center xl:justify-between">
+      <div class="flex flex-col gap-3">
         <div class="flex min-w-0 items-center gap-2">
           <span class="shrink-0 text-xs font-semibold uppercase tracking-[0.15em] text-[#7c9197]">
             {{ pageText.cityLabel }}
@@ -40,7 +40,7 @@
               v-for="city in cities"
               :key="city.id"
               type="button"
-              class="max-w-[9.5rem] shrink-0 rounded-lg border px-3 py-1 text-xs font-medium transition focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-teal-100 lg:max-w-[12rem] lg:py-1.5"
+              class="max-w-[9.5rem] shrink-0 rounded-lg border px-3 py-1.5 text-xs font-medium transition focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-teal-100 lg:max-w-[12rem] lg:px-4 lg:py-2"
               :class="
                 selectedCityId === city.id
                   ? 'border-[#5ca8a6] bg-[#e9f7f4] text-[#1d6564] shadow-sm'
@@ -63,7 +63,7 @@
             v-for="district in selectedCity?.districts || []"
             :key="district.id"
             type="button"
-            class="flex max-w-[11rem] shrink-0 items-center rounded-lg border px-3 py-1 text-xs transition focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-rose-100 lg:max-w-[14rem] lg:py-1.5"
+            class="flex max-w-[11rem] shrink-0 items-center rounded-lg border px-3 py-1.5 text-xs transition focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-rose-100 lg:max-w-[14rem] lg:px-4 lg:py-2"
             :class="
               selectedDistrictId === district.id
                 ? 'border-[#c98791] bg-[#fff1f2] text-[#8f3f4b]'
@@ -84,7 +84,7 @@
         <div class="selector-scroll flex min-w-0 flex-1 gap-2 overflow-x-auto pb-1">
           <button
             type="button"
-            class="shrink-0 rounded-lg border px-3 py-1 text-xs font-medium transition focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-teal-100 lg:py-1.5"
+            class="shrink-0 rounded-lg border px-3 py-1.5 text-xs font-medium transition focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-teal-100 lg:px-4 lg:py-2"
             :class="
               !selectedRouteId
                 ? 'border-[#5ca8a6] bg-[#e9f7f4] text-[#1d6564]'
@@ -98,7 +98,7 @@
             v-for="routeItem in routes"
             :key="routeItem.id"
             type="button"
-            class="max-w-[14rem] shrink-0 rounded-lg border px-3 py-1 text-xs font-medium transition focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-teal-100 lg:py-1.5"
+            class="max-w-[14rem] shrink-0 rounded-lg border px-3 py-1.5 text-xs font-medium transition focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-teal-100 lg:px-4 lg:py-2"
             :class="
               selectedRouteId === routeItem.id
                 ? 'border-[#5ca8a6] bg-[#e9f7f4] text-[#1d6564]'

@@ -1,53 +1,53 @@
 <template>
   <article class="pilgrimage-page overflow-hidden rounded-lg text-[#24323a] lg:mb-6">
     <section
-      class="pilgrimage-workspace relative h-[calc(100svh-4rem)] min-h-[620px] overflow-hidden lg:grid lg:h-[calc(100vh-7.5rem)] lg:min-h-[760px] lg:grid-cols-[minmax(0,1fr)_360px] lg:overflow-visible xl:grid-cols-[minmax(0,1fr)_400px]"
+      class="pilgrimage-workspace relative grid h-[calc(100svh-4rem)] min-h-[680px] grid-rows-[auto_auto_minmax(0,1fr)] overflow-hidden lg:h-[calc(100vh-7.5rem)] lg:min-h-[800px] 2xl:grid-cols-[minmax(0,1fr)_360px] 2xl:grid-rows-[auto_auto_minmax(0,1fr)] 2xl:overflow-visible"
     >
-      <div
-        class="relative h-full min-w-0 border-b border-white/70 lg:grid lg:grid-rows-[auto_auto_minmax(0,1fr)] lg:border-b-0 lg:border-r"
-      >
-        <header class="hidden border-b border-white/70 px-7 py-4 lg:block">
-          <div class="grid max-w-4xl grid-cols-1 gap-3">
-            <div class="min-w-0">
-              <h1
-                class="font-serif text-[clamp(2.7rem,4.8vw,4.1rem)] leading-none text-[#26313a]"
-              >
-                {{ pageText.title }}
-              </h1>
-              <p class="mt-2 text-sm leading-6 text-[#5f7178]">
-                {{ pageText.subtitle }}
-              </p>
-            </div>
-
-            <div class="grid grid-cols-[minmax(0,1fr)_220px] gap-3 xl:grid-cols-[minmax(0,1fr)_240px]">
-              <div
-                class="rounded-lg border border-[#9bd0c8]/70 bg-[#f0fbf8]/88 px-3 py-2 shadow-[0_14px_34px_-30px_rgba(31,41,55,0.72)]"
-              >
-                <div class="text-[10px] font-semibold uppercase tracking-[0.18em] text-[#2f8f83]">
-                  {{ pageText.dataCreditLabel }}
-                </div>
-                <p class="mt-1 text-[13px] leading-5 text-[#45646b]">
-                  {{ pageText.dataCredit }}
-                </p>
-              </div>
-
-              <div
-                class="min-w-0 rounded-lg border border-white/70 bg-white/64 px-3 py-2 text-sm text-[#526670]"
-              >
-                <span
-                  class="block text-[11px] font-semibold uppercase tracking-[0.16em] text-[#7c9197]"
-                >
-                  {{ pageText.currentArea }}
-                </span>
-                <span class="mt-1 block truncate font-medium text-[#26313a]">
-                  {{ selectedCity?.name || pageText.allCities }}
-                  <span v-if="selectedDistrict">/ {{ selectedDistrict.name }}</span>
-                </span>
-              </div>
-            </div>
+      <header class="border-b border-white/70 px-4 py-4 sm:px-5 lg:px-7 lg:py-5 2xl:col-span-2">
+        <div class="grid gap-4">
+          <div class="min-w-0">
+            <h1
+              class="font-serif text-[clamp(2.4rem,4.3vw,4.1rem)] leading-none text-[#26313a]"
+            >
+              {{ pageText.title }}
+            </h1>
+            <p class="mt-2 max-w-4xl text-sm leading-6 text-[#5f7178] lg:text-[15px]">
+              {{ pageText.subtitle }}
+            </p>
           </div>
-        </header>
+        </div>
+      </header>
 
+      <div class="grid gap-3 border-b border-white/70 px-4 py-3 sm:grid-cols-[minmax(0,1fr)_220px] sm:px-5 lg:px-7 2xl:col-start-1 2xl:row-start-2 2xl:grid-cols-[minmax(0,1fr)_240px]">
+        <div
+          class="rounded-lg border border-[#9bd0c8]/70 bg-[#f0fbf8]/88 px-3 py-2 shadow-[0_14px_34px_-30px_rgba(31,41,55,0.72)]"
+        >
+          <div class="text-[10px] font-semibold uppercase tracking-[0.18em] text-[#2f8f83]">
+            {{ pageText.dataCreditLabel }}
+          </div>
+          <p class="mt-1 text-[13px] leading-5 text-[#45646b]">
+            {{ pageText.dataCredit }}
+          </p>
+        </div>
+
+        <div
+          class="min-w-0 rounded-lg border border-white/70 bg-white/64 px-3 py-2 text-sm text-[#526670]"
+        >
+          <span
+            class="block text-[11px] font-semibold uppercase tracking-[0.16em] text-[#7c9197]"
+          >
+            {{ pageText.currentArea }}
+          </span>
+          <span class="mt-1 block truncate font-medium text-[#26313a]">
+            {{ selectedCity?.name || pageText.allCities }}
+            <span v-if="selectedDistrict">/ {{ selectedDistrict.name }}</span>
+          </span>
+        </div>
+      </div>
+
+      <div
+        class="relative min-h-0 min-w-0 overflow-hidden border-b border-white/70 2xl:col-start-1 2xl:row-start-3 2xl:border-b-0 2xl:border-r"
+      >
         <PilgrimageAreaControls
           :page-text="pageText"
           :cities="cities"
@@ -75,6 +75,7 @@
       </div>
 
       <PilgrimageSpotDetailPanel
+        class="2xl:col-start-2 2xl:row-span-2 2xl:row-start-2"
         :page-text="pageText"
         :selected-spot-detail="selectedSpotDetail"
         :navigation-url="navigationUrl"
@@ -814,6 +815,13 @@ function defaultMapZoom() {
   return clampMapZoom(currentMapArea()?.defaultZoom || fallbackZoom, 19)
 }
 
+function mapViewPadding() {
+  return {
+    paddingTopLeft: [56, isMobileViewport.value ? 96 : 236] as [number, number],
+    paddingBottomRight: [56, 72] as [number, number],
+  }
+}
+
 function clearMapBrowseBounds() {
   mapRef.value?.setMaxBounds(null)
 }
@@ -879,7 +887,7 @@ function applyMapBrowseBounds(options: { panInside?: boolean } = {}) {
 
   map.setMaxBounds(bounds)
   if (options.panInside) {
-    map.panInsideBounds(bounds, { animate: false })
+    map.panInsideBounds(bounds, { animate: false, ...mapViewPadding() })
   }
 }
 
@@ -909,6 +917,7 @@ function moveMapToCurrentArea(options: { duration?: number } = {}) {
   applyMapZoomLimits()
   const duration = options.duration ?? 0.7
   const spotCoordinates = currentSpotCoordinates()
+  const padding = mapViewPadding()
 
   if (spotCoordinates.length > 1) {
     const bounds = L.latLngBounds(spotCoordinates)
@@ -916,7 +925,7 @@ function moveMapToCurrentArea(options: { duration?: number } = {}) {
       map.fitBounds(bounds, {
         animate: false,
         maxZoom: defaultMapZoom(),
-        padding: [56, 56],
+        ...padding,
       })
       return Promise.resolve()
     }
@@ -926,12 +935,33 @@ function moveMapToCurrentArea(options: { duration?: number } = {}) {
         animate: true,
         duration,
         maxZoom: defaultMapZoom(),
-        padding: [56, 56],
+        ...padding,
       })
     })
   }
 
   const targetCenter = spotCoordinates[0] || center
+  const singlePointBounds = expandedBounds([targetCenter])
+  if (singlePointBounds) {
+    if (duration <= 0) {
+      map.fitBounds(singlePointBounds, {
+        animate: false,
+        maxZoom: defaultMapZoom(),
+        ...padding,
+      })
+      return Promise.resolve()
+    }
+
+    return waitForMapMove(() => {
+      map.fitBounds(singlePointBounds, {
+        animate: true,
+        duration,
+        maxZoom: defaultMapZoom(),
+        ...padding,
+      })
+    })
+  }
+
   if (duration <= 0) {
     map.setView(targetCenter, defaultMapZoom(), { animate: false })
     return Promise.resolve()
@@ -1063,6 +1093,7 @@ onBeforeUnmount(() => {
 }
 
 :deep(.leaflet-control-zoom) {
+  margin-top: 186px;
   overflow: hidden;
   border: 1px solid rgba(255, 255, 255, 0.82);
   border-radius: 8px;
@@ -1270,6 +1301,10 @@ onBeforeUnmount(() => {
 @media (max-width: 1023px) {
   .pilgrimage-page {
     min-height: auto;
+  }
+
+  :deep(.leaflet-control-zoom) {
+    margin-top: 96px;
   }
 
   :global(.pilgrimage-marker.is-photo-visible) {

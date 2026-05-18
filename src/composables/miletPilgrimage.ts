@@ -134,7 +134,8 @@ export interface PilgrimagePageText {
 export const PILGRIMAGE_TEXT: Record<PilgrimageLang, PilgrimagePageText> = {
   zh: {
     title: 'milet 圣地巡礼地图',
-    subtitle: '整理 milet 作品、MV 拍摄地与巡礼 spot，把街角、车站和光线变成可以慢慢走近的圣地巡礼路线。',
+    subtitle:
+      '收录并整理多个城市中与 milet 作品、MV 拍摄地、公开影像、街景和活动记录相关的圣地巡礼地点。可以按城市、区划和路线查看 spot、照片、坐标、导航与地点说明，把散落的街角、车站和现场记忆整理成可实际行走的 milet圣地巡礼地图。',
     cityLabel: '城市',
     districtLabel: '区划',
     routeLabel: '路线',
@@ -157,7 +158,8 @@ export const PILGRIMAGE_TEXT: Record<PilgrimageLang, PilgrimagePageText> = {
   },
   jp: {
     title: 'milet 聖地巡礼マップ',
-    subtitle: 'milet の作品、MV ロケ地、巡礼 spot を整理し、街角、駅、光を少しずつ辿れる聖地巡礼ルートに整える。',
+    subtitle:
+      'milet の作品、MV ロケ地、公開された映像、街並み、イベント記録に関係する聖地巡礼スポットを複数の都市から整理しています。都市、エリア、ルートごとに spot、写真、座標、ナビ、場所の説明を確認し、街角や駅、現地の記憶を実際に辿れる milet 聖地巡礼マップとしてまとめています。',
     cityLabel: '都市',
     districtLabel: 'エリア',
     routeLabel: 'ルート',
