@@ -1200,14 +1200,78 @@ POST /admin/pilgrimage/import
 src/components/milet/pilgrimage/pilgrimageMapConfig.ts
 ```
 
-### 20.1 `photoBubble`
+### 20.1 `markerPalette`
+
+`markerPalette` 控制 spot marker 和亮点 marker 的颜色。颜色不随机生成，而是使用 `spot.id` 做稳定哈希后从固定调色板中取值，保证同一个 spot 在不同渲染时颜色一致，也避免 SSR 和客户端出现随机差异。
+
+```ts
+markerPalette: [
+  {
+    color: '#2f8f83',
+    soft: 'rgba(47, 143, 131, 0.22)',
+    hoverSoft: 'rgba(47, 143, 131, 0.3)',
+    labelText: '#235f59',
+  },
+]
+```
+
+参数含义：
+
+- `color`：marker pin 内点和亮点 marker 的主色。
+- `soft`：亮点 marker 外圈、选中状态外圈的柔和背景色。
+- `hoverSoft`：亮点 marker hover 时的外圈背景色。
+- `labelText`：选中 marker 标签文字色。
+
+调参建议：
+
+- 调色板颜色应保持固定顺序，不要在运行时随机打乱。
+- 增加或删除调色板颜色会改变部分 spot 的取色结果；如果线上已经形成视觉记忆，优先追加颜色，不要重排已有颜色。
+- 颜色应覆盖不同色相，避免所有 spot 都落在同一个绿/蓝色系导致点位难区分。
+
+### 20.2 `markerDeclutter`
+
+`markerDeclutter` 控制默认 zoom 下普通 spot marker 的拥挤避让。它只影响普通 marker 的显示形态，不影响路线 polyline，也不影响详情数据。
+
+```ts
+markerDeclutter: {
+  desktop: {
+    showAllMinZoom: 15,
+    collisionGap: { x: 92, y: 58 },
+  },
+  mobile: {
+    showAllMinZoom: 16,
+    collisionGap: { x: 82, y: 54 },
+  },
+}
+```
+
+参数含义：
+
+- `showAllMinZoom`：地图 zoom 大于等于该值时，全部 spot 都显示为完整 marker；低于该值时启用拥挤避让。
+- `collisionGap.x` / `collisionGap.y`：普通 marker 拥挤判断的屏幕像素距离。两个 spot 在屏幕上的距离小于该范围时，后渲染的非关键 spot 降级为亮点 marker。
+
+显示优先级：
+
+- 当前选中的 spot 始终显示完整 marker。
+- 选择巡礼路线时，路线内所有 spot 始终显示完整 marker。
+- 未选择路线时，非路线、非选中的 spot 才参与拥挤避让；拥挤时不完全隐藏，而是显示为亮点 marker，提示该位置仍有内容。
+- 已选择具体路线时，路线外、非选中的 spot 固定显示为亮点 marker，避免干扰路线阅读，同时保留其它 spot 的存在提示和点击入口。
+
+调参建议：
+
+- 默认 zoom 下点位仍然太密时，增大 `collisionGap.x` 和 `collisionGap.y`。
+- 默认 zoom 下亮点过多时，增大 `collisionGap.x` 和 `collisionGap.y`；完整 marker 太少时，减小这两个值。
+- 希望更早显示全部点位时，降低 `showAllMinZoom`；希望用户更放大后再显示全部点位时，提高 `showAllMinZoom`。
+- mobile 可比 desktop 更晚显示全部点位，因为移动端地图宽度更窄、普通 marker 更容易拥挤。
+
+### 20.3 `photoBubble`
 
 `photoBubble` 控制地图放大后 spot 封面图片气泡的显示规则，分为 `desktop` 和 `mobile` 两套配置。
 
 ```ts
 photoBubble: {
   desktop: {
-    minZoom: 17,
+    minZoom: 16,
     collisionGap: { x: 138, y: 118 },
     iconSize: [168, 176],
     iconAnchor: {
@@ -1216,7 +1280,7 @@ photoBubble: {
     },
   },
   mobile: {
-    minZoom: 18,
+    minZoom: 16,
     collisionGap: { x: 112, y: 96 },
     iconSize: [136, 156],
     iconAnchor: {
@@ -1242,7 +1306,7 @@ photoBubble: {
 - 如果气泡箭头没有准确指向 spot，微调 `iconAnchor` 的 `y` 值；`y` 变大时，视觉气泡整体会相对地图坐标上移。
 - mobile 通常应比 desktop 更晚显示气泡，因此 `mobile.minZoom` 建议大于或等于 `desktop.minZoom`。
 
-### 20.2 `defaultMarker`
+### 20.4 `defaultMarker`
 
 `defaultMarker` 控制没有显示封面气泡时的普通 spot marker 尺寸和锚点。
 
@@ -1263,3 +1327,16 @@ defaultMarker: {
 - `iconAnchor.inactive`：未选中普通 marker 时，icon 内对准地图坐标的点。
 
 普通 marker 的 CSS 如果调整了 pin、标题标签或 active 状态高度，需要同步检查这里的 `iconAnchor`，否则 marker 视觉位置可能会偏离实际 spot 坐标。
+
+### 20.5 `compactMarker`
+
+`compactMarker` 控制拥挤避让时亮点 marker 的 Leaflet 尺寸和锚点。
+
+```ts
+compactMarker: {
+  iconSize: [24, 24],
+  iconAnchor: [12, 12],
+}
+```
+
+亮点 marker 仍然可以点击打开 spot 详情，并保留 `aria-label`。它只隐藏视觉上的标题和 pin 形态，不隐藏该 spot 本身。
