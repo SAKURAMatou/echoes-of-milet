@@ -70,15 +70,15 @@ export const pilgrimageMapConfig = {
   ],
   routeAnimation: {
     movementSpeed: {
-      pixelsPerSecond: 15,
+      metersPerSecond: 15,
     },
     replayDelayMs: 3000,
     actor: {
-      imageUrl: '/pilgrimage/route/walker-sprite-v1.png',
-      frameSize: [56, 56] as [number, number],
+      imageUrl: '/pilgrimage/route/walker-dog-sprite.png',
+      frameSize: [128, 72] as [number, number],
       frameCount: 8,
       fps: 8,
-      anchor: [28, 28] as [number, number],
+      anchor: [64, 36] as [number, number],
       rotateWithRoute: true,
     },
   },
@@ -127,24 +127,33 @@ export const pilgrimageMapConfig = {
     },
   ],
   markerDeclutter: {
+    selectedRoute: {
+      // Route selection can make personalized markers crowded. Keep the action configurable:
+      // "dot" keeps a compact clickable marker; "hidden" removes it from the map layer.
+      outsideRouteMode: 'dot',
+      routeSpotCrowdedMode: 'dot',
+      routeSpotShowAllMinZoom: 18,
+      keepCurrentFull: true,
+      keepTerminalFull: true,
+    },
     desktop: {
-      showAllMinZoom: 16,
+      showAllMinZoom: 17,
       collisionGap: {
-        x: 92,
-        y: 58,
+        x: 168,
+        y: 102,
       },
     },
     mobile: {
-      showAllMinZoom: 16,
+      showAllMinZoom: 17,
       collisionGap: {
-        x: 82,
-        y: 54,
+        x: 110,
+        y: 78,
       },
     },
   },
   photoBubble: {
     desktop: {
-      minZoom: 17,
+      minZoom: 18,
       collisionGap: {
         x: 138,
         y: 118,
@@ -152,7 +161,7 @@ export const pilgrimageMapConfig = {
       bubbleSize: [132, 112] as [number, number],
     },
     mobile: {
-      minZoom: 17,
+      minZoom: 18,
       collisionGap: {
         x: 112,
         y: 96,

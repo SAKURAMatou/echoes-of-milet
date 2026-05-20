@@ -11,6 +11,7 @@ import type {
 type LeafletModule = typeof import('leaflet')
 type Point = { x: number; y: number }
 type LatLngTuple = [number, number]
+type SpotMarkerDisplayMode = 'full' | 'dot' | 'hidden'
 type MarkerSkin =
   (typeof pilgrimageMapConfig.personalizedMarkers.skins)[keyof typeof pilgrimageMapConfig.personalizedMarkers.skins]
 type MarkerIconLayout = {
@@ -58,6 +59,10 @@ function stableHash(value: string) {
     hash = (hash * 31 + value.charCodeAt(index)) >>> 0
   }
   return hash
+}
+
+function normalizeMarkerDisplayMode(value: string): SpotMarkerDisplayMode {
+  return value === 'hidden' ? 'hidden' : 'dot'
 }
 
 function spotMarkerStyle(spot: PilgrimageSpotSummary) {
@@ -245,20 +250,53 @@ export function usePilgrimageMapRendering(options: UsePilgrimageMapRenderingOpti
     spot: PilgrimageSpotSummary,
     active: boolean,
     inRoute: boolean,
+    routeOrder: number | undefined,
+    routeSpotCount: number,
     occupiedPoints: Point[],
-  ) {
+  ): SpotMarkerDisplayMode {
     const map = options.mapRef.value
     if (!map) return 'full'
 
     const point = spotMarkerCollisionPoint(spot)
     if (!point) return 'full'
 
-    if (active || inRoute) {
+    if (active) {
       occupiedPoints.push({ x: point.x, y: point.y })
       return 'full'
     }
 
-    if (options.selectedRoute.value) return 'dot'
+    if (options.selectedRoute.value) {
+      const routeDeclutterConfig = pilgrimageMapConfig.markerDeclutter.selectedRoute
+      if (!inRoute) return normalizeMarkerDisplayMode(routeDeclutterConfig.outsideRouteMode)
+
+      if (map.getZoom() >= routeDeclutterConfig.routeSpotShowAllMinZoom) return 'full'
+
+      const declutterConfig = options.isMobileViewport.value
+        ? pilgrimageMapConfig.markerDeclutter.mobile
+        : pilgrimageMapConfig.markerDeclutter.desktop
+      const crowded = occupiedPoints.some(
+        (occupied) =>
+          Math.abs(occupied.x - point.x) < declutterConfig.collisionGap.x &&
+          Math.abs(occupied.y - point.y) < declutterConfig.collisionGap.y,
+      )
+      const terminalRouteSpot =
+        routeOrder === 1 || (routeSpotCount > 0 && routeOrder === routeSpotCount)
+      const currentRouteSpot = Boolean(routeOrder && currentRouteOrder === routeOrder)
+      if (
+        (routeDeclutterConfig.keepTerminalFull && terminalRouteSpot) ||
+        (routeDeclutterConfig.keepCurrentFull && currentRouteSpot)
+      ) {
+        occupiedPoints.push({ x: point.x, y: point.y })
+        return 'full'
+      }
+
+      if (!crowded) {
+        occupiedPoints.push({ x: point.x, y: point.y })
+        return 'full'
+      }
+
+      return normalizeMarkerDisplayMode(routeDeclutterConfig.routeSpotCrowdedMode)
+    }
 
     const declutterConfig = options.isMobileViewport.value
       ? pilgrimageMapConfig.markerDeclutter.mobile
@@ -340,7 +378,15 @@ export function usePilgrimageMapRendering(options: UsePilgrimageMapRenderingOpti
       const active = spot.id === options.selectedSpotId.value
       const inRoute = options.routeSpotIds.value.has(spot.id)
       const routeOrder = options.routeOrderMap.value.get(spot.id)
-      const displayMode = spotMarkerDisplayMode(spot, active, inRoute, occupiedMarkerPoints)
+      const displayMode = spotMarkerDisplayMode(
+        spot,
+        active,
+        inRoute,
+        routeOrder,
+        routeSpotCount,
+        occupiedMarkerPoints,
+      )
+      if (displayMode === 'hidden') return
 
       const markerTitle = getSpotMarkerTitle(spot)
       const escapedTitle = escapeMapHtml(markerTitle)
@@ -464,7 +510,7 @@ export function usePilgrimageMapRendering(options: UsePilgrimageMapRenderingOpti
     const duration = frameCount / Math.max(1, actor.fps)
     const runDistance = frameCount * actor.frameSize[0]
     const transform = actor.rotateWithRoute ? routeActorTransform(angle) : { angle: 0, scaleX: 1 }
-    return `<span class="pilgrimage-route-actor" style="--route-actor-image:url('${escapeMapHtml(actor.imageUrl)}'); --route-actor-frame-count:${frameCount}; --route-actor-duration:${duration}s; --route-actor-run-distance:-${runDistance}px; --route-actor-angle:${transform.angle}deg; --route-actor-scale-x:${transform.scaleX};"><span class="pilgrimage-route-actor-sprite" aria-hidden="true"></span></span>`
+    return `<span class="pilgrimage-route-actor" style="--route-actor-image:url('${escapeMapHtml(actor.imageUrl)}'); --route-actor-width:${actor.frameSize[0]}px; --route-actor-height:${actor.frameSize[1]}px; --route-actor-frame-count:${frameCount}; --route-actor-duration:${duration}s; --route-actor-run-distance:-${runDistance}px; --route-actor-angle:${transform.angle}deg; --route-actor-scale-x:${transform.scaleX};"><span class="pilgrimage-route-actor-sprite" aria-hidden="true"></span></span>`
   }
 
   function setActorAngle(angle: number) {
@@ -487,27 +533,25 @@ export function usePilgrimageMapRendering(options: UsePilgrimageMapRenderingOpti
     return Math.atan2(to.y - from.y, to.x - from.x) * (180 / Math.PI)
   }
 
-  function routeSegmentDistance(fromPoint: LatLngTuple, toPoint: LatLngTuple) {
+  function routeSegmentDistanceMeters(fromPoint: LatLngTuple, toPoint: LatLngTuple) {
     const map = options.mapRef.value
     if (!map) return 0
-    const from = map.latLngToLayerPoint(fromPoint)
-    const to = map.latLngToLayerPoint(toPoint)
-    return Math.hypot(to.x - from.x, to.y - from.y)
+    return map.distance(fromPoint, toPoint)
   }
 
   function routeAnimationTimeline(points: LatLngTuple[]) {
-    const pixelsPerSecond = Math.max(
+    const metersPerSecond = Math.max(
       1,
-      pilgrimageMapConfig.routeAnimation.movementSpeed.pixelsPerSecond,
+      pilgrimageMapConfig.routeAnimation.movementSpeed.metersPerSecond,
     )
-    const pixelsPerMs = pixelsPerSecond / 1000
+    const metersPerMs = metersPerSecond / 1000
     const segments = points.slice(0, -1).map((from, index) => {
       const to = points[index + 1]
-      const distance = Math.max(1, routeSegmentDistance(from, to))
+      const distance = Math.max(1, routeSegmentDistanceMeters(from, to))
       return {
         from,
         to,
-        duration: distance / pixelsPerMs,
+        duration: distance / metersPerMs,
         startedAt: 0,
       }
     })

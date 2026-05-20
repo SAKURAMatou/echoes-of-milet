@@ -122,6 +122,37 @@ stableHash(spot.id || spot.title) % skinCount
 
 这样同一个 spot 在不同渲染中会稳定使用同一个 marker，不引入随机 SSR/客户端差异。后续如果要后台指定 skin，再扩展 Worker/API/data-admin。
 
+## Marker 避让与隐藏
+
+个性化 marker 比默认 marker 更大，因此点位避让策略集中放在 `pilgrimageMapConfig.markerDeclutter` 中配置。
+
+```ts
+markerDeclutter: {
+  selectedRoute: {
+    outsideRouteMode: 'dot',
+    routeSpotCrowdedMode: 'dot',
+    routeSpotShowAllMinZoom: 18,
+    keepCurrentFull: true,
+    keepTerminalFull: true,
+  },
+  desktop: {
+    showAllMinZoom: 16,
+    collisionGap: { x: 124, y: 86 },
+  },
+  mobile: {
+    showAllMinZoom: 16,
+    collisionGap: { x: 110, y: 78 },
+  },
+}
+```
+
+- `outsideRouteMode`：选中线路后，线路外 spot 的显示方式；`dot` 表示压缩为小圆点，`hidden` 表示不渲染 marker。
+- `routeSpotCrowdedMode`：线路上的 spot 在发生拥挤时的降级方式；同样支持 `dot` / `hidden`。
+- `routeSpotShowAllMinZoom`：选中线路后，线路 spot 全量显示的最小 zoom。
+- `keepCurrentFull`：路线动画当前所在 spot 始终完整显示。
+- `keepTerminalFull`：线路起点和终点始终完整显示，保留 START / END 识别。
+- `collisionGap`：拥挤判断的屏幕像素间距；由于当前 marker 尺寸较大，数值应比默认 marker 更大。
+
 ## Label 与气泡布局
 
 个性化 marker 当前统一使用三层垂直布局：
@@ -192,15 +223,15 @@ layout: {
 ```ts
 routeAnimation: {
   movementSpeed: {
-    pixelsPerSecond: 45,
+    metersPerSecond: 45,
   },
   replayDelayMs: 3000,
   actor: {
-    imageUrl: '/pilgrimage/route/walker-sprite-v1.png',
-    frameSize: [56, 56],
+    imageUrl: '/pilgrimage/route/walker-dog-sprite.png',
+    frameSize: [128, 72],
     frameCount: 8,
     fps: 8,
-    anchor: [28, 28],
+    anchor: [64, 36],
     rotateWithRoute: true,
   },
 }
@@ -211,10 +242,12 @@ routeAnimation: {
 - 选择路线后自动播放。
 - 到达终点后等待 `3000ms`。
 - 如果没有切换路线或地区，则自动从起点重播。
-- 移动速度按当前地图投影下的像素距离计算，使用 `pixelsPerSecond` 配置。
+- 移动速度按经纬度地理距离计算，使用 `metersPerSecond` 配置，不受地图缩放影响。
 - spot 序号 `1` 是开始点，最后一个是结束点。
 - START / END 标签固定使用英文，暂不做多语言。
 - 人物按路线方向旋转，并通过水平翻转避免头朝下。
+- 路线人物素材由 `scripts/generate_pilgrimage_route_spritesheet.py` 生成；当前使用图片生成的 8 帧横向 sheet，通过 `--sheet-split-mode components` 去绿幕并按人物+狗组件切帧，避免相邻帧残片进入输出。
+- 为了让腿部交叉走动在地图上直观可见，当前 sprite 保留人物和狗，显示尺寸使用 `128x72`，源素材按同等比例保留更高分辨率。
 
 ## 验证要求
 

@@ -260,8 +260,8 @@
 
 .pilgrimage-route-actor {
   display: block;
-  height: 56px;
-  width: 56px;
+  height: var(--route-actor-height, 56px);
+  width: var(--route-actor-width, 56px);
   transform: rotate(var(--route-actor-angle, 0deg)) scaleX(var(--route-actor-scale-x, 1));
   transform-origin: 50% 50%;
   transition:
