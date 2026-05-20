@@ -1,9 +1,3 @@
-.pilgrimage-page {
-  background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.78), rgba(247, 251, 249, 0.86)),
-    linear-gradient(135deg, rgba(232, 248, 244, 0.64), rgba(255, 241, 242, 0.52));
-}
-
 .pilgrimage-page .leaflet-container {
   height: 100%;
   width: 100%;
@@ -47,11 +41,6 @@
     filter 160ms ease;
 }
 
-.pilgrimage-marker.is-photo-visible {
-  height: 176px;
-  width: 168px;
-}
-
 .pilgrimage-marker.is-compact {
   display: grid;
   height: 24px;
@@ -61,50 +50,15 @@
 }
 
 .pilgrimage-map-shell .pilgrimage-marker,
-.pilgrimage-map-shell .pilgrimage-route-arrow {
+.pilgrimage-map-shell .pilgrimage-route-arrow,
+.pilgrimage-map-shell .pilgrimage-route-actor {
   opacity: 0;
 }
 
 .pilgrimage-map-shell--markers-visible .pilgrimage-marker,
-.pilgrimage-map-shell--markers-visible .pilgrimage-route-arrow {
+.pilgrimage-map-shell--markers-visible .pilgrimage-route-arrow,
+.pilgrimage-map-shell--markers-visible .pilgrimage-route-actor {
   opacity: 1;
-}
-
-.pilgrimage-marker-card {
-  position: absolute;
-  left: 50%;
-  top: 0;
-  width: 132px;
-  transform: translateX(-50%);
-  border: 1px solid rgba(255, 255, 255, 0.92);
-  border-radius: 10px;
-  background: rgba(255, 255, 255, 0.92);
-  box-shadow: 0 18px 38px -22px rgba(31, 41, 55, 0.78);
-  padding: 4px;
-  pointer-events: none;
-}
-
-.pilgrimage-marker-card::after {
-  position: absolute;
-  left: 50%;
-  bottom: -7px;
-  height: 14px;
-  width: 14px;
-  transform: translateX(-50%) rotate(45deg);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.92);
-  border-right: 1px solid rgba(255, 255, 255, 0.92);
-  background: rgba(255, 255, 255, 0.92);
-  content: '';
-}
-
-.pilgrimage-marker-card img {
-  position: relative;
-  z-index: 1;
-  display: block;
-  height: 88px;
-  width: 100%;
-  border-radius: 7px;
-  object-fit: cover;
 }
 
 .pilgrimage-marker-dot {
@@ -129,108 +83,203 @@
     0 10px 20px -10px rgba(31, 41, 55, 0.82);
 }
 
-.pilgrimage-marker-pin {
+.pilgrimage-marker--personalized {
+  height: var(--marker-icon-height, var(--marker-height, 84px));
+  width: var(--marker-icon-width, var(--marker-width, 44px));
+  transform-origin: 50% 94%;
+}
+
+.pilgrimage-marker--personalized.is-photo-visible {
+  height: var(--marker-icon-height, var(--marker-height, 84px));
+  width: var(--marker-icon-width, var(--marker-width, 44px));
+}
+
+.pilgrimage-marker--personalized:hover,
+.pilgrimage-marker--personalized.is-active,
+.pilgrimage-marker--personalized.is-route-current {
+  transform: translateY(-3px) scale(1.04);
+  filter: drop-shadow(0 18px 22px rgba(31, 41, 55, 0.22));
+}
+
+.pilgrimage-marker--personalized.is-route-current::before {
   position: absolute;
   left: 50%;
-  top: 0;
-  display: grid;
-  height: 34px;
-  width: 34px;
-  place-items: center;
-  border: 1px solid rgba(255, 255, 255, 0.92);
-  border-radius: 999px 999px 999px 6px;
-  background: #fff;
-  box-shadow: 0 16px 32px -18px rgba(31, 41, 55, 0.75);
-  transform: translateX(-50%) rotate(-45deg);
-  transition:
-    transform 160ms ease,
-    box-shadow 160ms ease,
-    background 160ms ease;
-}
-
-.pilgrimage-marker.is-photo-visible .pilgrimage-marker-pin {
-  top: 102px;
-}
-
-.pilgrimage-marker-pin i {
-  height: 13px;
-  width: 13px;
+  bottom: 3px;
+  height: 22px;
+  width: 22px;
+  transform: translateX(-50%);
   border-radius: 999px;
-  background: var(--spot-color, #6fb8ad);
-  transform: rotate(45deg);
+  background: var(--spot-soft, rgba(47, 143, 131, 0.22));
+  animation: pilgrimage-route-current-pulse 1.1s ease-out infinite;
+  content: '';
 }
 
-.pilgrimage-marker b {
+.pilgrimage-marker-skin {
   position: absolute;
-  left: calc(50% + 9px);
-  top: -7px;
+  left: var(--marker-left, 0);
+  top: var(--marker-top, 0);
+  display: block;
+  height: var(--marker-height, 84px);
+  width: var(--marker-width, 44px);
+  pointer-events: none;
+}
+
+.pilgrimage-marker-skin img {
+  display: block;
+  height: 100%;
+  width: 100%;
+  object-fit: contain;
+}
+
+.pilgrimage-marker-label {
+  position: absolute;
+  left: var(--marker-label-left, 0);
+  top: var(--marker-label-top, 0);
+  z-index: 3;
+  display: flex;
+  box-sizing: border-box;
+  width: var(--marker-label-width, 112px);
+  min-height: var(--marker-label-height, 30px);
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--spot-label-border, rgba(35, 95, 89, 0.38));
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.93);
+  box-shadow:
+    0 10px 22px -18px rgba(31, 41, 55, 0.82),
+    inset 0 1px 0 rgba(255, 255, 255, 0.96);
+  color: var(--spot-label-text, #235f59);
+  font-size: var(--marker-label-font-size, 11px);
+  font-style: normal;
+  font-weight: 800;
+  line-height: var(--marker-label-line-height, 1.08);
+  padding: 3px 7px;
+  text-align: center;
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.82);
+  writing-mode: horizontal-tb;
+}
+
+.pilgrimage-marker-label-text {
+  display: -webkit-box;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: var(--marker-label-lines, 2);
+  overflow-wrap: anywhere;
+  text-align: center;
+  text-orientation: mixed;
+  writing-mode: horizontal-tb;
+}
+
+.pilgrimage-route-order {
+  position: absolute;
+  left: calc(var(--marker-left, 0px) + var(--marker-width, 44px) - 16px);
+  top: calc(var(--marker-top, 0px) + 24px);
+  z-index: 2;
   display: grid;
-  height: 20px;
-  min-width: 20px;
+  height: 16px;
+  min-width: 16px;
   place-items: center;
-  border: 2px solid #fff;
+  border: 1px solid #fff;
   border-radius: 999px;
   background: #c98791;
   color: #fff;
-  font-size: 12px;
-  font-weight: 700;
+  font-size: 9px;
+  font-weight: 800;
   line-height: 1;
   box-shadow: 0 10px 20px -14px rgba(31, 41, 55, 0.9);
 }
 
-.pilgrimage-marker em {
+.pilgrimage-marker--personalized.is-route-passed .pilgrimage-route-order,
+.pilgrimage-marker--personalized.is-route-current .pilgrimage-route-order {
+  background: var(--spot-color, #2f8f83);
+}
+
+.pilgrimage-route-terminal {
   position: absolute;
   left: 50%;
-  top: 41px;
-  max-width: 138px;
+  top: calc(var(--marker-top, 0px) + 39px);
+  z-index: 2;
   transform: translateX(-50%);
-  overflow: hidden;
-  border: 1px solid rgba(255, 255, 255, 0.86);
+  border: 1px solid rgba(255, 255, 255, 0.92);
   border-radius: 999px;
-  background: rgba(255, 255, 255, 0.86);
-  box-shadow: 0 14px 30px -24px rgba(31, 41, 55, 0.82);
-  color: #33474f;
-  font-size: 11px;
-  font-style: normal;
-  font-weight: 700;
-  line-height: 1.2;
-  padding: 3px 8px;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  background: rgba(255, 255, 255, 0.9);
+  box-shadow: 0 12px 20px -16px rgba(31, 41, 55, 0.8);
+  color: var(--spot-label-text, #235f59);
+  font-size: 6px;
+  font-weight: 900;
+  line-height: 1;
+  padding: 2px 4px;
 }
 
-.pilgrimage-marker.is-photo-visible em {
-  top: 143px;
+.pilgrimage-route-terminal.is-end {
+  color: #8f3f4b;
 }
 
-.pilgrimage-marker.is-active .pilgrimage-marker-pin {
-  height: 42px;
-  width: 42px;
-  background: #fff1f2;
-  box-shadow:
-    0 0 0 5px var(--spot-soft, rgba(143, 63, 75, 0.16)),
-    0 20px 40px -18px rgba(31, 41, 55, 0.72);
+.pilgrimage-marker-photo-bubble {
+  position: absolute;
+  left: var(--marker-pointer-x, 50%);
+  top: 0;
+  display: block;
+  width: var(--marker-photo-width, 132px);
+  min-height: var(--marker-photo-height, 112px);
+  box-sizing: border-box;
+  transform: translateX(-50%);
+  border: 1px solid rgba(255, 255, 255, 0.92);
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.94);
+  box-shadow: 0 18px 38px -22px rgba(31, 41, 55, 0.78);
+  padding: 4px;
+  pointer-events: none;
 }
 
-.pilgrimage-marker.is-active .pilgrimage-marker-pin i {
-  height: 16px;
-  width: 16px;
-  background: var(--spot-color, #c98791);
+.pilgrimage-marker-photo-bubble::after {
+  position: absolute;
+  left: 50%;
+  bottom: -7px;
+  height: 14px;
+  width: 14px;
+  transform: translateX(-50%) rotate(45deg);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.92);
+  border-right: 1px solid rgba(255, 255, 255, 0.92);
+  background: rgba(255, 255, 255, 0.94);
+  content: '';
 }
 
-.pilgrimage-marker.is-active em {
-  top: 48px;
-  border-color: rgba(255, 241, 242, 0.94);
-  background: rgba(255, 241, 242, 0.94);
-  color: var(--spot-label-text, #8f3f4b);
+.pilgrimage-marker-photo-frame {
+  position: relative;
+  z-index: 1;
+  display: block;
+  height: calc(var(--marker-photo-height, 112px) - 8px);
+  width: 100%;
+  border-radius: 7px;
+  background-image: var(--marker-photo-image);
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: cover;
 }
 
-.pilgrimage-marker.is-photo-visible.is-active em {
-  top: 150px;
+.pilgrimage-route-actor {
+  display: block;
+  height: 56px;
+  width: 56px;
+  transform: rotate(var(--route-actor-angle, 0deg)) scaleX(var(--route-actor-scale-x, 1));
+  transform-origin: 50% 50%;
+  transition:
+    opacity 180ms ease,
+    transform 120ms linear;
+  filter: drop-shadow(0 14px 18px rgba(31, 41, 55, 0.22));
 }
 
-.pilgrimage-marker.is-route .pilgrimage-marker-pin i {
-  background: var(--spot-color, #2f8f83);
+.pilgrimage-route-actor-sprite {
+  display: block;
+  height: 100%;
+  width: 100%;
+  background-image: var(--route-actor-image);
+  background-position: 0 50%;
+  background-repeat: no-repeat;
+  background-size: auto 100%;
+  animation: pilgrimage-route-actor-steps var(--route-actor-duration, 1s)
+    steps(var(--route-actor-frame-count, 1)) infinite;
 }
 
 .pilgrimage-route-arrow {
@@ -249,38 +298,67 @@
     0 10px 22px rgba(31, 41, 55, 0.28);
 }
 
-@media (max-width: 1023px) {
-  .pilgrimage-page {
-    min-height: auto;
+@keyframes pilgrimage-route-current-pulse {
+  from {
+    opacity: 0.55;
+    transform: translateX(-50%) scale(0.72);
   }
 
+  to {
+    opacity: 0;
+    transform: translateX(-50%) scale(1.8);
+  }
+}
+
+@keyframes pilgrimage-route-actor-steps {
+  to {
+    background-position-x: var(--route-actor-run-distance, 0);
+  }
+}
+
+@media (max-width: 1023px) {
   .pilgrimage-page .leaflet-control-zoom {
     margin-top: 96px;
   }
 
-  .pilgrimage-marker.is-photo-visible {
-    height: 156px;
-    width: 136px;
+  .pilgrimage-marker--personalized {
+    height: var(--marker-icon-height, var(--marker-height, 76px));
+    width: var(--marker-icon-width, var(--marker-width, 40px));
   }
 
-  .pilgrimage-marker-card {
-    width: 112px;
+  .pilgrimage-marker--personalized.is-photo-visible {
+    height: var(--marker-icon-height, var(--marker-height, 76px));
+    width: var(--marker-icon-width, var(--marker-width, 40px));
   }
 
-  .pilgrimage-marker-card img {
-    height: 72px;
+  .pilgrimage-marker-label {
+    left: var(--marker-label-left, 0);
+    top: var(--marker-label-top, 0);
+    width: var(--marker-label-width, 104px);
+    min-height: var(--marker-label-height, 28px);
+    font-size: var(--marker-label-font-size, 10px);
+    padding: 3px 6px;
   }
 
-  .pilgrimage-marker.is-photo-visible .pilgrimage-marker-pin {
-    top: 91px;
+  .pilgrimage-route-order {
+    left: calc(var(--marker-left, 0px) + var(--marker-width, 40px) - 15px);
+    top: calc(var(--marker-top, 0px) + 22px);
+    height: 15px;
+    min-width: 15px;
+    font-size: 8px;
   }
 
-  .pilgrimage-marker.is-photo-visible em {
-    top: 132px;
-    max-width: 118px;
+  .pilgrimage-route-terminal {
+    top: calc(var(--marker-top, 0px) + 35px);
+    font-size: 5.5px;
+    padding: 2px 4px;
   }
 
-  .pilgrimage-marker.is-photo-visible.is-active em {
-    top: 138px;
+  .pilgrimage-marker-photo-bubble {
+    width: var(--marker-photo-width, 112px);
+  }
+
+  .pilgrimage-marker-photo-frame {
+    height: calc(var(--marker-photo-height, 98px) - 8px);
   }
 }

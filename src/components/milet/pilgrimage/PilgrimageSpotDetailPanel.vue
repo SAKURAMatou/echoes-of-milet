@@ -102,7 +102,7 @@
           <span class="text-xs text-[#8a9ca2]">{{ selectedSpotDetail.photos.length }}</span>
         </div>
 
-        <div class="photo-grid grid gap-3">
+        <div class="grid grid-cols-2 gap-3 lg:grid-cols-[repeat(auto-fill,minmax(128px,1fr))]">
           <a
             v-for="photo in selectedSpotDetail.photos"
             :key="photo.id"
@@ -172,10 +172,6 @@ const spotLinkUrl = computed(() => safeSpotHref(props.selectedSpotDetail?.linkUr
 </script>
 
 <style scoped>
-.photo-grid {
-  grid-template-columns: repeat(auto-fill, minmax(128px, 1fr));
-}
-
 .pilgrimage-photo :deep(.preview-image) {
   height: 112px;
   width: 100%;
@@ -186,11 +182,5 @@ const spotLinkUrl = computed(() => safeSpotHref(props.selectedSpotDetail?.linkUr
 .pilgrimage-photo :deep(.group) {
   display: block;
   width: 100%;
-}
-
-@media (max-width: 1023px) {
-  .photo-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
 }
 </style>

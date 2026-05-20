@@ -187,8 +187,8 @@ const fallbackPhotos = {
   omotesando: [
     {
       id: 'photo-omotesando-1',
-      thumbUrl: '/milet-img/milet-site-og-img.jpg',
-      fullUrl: '/milet-img/milet-site-og-img.jpg',
+      thumbUrl: '/milet-img/milet-site-og-img.webp',
+      fullUrl: '/milet-img/milet-site-og-img.webp',
       width: 1600,
       height: 1067,
       alt: '表参道街景照片',
@@ -197,8 +197,8 @@ const fallbackPhotos = {
     },
     {
       id: 'photo-omotesando-2',
-      thumbUrl: '/milet-img/milet-fc-og-img.png',
-      fullUrl: '/milet-img/milet-fc-og-img.png',
+      thumbUrl: '/milet-img/milet-fc-og-img.webp',
+      fullUrl: '/milet-img/milet-fc-og-img.webp',
       width: 1600,
       height: 1067,
       alt: '东京街道路口照片',

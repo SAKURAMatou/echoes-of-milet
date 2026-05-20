@@ -6,6 +6,21 @@
   >
     <div ref="mapContainer" class="absolute inset-0 z-0 bg-[#e9f2ef]" />
 
+    <div class="pilgrimage-map-decorations pointer-events-none absolute inset-0 z-[8]">
+      <img
+        v-for="decoration in mapDecorations"
+        :key="decoration.id"
+        :src="decoration.imageUrl"
+        alt=""
+        aria-hidden="true"
+        class="absolute bottom-[var(--decoration-offset-y)] block h-[var(--decoration-height)] w-[var(--decoration-width)] select-none object-contain opacity-[0.92] drop-shadow-[0_16px_24px_rgba(31,41,55,0.18)] max-lg:bottom-[var(--decoration-mobile-offset-y)] max-lg:h-[var(--decoration-mobile-height)] max-lg:w-[var(--decoration-mobile-width)] max-lg:opacity-[0.82]"
+        :class="decorationClasses(decoration)"
+        :style="decorationStyle(decoration)"
+        loading="lazy"
+        decoding="async"
+      />
+    </div>
+
     <div
       v-if="mapLoading"
       class="absolute inset-0 z-20 flex items-center justify-center bg-white/60 text-sm text-[#526670] backdrop-blur-sm"
@@ -58,6 +73,7 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 
+import { pilgrimageMapConfig } from '@/components/milet/pilgrimage/pilgrimageMapConfig'
 import type { PilgrimageDistrict, PilgrimagePageText } from '@/composables/miletPilgrimage'
 
 defineProps<{
@@ -71,6 +87,26 @@ defineProps<{
 }>()
 
 const mapContainer = ref<HTMLElement | null>(null)
+const mapDecorations = pilgrimageMapConfig.mapDecorations
+
+function decorationStyle(decoration: (typeof mapDecorations)[number]) {
+  return {
+    '--decoration-width': `${decoration.layout.desktop.size[0]}px`,
+    '--decoration-height': `${decoration.layout.desktop.size[1]}px`,
+    '--decoration-offset-x': `${decoration.layout.desktop.offset[0]}px`,
+    '--decoration-offset-y': `${decoration.layout.desktop.offset[1]}px`,
+    '--decoration-mobile-width': `${decoration.layout.mobile.size[0]}px`,
+    '--decoration-mobile-height': `${decoration.layout.mobile.size[1]}px`,
+    '--decoration-mobile-offset-x': `${decoration.layout.mobile.offset[0]}px`,
+    '--decoration-mobile-offset-y': `${decoration.layout.mobile.offset[1]}px`,
+  }
+}
+
+function decorationClasses(decoration: (typeof mapDecorations)[number]) {
+  return decoration.position === 'bottom-right'
+    ? 'right-[var(--decoration-offset-x)] -scale-x-100 max-lg:right-[var(--decoration-mobile-offset-x)]'
+    : 'left-[var(--decoration-offset-x)] max-lg:left-[var(--decoration-mobile-offset-x)]'
+}
 
 defineExpose({ mapContainer })
 </script>

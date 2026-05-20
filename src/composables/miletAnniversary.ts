@@ -92,14 +92,23 @@ const photoLayout: Array<Pick<AnniversaryPhoto, 'id' | 'month' | 'image' | 'fina
   {
     id: 'feb',
     month: 'FEB',
-    image: '/milet-img/milet-site-og-img.jpg',
+    image: '/milet-img/milet-site-og-img.webp',
     final: { x: '24%', y: '15%', w: '13%', r: '5deg', mx: '39%', my: '15%', mw: '24%', mr: '5deg' },
   },
   {
     id: 'mar',
     month: 'MAR',
-    image: '/milet-img/milet-fc-og-img.png',
-    final: { x: '40%', y: '23%', w: '16%', r: '-2deg', mx: '66%', my: '26%', mw: '25%', mr: '-2deg' },
+    image: '/milet-img/milet-fc-og-img.webp',
+    final: {
+      x: '40%',
+      y: '23%',
+      w: '16%',
+      r: '-2deg',
+      mx: '66%',
+      my: '26%',
+      mw: '25%',
+      mr: '-2deg',
+    },
   },
   {
     id: 'apr',
@@ -111,19 +120,37 @@ const photoLayout: Array<Pick<AnniversaryPhoto, 'id' | 'month' | 'image' | 'fina
     id: 'may',
     month: 'MAY',
     image: '/echoes-of-milet-OG.webp',
-    final: { x: '74%', y: '27%', w: '15%', r: '-5deg', mx: '44%', my: '38%', mw: '25%', mr: '-5deg' },
+    final: {
+      x: '74%',
+      y: '27%',
+      w: '15%',
+      r: '-5deg',
+      mx: '44%',
+      my: '38%',
+      mw: '25%',
+      mr: '-5deg',
+    },
   },
   {
     id: 'jun',
     month: 'JUN',
-    image: '/milet-img/milet-site-og-img.jpg',
+    image: '/milet-img/milet-site-og-img.webp',
     final: { x: '18%', y: '48%', w: '13%', r: '9deg', mx: '70%', my: '48%', mw: '23%', mr: '9deg' },
   },
   {
     id: 'jul',
     month: 'JUL',
-    image: '/milet-img/milet-fc-og-img.png',
-    final: { x: '34%', y: '43%', w: '15%', r: '-10deg', mx: '7%', my: '64%', mw: '25%', mr: '-10deg' },
+    image: '/milet-img/milet-fc-og-img.webp',
+    final: {
+      x: '34%',
+      y: '43%',
+      w: '15%',
+      r: '-10deg',
+      mx: '7%',
+      my: '64%',
+      mw: '25%',
+      mr: '-10deg',
+    },
   },
   {
     id: 'aug',
@@ -135,19 +162,37 @@ const photoLayout: Array<Pick<AnniversaryPhoto, 'id' | 'month' | 'image' | 'fina
     id: 'sep',
     month: 'SEP',
     image: '/echoes-of-milet-OG.webp',
-    final: { x: '66%', y: '45%', w: '16%', r: '-1deg', mx: '66%', my: '66%', mw: '25%', mr: '-1deg' },
+    final: {
+      x: '66%',
+      y: '45%',
+      w: '16%',
+      r: '-1deg',
+      mx: '66%',
+      my: '66%',
+      mw: '25%',
+      mr: '-1deg',
+    },
   },
   {
     id: 'oct',
     month: 'OCT',
-    image: '/milet-img/milet-site-og-img.jpg',
+    image: '/milet-img/milet-site-og-img.webp',
     final: { x: '28%', y: '67%', w: '14%', r: '6deg', mx: '14%', my: '82%', mw: '22%', mr: '6deg' },
   },
   {
     id: 'nov',
     month: 'NOV',
-    image: '/milet-img/milet-fc-og-img.png',
-    final: { x: '46%', y: '70%', w: '13%', r: '-6deg', mx: '43%', my: '80%', mw: '22%', mr: '-6deg' },
+    image: '/milet-img/milet-fc-og-img.webp',
+    final: {
+      x: '46%',
+      y: '70%',
+      w: '13%',
+      r: '-6deg',
+      mx: '43%',
+      my: '80%',
+      mw: '22%',
+      mr: '-6deg',
+    },
   },
   {
     id: 'dec',
@@ -182,16 +227,31 @@ const zhPhotos = buildPhotos({
 const jaPhotos = buildPhotos({
   jan: { alt: '1月 milet の日 selected photo', caption: '新しい一年の最初の手紙。' },
   feb: { alt: '2月 milet の日 selected photo', caption: '冷たい空気の中にも、やさしい光。' },
-  mar: { alt: '3月 milet の日 selected photo', caption: '記念日の近くの写真は、少し特別に見えます。' },
+  mar: {
+    alt: '3月 milet の日 selected photo',
+    caption: '記念日の近くの写真は、少し特別に見えます。',
+  },
   apr: { alt: '4月 milet の日 selected photo', caption: '春のように、そっと広がっていく。' },
-  may: { alt: '5月 milet の日 selected photo', caption: '待っていたこの日そのものが、小さなお祭りのようです。' },
+  may: {
+    alt: '5月 milet の日 selected photo',
+    caption: '待っていたこの日そのものが、小さなお祭りのようです。',
+  },
   jun: { alt: '6月 milet の日 selected photo', caption: '夏が少しずつ明るくなる。' },
   jul: { alt: '7月 milet の日 selected photo', caption: 'にぎやかな季節に、静かな一枚を残して。' },
   aug: { alt: '8月 milet の日 selected photo', caption: 'ライブ前の一筋の光のように。' },
   sep: { alt: '9月 milet の日 selected photo', caption: '響きが少し澄んでいく。' },
-  oct: { alt: '10月 milet の日 selected photo', caption: 'その日の気持ちまで思い出させてくれる写真があります。' },
-  nov: { alt: '11月 milet の日 selected photo', caption: '一年が終わりに近づいても、新しい景色が届く。' },
-  dec: { alt: '12月 milet の日 selected photo', caption: '最後の一枚が、この一年をやさしく閉じてくれる。' },
+  oct: {
+    alt: '10月 milet の日 selected photo',
+    caption: 'その日の気持ちまで思い出させてくれる写真があります。',
+  },
+  nov: {
+    alt: '11月 milet の日 selected photo',
+    caption: '一年が終わりに近づいても、新しい景色が届く。',
+  },
+  dec: {
+    alt: '12月 milet の日 selected photo',
+    caption: '最後の一枚が、この一年をやさしく閉じてくれる。',
+  },
 })
 
 const record2026: AnniversaryRecord = {
@@ -246,7 +306,7 @@ const record2026: AnniversaryRecord = {
         date: '2025.07',
         type: 'digital',
         title: 'inside you',
-        cover: '/milet-img/milet-site-og-img.jpg',
+        cover: '/milet-img/milet-site-og-img.webp',
         note: '回到最初的声音，也像重新确认为何会喜欢。',
       },
       {
@@ -254,7 +314,7 @@ const record2026: AnniversaryRecord = {
         date: '2025.11',
         type: 'live',
         title: 'live archive',
-        cover: '/milet-img/milet-fc-og-img.png',
+        cover: '/milet-img/milet-fc-og-img.webp',
         note: '舞台被留在影像里，余韵也有了可以回去的地方。',
       },
     ],
@@ -265,7 +325,8 @@ const record2026: AnniversaryRecord = {
     lead: '今年もたくさんの新しい響きが届きました。新しい歌、ステージの光、そして毎月待っている milet の日。',
     giftNote: 'このページは、ひとりの miles からの小さなお祝いです。',
     archiveTitle: 'Anniversary Archive',
-    archiveLead: '年ごとに記念ページを振り返りながら、お祝い、活動、作品、milet の日の写真を少しずつ残していく archive です。',
+    archiveLead:
+      '年ごとに記念ページを振り返りながら、お祝い、活動、作品、milet の日の写真を少しずつ残していく archive です。',
     chapters: [
       { id: 'greeting', eyebrow: 'greeting', title: 'まずは、お祝いの言葉から' },
       { id: 'year', eyebrow: 'year notes', title: 'この一年もにぎやかでした' },
@@ -309,7 +370,7 @@ const record2026: AnniversaryRecord = {
         date: '2025.07',
         type: 'digital',
         title: 'inside you',
-        cover: '/milet-img/milet-site-og-img.jpg',
+        cover: '/milet-img/milet-site-og-img.webp',
         note: '最初の響きに戻るようで、好きになった理由をもう一度確かめるようでした。',
       },
       {
@@ -317,7 +378,7 @@ const record2026: AnniversaryRecord = {
         date: '2025.11',
         type: 'live',
         title: 'live archive',
-        cover: '/milet-img/milet-fc-og-img.png',
+        cover: '/milet-img/milet-fc-og-img.webp',
         note: 'ステージが映像に残って、余韻にも帰れる場所ができました。',
       },
     ],
@@ -427,10 +488,7 @@ export function normalizeAnniversaryPayload(value: unknown) {
   } satisfies AnniversaryApiPayload
 }
 
-export function latestAnniversaryRecordYear(
-  config = anniversaryArchiveConfig,
-  now = new Date(),
-) {
+export function latestAnniversaryRecordYear(config = anniversaryArchiveConfig, now = new Date()) {
   const currentYear = now.getFullYear()
   const beforeAnniversaryMonth = now.getMonth() + 1 < config.debutMonth
   return beforeAnniversaryMonth ? currentYear - 1 : currentYear

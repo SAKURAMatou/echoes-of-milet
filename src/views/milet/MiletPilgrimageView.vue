@@ -1,5 +1,5 @@
 <template>
-  <article class="pilgrimage-page overflow-hidden rounded-lg text-[#24323a] lg:mb-6">
+  <article class="pilgrimage-page overflow-hidden rounded-lg bg-[image:linear-gradient(180deg,rgba(255,255,255,0.78),rgba(247,251,249,0.86)),linear-gradient(135deg,rgba(232,248,244,0.64),rgba(255,241,242,0.52))] text-[#24323a] lg:mb-6">
     <section
       class="pilgrimage-workspace relative grid h-[calc(100svh-4rem)] min-h-[680px] grid-rows-[auto_auto_minmax(0,1fr)] overflow-hidden lg:h-[calc(100vh-7.5rem)] lg:min-h-[800px] 2xl:grid-cols-[minmax(0,1fr)_360px] 2xl:grid-rows-[auto_auto_minmax(0,1fr)] 2xl:overflow-visible"
     >
@@ -130,6 +130,7 @@ const mapPaneRef = ref<PilgrimageMapPaneExpose | null>(null)
 const mapRef = shallowRef<any>(null)
 const markerLayerRef = shallowRef<any>(null)
 const routeLayerRef = shallowRef<any>(null)
+const animationLayerRef = shallowRef<any>(null)
 const leafletRef = shallowRef<LeafletModule | null>(null)
 const mapTransitioning = ref(false)
 const markersVisible = ref(false)
@@ -174,11 +175,12 @@ const {
   isMobileViewport,
   autoSelectSpot: selectSpot,
 })
-const { renderMarkers, renderRoutes } = usePilgrimageMapRendering({
+const { renderMarkers, renderRoutes, startRouteAnimation, stopRouteAnimation } = usePilgrimageMapRendering({
   leafletRef,
   mapRef,
   markerLayerRef,
   routeLayerRef,
+  animationLayerRef,
   spots,
   selectedSpotId,
   selectedSpotDetail,
@@ -211,6 +213,7 @@ function selectCity(cityId: string) {
   if (nextDistrict) {
     selectDistrict(nextDistrict.id)
   } else {
+    stopRouteAnimation(false)
     selectedDistrictId.value = ''
     selectedRouteId.value = ''
     selectedSpotId.value = ''
@@ -223,6 +226,7 @@ function selectCity(cityId: string) {
 }
 
 function selectDistrict(districtId: string) {
+  stopRouteAnimation(false)
   selectedDistrictId.value = districtId
   selectedRouteId.value = ''
   selectedSpotId.value = ''
@@ -241,10 +245,12 @@ async function selectSpot(spotId: string) {
 }
 
 async function selectRoute(routeId: string) {
+  stopRouteAnimation(false)
   selectedRouteId.value = routeId
   applyMapZoomLimits()
   renderMarkers()
   renderRoutes()
+  startRouteAnimation()
 }
 
 function closeSpotDetail() {
@@ -314,6 +320,7 @@ async function initMap() {
 
   routeLayerRef.value = L.layerGroup().addTo(mapRef.value)
   markerLayerRef.value = L.layerGroup().addTo(mapRef.value)
+  animationLayerRef.value = L.layerGroup().addTo(mapRef.value)
   mapRef.value.on('zoomend moveend', () => {
     renderMarkers()
     renderRoutes()
@@ -514,6 +521,7 @@ function moveMapToCurrentArea(options: { duration?: number } = {}) {
 async function transitionSelectedArea(districtId: string) {
   if (import.meta.env.SSR || suppressDistrictWatch) return
   const token = ++districtLoadToken
+  stopRouteAnimation(false)
   mapTransitioning.value = true
   markersVisible.value = false
   clearMapBrowseBounds()
@@ -613,6 +621,7 @@ onMounted(async () => {
 onBeforeUnmount(() => {
   window.removeEventListener('resize', updateViewportMode)
   cancelAnimationFrame(resizeFrame)
+  stopRouteAnimation(false)
   fancyboxApi?.destroy()
   if (mapRef.value) {
     mapRef.value.remove()
