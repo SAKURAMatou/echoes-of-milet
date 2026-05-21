@@ -142,8 +142,8 @@ const copy = computed(() => ({
       },
       {
         label: 'PILGRIMAGE',
-        title: 'milet 圣地巡礼',
-        description: '查看 milet 圣地巡礼地图，沿着 MV 拍摄地、街景 spot 和路线重新遇见那些被轻轻提起的地方。',
+        title: '巡礼地图',
+        description: '按城市整理 MV 拍摄地、街景 spot 和路线，进入地图查看照片、坐标与导航。',
         to: pilgrimageLink.value,
       },
     ],
@@ -184,8 +184,8 @@ const copy = computed(() => ({
       },
       {
         label: 'PILGRIMAGE',
-        title: 'milet 聖地巡礼',
-        description: 'milet 聖地巡礼マップで、MV ロケ地、街並みの spot、ルートを静かに辿っています。',
+        title: '巡礼マップ',
+        description: '都市ごとに MV ロケ地、街並みの spot、ルートを整理し、写真、座標、ナビを確認できます。',
         to: pilgrimageLink.value,
       },
     ],

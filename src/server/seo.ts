@@ -123,10 +123,12 @@ const seoMap: Record<SeoKey, SeoMeta> = {
   pilgrimage: {
     content: {
       zh: {
-        title: 'milet 圣地巡礼地图 | Echoes of milet',
+        title: 'milet 圣地巡礼地图与路线 | Echoes of milet',
         description:
-          'milet圣地巡礼地图由 Echoes of milet 整理多个城市中与 milet 作品、MV 拍摄地、公开影像、街景和活动记录相关的巡礼地点，支持按城市、区划和路线查看 spot、照片、坐标、导航与地点说明。',
+          'milet 圣地巡礼地图由 Echoes of milet 整理多个城市中与 milet 作品、MV 拍摄地、公开影像、街景和活动记录相关的巡礼地点，支持按城市、区划和路线查看 spot、照片、坐标、导航与地点说明。',
         keywords: [
+          'milet 圣地巡礼地图',
+          'milet圣地巡礼地图',
           'milet圣地巡礼',
           'milet 圣地巡礼',
           '圣地巡礼',
@@ -142,10 +144,11 @@ const seoMap: Record<SeoKey, SeoMeta> = {
         imageAlt: 'Echoes of milet milet 圣地巡礼地图预览',
       },
       jp: {
-        title: 'milet 聖地巡礼マップ | Echoes of milet',
+        title: 'milet 聖地巡礼マップとルート | Echoes of milet',
         description:
           'milet 聖地巡礼マップとして、Echoes of milet が milet の作品、MV ロケ地、公開映像、街並み、イベント記録に関係する spot を複数の都市から整理し、写真、座標、ナビ、場所の説明を表示します。',
         keywords: [
+          'milet 聖地巡礼マップ',
           'milet 聖地巡礼',
           '聖地巡礼',
           '聖地巡礼マップ',

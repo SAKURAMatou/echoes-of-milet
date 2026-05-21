@@ -1,14 +1,14 @@
 <template>
-  <article class="pilgrimage-page overflow-hidden rounded-lg bg-[image:linear-gradient(180deg,rgba(255,255,255,0.78),rgba(247,251,249,0.86)),linear-gradient(135deg,rgba(232,248,244,0.64),rgba(255,241,242,0.52))] text-[#24323a] lg:mb-6">
+  <article
+    class="pilgrimage-page overflow-hidden rounded-lg bg-[image:linear-gradient(180deg,rgba(255,255,255,0.78),rgba(247,251,249,0.86)),linear-gradient(135deg,rgba(232,248,244,0.64),rgba(255,241,242,0.52))] text-[#24323a] lg:mb-6"
+  >
     <section
       class="pilgrimage-workspace relative grid h-[calc(100svh-4rem)] min-h-[680px] grid-rows-[auto_auto_minmax(0,1fr)] overflow-hidden lg:h-[calc(100vh-7.5rem)] lg:min-h-[800px] 2xl:grid-cols-[minmax(0,1fr)_360px] 2xl:grid-rows-[auto_auto_minmax(0,1fr)] 2xl:overflow-visible"
     >
       <header class="border-b border-white/70 px-4 py-4 sm:px-5 lg:px-7 lg:py-5 2xl:col-span-2">
         <div class="grid gap-4">
           <div class="min-w-0">
-            <h1
-              class="font-serif text-[clamp(2.4rem,4.3vw,4.1rem)] leading-none text-[#26313a]"
-            >
+            <h1 class="font-serif text-[clamp(2.4rem,4.3vw,4.1rem)] leading-none text-[#26313a]">
               {{ pageText.title }}
             </h1>
             <p class="mt-2 max-w-4xl text-sm leading-6 text-[#5f7178] lg:text-[15px]">
@@ -18,7 +18,9 @@
         </div>
       </header>
 
-      <div class="grid gap-3 border-b border-white/70 px-4 py-3 sm:grid-cols-[minmax(0,1fr)_220px] sm:px-5 lg:px-7 2xl:col-start-1 2xl:row-start-2 2xl:grid-cols-[minmax(0,1fr)_240px]">
+      <div
+        class="grid gap-3 border-b border-white/70 px-4 py-3 sm:grid-cols-[minmax(0,1fr)_220px] sm:px-5 lg:px-7 2xl:col-start-1 2xl:row-start-2 2xl:grid-cols-[minmax(0,1fr)_240px]"
+      >
         <div
           class="rounded-lg border border-[#9bd0c8]/70 bg-[#f0fbf8]/88 px-3 py-2 shadow-[0_14px_34px_-30px_rgba(31,41,55,0.72)]"
         >
@@ -33,9 +35,7 @@
         <div
           class="min-w-0 rounded-lg border border-white/70 bg-white/64 px-3 py-2 text-sm text-[#526670]"
         >
-          <span
-            class="block text-[11px] font-semibold uppercase tracking-[0.16em] text-[#7c9197]"
-          >
+          <span class="block text-[11px] font-semibold uppercase tracking-[0.16em] text-[#7c9197]">
             {{ pageText.currentArea }}
           </span>
           <span class="mt-1 block truncate font-medium text-[#26313a]">
@@ -91,10 +91,7 @@
       />
     </section>
 
-    <PilgrimageSeoSpotList
-      :cities="seoSpotListCities"
-      :lang="currentLang"
-    />
+    <PilgrimageSeoSpotList :cities="seoSpotListCities" :lang="currentLang" />
   </article>
 </template>
 
@@ -103,7 +100,16 @@ import 'leaflet/dist/leaflet.css'
 import '@fancyapps/ui/dist/fancybox/fancybox.css'
 import '@/components/milet/pilgrimage/pilgrimageMapStyles.css'
 
-import { computed, nextTick, onBeforeUnmount, onMounted, onServerPrefetch, ref, shallowRef, watch } from 'vue'
+import {
+  computed,
+  nextTick,
+  onBeforeUnmount,
+  onMounted,
+  onServerPrefetch,
+  ref,
+  shallowRef,
+  watch,
+} from 'vue'
 import { useRoute } from 'vue-router'
 
 import PilgrimageAreaControls from '@/components/milet/pilgrimage/PilgrimageAreaControls.vue'
@@ -139,7 +145,7 @@ let districtLoadToken = 0
 let resizeFrame = 0
 let lastViewportWidth = 0
 let suppressDistrictWatch = false
-let fancyboxApi: typeof import('@fancyapps/ui')['Fancybox'] | null = null
+let fancyboxApi: (typeof import('@fancyapps/ui'))['Fancybox'] | null = null
 
 const currentLang = computed(() => normalizePilgrimageLang(String(route.params.lang || 'zh')))
 const pageText = computed(() => PILGRIMAGE_TEXT[currentLang.value])
@@ -175,21 +181,22 @@ const {
   isMobileViewport,
   autoSelectSpot: selectSpot,
 })
-const { renderMarkers, renderRoutes, startRouteAnimation, stopRouteAnimation } = usePilgrimageMapRendering({
-  leafletRef,
-  mapRef,
-  markerLayerRef,
-  routeLayerRef,
-  animationLayerRef,
-  spots,
-  selectedSpotId,
-  selectedSpotDetail,
-  selectedRoute,
-  routeSpotIds,
-  routeOrderMap,
-  isMobileViewport,
-  selectSpot,
-})
+const { renderMarkers, renderRoutes, startRouteAnimation, stopRouteAnimation } =
+  usePilgrimageMapRendering({
+    leafletRef,
+    mapRef,
+    markerLayerRef,
+    routeLayerRef,
+    animationLayerRef,
+    spots,
+    selectedSpotId,
+    selectedSpotDetail,
+    selectedRoute,
+    routeSpotIds,
+    routeOrderMap,
+    isMobileViewport,
+    selectSpot,
+  })
 
 type LatLngTuple = [number, number]
 
@@ -419,10 +426,7 @@ function expandedBounds(coordinates: LatLngTuple[]) {
 
 function buildMapBrowseBounds() {
   const center = areaCenter()
-  const coordinates = [
-    ...(center ? [center] : []),
-    ...currentSpotCoordinates(),
-  ]
+  const coordinates = [...(center ? [center] : []), ...currentSpotCoordinates()]
   return expandedBounds(coordinates)
 }
 
@@ -601,8 +605,8 @@ watch(
     if (typeof document === 'undefined') return
     document.title =
       currentLang.value === 'jp'
-        ? 'milet 聖地巡礼マップ | Echoes of milet'
-        : 'milet 圣地巡礼地图 | Echoes of milet'
+        ? 'milet 聖地巡礼マップとルート | Echoes of milet'
+        : 'milet 圣地巡礼地图与路线 | Echoes of milet'
   },
   { immediate: true },
 )

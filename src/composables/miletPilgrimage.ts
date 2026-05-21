@@ -135,7 +135,7 @@ export const PILGRIMAGE_TEXT: Record<PilgrimageLang, PilgrimagePageText> = {
   zh: {
     title: 'milet 圣地巡礼地图',
     subtitle:
-      '收录并整理多个城市中与 milet 作品、MV 拍摄地、公开影像、街景和活动记录相关的圣地巡礼地点。可以按城市、区划和路线查看 spot、照片、坐标、导航与地点说明，把散落的街角、车站和现场记忆整理成可实际行走的 milet圣地巡礼地图。',
+      '由miles整理的 milet 圣地巡礼地图，收录多个城市中与 milet 作品、MV 拍摄地、公开影像、街景和活动记录相关的巡礼地点。可以按城市、区划和路线查看 spot、照片、坐标、导航与地点说明，把散落的街角、车站和现场记忆整理成可实际行走的 milet 圣地巡礼路线。',
     cityLabel: '城市',
     districtLabel: '区划',
     routeLabel: '路线',
@@ -159,7 +159,7 @@ export const PILGRIMAGE_TEXT: Record<PilgrimageLang, PilgrimagePageText> = {
   jp: {
     title: 'milet 聖地巡礼マップ',
     subtitle:
-      'milet の作品、MV ロケ地、公開された映像、街並み、イベント記録に関係する聖地巡礼スポットを複数の都市から整理しています。都市、エリア、ルートごとに spot、写真、座標、ナビ、場所の説明を確認し、街角や駅、現地の記憶を実際に辿れる milet 聖地巡礼マップとしてまとめています。',
+      'milesが整理する milet 聖地巡礼マップです。milet の作品、MV ロケ地、公開された映像、街並み、イベント記録に関係する聖地巡礼スポットを複数の都市から収録しています。都市、エリア、ルートごとに spot、写真、座標、ナビ、場所の説明を確認し、街角や駅、現地の記憶を実際に辿れる巡礼ルートとしてまとめています。',
     cityLabel: '都市',
     districtLabel: 'エリア',
     routeLabel: 'ルート',

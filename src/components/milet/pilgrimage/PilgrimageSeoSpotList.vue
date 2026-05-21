@@ -20,7 +20,7 @@
       </span>
     </button>
 
-    <div v-if="listOpen">
+    <div v-show="listOpen">
       <p class="mt-3 text-sm leading-7 text-[#60717a]">
         {{ copy.intro }}
       </p>
@@ -53,7 +53,7 @@
             </span>
           </button>
 
-          <div v-if="openCityId === city.id" class="space-y-3 border-t border-[#dbe7e4] p-3">
+          <div v-show="openCityId === city.id" class="space-y-3 border-t border-[#dbe7e4] p-3">
             <section
               v-for="district in city.districts"
               :key="district.id"
@@ -78,7 +78,7 @@
                 </span>
               </button>
 
-              <ol v-if="openDistrictId === district.id" class="grid gap-3 border-t border-[#dbe7e4] p-3 md:grid-cols-2">
+              <ol v-show="openDistrictId === district.id" class="grid gap-3 border-t border-[#dbe7e4] p-3 md:grid-cols-2">
                 <li
                   v-for="(spot, index) in district.spots"
                   :id="spotAnchorId(spot.id)"
@@ -158,7 +158,7 @@ const openCityId = ref('')
 const openDistrictId = ref('')
 
 const copy = computed(() =>
-      props.lang === 'jp'
+  props.lang === 'jp'
     ? {
         summary: 'milet 聖地巡礼 spot 一覧',
         intro:
@@ -168,10 +168,10 @@ const copy = computed(() =>
         cityCount: (count: number) => `${count} 都市`,
         spotCount: (count: number) => `${count} spots`,
       }
-      : {
+    : {
         summary: '全部 milet 圣地巡礼 spot 列表',
         intro:
-          '这里按城市和区划列出已经公开的 milet 圣地巡礼 spot，和地图上的标记保持一致。每个地点会尽量关联作品或事件线索、分类、封面照片和坐标信息，方便检索 milet MV 拍摄地、街景地点、活动相关地点和可实际导航的巡礼路线。',
+          '这里按城市和区划列出已经公开的 milet 圣地巡礼 spot，和地图上的标记保持一致。每个地点会尽量关联作品或事件线索、分类、封面照片和坐标信息，方便检索 milet 圣地巡礼、milet MV 拍摄地、街景地点、活动相关地点和可实际导航的巡礼路线。',
         workLabel: '作品',
         coordinateLabel: '坐标',
         cityCount: (count: number) => `${count} 个城市`,
