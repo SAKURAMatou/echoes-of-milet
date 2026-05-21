@@ -1,10 +1,10 @@
 <template>
   <Header :showHanbor="false" />
   <main
-    class="min-h-screen overflow-x-hidden bg-[#f7fcff] font-montserrat text-[#20314a] md:flex md:h-[100svh] md:min-h-[760px] md:flex-col"
+    class="site-home-page min-h-screen overflow-x-hidden bg-[#f7fcff] font-montserrat text-[#20314a] md:flex md:h-[100svh] md:min-h-[760px] md:flex-col [@media(min-width:768px)_and_(max-height:760px)]:h-auto [@media(min-width:768px)_and_(max-height:760px)]:min-h-[100svh]"
   >
     <section
-      class="relative isolate min-h-[92svh] overflow-hidden pt-20 md:min-h-0 md:flex-1 md:pt-0"
+      class="site-home-hero relative isolate min-h-[92svh] overflow-hidden pt-20 md:min-h-0 md:flex-1 md:pt-0 [@media(min-width:768px)_and_(max-height:760px)]:min-h-[auto] [@media(min-width:768px)_and_(max-height:760px)]:flex-none [@media(min-width:768px)_and_(max-height:760px)]:overflow-visible"
     >
       <img
         src="/echoes-of-milet-OG.webp"
@@ -20,7 +20,7 @@
       ></div>
 
       <div
-        class="hero-content-frame mx-auto flex min-h-[calc(92svh-5rem)] w-full max-w-[1180px] items-start px-3 pb-8 pt-[34vh] sm:px-7 md:h-full md:min-h-0 md:items-center md:px-10 md:pb-0 md:pt-20 lg:px-8"
+        class="hero-content-frame mx-auto flex min-h-[calc(92svh-5rem)] w-full max-w-[1180px] items-start px-3 pb-8 pt-[34vh] sm:px-7 md:h-full md:min-h-0 md:items-center md:px-10 md:pb-0 md:pt-20 lg:px-8 [@media(min-width:768px)_and_(max-height:760px)]:h-auto [@media(min-width:768px)_and_(max-height:760px)]:min-h-0 [@media(min-width:768px)_and_(max-height:760px)]:items-start [@media(min-width:768px)_and_(max-height:760px)]:pb-12 [@media(min-width:768px)_and_(max-height:760px)]:pt-[8.5rem]"
       >
         <div class="hero-copy-wash animate-fadein relative isolate w-full max-w-[640px]">
           <p
@@ -60,9 +60,11 @@
       </div>
     </section>
 
-    <section class="relative px-5 pb-14 sm:px-7 md:px-10 md:pb-8 lg:px-8">
+    <section
+      class="site-home-recommend relative isolate z-[1] bg-[#f7fcff] px-5 pb-14 sm:px-7 md:px-10 md:pb-8 lg:px-8 [@media(min-width:768px)_and_(max-height:760px)]:pt-0"
+    >
       <div
-        class="mx-auto grid max-w-[1180px] gap-5 border-t border-[#c8e5f2] pt-7 md:grid-cols-4 md:gap-0 md:pt-5"
+        class="site-home-recommend-grid relative z-[1] mx-auto grid max-w-[1180px] gap-5 border-t border-[#c8e5f2] bg-[#f7fcff] pt-7 md:grid-cols-4 md:gap-0 md:pt-5"
       >
         <router-link
           v-for="item in homeCopy.highlights"
@@ -278,6 +280,17 @@ watchEffect(() => {
 @media (max-width: 767px) and (max-height: 650px) {
   .hero-content-frame {
     padding-top: 24vh;
+  }
+}
+
+@media (min-width: 768px) and (max-height: 760px) {
+  .site-home-recommend::before {
+    content: '';
+    position: absolute;
+    inset: -3.5rem 0 auto;
+    z-index: 0;
+    height: 3.5rem;
+    background: linear-gradient(180deg, rgba(247, 252, 255, 0), #f7fcff 76%);
   }
 }
 
