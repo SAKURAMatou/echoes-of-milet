@@ -504,10 +504,24 @@ export function usePilgrimageMapRendering(options: UsePilgrimageMapRenderingOpti
     return { angle, scaleX: 1 }
   }
 
+  function routeActorCycleDurationSeconds(frameCount: number) {
+    const routeAnimation = pilgrimageMapConfig.routeAnimation
+    const actor = routeAnimation.actor
+    const fixedDuration = frameCount / Math.max(1, actor.fps)
+    if (!actor.syncFrameRateWithMovement) return fixedDuration
+
+    const metersPerSecond = Math.max(1, routeAnimation.movementSpeed.metersPerSecond)
+    const cycleDistanceMeters = Math.max(1, actor.walkCycleDistanceMeters)
+    const minDuration = Math.min(actor.minCycleDurationMs, actor.maxCycleDurationMs) / 1000
+    const maxDuration = Math.max(actor.minCycleDurationMs, actor.maxCycleDurationMs) / 1000
+    const linkedDuration = cycleDistanceMeters / metersPerSecond
+    return Math.min(maxDuration, Math.max(minDuration, linkedDuration))
+  }
+
   function actorIconHtml(angle = 0) {
     const actor = pilgrimageMapConfig.routeAnimation.actor
     const frameCount = Math.max(1, actor.frameCount)
-    const duration = frameCount / Math.max(1, actor.fps)
+    const duration = routeActorCycleDurationSeconds(frameCount)
     const runDistance = frameCount * actor.frameSize[0]
     const transform = actor.rotateWithRoute ? routeActorTransform(angle) : { angle: 0, scaleX: 1 }
     return `<span class="pilgrimage-route-actor" style="--route-actor-image:url('${escapeMapHtml(actor.imageUrl)}'); --route-actor-width:${actor.frameSize[0]}px; --route-actor-height:${actor.frameSize[1]}px; --route-actor-frame-count:${frameCount}; --route-actor-duration:${duration}s; --route-actor-run-distance:-${runDistance}px; --route-actor-angle:${transform.angle}deg; --route-actor-scale-x:${transform.scaleX};"><span class="pilgrimage-route-actor-sprite" aria-hidden="true"></span></span>`

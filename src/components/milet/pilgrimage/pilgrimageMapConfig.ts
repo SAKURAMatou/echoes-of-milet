@@ -48,7 +48,7 @@ export const pilgrimageMapConfig = {
         },
         mobile: {
           size: [48, 92] as [number, number],
-          offset: [10, 12] as [number, number],
+          offset: [14, 26] as [number, number],
         },
       },
     },
@@ -63,7 +63,7 @@ export const pilgrimageMapConfig = {
         },
         mobile: {
           size: [48, 92] as [number, number],
-          offset: [10, 12] as [number, number],
+          offset: [10, 16] as [number, number],
         },
       },
     },
@@ -78,6 +78,10 @@ export const pilgrimageMapConfig = {
       frameSize: [128, 72] as [number, number],
       frameCount: 8,
       fps: 8,
+      syncFrameRateWithMovement: true,
+      walkCycleDistanceMeters: 10,
+      minCycleDurationMs: 450,
+      maxCycleDurationMs: 1200,
       anchor: [64, 36] as [number, number],
       rotateWithRoute: true,
     },

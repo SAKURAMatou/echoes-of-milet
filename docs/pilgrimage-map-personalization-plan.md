@@ -240,6 +240,10 @@ routeAnimation: {
     frameSize: [128, 72],
     frameCount: 8,
     fps: 8,
+    syncFrameRateWithMovement: true,
+    walkCycleDistanceMeters: 10,
+    minCycleDurationMs: 450,
+    maxCycleDurationMs: 1200,
     anchor: [64, 36],
     rotateWithRoute: true,
   },
@@ -252,6 +256,8 @@ routeAnimation: {
 - 到达终点后等待 `3000ms`。
 - 如果没有切换路线或地区，则自动从起点重播。
 - 移动速度按经纬度地理距离计算，使用 `metersPerSecond` 配置，不受地图缩放影响。
+- 人物脚步 sprite 默认和 `metersPerSecond` 联动：`walkCycleDistanceMeters / metersPerSecond` 得到一次完整走路循环的时长，并通过 `minCycleDurationMs` / `maxCycleDurationMs` 限制极端速度。
+- 如果需要固定脚步速度，可把 `syncFrameRateWithMovement` 设为 `false`，此时使用 `frameCount / fps` 作为 sprite 循环时长。
 - spot 序号 `1` 是开始点，最后一个是结束点。
 - START / END 标签固定使用英文，暂不做多语言。
 - 人物按路线方向旋转，并通过水平翻转避免头朝下。

@@ -16,9 +16,9 @@
         <span class="mt-0.5 block truncate text-sm font-medium text-[#26313a]">
           {{ selectedCity?.name || pageText.allCities }}
           <span v-if="selectedDistrict">/ {{ selectedDistrict.name }}</span>
-        </span>
-        <span v-if="selectedRoute" class="mt-0.5 block truncate text-xs font-medium text-[#2f8f83]">
-          {{ pageText.routeLabel }} / {{ selectedRoute.title }}
+          <span v-if="selectedRoute" class="text-[#2f8f83]">
+            / {{ selectedRoute.title }}
+          </span>
         </span>
       </span>
       <span
@@ -38,7 +38,11 @@
           <span class="shrink-0 text-xs font-semibold uppercase tracking-[0.15em] text-[#7c9197]">
             {{ pageText.cityLabel }}
           </span>
-          <div class="selector-scroll flex min-w-0 flex-1 gap-2 overflow-x-auto pb-1">
+          <HorizontalScrollHint
+            :active="controlsExpanded"
+            :refresh-key="selectorRefreshKey"
+            content-class="flex flex-1 gap-2"
+          >
             <button
               v-for="city in cities"
               :key="city.id"
@@ -53,7 +57,7 @@
             >
               <span class="block truncate">{{ city.name }}</span>
             </button>
-          </div>
+          </HorizontalScrollHint>
         </div>
       </div>
 
@@ -61,7 +65,11 @@
         <span class="shrink-0 text-xs font-semibold uppercase tracking-[0.15em] text-[#7c9197]">
           {{ pageText.districtLabel }}
         </span>
-        <div class="selector-scroll flex min-w-0 flex-1 gap-2 overflow-x-auto pb-1">
+        <HorizontalScrollHint
+          :active="controlsExpanded"
+          :refresh-key="selectorRefreshKey"
+          content-class="flex flex-1 gap-2"
+        >
           <button
             v-for="district in selectedCity?.districts || []"
             :key="district.id"
@@ -77,14 +85,18 @@
             <span class="truncate font-medium">{{ district.name }}</span>
             <span class="ml-2 text-xs text-[#8a9ca2]">{{ district.spotCount }}</span>
           </button>
-        </div>
+        </HorizontalScrollHint>
       </div>
 
       <div v-if="routes.length > 0" class="flex min-w-0 items-center gap-2">
         <span class="shrink-0 text-xs font-semibold uppercase tracking-[0.15em] text-[#7c9197]">
           {{ pageText.routeLabel }}
         </span>
-        <div class="selector-scroll flex min-w-0 flex-1 gap-2 overflow-x-auto pb-1">
+        <HorizontalScrollHint
+          :active="controlsExpanded"
+          :refresh-key="selectorRefreshKey"
+          content-class="flex flex-1 gap-2"
+        >
           <button
             type="button"
             class="shrink-0 rounded-lg border px-3 py-1.5 text-xs font-medium cursor-pointer transition focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-teal-100 lg:px-4 lg:py-2"
@@ -111,15 +123,16 @@
           >
             <span class="block truncate">{{ routeItem.title }}</span>
           </button>
-        </div>
+        </HorizontalScrollHint>
       </div>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
+import { computed, ref } from 'vue'
 
+import HorizontalScrollHint from '@/components/common/HorizontalScrollHint.vue'
 import type {
   PilgrimageCity,
   PilgrimageDistrict,
@@ -127,7 +140,7 @@ import type {
   PilgrimageRoute,
 } from '@/composables/miletPilgrimage'
 
-defineProps<{
+const props = defineProps<{
   pageText: PilgrimagePageText
   cities: PilgrimageCity[]
   selectedCity: PilgrimageCity | null
@@ -146,6 +159,15 @@ const emit = defineEmits<{
 }>()
 
 const controlsExpanded = ref(false)
+const selectorRefreshKey = computed(() =>
+  [
+    props.cities.length,
+    props.selectedCity?.id || '',
+    props.selectedCity?.districts.length || 0,
+    props.selectedDistrict?.id || '',
+    props.routes.length,
+  ].join('|'),
+)
 
 function isMobileViewport() {
   return typeof window !== 'undefined' && window.matchMedia('(max-width: 1023px)').matches
@@ -176,19 +198,3 @@ function selectRoute(routeId: string) {
   controlsExpanded.value = false
 }
 </script>
-
-<style scoped>
-.selector-scroll {
-  scrollbar-width: thin;
-  scrollbar-color: rgba(111, 184, 173, 0.52) transparent;
-}
-
-.selector-scroll::-webkit-scrollbar {
-  height: 6px;
-}
-
-.selector-scroll::-webkit-scrollbar-thumb {
-  border-radius: 999px;
-  background: rgba(111, 184, 173, 0.42);
-}
-</style>

@@ -41,9 +41,9 @@
               <span class="font-serif text-xl leading-tight text-[#26313a]">
                 {{ city.name }}
               </span>
-              <span class="ml-2 align-middle text-xs font-sans text-[#8a9ca2]">
+              <!-- <span class="ml-2 align-middle text-xs font-sans text-[#8a9ca2]">
                 {{ city.countryCode }}
-              </span>
+              </span> -->
               <span class="ml-3 text-xs text-[#789096]">
                 {{ copy.spotCount(citySpotCount(city)) }}
               </span>
@@ -78,7 +78,10 @@
                 </span>
               </button>
 
-              <ol v-show="openDistrictId === district.id" class="grid gap-3 border-t border-[#dbe7e4] p-3 md:grid-cols-2">
+              <ol
+                v-show="openDistrictId === district.id"
+                class="grid gap-3 border-t border-[#dbe7e4] p-3 md:grid-cols-2"
+              >
                 <li
                   v-for="(spot, index) in district.spots"
                   :id="spotAnchorId(spot.id)"
@@ -109,7 +112,10 @@
                       <span v-if="spot.workTitle">{{ copy.workLabel }}: {{ spot.workTitle }}</span>
                       <span v-if="spot.category"> / {{ spot.category }}</span>
                     </p>
-                    <p v-if="spotSummary(spot)" class="mt-1 line-clamp-2 text-xs leading-5 text-[#789096]">
+                    <p
+                      v-if="spotSummary(spot)"
+                      class="mt-1 line-clamp-2 text-xs leading-5 text-[#789096]"
+                    >
                       {{ spotSummary(spot) }}
                     </p>
                     <p class="mt-1 text-[11px] leading-5 text-[#8a9ca2]">
@@ -129,10 +135,7 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
 
-import type {
-  PilgrimageLang,
-  PilgrimageSpotSummary,
-} from '@/composables/miletPilgrimage'
+import type { PilgrimageLang, PilgrimageSpotSummary } from '@/composables/miletPilgrimage'
 import { buildStaticAssetUrl } from '@/config/api'
 
 interface SeoSpotListDistrict {
@@ -207,10 +210,7 @@ const totalSpotCount = computed(() =>
 )
 
 function citySpotCount(city: SeoSpotListCity) {
-  return city.districts.reduce(
-    (total, district) => total + district.spots.length,
-    0,
-  )
+  return city.districts.reduce((total, district) => total + district.spots.length, 0)
 }
 
 function spotAnchorId(id: string) {

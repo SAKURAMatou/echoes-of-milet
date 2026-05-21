@@ -32,16 +32,25 @@
           class="h-48 w-full object-cover"
         />
         <div class="p-4">
-          <div class="flex items-start justify-between gap-3">
+          <div>
+            <p class="text-xs font-semibold uppercase tracking-[0.16em] text-[#789096]">
+              {{ selectedSpotDetail.category }}
+            </p>
+            <h2 class="mt-1 break-words font-serif text-3xl leading-tight text-[#26313a]">
+              {{ selectedSpotDetail.title }}
+            </h2>
+          </div>
+
+          <div class="mt-4 flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
             <div class="min-w-0">
-              <p class="text-xs font-semibold uppercase tracking-[0.16em] text-[#789096]">
-                {{ selectedSpotDetail.category }}
+              <p class="text-xs font-semibold uppercase tracking-[0.14em] text-[#82939a]">
+                {{ pageText.works }}
               </p>
-              <h2 class="mt-1 break-words font-serif text-3xl leading-tight text-[#26313a]">
-                {{ selectedSpotDetail.title }}
-              </h2>
+              <p class="mt-1 break-words text-sm text-[#34444b]">
+                {{ selectedSpotDetail.workTitle }}
+              </p>
             </div>
-            <div class="flex shrink-0 flex-col gap-2 sm:flex-row">
+            <div class="flex shrink-0 flex-wrap gap-2 sm:justify-end">
               <a
                 :href="navigationUrl"
                 target="_blank"
@@ -62,13 +71,7 @@
             </div>
           </div>
 
-          <dl class="mt-4 space-y-3 text-sm">
-            <div>
-              <dt class="text-xs font-semibold uppercase tracking-[0.14em] text-[#82939a]">
-                {{ pageText.works }}
-              </dt>
-              <dd class="mt-1 text-[#34444b]">{{ selectedSpotDetail.workTitle }}</dd>
-            </div>
+          <dl class="mt-3 space-y-3 text-sm">
             <div>
               <dt class="text-xs font-semibold uppercase tracking-[0.14em] text-[#82939a]">
                 {{ pageText.address }}

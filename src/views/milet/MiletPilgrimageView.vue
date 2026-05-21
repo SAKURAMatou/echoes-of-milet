@@ -3,7 +3,7 @@
     class="pilgrimage-page overflow-hidden rounded-lg bg-[image:linear-gradient(180deg,rgba(255,255,255,0.78),rgba(247,251,249,0.86)),linear-gradient(135deg,rgba(232,248,244,0.64),rgba(255,241,242,0.52))] text-[#24323a] lg:mb-6"
   >
     <section
-      class="pilgrimage-workspace relative grid h-[calc(100svh-4rem)] min-h-[680px] grid-rows-[auto_auto_minmax(0,1fr)] overflow-hidden lg:h-[calc(100vh-7.5rem)] lg:min-h-[800px] 2xl:grid-cols-[minmax(0,1fr)_360px] 2xl:grid-rows-[auto_auto_minmax(0,1fr)] 2xl:overflow-visible"
+      class="pilgrimage-workspace relative grid min-h-0 grid-rows-[auto_auto_auto] overflow-visible lg:h-[calc(100vh-7.5rem)] lg:min-h-[800px] lg:grid-rows-[auto_auto_minmax(0,1fr)] lg:overflow-hidden 2xl:grid-cols-[minmax(0,1fr)_360px] 2xl:grid-rows-[auto_auto_minmax(0,1fr)] 2xl:overflow-visible"
     >
       <header class="border-b border-white/70 px-4 py-4 sm:px-5 lg:px-7 lg:py-5 2xl:col-span-2">
         <div class="grid gap-4">
@@ -38,21 +38,11 @@
           <span class="block text-[11px] font-semibold uppercase tracking-[0.16em] text-[#7c9197]">
             {{ pageText.currentArea }}
           </span>
-          <span class="mt-1 block truncate font-medium text-[#26313a]">
-            {{ selectedCity?.name || pageText.allCities }}
-            <span v-if="selectedDistrict">/ {{ selectedDistrict.name }}</span>
-          </span>
-          <span
-            v-if="selectedRoute"
-            class="mt-1 block truncate text-[12px] font-medium text-[#2f8f83]"
-          >
-            {{ pageText.routeLabel }} / {{ selectedRoute.title }}
-          </span>
         </div>
       </div>
 
       <div
-        class="relative min-h-0 min-w-0 overflow-hidden border-b border-white/70 2xl:col-start-1 2xl:row-start-3 2xl:border-b-0 2xl:border-r"
+        class="relative h-[72svh] max-h-[820px] min-h-[620px] min-w-0 overflow-hidden border-b border-white/70 sm:h-[74svh] sm:min-h-[680px] lg:h-auto lg:max-h-none lg:min-h-0 2xl:col-start-1 2xl:row-start-3 2xl:border-b-0 2xl:border-r"
       >
         <PilgrimageAreaControls
           :page-text="pageText"
@@ -82,7 +72,7 @@
       </div>
 
       <PilgrimageSpotDetailPanel
-        class="2xl:col-start-2 2xl:row-span-2 2xl:row-start-2"
+        class="hidden 2xl:col-start-2 2xl:row-span-2 2xl:row-start-2 2xl:block"
         :page-text="pageText"
         :selected-spot-detail="selectedSpotDetail"
         :navigation-url="navigationUrl"

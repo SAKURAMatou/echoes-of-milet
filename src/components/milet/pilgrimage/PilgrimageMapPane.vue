@@ -61,11 +61,6 @@
       >
         {{ pageText.mapLabel }} / OpenMapTiles
       </span>
-      <span
-        class="min-w-0 truncate rounded-lg border border-[#9bd0c8]/70 bg-[#f0fbf8]/88 px-3 py-2 text-[#2f6f69] shadow-[0_18px_45px_-35px_rgba(31,41,55,0.8)] backdrop-blur lg:hidden"
-      >
-        {{ pageText.dataCreditShort }}
-      </span>
     </div>
   </div>
 </template>
