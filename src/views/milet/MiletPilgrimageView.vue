@@ -62,6 +62,7 @@
           :selected-city-id="selectedCityId"
           :selected-district-id="selectedDistrictId"
           :routes="routes"
+          :selected-route="selectedRoute"
           :selected-route-id="selectedRouteId"
           @select-city="selectCity"
           @select-district="selectDistrict"

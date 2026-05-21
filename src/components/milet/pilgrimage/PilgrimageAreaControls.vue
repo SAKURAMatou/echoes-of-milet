@@ -1,10 +1,10 @@
 <template>
   <div
-    class="absolute left-3 right-3 top-3 z-30 rounded-lg border border-white/80 bg-white/88 p-2 shadow-[0_18px_54px_-42px_rgba(31,41,55,0.8)] backdrop-blur lg:left-5 lg:right-5"
+    class="absolute left-3 right-3 top-3 z-30 rounded-lg border border-white/80 bg-white/88 p-2 shadow-[0_18px_54px_-42px_rgba(31,41,55,0.8)] backdrop-blur lg:left-5 lg:right-auto lg:w-[min(48rem,calc(100%-2.5rem))]"
   >
     <button
       type="button"
-      class="flex w-full items-center justify-between gap-3 rounded-md px-2 py-1.5 text-left transition hover:bg-white/58 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-teal-100 lg:hidden"
+      class="flex w-full items-center justify-between gap-3 rounded-md px-2 py-1.5 text-left cursor-pointer transition hover:bg-white/58 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-teal-100"
       :aria-expanded="controlsExpanded"
       aria-controls="pilgrimage-area-controls-body"
       @click="toggleControls"
@@ -17,6 +17,9 @@
           {{ selectedCity?.name || pageText.allCities }}
           <span v-if="selectedDistrict">/ {{ selectedDistrict.name }}</span>
         </span>
+        <span v-if="selectedRoute" class="mt-0.5 block truncate text-xs font-medium text-[#2f8f83]">
+          {{ pageText.routeLabel }} / {{ selectedRoute.title }}
+        </span>
       </span>
       <span
         class="grid h-8 w-8 shrink-0 place-items-center rounded-lg border border-[#d8e7e4] bg-white/78 text-lg leading-none text-[#4d6971]"
@@ -27,7 +30,7 @@
 
     <div
       id="pilgrimage-area-controls-body"
-      class="mt-2 space-y-3 lg:mt-0 lg:block"
+      class="mt-2 space-y-3"
       :class="controlsExpanded ? 'block' : 'hidden'"
     >
       <div class="flex flex-col gap-3">
@@ -40,7 +43,7 @@
               v-for="city in cities"
               :key="city.id"
               type="button"
-              class="max-w-[9.5rem] shrink-0 rounded-lg border px-3 py-1.5 text-xs font-medium transition focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-teal-100 lg:max-w-[12rem] lg:px-4 lg:py-2"
+              class="max-w-[9.5rem] shrink-0 rounded-lg border px-3 py-1.5 text-xs font-medium cursor-pointer transition focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-teal-100 lg:max-w-[12rem] lg:px-4 lg:py-2"
               :class="
                 selectedCityId === city.id
                   ? 'border-[#5ca8a6] bg-[#e9f7f4] text-[#1d6564] shadow-sm'
@@ -63,7 +66,7 @@
             v-for="district in selectedCity?.districts || []"
             :key="district.id"
             type="button"
-            class="flex max-w-[11rem] shrink-0 items-center rounded-lg border px-3 py-1.5 text-xs transition focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-rose-100 lg:max-w-[14rem] lg:px-4 lg:py-2"
+            class="flex max-w-[11rem] shrink-0 items-center rounded-lg border px-3 py-1.5 text-xs cursor-pointer transition focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-rose-100 lg:max-w-[14rem] lg:px-4 lg:py-2"
             :class="
               selectedDistrictId === district.id
                 ? 'border-[#c98791] bg-[#fff1f2] text-[#8f3f4b]'
@@ -84,7 +87,7 @@
         <div class="selector-scroll flex min-w-0 flex-1 gap-2 overflow-x-auto pb-1">
           <button
             type="button"
-            class="shrink-0 rounded-lg border px-3 py-1.5 text-xs font-medium transition focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-teal-100 lg:px-4 lg:py-2"
+            class="shrink-0 rounded-lg border px-3 py-1.5 text-xs font-medium cursor-pointer transition focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-teal-100 lg:px-4 lg:py-2"
             :class="
               !selectedRouteId
                 ? 'border-[#5ca8a6] bg-[#e9f7f4] text-[#1d6564]'
@@ -132,6 +135,7 @@ defineProps<{
   selectedCityId: string
   selectedDistrictId: string
   routes: PilgrimageRoute[]
+  selectedRoute: PilgrimageRoute | null
   selectedRouteId: string
 }>()
 
@@ -169,7 +173,7 @@ function selectDistrict(districtId: string) {
 
 function selectRoute(routeId: string) {
   emit('selectRoute', routeId)
-  collapseControlsOnMobile()
+  controlsExpanded.value = false
 }
 </script>
 
