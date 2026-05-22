@@ -1,16 +1,16 @@
 <template>
   <aside
     id="pilgrimage-detail"
-    class="absolute inset-x-0 bottom-0 z-[1000] max-h-[72%] scroll-mt-[5.5rem] overflow-y-auto rounded-t-2xl border-t border-white/80 bg-[linear-gradient(180deg,rgba(255,255,255,0.94),rgba(245,250,248,0.96))] px-4 pb-5 pt-3 shadow-[0_-24px_70px_-42px_rgba(31,41,55,0.86)] transition-transform duration-300 sm:px-6 md:scroll-mt-[6.5rem] 2xl:static 2xl:z-auto 2xl:max-h-full 2xl:min-h-0 2xl:translate-y-0 2xl:overflow-y-auto 2xl:rounded-none 2xl:border-t-0 2xl:bg-[linear-gradient(180deg,rgba(255,255,255,0.72),rgba(245,250,248,0.82))] 2xl:px-5 2xl:py-5 2xl:shadow-none"
+    class="absolute inset-x-0 bottom-0 z-[1000] max-h-[72%] scroll-mt-[5.5rem] overflow-y-auto rounded-t-2xl border-t border-white/80 bg-[linear-gradient(180deg,rgba(255,255,255,0.94),rgba(245,250,248,0.96))] px-4 pb-5 pt-3 shadow-[0_-24px_70px_-42px_rgba(31,41,55,0.86)] transition-transform duration-300 sm:px-6 md:scroll-mt-[6.5rem] lg:static lg:z-auto lg:h-full lg:max-h-full lg:min-h-0 lg:translate-y-0 lg:overflow-y-auto lg:rounded-none lg:border-t-0 lg:bg-[linear-gradient(180deg,rgba(255,255,255,0.72),rgba(245,250,248,0.82))] lg:px-5 lg:py-5 lg:shadow-none"
     :class="
       selectedSpotDetail
         ? 'translate-y-0'
-        : 'pointer-events-none translate-y-[calc(100%+1rem)] 2xl:pointer-events-auto'
+        : 'hidden pointer-events-none translate-y-[calc(100%+1rem)] lg:block lg:pointer-events-auto'
     "
   >
     <div v-if="selectedSpotDetail" class="flex min-h-full flex-col">
       <div
-        class="sticky top-0 z-30 -mx-4 mb-3 flex h-10 items-center justify-center bg-[linear-gradient(180deg,rgba(255,255,255,0.98),rgba(255,255,255,0.9))] px-4 pt-1 sm:-mx-6 sm:px-6 2xl:hidden"
+        class="sticky top-0 z-30 -mx-4 mb-3 flex h-10 items-center justify-center bg-[linear-gradient(180deg,rgba(255,255,255,0.98),rgba(255,255,255,0.9))] px-4 pt-1 sm:-mx-6 sm:px-6 lg:hidden"
       >
         <span class="mx-auto h-1.5 w-12 rounded-full bg-[#c8d7d4]" aria-hidden="true" />
         <button

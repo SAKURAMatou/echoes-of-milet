@@ -3,9 +3,9 @@
     class="pilgrimage-page overflow-hidden rounded-lg bg-[image:linear-gradient(180deg,rgba(255,255,255,0.78),rgba(247,251,249,0.86)),linear-gradient(135deg,rgba(232,248,244,0.64),rgba(255,241,242,0.52))] text-[#24323a] lg:mb-6"
   >
     <section
-      class="pilgrimage-workspace relative grid min-h-0 grid-rows-[auto_auto_auto] overflow-visible lg:h-[calc(100vh-7.5rem)] lg:min-h-[800px] lg:grid-rows-[auto_auto_minmax(0,1fr)] lg:overflow-hidden 2xl:grid-cols-[minmax(0,1fr)_360px] 2xl:grid-rows-[auto_auto_minmax(0,1fr)] 2xl:overflow-visible"
+      class="pilgrimage-workspace relative grid min-h-0 grid-rows-[auto_auto_auto] overflow-visible lg:h-[calc(100vh-7.5rem)] lg:min-h-[800px] lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)] lg:grid-rows-[auto_auto_minmax(0,1fr)] lg:overflow-hidden 2xl:overflow-visible"
     >
-      <header class="border-b border-white/70 px-4 py-4 sm:px-5 lg:px-7 lg:py-5 2xl:col-span-2">
+      <header class="border-b border-white/70 px-4 py-4 sm:px-5 lg:col-span-2 lg:px-7 lg:py-5">
         <div class="grid gap-4">
           <div class="min-w-0">
             <h1 class="font-serif text-[clamp(2.4rem,4.3vw,4.1rem)] leading-none text-[#26313a]">
@@ -19,7 +19,7 @@
       </header>
 
       <div
-        class="grid gap-3 border-b border-white/70 px-4 py-3 sm:grid-cols-[minmax(0,1fr)_220px] sm:px-5 lg:px-7 2xl:col-start-1 2xl:row-start-2 2xl:grid-cols-[minmax(0,1fr)_240px]"
+        class="grid gap-3 border-b border-white/70 px-4 py-3 sm:grid-cols-[minmax(0,1fr)_220px] sm:px-5 lg:col-start-1 lg:row-start-2 lg:grid-cols-[minmax(0,1fr)_240px] lg:px-7"
       >
         <div
           class="rounded-lg border border-[#9bd0c8]/70 bg-[#f0fbf8]/88 px-3 py-2 shadow-[0_14px_34px_-30px_rgba(31,41,55,0.72)]"
@@ -42,7 +42,7 @@
       </div>
 
       <div
-        class="relative h-[72svh] max-h-[820px] min-h-[620px] min-w-0 overflow-hidden border-b border-white/70 sm:h-[74svh] sm:min-h-[680px] lg:h-auto lg:max-h-none lg:min-h-0 2xl:col-start-1 2xl:row-start-3 2xl:border-b-0 2xl:border-r"
+        class="relative h-[72svh] max-h-[820px] min-h-[620px] min-w-0 overflow-hidden border-b border-white/70 sm:h-[74svh] sm:min-h-[680px] lg:col-start-1 lg:row-start-3 lg:h-full lg:max-h-none lg:min-h-0 lg:border-b-0 lg:border-r"
       >
         <PilgrimageAreaControls
           :page-text="pageText"
@@ -72,7 +72,7 @@
       </div>
 
       <PilgrimageSpotDetailPanel
-        class="hidden 2xl:col-start-2 2xl:row-span-2 2xl:row-start-2 2xl:block"
+        class="lg:col-start-2 lg:row-span-2 lg:row-start-2"
         :page-text="pageText"
         :selected-spot-detail="selectedSpotDetail"
         :navigation-url="navigationUrl"
