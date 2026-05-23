@@ -275,3 +275,86 @@ routeAnimation: {
 5. 放大到 zoom 17 后，封面气泡出现且不会大面积重叠。
 6. 切换地区、切换路线、组件卸载时，旧路线动画被清理。
 7. SSR 构建不因 Leaflet、window、document 或计时器报错。
+
+## R2 Marker Skin Registry
+
+个性化 marker 第一版改为“R2 存图 + D1 skin 注册表 + spot 指定 skin”。公开端保留当前 `public/pilgrimage/markers/` 下的本地素材作为兜底，避免 R2 文件未上传、API 异常或图片 404 时出现空白 marker。
+
+### 数据模型
+
+Worker 侧新增 `pilgrimage_marker_skins` 表：
+
+```sql
+id TEXT PRIMARY KEY
+label TEXT NOT NULL DEFAULT ''
+image_url TEXT NOT NULL DEFAULT ''
+width INTEGER NOT NULL DEFAULT 96
+height INTEGER NOT NULL DEFAULT 96
+anchor_x INTEGER NOT NULL DEFAULT 48
+anchor_y INTEGER NOT NULL DEFAULT 94
+status TEXT NOT NULL DEFAULT 'published'
+sort_order INTEGER NOT NULL DEFAULT 0
+created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+```
+
+`pilgrimage_spots` 新增 `marker_skin_id TEXT NOT NULL DEFAULT ''`。spot 没有指定 skin 时，公开端继续使用 `spot.id || spot.title` 的稳定 hash 自动选择，保证旧数据不需要一次性补齐。
+
+### R2 路径约定
+
+marker 图片建议上传到 milet 图片 bucket，访问路径使用现有静态图片入口：
+
+```txt
+R2 key: pilgrimage/markers/pilgrimage-marker-1.webp
+Public URL: /static/milet/img/pilgrimage/markers/pilgrimage-marker-1.webp
+```
+
+`image_url` 可以存 `/static/milet/img/...` 或完整 HTTPS URL。公开端会继续通过现有静态资源 URL 处理逻辑解析。不要只在 R2 中存图片而丢失 `width / height / anchor_x / anchor_y`，这些值是 Leaflet marker 锚点计算的必要元数据。
+
+### API 约定
+
+公开端：
+
+- `/api/milet/pilgrimage/region-tree` 返回 `markerSkins`，只包含 `published` skin。
+- spot summary/detail 返回 `markerSkinId`。
+- `/api/milet/pilgrimage/districts/:districtId/spots` 同样返回 spot 的 `markerSkinId`。
+
+管理端：
+
+- `/api/admin/pilgrimage/state` 返回所有 `markerSkins`，包括 draft / archived，便于维护历史配置。
+- spot 保存 payload 接收 `marker_skin_id`。
+- 清理 marker skin 或 spot marker 相关配置后，需要清理巡礼缓存。当前第一版只做选择，不做后台上传和 skin CRUD，因此 seed/migration 更新后应手动清理缓存。
+
+### 公开端兜底策略
+
+公开端的渲染优先级：
+
+1. `spot.markerSkinId` 指定的 API skin。
+2. 未指定时，在 API 返回的 published skin 中按稳定 hash 自动选择。
+3. API 没有可用 skin 时，使用 `pilgrimageMapConfig.personalizedMarkers.skins` 中的本地素材。
+4. API skin 图片加载失败时，`img` 回退到同 id 的本地素材；如果没有同 id，则回退到本地默认 skin。
+
+因此正式上线前可以先把 D1 注册表接好，R2 文件逐步上传；未上传完成时公开端不会出现空白 marker。
+
+### 管理端选择器
+
+spot 表单中新增 marker 选择：
+
+- 默认选项为“自动选择”，保存为空字符串。
+- 其它选项来自 `markerSkins`，显示图片预览、名称和 `id`。
+- archived skin 可以在编辑旧 spot 时显示，但新选择建议优先使用 published skin。
+- 选择器只负责给 spot 保存 `marker_skin_id`；第一版不做 marker 图片上传、裁剪、透明化处理或锚点可视化编辑。
+
+### Marker Skin 管理
+
+管理端在圣地巡礼页顶部“管理操作”按钮组中提供 `Marker 管理` 入口。当前阶段支持维护 marker skin 注册表元数据：
+
+- `id`：稳定 skin id，创建后不建议修改。
+- `label`：管理端显示名。
+- `image_url`：R2 / 静态图片访问 URL。
+- `width / height`：公开端 marker 图片显示尺寸。
+- `anchor_x / anchor_y`：marker 图片自身的锚点坐标。
+- `status`：`draft` / `published` / `archived`。
+- `sort_order`：公开端未指定 skin 时稳定 hash 候选列表的排序。
+
+当前阶段不做锚点可视化编辑，也不做 marker 图片上传、裁剪、透明化处理。素材仍通过现有 R2 上传流程或脚本处理后手动填写 `image_url`。删除操作暂不提供，避免误删仍被 spot 引用的 skin；不再使用时把状态改为 `archived`。

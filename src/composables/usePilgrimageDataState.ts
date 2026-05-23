@@ -12,6 +12,7 @@ import {
   type PilgrimageCity,
   type PilgrimageDistrict,
   type PilgrimageLang,
+  type PilgrimageMarkerSkin,
   type PilgrimageRegionTreeResponse,
   type PilgrimageRoute,
   type PilgrimageSpotDetail,
@@ -46,6 +47,9 @@ export function usePilgrimageDataState(options: UsePilgrimageDataStateOptions) {
 
   const regionTree = ref<PilgrimageRegionTreeResponse>(
     initialPilgrimageData?.regionTree || fallbackRegionTree,
+  )
+  const markerSkins = ref<PilgrimageMarkerSkin[]>(
+    initialPilgrimageData?.markerSkins || initialPilgrimageData?.regionTree?.markerSkins || [],
   )
   const spotsPayload = ref<PilgrimageSpotListResponse | null>(
     initialPilgrimageData?.selectedDistrictId
@@ -211,6 +215,7 @@ export function usePilgrimageDataState(options: UsePilgrimageDataStateOptions) {
 
     return {
       regionTree: regionTree.value,
+      markerSkins: markerSkins.value,
       spotsByDistrictId,
       spotDetailsBySpotId,
       selectedCityId: selectedCityId.value,
@@ -240,6 +245,10 @@ export function usePilgrimageDataState(options: UsePilgrimageDataStateOptions) {
   async function loadRegionTree() {
     if (appState.miletPilgrimageData?.regionTree) {
       regionTree.value = appState.miletPilgrimageData.regionTree
+      markerSkins.value =
+        appState.miletPilgrimageData.markerSkins ||
+        appState.miletPilgrimageData.regionTree.markerSkins ||
+        []
       usingFallbackData.value = appState.miletPilgrimageData.usingFallbackData
       return
     }
@@ -249,6 +258,7 @@ export function usePilgrimageDataState(options: UsePilgrimageDataStateOptions) {
       const payload = unwrapPayload<PilgrimageRegionTreeResponse>(response)
       if (payload?.zh?.cities?.length || payload?.jp?.cities?.length) {
         regionTree.value = payload
+        markerSkins.value = payload.markerSkins || []
         usingFallbackData.value = false
         syncPilgrimageState()
         return
@@ -258,6 +268,7 @@ export function usePilgrimageDataState(options: UsePilgrimageDataStateOptions) {
     }
 
     regionTree.value = fallbackRegionTree
+    markerSkins.value = []
     usingFallbackData.value = true
     syncPilgrimageState()
   }
@@ -377,6 +388,7 @@ export function usePilgrimageDataState(options: UsePilgrimageDataStateOptions) {
 
   return {
     regionTree,
+    markerSkins,
     spotsPayload,
     spotsPayloadDistrictId,
     spotDetailPayload,

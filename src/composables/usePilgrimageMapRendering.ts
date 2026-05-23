@@ -3,6 +3,7 @@ import type { ComputedRef, Ref, ShallowRef } from 'vue'
 import { pilgrimageMapConfig } from '@/components/milet/pilgrimage/pilgrimageMapConfig'
 import { buildStaticAssetUrl } from '@/config/api'
 import type {
+  PilgrimageMarkerSkin,
   PilgrimageRoute,
   PilgrimageSpotDetail,
   PilgrimageSpotSummary,
@@ -12,8 +13,9 @@ type LeafletModule = typeof import('leaflet')
 type Point = { x: number; y: number }
 type LatLngTuple = [number, number]
 type SpotMarkerDisplayMode = 'full' | 'dot' | 'hidden'
-type MarkerSkin =
-  (typeof pilgrimageMapConfig.personalizedMarkers.skins)[keyof typeof pilgrimageMapConfig.personalizedMarkers.skins]
+type MarkerSkin = PilgrimageMarkerSkin & {
+  fallbackImageUrl?: string
+}
 type MarkerIconLayout = {
   iconSize: [number, number]
   iconAnchor: [number, number]
@@ -35,6 +37,7 @@ interface UsePilgrimageMapRenderingOptions {
   routeLayerRef: ShallowRef<any>
   animationLayerRef: ShallowRef<any>
   spots: ComputedRef<PilgrimageSpotSummary[]>
+  markerSkins: Ref<PilgrimageMarkerSkin[]>
   selectedSpotId: Ref<string>
   selectedSpotDetail: ComputedRef<PilgrimageSpotDetail | null>
   selectedRoute: ComputedRef<PilgrimageRoute | null>
@@ -75,12 +78,6 @@ function spotMarkerStyle(spot: PilgrimageSpotSummary) {
     `--spot-label-text:${color.labelText}`,
     `--spot-label-border:${color.labelBorder}`,
   ].join(';')
-}
-
-function resolveMarkerSkin(spot: PilgrimageSpotSummary): MarkerSkin {
-  const markerConfig = pilgrimageMapConfig.personalizedMarkers
-  const skins = Object.values(markerConfig.skins)
-  return skins[stableHash(spot.id || spot.title) % skins.length] || markerConfig.skins[markerConfig.defaultSkinId]
 }
 
 function markerTitleMetrics(title: string, layout: MarkerIconLayout) {
@@ -221,8 +218,12 @@ function buildPersonalizedMarkerHtml(options: {
   const photoBubble = options.coverImageUrl
     ? `<span class="pilgrimage-marker-photo-bubble"><span class="pilgrimage-marker-photo-frame" style="--marker-photo-image:url('${escapeMapHtml(options.coverImageUrl)}')" aria-hidden="true"></span></span>`
     : ''
+  const fallbackAttr =
+    options.skin.fallbackImageUrl && options.skin.fallbackImageUrl !== options.skin.imageUrl
+      ? ` data-fallback-src="${escapeMapHtml(options.skin.fallbackImageUrl)}" onerror="var f=this.dataset.fallbackSrc;if(f&&this.src!==f){this.dataset.fallbackSrc='';this.src=f;}"`
+      : ''
 
-  return `<button class="${classes}" style="${options.markerStyle}" type="button" aria-label="${options.escapedTitle}">${photoBubble}<span class="pilgrimage-marker-label"><span class="pilgrimage-marker-label-text">${options.escapedTitle}</span></span><span class="pilgrimage-marker-skin" aria-hidden="true"><img src="${escapeMapHtml(options.skin.imageUrl)}" alt="" loading="lazy" decoding="async" /></span>${routeOrder}${terminalLabel}</button>`
+  return `<button class="${classes}" style="${options.markerStyle}" type="button" aria-label="${options.escapedTitle}">${photoBubble}<span class="pilgrimage-marker-label"><span class="pilgrimage-marker-label-text">${options.escapedTitle}</span></span><span class="pilgrimage-marker-skin" aria-hidden="true"><img src="${escapeMapHtml(options.skin.imageUrl)}" alt="" loading="lazy" decoding="async"${fallbackAttr} /></span>${routeOrder}${terminalLabel}</button>`
 }
 
 export function usePilgrimageMapRendering(options: UsePilgrimageMapRenderingOptions) {
@@ -233,6 +234,54 @@ export function usePilgrimageMapRendering(options: UsePilgrimageMapRenderingOpti
   let activeAnimationRouteId = ''
   let currentRouteOrder: number | null = null
   let passedRouteOrders = new Set<number>()
+
+  function localMarkerSkins() {
+    return Object.values(pilgrimageMapConfig.personalizedMarkers.skins) as MarkerSkin[]
+  }
+
+  function resolveMarkerImageUrl(imageUrl: string) {
+    if (!imageUrl) return ''
+    if (imageUrl.startsWith('/pilgrimage/')) return imageUrl
+    return buildStaticAssetUrl(imageUrl)
+  }
+
+  function markerSkinFallback(id: string) {
+    const markerConfig = pilgrimageMapConfig.personalizedMarkers
+    return (
+      markerConfig.skins[id as keyof typeof markerConfig.skins] ||
+      markerConfig.skins[markerConfig.defaultSkinId]
+    )
+  }
+
+  function apiMarkerSkins() {
+    return options.markerSkins.value
+      .filter((skin) => skin.id && skin.imageUrl && skin.size?.length === 2 && skin.anchor?.length === 2)
+      .map((skin) => {
+        const fallback = markerSkinFallback(skin.id)
+        return {
+          ...skin,
+          imageUrl: resolveMarkerImageUrl(skin.imageUrl),
+          size: [Number(skin.size[0]) || 96, Number(skin.size[1]) || 96] as [number, number],
+          anchor: [Number(skin.anchor[0]) || 48, Number(skin.anchor[1]) || 94] as [number, number],
+          fallbackImageUrl: fallback.imageUrl,
+        }
+      })
+  }
+
+  function resolveMarkerSkin(spot: PilgrimageSpotSummary): MarkerSkin {
+    const markerConfig = pilgrimageMapConfig.personalizedMarkers
+    const apiSkins = apiMarkerSkins()
+    const specifiedSkin = spot.markerSkinId
+      ? apiSkins.find((skin) => skin.id === spot.markerSkinId)
+      : null
+    if (specifiedSkin) return specifiedSkin
+
+    const skins = apiSkins.length > 0 ? apiSkins : localMarkerSkins()
+    return (
+      skins[stableHash(spot.id || spot.title) % skins.length] ||
+      markerConfig.skins[markerConfig.defaultSkinId]
+    )
+  }
 
   function getSpotMarkerTitle(spot: PilgrimageSpotSummary) {
     return options.selectedSpotDetail.value?.id === spot.id

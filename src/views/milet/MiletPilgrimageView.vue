@@ -142,6 +142,7 @@ const currentLang = computed(() => normalizePilgrimageLang(String(route.params.l
 const pageText = computed(() => PILGRIMAGE_TEXT[currentLang.value])
 const {
   regionTree,
+  markerSkins,
   spotsPayload,
   spotsPayloadDistrictId,
   spotDetailPayload,
@@ -180,6 +181,7 @@ const { renderMarkers, renderRoutes, startRouteAnimation, stopRouteAnimation } =
     routeLayerRef,
     animationLayerRef,
     spots,
+    markerSkins,
     selectedSpotId,
     selectedSpotDetail,
     selectedRoute,

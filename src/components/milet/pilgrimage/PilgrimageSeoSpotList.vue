@@ -136,6 +136,7 @@
 import { computed, ref } from 'vue'
 
 import type { PilgrimageLang, PilgrimageSpotSummary } from '@/composables/miletPilgrimage'
+import { PILGRIMAGE_SEO_LIST_TEXT } from '@/composables/miletPilgrimage'
 import { buildStaticAssetUrl } from '@/config/api'
 
 interface SeoSpotListDistrict {
@@ -160,27 +161,13 @@ const listOpen = ref(false)
 const openCityId = ref('')
 const openDistrictId = ref('')
 
-const copy = computed(() =>
-  props.lang === 'jp'
-    ? {
-        summary: 'milet 聖地巡礼 spot 一覧',
-        intro:
-          '公開されている milet 聖地巡礼 spot を都市、エリア、作品やカテゴリごとに確認できる一覧です。地図上のマーカーと同じ地点を収録し、写真、座標、ナビ、場所の説明へつながる巡礼データとして整理しています。',
-        workLabel: '作品',
-        coordinateLabel: '座標',
-        cityCount: (count: number) => `${count} 都市`,
-        spotCount: (count: number) => `${count} spots`,
-      }
-    : {
-        summary: '全部 milet 圣地巡礼 spot 列表',
-        intro:
-          '这里按城市和区划列出已经公开的 milet 圣地巡礼 spot，和地图上的标记保持一致。每个地点会尽量关联作品或事件线索、分类、封面照片和坐标信息，方便检索 milet 圣地巡礼、milet MV 拍摄地、街景地点、活动相关地点和可实际导航的巡礼路线。',
-        workLabel: '作品',
-        coordinateLabel: '坐标',
-        cityCount: (count: number) => `${count} 个城市`,
-        spotCount: (count: number) => `${count} 个 spot`,
-      },
-)
+const copy = computed(() => {
+  return {
+    ...PILGRIMAGE_SEO_LIST_TEXT[props.lang],
+    cityCount: (count: number) => `${count} ${PILGRIMAGE_SEO_LIST_TEXT[props.lang].cityLabel}`,
+    spotCount: (count: number) => `${count} spots`,
+  }
+})
 
 function toggleList() {
   listOpen.value = !listOpen.value

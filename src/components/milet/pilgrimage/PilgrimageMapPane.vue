@@ -43,14 +43,14 @@
 
     <div
       v-if="!selectedDistrict"
-      class="absolute left-5 top-28 z-10 max-w-xs rounded-lg border border-white/80 bg-white/80 p-4 text-sm text-[#60717a] shadow-[0_20px_54px_-38px_rgba(31,41,55,0.75)] backdrop-blur lg:top-40"
+      class="absolute left-10 top-28 z-10 max-w-xs rounded-lg border border-white/80 bg-white/80 p-4 text-sm text-[#60717a] shadow-[0_20px_54px_-38px_rgba(31,41,55,0.75)] backdrop-blur"
     >
       {{ pageText.emptyDistrict }}
     </div>
 
     <div
       v-if="selectedDistrict && spotsCount === 0 && !spotsLoading"
-      class="absolute left-5 top-28 z-10 max-w-xs rounded-lg border border-white/80 bg-white/80 p-4 text-sm text-[#60717a] shadow-[0_20px_54px_-38px_rgba(31,41,55,0.75)] backdrop-blur lg:top-40"
+      class="absolute left-10 top-20 z-10 max-w-xs rounded-lg border border-white/80 bg-white/80 p-4 text-sm text-[#60717a] shadow-[0_20px_54px_-38px_rgba(31,41,55,0.75)] backdrop-blur"
     >
       {{ pageText.emptySpot }}
     </div>

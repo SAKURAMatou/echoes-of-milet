@@ -40,6 +40,7 @@ export interface PilgrimageSpotSummary {
   displayLat: number
   displayLng: number
   coverImageUrl: string
+  markerSkinId?: string
   category: string
   tags: string[]
 }
@@ -82,9 +83,20 @@ export interface LocalizedSpotDetail {
   spot: PilgrimageSpotDetail | null
 }
 
+export interface PilgrimageMarkerSkin {
+  id: string
+  label?: string
+  imageUrl: string
+  size: [number, number]
+  anchor: [number, number]
+  status?: 'draft' | 'published' | 'archived'
+  sortOrder?: number
+}
+
 export interface PilgrimageRegionTreeResponse {
   jp: LocalizedRegionTree
   zh: LocalizedRegionTree
+  markerSkins?: PilgrimageMarkerSkin[]
 }
 
 export interface PilgrimageSpotListResponse {
@@ -99,6 +111,7 @@ export interface PilgrimageSpotDetailResponse {
 
 export interface PilgrimageSsrPayload {
   regionTree: PilgrimageRegionTreeResponse | null
+  markerSkins: PilgrimageMarkerSkin[]
   spotsByDistrictId: Record<string, PilgrimageSpotListResponse>
   spotDetailsBySpotId: Record<string, PilgrimageSpotDetailResponse>
   selectedCityId: string
@@ -128,16 +141,42 @@ export interface PilgrimagePageText {
   works: string
   dataCreditLabel: string
   dataCredit: string
-  dataCreditShort: string
+  // dataCreditShort: string
+}
+export interface PilgrimagePageSeoListText {
+  summary: string
+  intro: string
+  workLabel: string
+  coordinateLabel: string
+  cityLabel: string
+}
+
+export const PILGRIMAGE_SEO_LIST_TEXT: Record<PilgrimageLang, PilgrimagePageSeoListText> = {
+  zh: {
+    summary: 'milet 聖地巡礼地点一覧',
+    intro:
+      '这里列出全部已经公开的 milet 圣地巡礼 spot，和地图上的标记保持一致。每个地点会尽量关联作品或事件线索、分类、封面照片和坐标信息，方便检索 milet 圣地巡礼、milet MV 拍摄地、街景地点、活动相关地点和可实际导航的巡礼路线。',
+    workLabel: '相关作品',
+    coordinateLabel: '坐标',
+    cityLabel: '所在城市地区',
+  },
+  jp: {
+    summary: 'milet 聖地巡礼 spot 一覧',
+    intro:
+      '公開されている milet 聖地巡礼 spot を都市、エリア、作品やカテゴリごとに確認できる一覧です。地図上のマーカーと同じ地点を収録し、写真、座標、ナビ、場所の説明へつながる巡礼データとして整理しています。',
+    workLabel: '関連作品',
+    coordinateLabel: '座標',
+    cityLabel: '所在都市エリア',
+  },
 }
 
 export const PILGRIMAGE_TEXT: Record<PilgrimageLang, PilgrimagePageText> = {
   zh: {
     title: 'milet 圣地巡礼地图',
     subtitle:
-      '由miles整理的 milet 圣地巡礼地图，收录多个城市中与 milet 作品、MV 拍摄地、公开影像、街景和活动记录相关的巡礼地点。可以按城市、区划和路线查看 spot、照片、坐标、导航与地点说明，把散落的街角、车站和现场记忆整理成可实际行走的 milet 圣地巡礼路线。',
-    cityLabel: '城市',
-    districtLabel: '区划',
+      '由 miles 整理的 milet 圣地巡礼地图，记录着散落在不同城市里的作品场景、MV 拍摄地、公开影像与活动相关地点。以区域与路线的方式重新串联这些 地点，可跟随不同城市中的巡礼动线，查看照片、坐标、导航与地点记录，把原本零散存在于画面中的街道、车站与现场余韵，整理成能够一步步实际走访的 milet 圣地巡礼地图。',
+    cityLabel: '巡礼区域',
+    districtLabel: '线路区域',
     routeLabel: '路线',
     allRoutes: '全部',
     allCities: '全部城市',
@@ -154,17 +193,16 @@ export const PILGRIMAGE_TEXT: Record<PilgrimageLang, PilgrimagePageText> = {
     works: '作品',
     dataCreditLabel: 'Special thanks',
     dataCredit: '感谢提供巡礼数据的 miles 的支持(Affogato)，让这些地点可以被整理、确认并继续补完。',
-    dataCreditShort: '感谢 miles (Affogato)提供巡礼数据',
   },
   jp: {
     title: 'milet 聖地巡礼マップ',
     subtitle:
-      'milesが整理する milet 聖地巡礼マップです。milet の作品、MV ロケ地、公開された映像、街並み、イベント記録に関係する聖地巡礼スポットを複数の都市から収録しています。都市、エリア、ルートごとに spot、写真、座標、ナビ、場所の説明を確認し、街角や駅、現地の記憶を実際に辿れる巡礼ルートとしてまとめています。',
-    cityLabel: '都市',
-    districtLabel: 'エリア',
+      'miles によって整理・記録されている milet 聖地巡礼マップ。作品の舞台、MV 撮影地、公開映像、街並みや活動にまつわる場所など、さまざまな都市に点在する spot を収録しています。マップはエリアと巡礼ルートを軸に構成されており、都市ごとの空気を辿りながら、写真・座標・ナビゲーション・地点メモをたどることができます。映像の中に散りばめられていた街角や駅、ライブの余韻までも、実際に歩いて巡れるひとつの巡礼体験として繋ぎ直しています。',
+    cityLabel: '巡礼エリア',
+    districtLabel: 'ルートエリア',
     routeLabel: 'ルート',
     allRoutes: 'すべて',
-    allCities: 'すべての都市',
+    allCities: 'すべて',
     mapLabel: '地図',
     detailLabel: 'スポット詳細',
     loading: '読み込み中...',
@@ -179,7 +217,6 @@ export const PILGRIMAGE_TEXT: Record<PilgrimageLang, PilgrimagePageText> = {
     dataCreditLabel: 'Special thanks',
     dataCredit:
       '巡礼データを提供してくれた miles の皆さん(Affogato)に感謝します。地点の整理と確認を続ける支えになっています。',
-    dataCreditShort: 'miles (Affogato)の巡礼データ提供に感謝',
   },
 }
 
