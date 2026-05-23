@@ -26,6 +26,7 @@ type MarkerIconLayout = {
   markerTop: number
   markerLeft: number
   markerPointerX: number
+  markerPointerY: number
   photoWidth: number
   photoHeight: number
 }
@@ -88,6 +89,28 @@ function markerTitleMetrics(title: string, layout: MarkerIconLayout) {
   const fontSize = Math.max(9, Math.min(12, 11.5 / Math.max(1, overflowRatio * 0.9)))
   return { fontSize, lineHeight: 1.08, maxLines }
 }
+/**
+ * marker皮肤位置布局计算，
+ * 管理端选定的锚点位置可能和实际效果在x轴有12的偏差，可能是管理端的预览图大小导致的
+ * @param skin
+ * @param labelWidth
+ * @param photoWidth
+ * @returns
+ */
+function horizontalAnchorLayout(skin: MarkerSkin, labelWidth: number, photoWidth = 0) {
+  const skinArchorx = skin.anchor[0] - 12
+  const anchorX = Math.max(0, Math.min(skin.size[0], skinArchorx))
+  const leftExtent = Math.max(anchorX, labelWidth / 2, photoWidth / 2)
+  const rightExtent = Math.max(skin.size[0] - anchorX, labelWidth / 2, photoWidth / 2)
+  const markerPointerX = Math.round(leftExtent)
+
+  return {
+    iconWidth: Math.ceil(leftExtent + rightExtent),
+    markerLeft: Math.round(markerPointerX - anchorX),
+    labelLeft: Math.round(markerPointerX - labelWidth / 2),
+    markerPointerX,
+  }
+}
 
 function personalizedMarkerStyle(
   spot: PilgrimageSpotSummary,
@@ -105,6 +128,7 @@ function personalizedMarkerStyle(
     `--marker-top:${layout.markerTop}px`,
     `--marker-left:${layout.markerLeft}px`,
     `--marker-pointer-x:${layout.markerPointerX}px`,
+    `--marker-pointer-y:${layout.markerPointerY}px`,
     `--marker-label-top:${layout.labelTop}px`,
     `--marker-label-left:${layout.labelLeft}px`,
     `--marker-label-width:${layout.labelWidth}px`,
@@ -127,23 +151,19 @@ function personalizedMarkerLayout(
   const labelGap = mobile ? 3 : 4
 
   if (!showPhotoBubble) {
-    const iconWidth = Math.max(skin.size[0], labelWidth)
     const markerTop = labelHeight + labelGap
-    const markerLeft = Math.round((iconWidth - skin.size[0]) / 2)
-    const labelLeft = Math.round((iconWidth - labelWidth) / 2)
+    const horizontalLayout = horizontalAnchorLayout(skin, labelWidth)
     return {
-      iconSize: [iconWidth, markerTop + skin.size[1]] as [number, number],
-      iconAnchor: [markerLeft + skin.anchor[0], markerTop + skin.anchor[1]] as [
-        number,
-        number,
-      ],
+      iconSize: [horizontalLayout.iconWidth, markerTop + skin.size[1]] as [number, number],
+      iconAnchor: [horizontalLayout.markerPointerX, markerTop + skin.anchor[1]] as [number, number],
       labelTop: 0,
-      labelLeft,
+      labelLeft: horizontalLayout.labelLeft,
       labelWidth,
       labelHeight,
       markerTop,
-      markerLeft,
-      markerPointerX: markerLeft + skin.anchor[0],
+      markerLeft: horizontalLayout.markerLeft,
+      markerPointerX: horizontalLayout.markerPointerX,
+      markerPointerY: markerTop + skin.anchor[1],
       photoWidth: 0,
       photoHeight: 0,
     }
@@ -153,25 +173,21 @@ function personalizedMarkerLayout(
     ? pilgrimageMapConfig.photoBubble.mobile
     : pilgrimageMapConfig.photoBubble.desktop
   const bubbleGap = mobile ? 8 : 9
-  const iconWidth = Math.max(bubbleConfig.bubbleSize[0], labelWidth, skin.size[0])
   const labelTop = bubbleConfig.bubbleSize[1] + bubbleGap
   const markerTop = labelTop + labelHeight + labelGap
-  const markerLeft = Math.round((iconWidth - skin.size[0]) / 2)
-  const labelLeft = Math.round((iconWidth - labelWidth) / 2)
+  const horizontalLayout = horizontalAnchorLayout(skin, labelWidth, bubbleConfig.bubbleSize[0])
 
   return {
-    iconSize: [iconWidth, markerTop + skin.size[1]] as [number, number],
-    iconAnchor: [markerLeft + skin.anchor[0], markerTop + skin.anchor[1]] as [
-      number,
-      number,
-    ],
+    iconSize: [horizontalLayout.iconWidth, markerTop + skin.size[1]] as [number, number],
+    iconAnchor: [horizontalLayout.markerPointerX, markerTop + skin.anchor[1]] as [number, number],
     labelTop,
-    labelLeft,
+    labelLeft: horizontalLayout.labelLeft,
     labelWidth,
     labelHeight,
     markerTop,
-    markerLeft,
-    markerPointerX: markerLeft + skin.anchor[0],
+    markerLeft: horizontalLayout.markerLeft,
+    markerPointerX: horizontalLayout.markerPointerX,
+    markerPointerY: markerTop + skin.anchor[1],
     photoWidth: bubbleConfig.bubbleSize[0],
     photoHeight: bubbleConfig.bubbleSize[1],
   }
@@ -231,6 +247,7 @@ export function usePilgrimageMapRendering(options: UsePilgrimageMapRenderingOpti
   let replayTimer = 0
   let animationToken = 0
   let actorMarker: any = null
+  let actorElement: HTMLElement | null = null
   let activeAnimationRouteId = ''
   let currentRouteOrder: number | null = null
   let passedRouteOrders = new Set<number>()
@@ -255,7 +272,9 @@ export function usePilgrimageMapRendering(options: UsePilgrimageMapRenderingOpti
 
   function apiMarkerSkins() {
     return options.markerSkins.value
-      .filter((skin) => skin.id && skin.imageUrl && skin.size?.length === 2 && skin.anchor?.length === 2)
+      .filter(
+        (skin) => skin.id && skin.imageUrl && skin.size?.length === 2 && skin.anchor?.length === 2,
+      )
       .map((skin) => {
         const fallback = markerSkinFallback(skin.id)
         return {
@@ -524,10 +543,7 @@ export function usePilgrimageMapRendering(options: UsePilgrimageMapRenderingOpti
     points.slice(0, -1).forEach((point, index) => {
       const nextPoint = points[index + 1]
       if (!nextPoint) return
-      const midPoint: LatLngTuple = [
-        (point[0] + nextPoint[0]) / 2,
-        (point[1] + nextPoint[1]) / 2,
-      ]
+      const midPoint: LatLngTuple = [(point[0] + nextPoint[0]) / 2, (point[1] + nextPoint[1]) / 2]
       const from = map.latLngToLayerPoint(point)
       const to = map.latLngToLayerPoint(nextPoint)
       const angle = Math.atan2(to.y - from.y, to.x - from.x) * (180 / Math.PI)
@@ -577,10 +593,13 @@ export function usePilgrimageMapRendering(options: UsePilgrimageMapRenderingOpti
   }
 
   function setActorAngle(angle: number) {
-    const actor = actorMarker?.getElement?.()?.querySelector?.('.pilgrimage-route-actor') as
-      | HTMLElement
-      | null
+    const actor =
+      actorElement ||
+      (actorMarker
+        ?.getElement?.()
+        ?.querySelector?.('.pilgrimage-route-actor') as HTMLElement | null)
     if (!actor) return
+    actorElement = actor
     const transform = pilgrimageMapConfig.routeAnimation.actor.rotateWithRoute
       ? routeActorTransform(angle)
       : { angle: 0, scaleX: 1 }
@@ -614,6 +633,7 @@ export function usePilgrimageMapRendering(options: UsePilgrimageMapRenderingOpti
       return {
         from,
         to,
+        angle: routeSegmentAngle(from, to),
         duration: distance / metersPerMs,
         startedAt: 0,
       }
@@ -645,6 +665,7 @@ export function usePilgrimageMapRendering(options: UsePilgrimageMapRenderingOpti
       options.animationLayerRef.value.removeLayer(actorMarker)
     }
     actorMarker = null
+    actorElement = null
   }
 
   function stopRouteAnimation(renderAfterStop = true) {
@@ -685,37 +706,43 @@ export function usePilgrimageMapRendering(options: UsePilgrimageMapRenderingOpti
     const actor = pilgrimageMapConfig.routeAnimation.actor
     const timeline = routeAnimationTimeline(points)
     const totalDuration = timeline.totalDuration
+    const firstSegmentAngle = timeline.segments[0]?.angle ?? routeSegmentAngle(points[0], points[1])
 
     actorMarker = L.marker(points[0], {
       interactive: false,
       zIndexOffset: 1200,
       icon: L.divIcon({
         className: '',
-        html: actorIconHtml(routeSegmentAngle(points[0], points[1])),
+        html: actorIconHtml(firstSegmentAngle),
         iconSize: actor.frameSize,
         iconAnchor: actor.anchor,
       }),
     }).addTo(animationLayer)
+    actorElement = actorMarker
+      ?.getElement?.()
+      ?.querySelector?.('.pilgrimage-route-actor') as HTMLElement | null
 
     const playCycle = () => {
-      if (token !== animationToken || options.selectedRoute.value?.id !== activeAnimationRouteId) return
+      if (token !== animationToken || options.selectedRoute.value?.id !== activeAnimationRouteId)
+        return
       const startedAt = window.performance.now()
+      let segmentIndex = 0
+      let lastAngleSegmentIndex = -1
+      actorMarker?.setLatLng(points[0])
+      setActorAngle(firstSegmentAngle)
       updateRouteAnimationState(1, new Set([1]))
 
       const tick = (now: number) => {
-        if (token !== animationToken || options.selectedRoute.value?.id !== activeAnimationRouteId) return
+        if (token !== animationToken || options.selectedRoute.value?.id !== activeAnimationRouteId)
+          return
 
         const elapsed = totalDuration > 0 ? Math.min(now - startedAt, totalDuration) : 0
-        const segmentIndex = Math.min(
-          timeline.segments.length - 1,
-          Math.max(
-            0,
-            timeline.segments.findIndex((segment, index) => {
-              const nextSegment = timeline.segments[index + 1]
-              return !nextSegment || elapsed < nextSegment.startedAt
-            }),
-          ),
-        )
+        while (
+          segmentIndex < timeline.segments.length - 1 &&
+          elapsed >= timeline.segments[segmentIndex + 1].startedAt
+        ) {
+          segmentIndex += 1
+        }
         const segment = timeline.segments[segmentIndex]
         const segmentElapsed = elapsed - segment.startedAt
         const segmentProgress =
@@ -738,7 +765,10 @@ export function usePilgrimageMapRendering(options: UsePilgrimageMapRenderingOpti
         }
 
         actorMarker?.setLatLng(nextPosition)
-        setActorAngle(routeSegmentAngle(from, to))
+        if (segmentIndex !== lastAngleSegmentIndex) {
+          setActorAngle(segment.angle)
+          lastAngleSegmentIndex = segmentIndex
+        }
         updateRouteAnimationState(currentOrder, passed)
 
         if (elapsed >= totalDuration) {

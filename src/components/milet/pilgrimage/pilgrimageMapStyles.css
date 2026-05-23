@@ -86,7 +86,7 @@
 .pilgrimage-marker--personalized {
   height: var(--marker-icon-height, var(--marker-height, 84px));
   width: var(--marker-icon-width, var(--marker-width, 44px));
-  transform-origin: 50% 94%;
+  transform-origin: var(--marker-pointer-x, 50%) var(--marker-pointer-y, 94%);
 }
 
 .pilgrimage-marker--personalized.is-photo-visible {
@@ -97,17 +97,17 @@
 .pilgrimage-marker--personalized:hover,
 .pilgrimage-marker--personalized.is-active,
 .pilgrimage-marker--personalized.is-route-current {
-  transform: translateY(-3px) scale(1.04);
+  transform: scale(1.04);
   filter: drop-shadow(0 18px 22px rgba(31, 41, 55, 0.22));
 }
 
 .pilgrimage-marker--personalized.is-route-current::before {
   position: absolute;
-  left: 50%;
-  bottom: 3px;
+  left: var(--marker-pointer-x, 50%);
+  top: var(--marker-pointer-y, 94%);
   height: 22px;
   width: 22px;
-  transform: translateX(-50%);
+  transform: translate(-50%, -50%);
   border-radius: 999px;
   background: var(--spot-soft, rgba(47, 143, 131, 0.22));
   animation: pilgrimage-route-current-pulse 1.1s ease-out infinite;
@@ -172,8 +172,8 @@
 
 .pilgrimage-route-order {
   position: absolute;
-  left: calc(var(--marker-left, 0px) + var(--marker-width, 44px) - 16px);
-  top: calc(var(--marker-top, 0px) + 24px);
+  left: calc(var(--marker-pointer-x, 50%) + 12px);
+  top: calc(var(--marker-pointer-y, 94%) - 42px);
   z-index: 2;
   display: grid;
   height: 16px;
