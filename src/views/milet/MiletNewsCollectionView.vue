@@ -1,5 +1,7 @@
 <template>
-  <section class="news-collection mx-auto w-full max-w-5xl px-4 py-8 sm:px-6 sm:py-10">
+  <section
+    class="news-collection mx-auto min-h-[calc(100svh-5rem)] w-full max-w-5xl rounded-lg bg-[linear-gradient(to_bottom_right,white,#ebf8ff,#bee3f8)] px-4 py-8 backdrop-blur-xl sm:px-6 sm:py-10"
+  >
     <header class="mb-8 border-b border-sky-100/80 pb-6">
       <p class="font-['Montserrat','sans-serif'] text-[12px] font-medium uppercase tracking-[.18em] text-sky-700/70">
         milet news

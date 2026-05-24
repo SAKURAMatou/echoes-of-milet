@@ -1,5 +1,8 @@
 <template>
-  <section ref="wrapEl" class="relative mx-auto max-w-5xl px-4 py-10">
+  <section
+    ref="wrapEl"
+    class="relative mx-auto min-h-[calc(100svh-5rem)] max-w-5xl rounded-lg bg-[linear-gradient(to_bottom_right,white,#ebf8ff,#bee3f8)] px-4 py-10 backdrop-blur-xl"
+  >
     <!-- 中轴线：桌面居中；手机靠左 -->
     <div class="pointer-events-none absolute top-5 h-full w-2" :class="axisPosClass">
       <!-- 虚线底线（蓝色） -->

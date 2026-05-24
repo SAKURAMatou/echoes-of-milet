@@ -201,8 +201,28 @@ function onSubmenuClick(event: MouseEvent, href?: string) {
     return
   }
 
+  window.setTimeout(() => {
+    scrollToAnchorTarget(target, href)
+  }, 0)
+}
+
+function getScrollablePageContainer() {
   const scrollContainer = document.querySelector<HTMLElement>('[data-page-scroll-container]')
+
+  if (!scrollContainer) {
+    return null
+  }
+
+  const style = window.getComputedStyle(scrollContainer)
+  const canScroll = scrollContainer.scrollHeight - scrollContainer.clientHeight > 1
+  const hasScrollOverflow = style.overflowY === 'auto' || style.overflowY === 'scroll'
+
+  return canScroll && hasScrollOverflow ? scrollContainer : null
+}
+
+function scrollToAnchorTarget(target: HTMLElement, href: string) {
   const scrollMarginTop = Number.parseFloat(window.getComputedStyle(target).scrollMarginTop) || 0
+  const scrollContainer = getScrollablePageContainer()
 
   if (scrollContainer) {
     const containerTop = scrollContainer.getBoundingClientRect().top

@@ -1,5 +1,7 @@
 <template>
-  <div class="mx-4">
+  <div
+    class="mx-4 min-h-[calc(100svh-5rem)] rounded-lg bg-[linear-gradient(to_bottom_right,white,#ebf8ff,#bee3f8)] py-1 backdrop-blur-xl"
+  >
     <div id="chapter-albums">
       <ReleaseSection
         :title="pageText.title.album"
