@@ -166,7 +166,7 @@ export const pilgrimageMapConfig = {
   },
   photoBubble: {
     desktop: {
-      minZoom: 18,
+      minZoom: 16,
       collisionGap: {
         x: 150,
         y: 126,
@@ -174,7 +174,7 @@ export const pilgrimageMapConfig = {
       bubbleSize: [142, 120] as [number, number],
     },
     mobile: {
-      minZoom: 18,
+      minZoom: 16,
       collisionGap: {
         x: 122,
         y: 104,
