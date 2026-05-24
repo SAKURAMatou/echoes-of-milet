@@ -22,7 +22,7 @@
         <!-- 右侧内容区域：占据剩余区域，保证滚动条在页面最右侧 -->
         <div
           data-page-scroll-container
-          class="min-w-0 flex-1 overflow-x-clip md:min-h-0 md:overflow-x-hidden md:overflow-y-auto"
+          class="min-w-0 flex-1 scroll-pt-6 overflow-x-clip md:min-h-0 md:scroll-pt-12 md:overflow-x-hidden md:overflow-y-auto"
         >
           <div class="mx-auto w-full max-w-[1500px] md:px-8 lg:px-12 xl:px-16">
             <main

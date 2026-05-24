@@ -91,6 +91,7 @@
               :href="ch.href || '#'"
               class="font-['Montserrat','sans-serif'] inline-flex h-7 items-center rounded-full border bg-white/90 px-3 text-xs text-slate-700 shadow-[0_1px_0_rgba(255,255,255,.7)_inset] transition hover:-translate-y-0.5 hover:shadow-sm focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-offset-2 focus-visible:ring-offset-white"
               :class="[getColor(item.color).chip, getColor(item.color).focus]"
+              @click="onSubmenuClick($event, ch.href)"
             >
               {{ ch.label }}
             </a>
@@ -182,6 +183,52 @@ const emit = defineEmits(['closeMenuItem'])
 
 function onMenuItemClick() {
   emit('closeMenuItem')
+}
+
+function onSubmenuClick(event: MouseEvent, href?: string) {
+  if (!href?.startsWith('#') || href.length <= 1) {
+    emit('closeMenuItem')
+    return
+  }
+
+  event.preventDefault()
+  emit('closeMenuItem')
+
+  const targetId = decodeURIComponent(href.slice(1))
+  const target = document.getElementById(targetId)
+
+  if (!target) {
+    return
+  }
+
+  const scrollContainer = document.querySelector<HTMLElement>('[data-page-scroll-container]')
+  const scrollMarginTop = Number.parseFloat(window.getComputedStyle(target).scrollMarginTop) || 0
+
+  if (scrollContainer) {
+    const containerTop = scrollContainer.getBoundingClientRect().top
+    const targetTop = target.getBoundingClientRect().top
+    const nextTop = targetTop - containerTop + scrollContainer.scrollTop - scrollMarginTop
+
+    scrollContainer.scrollTo({
+      top: Math.max(0, nextTop),
+      left: 0,
+      behavior: 'smooth',
+    })
+  } else {
+    const headerHeight = document.querySelector('header')?.getBoundingClientRect().height || 0
+    const fallbackOffset = Math.max(scrollMarginTop, headerHeight + 12)
+    const nextTop = target.getBoundingClientRect().top + window.scrollY - fallbackOffset
+
+    window.scrollTo({
+      top: Math.max(0, nextTop),
+      left: 0,
+      behavior: 'smooth',
+    })
+  }
+
+  if (window.location.hash !== href) {
+    window.history.pushState(null, '', `${window.location.pathname}${window.location.search}${href}`)
+  }
 }
 </script>
 <style scoped>
