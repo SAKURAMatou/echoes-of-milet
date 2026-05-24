@@ -308,6 +308,17 @@ export function usePilgrimageMapRendering(options: UsePilgrimageMapRenderingOpti
       : spot.title
   }
 
+  function preventMarkerMouseFocus(marker: any) {
+    const markerElement = marker.getElement?.() as HTMLElement | null
+    markerElement
+      ?.querySelectorAll<HTMLButtonElement>('button.pilgrimage-marker')
+      .forEach((button) => {
+        button.addEventListener('mousedown', (event) => {
+          event.preventDefault()
+        })
+      })
+  }
+
   function spotMarkerCollisionPoint(spot: PilgrimageSpotSummary) {
     const map = options.mapRef.value
     if (!map) return null
@@ -428,7 +439,11 @@ export function usePilgrimageMapRendering(options: UsePilgrimageMapRenderingOpti
     const markerLayer = options.markerLayerRef.value
     if (!L || !markerLayer) return
 
-    markerLayer.clearLayers()
+    const previousLayers =
+      typeof markerLayer.getLayers === 'function' ? markerLayer.getLayers() : null
+    if (!previousLayers) {
+      markerLayer.clearLayers()
+    }
 
     const occupiedMarkerPoints: Point[] = []
     const occupiedPhotoPoints: Point[] = []
@@ -507,6 +522,11 @@ export function usePilgrimageMapRendering(options: UsePilgrimageMapRenderingOpti
         marker.setZIndexOffset(360)
       }
       marker.addTo(markerLayer)
+      preventMarkerMouseFocus(marker)
+    })
+
+    previousLayers?.forEach((layer: unknown) => {
+      markerLayer.removeLayer(layer)
     })
   }
 
@@ -532,10 +552,18 @@ export function usePilgrimageMapRendering(options: UsePilgrimageMapRenderingOpti
     const points = routePoints(routeItem)
 
     if (points.length < 2) return
+    const routeStyle = pilgrimageMapConfig.routeLine
     L.polyline(points, {
-      color: routeItem.color || '#2f8f83',
+      color: routeStyle.haloColor,
+      weight: 9,
+      opacity: 0.66,
+      lineCap: 'round',
+      lineJoin: 'round',
+    }).addTo(routeLayer)
+    L.polyline(points, {
+      color: routeStyle.color || routeItem.color || '#5f9dcb',
       weight: 5,
-      opacity: 0.78,
+      opacity: 0.82,
       lineCap: 'round',
       lineJoin: 'round',
     }).addTo(routeLayer)
@@ -551,7 +579,7 @@ export function usePilgrimageMapRendering(options: UsePilgrimageMapRenderingOpti
         interactive: false,
         icon: L.divIcon({
           className: '',
-          html: `<span class="pilgrimage-route-arrow" style="--route-color:${routeItem.color || '#2f8f83'}; transform: rotate(${angle}deg)">&#10148;</span>`,
+          html: `<span class="pilgrimage-route-arrow" style="--route-color:${routeStyle.arrowColor || routeStyle.color}; transform: rotate(${angle}deg)">&#10148;</span>`,
           iconSize: [28, 28],
           iconAnchor: [14, 14],
         }),

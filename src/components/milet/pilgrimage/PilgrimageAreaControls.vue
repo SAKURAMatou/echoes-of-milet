@@ -1,6 +1,6 @@
 <template>
   <div
-    class="absolute left-3 right-3 top-3 z-30 rounded-lg border border-white/80 bg-white/88 p-2 shadow-[0_18px_54px_-42px_rgba(31,41,55,0.8)] backdrop-blur lg:left-5 lg:right-auto lg:w-[min(48rem,calc(100%-2.5rem))]"
+    class="pilgrimage-area-controls absolute left-3 right-3 top-1 z-30 rounded-lg border border-[#d2e5ef]/90 bg-white/72 p-2 shadow-[0_18px_54px_-42px_rgba(58,91,119,0.72)] backdrop-blur lg:left-5 lg:right-auto lg:w-[min(48rem,calc(100%-2.5rem))]"
   >
     <button
       type="button"
@@ -16,15 +16,13 @@
         <span class="mt-0.5 block truncate text-sm font-medium text-[#26313a]">
           {{ selectedCity?.name || pageText.allCities }}
           <span v-if="selectedDistrict">/ {{ selectedDistrict.name }}</span>
-          <span v-if="selectedRoute" class="text-[#2f8f83]">
-            / {{ selectedRoute.title }}
-          </span>
+          <span v-if="selectedRoute" class="text-[#7b68a8]"> / {{ selectedRoute.title }} </span>
         </span>
       </span>
       <span
-        class="grid h-8 w-8 shrink-0 place-items-center rounded-lg border border-[#d8e7e4] bg-white/78 text-lg leading-none text-[#4d6971]"
+        class="grid h-8 w-8 shrink-0 place-items-center rounded-lg border border-[#c4b5fd]/60 bg-[#f5f3ff]/78 text-lg leading-none text-[#6b5a95]"
       >
-        {{ controlsExpanded ? '−' : '+' }}
+        {{ controlsExpanded ? '-' : '+' }}
       </span>
     </button>
 
@@ -50,8 +48,8 @@
               class="max-w-[9.5rem] shrink-0 rounded-lg border px-3 py-1.5 text-xs font-medium cursor-pointer transition focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-teal-100 lg:max-w-[12rem] lg:px-4 lg:py-2"
               :class="
                 selectedCityId === city.id
-                  ? 'border-[#5ca8a6] bg-[#e9f7f4] text-[#1d6564] shadow-sm'
-                  : 'border-white/80 bg-white/68 text-[#566b73] hover:border-[#8bc8bf] hover:bg-white'
+                  ? 'border-[#5eead4] bg-[#f0fdfa] text-[#1d6564] shadow-sm'
+                  : 'border-[#d8e7ef]/80 bg-white/56 text-[#566b73] hover:border-[#99e6d6] hover:bg-white/86'
               "
               @click="selectCity(city.id)"
             >
@@ -77,8 +75,8 @@
             class="flex max-w-[11rem] shrink-0 items-center rounded-lg border px-3 py-1.5 text-xs cursor-pointer transition focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-rose-100 lg:max-w-[14rem] lg:px-4 lg:py-2"
             :class="
               selectedDistrictId === district.id
-                ? 'border-[#c98791] bg-[#fff1f2] text-[#8f3f4b]'
-                : 'border-white/80 bg-white/62 text-[#60717a] hover:border-[#e7aeb7] hover:bg-white'
+                ? 'border-[#f9a8d4] bg-[#fdf2f8] text-[#8f3f68]'
+                : 'border-[#d8e7ef]/80 bg-white/54 text-[#60717a] hover:border-[#f5b9d6] hover:bg-white/86'
             "
             @click="selectDistrict(district.id)"
           >
@@ -102,8 +100,8 @@
             class="shrink-0 rounded-lg border px-3 py-1.5 text-xs font-medium cursor-pointer transition focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-teal-100 lg:px-4 lg:py-2"
             :class="
               !selectedRouteId
-                ? 'border-[#5ca8a6] bg-[#e9f7f4] text-[#1d6564]'
-                : 'border-white/80 bg-white/62 text-[#60717a] hover:border-[#8bc8bf] hover:bg-white'
+                ? 'border-[#7dd3fc] bg-[#f0f9ff] text-[#2f668f]'
+                : 'border-[#d8e7ef]/80 bg-white/54 text-[#60717a] hover:border-[#a8cde2] hover:bg-white/86'
             "
             @click="selectRoute('')"
           >
@@ -116,8 +114,8 @@
             class="max-w-[14rem] shrink-0 rounded-lg border px-3 py-1.5 text-xs font-medium transition focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-teal-100 lg:px-4 lg:py-2"
             :class="
               selectedRouteId === routeItem.id
-                ? 'border-[#5ca8a6] bg-[#e9f7f4] text-[#1d6564]'
-                : 'border-white/80 bg-white/62 text-[#60717a] hover:border-[#8bc8bf] hover:bg-white'
+                ? 'border-[#c4b5fd] bg-[#f5f3ff] text-[#614990]'
+                : 'border-[#d8e7ef]/80 bg-white/54 text-[#60717a] hover:border-[#cfc4fb] hover:bg-white/86'
             "
             @click="selectRoute(routeItem.id)"
           >
@@ -198,3 +196,12 @@ function selectRoute(routeId: string) {
   controlsExpanded.value = false
 }
 </script>
+
+<style scoped>
+.pilgrimage-area-controls {
+  background-image:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.8), rgba(248, 253, 251, 0.72)),
+    radial-gradient(circle at 18% 0%, rgba(94, 234, 212, 0.16), transparent 38%),
+    radial-gradient(circle at 100% 0%, rgba(196, 181, 253, 0.12), transparent 34%);
+}
+</style>

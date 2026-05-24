@@ -68,6 +68,10 @@ export const pilgrimageMapConfig = {
       },
     },
   ],
+  tileLayer: {
+    url: 'https://tiles.stadiamaps.com/tiles/osm_bright/{z}/{x}/{y}{r}.png',
+    attribution: '&copy; Stadia Maps &copy; OpenMapTiles &copy; OpenStreetMap contributors',
+  },
   routeAnimation: {
     movementSpeed: {
       metersPerSecond: 15,
@@ -86,48 +90,53 @@ export const pilgrimageMapConfig = {
       rotateWithRoute: true,
     },
   },
+  routeLine: {
+    color: '#5f9dcb',
+    haloColor: '#fff7ed',
+    arrowColor: '#4f87bd',
+  },
   markerPalette: [
     {
       color: '#2f8f83',
-      soft: 'rgba(47, 143, 131, 0.22)',
-      hoverSoft: 'rgba(47, 143, 131, 0.3)',
+      soft: 'rgba(94, 234, 212, 0.24)',
+      hoverSoft: 'rgba(94, 234, 212, 0.34)',
       labelText: '#235f59',
-      labelBorder: 'rgba(35, 95, 89, 0.38)',
+      labelBorder: 'rgba(47, 143, 131, 0.38)',
     },
     {
-      color: '#c98791',
-      soft: 'rgba(201, 135, 145, 0.24)',
-      hoverSoft: 'rgba(201, 135, 145, 0.32)',
-      labelText: '#8f3f4b',
-      labelBorder: 'rgba(143, 63, 75, 0.38)',
+      color: '#c45f91',
+      soft: 'rgba(249, 168, 212, 0.26)',
+      hoverSoft: 'rgba(249, 168, 212, 0.36)',
+      labelText: '#8f3f68',
+      labelBorder: 'rgba(196, 95, 145, 0.36)',
     },
     {
       color: '#4f87bd',
-      soft: 'rgba(79, 135, 189, 0.22)',
-      hoverSoft: 'rgba(79, 135, 189, 0.3)',
+      soft: 'rgba(125, 211, 252, 0.24)',
+      hoverSoft: 'rgba(125, 211, 252, 0.34)',
       labelText: '#2f5f8e',
       labelBorder: 'rgba(47, 95, 142, 0.38)',
     },
     {
       color: '#b68a2f',
-      soft: 'rgba(182, 138, 47, 0.24)',
-      hoverSoft: 'rgba(182, 138, 47, 0.32)',
+      soft: 'rgba(252, 211, 77, 0.28)',
+      hoverSoft: 'rgba(252, 211, 77, 0.38)',
       labelText: '#76591c',
       labelBorder: 'rgba(118, 89, 28, 0.38)',
     },
     {
       color: '#8a6bb8',
-      soft: 'rgba(138, 107, 184, 0.22)',
-      hoverSoft: 'rgba(138, 107, 184, 0.3)',
+      soft: 'rgba(196, 181, 253, 0.26)',
+      hoverSoft: 'rgba(196, 181, 253, 0.36)',
       labelText: '#614990',
       labelBorder: 'rgba(97, 73, 144, 0.38)',
     },
     {
-      color: '#d4764e',
-      soft: 'rgba(212, 118, 78, 0.23)',
-      hoverSoft: 'rgba(212, 118, 78, 0.31)',
-      labelText: '#935338',
-      labelBorder: 'rgba(147, 83, 56, 0.38)',
+      color: '#4f9c6d',
+      soft: 'rgba(134, 239, 172, 0.24)',
+      hoverSoft: 'rgba(134, 239, 172, 0.34)',
+      labelText: '#2f6f47',
+      labelBorder: 'rgba(47, 111, 71, 0.36)',
     },
   ],
   markerDeclutter: {
@@ -141,14 +150,14 @@ export const pilgrimageMapConfig = {
       keepTerminalFull: true,
     },
     desktop: {
-      showAllMinZoom: 17,
+      showAllMinZoom: 18,
       collisionGap: {
         x: 168,
         y: 102,
       },
     },
     mobile: {
-      showAllMinZoom: 17,
+      showAllMinZoom: 18,
       collisionGap: {
         x: 110,
         y: 78,
@@ -159,18 +168,18 @@ export const pilgrimageMapConfig = {
     desktop: {
       minZoom: 18,
       collisionGap: {
-        x: 138,
-        y: 118,
+        x: 150,
+        y: 126,
       },
-      bubbleSize: [132, 112] as [number, number],
+      bubbleSize: [142, 120] as [number, number],
     },
     mobile: {
       minZoom: 18,
       collisionGap: {
-        x: 112,
-        y: 96,
+        x: 122,
+        y: 104,
       },
-      bubbleSize: [112, 98] as [number, number],
+      bubbleSize: [118, 104] as [number, number],
     },
   },
   defaultMarker: {

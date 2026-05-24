@@ -1,27 +1,190 @@
+.pilgrimage-page {
+  position: relative;
+  isolation: isolate;
+  background:
+    radial-gradient(circle at 8% 10%, rgba(151, 224, 241, 0.18), transparent 28%),
+    radial-gradient(circle at 92% 0%, rgba(196, 181, 253, 0.2), transparent 32%),
+    radial-gradient(circle at 72% 100%, rgba(252, 211, 77, 0.14), transparent 28%),
+    linear-gradient(180deg, rgba(247, 253, 252, 0.94), rgba(239, 249, 253, 0.88));
+}
+
+.pilgrimage-page::before {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  background-image:
+    repeating-linear-gradient(
+      0deg,
+      rgba(47, 143, 131, 0.026) 0,
+      rgba(47, 143, 131, 0.026) 1px,
+      transparent 1px,
+      transparent 22px
+    ),
+    repeating-linear-gradient(
+      90deg,
+      rgba(97, 73, 144, 0.018) 0,
+      rgba(97, 73, 144, 0.018) 1px,
+      transparent 1px,
+      transparent 28px
+    );
+  content: '';
+  mask-image: linear-gradient(180deg, rgba(0, 0, 0, 0.72), rgba(0, 0, 0, 0.22));
+  pointer-events: none;
+}
+
+.pilgrimage-postmark::after {
+  position: absolute;
+  right: -44px;
+  top: 28px;
+  width: 58px;
+  height: 28px;
+  border-top: 2px solid rgba(196, 181, 253, 0.38);
+  border-bottom: 2px solid rgba(249, 168, 212, 0.3);
+  border-radius: 50%;
+  content: '';
+}
+
+@media (max-width: 1023px) {
+  .pilgrimage-postmark::after {
+    right: -32px;
+    top: 20px;
+    width: 44px;
+    height: 22px;
+    border-color: rgba(196, 181, 253, 0.24);
+  }
+}
+
+.pilgrimage-map-frame {
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, 0.92), rgba(238, 251, 247, 0.72)), #f0faf7;
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 255, 255, 0.72),
+    inset 0 0 44px rgba(94, 190, 177, 0.12),
+    0 20px 54px -44px rgba(58, 91, 119, 0.62);
+}
+
+.pilgrimage-map-postcard-surface > .pilgrimage-map-shell {
+  height: 100%;
+  border: 0;
+}
+
+.pilgrimage-map-frame::before,
+.pilgrimage-map-frame::after {
+  position: absolute;
+  z-index: 20;
+  height: 38px;
+  width: 132px;
+  background:
+    linear-gradient(90deg, rgba(252, 211, 77, 0.36), rgba(255, 255, 255, 0.58)),
+    repeating-linear-gradient(
+      115deg,
+      rgba(201, 135, 145, 0.26) 0,
+      rgba(201, 135, 145, 0.26) 6px,
+      transparent 6px,
+      transparent 14px
+    );
+  border: 1px solid rgba(255, 255, 255, 0.48);
+  box-shadow:
+    0 10px 22px -15px rgba(58, 91, 119, 0.58),
+    inset 0 1px 0 rgba(255, 255, 255, 0.48);
+  content: '';
+  pointer-events: none;
+}
+
+.pilgrimage-map-frame::before {
+  left: -30px;
+  top: 20px;
+  transform: rotate(-14deg);
+}
+
+.pilgrimage-map-frame::after {
+  right: -32px;
+  bottom: 20px;
+  transform: rotate(-12deg);
+}
+
+.pilgrimage-map-note {
+  min-width: 0;
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.9);
+}
+
+.pilgrimage-map-note--top::after {
+  display: block;
+  flex: 0 1 170px;
+  min-width: 80px;
+  height: 1px;
+  margin-left: 2px;
+  background: linear-gradient(90deg, rgba(94, 234, 212, 0.5), transparent);
+  content: '';
+}
+
 .pilgrimage-page .leaflet-container {
   height: 100%;
   width: 100%;
-  background: #e9f2ef;
+  background: #e1f3ef;
   font-family: inherit;
+}
+
+.pilgrimage-page .leaflet-tile-pane {
+  filter: saturate(0.72) contrast(0.84) brightness(1.09);
+  opacity: 0.9;
+}
+
+.pilgrimage-page .leaflet-overlay-pane svg {
+  filter: drop-shadow(0 2px 0 rgba(255, 255, 255, 0.82))
+    drop-shadow(0 10px 18px rgba(55, 107, 145, 0.14));
+}
+
+.pilgrimage-map-shell::before {
+  position: absolute;
+  inset: 0;
+  z-index: 6;
+  background:
+    radial-gradient(circle at 20% 18%, rgba(255, 255, 255, 0.22), transparent 30%),
+    radial-gradient(circle at 78% 12%, rgba(196, 181, 253, 0.13), transparent 36%),
+    repeating-linear-gradient(
+      0deg,
+      rgba(255, 255, 255, 0.12) 0,
+      rgba(255, 255, 255, 0.12) 1px,
+      transparent 1px,
+      transparent 17px
+    );
+  content: '';
+  mix-blend-mode: soft-light;
+  pointer-events: none;
+}
+
+.pilgrimage-map-shell::after {
+  position: absolute;
+  inset: 18px;
+  z-index: 7;
+  border: 1px solid rgba(255, 255, 255, 0.48);
+  border-radius: 12px;
+  box-shadow:
+    inset 0 0 34px rgba(255, 255, 255, 0.32),
+    inset 0 0 0 1px rgba(99, 148, 180, 0.08);
+  content: '';
+  pointer-events: none;
 }
 
 .pilgrimage-page .leaflet-control-zoom {
   margin-top: 186px;
   overflow: hidden;
-  border: 1px solid rgba(255, 255, 255, 0.82);
+  border: 1px solid rgba(198, 220, 233, 0.86);
   border-radius: 8px;
-  box-shadow: 0 18px 45px -34px rgba(31, 41, 55, 0.82);
+  box-shadow: 0 18px 45px -34px rgba(58, 91, 119, 0.82);
 }
 
 .pilgrimage-page .leaflet-control-zoom a {
   border: 0;
-  color: #315761;
+  background: rgba(255, 255, 255, 0.76);
+  color: #416f91;
 }
 
 .pilgrimage-page .leaflet-control-attribution {
   border-top-left-radius: 8px;
-  background: rgba(255, 255, 255, 0.78);
-  color: #60717a;
+  background: rgba(255, 255, 255, 0.62);
+  color: #668296;
   font-size: 11px;
 }
 
@@ -142,12 +305,22 @@
   min-height: var(--marker-label-height, 30px);
   align-items: center;
   justify-content: center;
-  border: 1px solid var(--spot-label-border, rgba(35, 95, 89, 0.38));
-  border-radius: 8px;
-  background: rgba(255, 255, 255, 0.93);
+  border: 1px solid
+    color-mix(in srgb, var(--spot-label-border, rgba(75, 135, 176, 0.42)) 62%, #f0e2a8);
+  border-radius: 7px;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.94), rgba(255, 251, 235, 0.86)),
+    repeating-linear-gradient(
+      0deg,
+      rgba(182, 138, 47, 0.055) 0,
+      rgba(182, 138, 47, 0.055) 1px,
+      transparent 1px,
+      transparent 8px
+    );
   box-shadow:
-    0 10px 22px -18px rgba(31, 41, 55, 0.82),
-    inset 0 1px 0 rgba(255, 255, 255, 0.96);
+    0 8px 18px -16px rgba(118, 89, 28, 0.74),
+    inset 0 1px 0 rgba(255, 255, 255, 0.96),
+    inset 0 -2px 0 color-mix(in srgb, var(--spot-label-border, rgba(75, 135, 176, 0.42)) 18%, transparent);
   color: var(--spot-label-text, #235f59);
   font-size: var(--marker-label-font-size, 11px);
   font-style: normal;
@@ -157,6 +330,21 @@
   text-align: center;
   text-shadow: 0 1px 0 rgba(255, 255, 255, 0.82);
   writing-mode: horizontal-tb;
+}
+
+.pilgrimage-marker-label::before {
+  position: absolute;
+  left: 8px;
+  top: -4px;
+  height: 7px;
+  width: 20px;
+  transform: rotate(-5deg);
+  border-radius: 2px;
+  background: color-mix(in srgb, var(--spot-color, #2f8f83) 38%, #fff6c9);
+  box-shadow: 0 1px 2px rgba(118, 89, 28, 0.12);
+  content: '';
+  opacity: 0.72;
+  pointer-events: none;
 }
 
 .pilgrimage-marker-label-text {
@@ -181,7 +369,7 @@
   place-items: center;
   border: 1px solid #fff;
   border-radius: 999px;
-  background: #c98791;
+  background: #b68a2f;
   color: #fff;
   font-size: 9px;
   font-weight: 800;
@@ -212,7 +400,7 @@
 }
 
 .pilgrimage-route-terminal.is-end {
-  color: #8f3f4b;
+  color: #8f3f68;
 }
 
 .pilgrimage-marker-photo-bubble {
@@ -224,12 +412,46 @@
   min-height: var(--marker-photo-height, 112px);
   box-sizing: border-box;
   transform: translateX(-50%);
-  border: 1px solid rgba(255, 255, 255, 0.92);
-  border-radius: 10px;
-  background: rgba(255, 255, 255, 0.94);
-  box-shadow: 0 18px 38px -22px rgba(31, 41, 55, 0.78);
-  padding: 4px;
+  border: 1px solid rgba(232, 215, 170, 0.92);
+  border-radius: 8px;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.96), rgba(255, 251, 235, 0.92)),
+    repeating-linear-gradient(
+      0deg,
+      rgba(118, 89, 28, 0.035) 0,
+      rgba(118, 89, 28, 0.035) 1px,
+      transparent 1px,
+      transparent 10px
+    );
+  box-shadow:
+    0 20px 42px -24px rgba(97, 73, 144, 0.44),
+    0 6px 18px -18px rgba(118, 89, 28, 0.58),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.84);
+  padding: 7px 7px 11px;
   pointer-events: none;
+}
+
+.pilgrimage-marker-photo-bubble::before {
+  position: absolute;
+  right: 8px;
+  top: 8px;
+  z-index: 2;
+  height: 22px;
+  width: 26px;
+  border: 1px solid rgba(196, 181, 253, 0.72);
+  border-radius: 3px;
+  background:
+    linear-gradient(135deg, rgba(245, 243, 255, 0.9), rgba(253, 242, 248, 0.78)),
+    repeating-linear-gradient(
+      45deg,
+      rgba(139, 107, 184, 0.16) 0,
+      rgba(139, 107, 184, 0.16) 2px,
+      transparent 2px,
+      transparent 5px
+    );
+  box-shadow: inset 0 0 0 2px rgba(255, 255, 255, 0.58);
+  content: '';
+  opacity: 0.82;
 }
 
 .pilgrimage-marker-photo-bubble::after {
@@ -239,9 +461,9 @@
   height: 14px;
   width: 14px;
   transform: translateX(-50%) rotate(45deg);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.92);
-  border-right: 1px solid rgba(255, 255, 255, 0.92);
-  background: rgba(255, 255, 255, 0.94);
+  border-bottom: 1px solid rgba(232, 215, 170, 0.92);
+  border-right: 1px solid rgba(232, 215, 170, 0.92);
+  background: rgba(255, 251, 235, 0.94);
   content: '';
 }
 
@@ -249,13 +471,28 @@
   position: relative;
   z-index: 1;
   display: block;
-  height: calc(var(--marker-photo-height, 112px) - 8px);
+  height: calc(var(--marker-photo-height, 112px) - 22px);
   width: 100%;
-  border-radius: 7px;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.86);
+  border-radius: 6px;
   background-image: var(--marker-photo-image);
   background-position: center;
   background-repeat: no-repeat;
   background-size: cover;
+  box-shadow:
+    0 0 0 1px rgba(118, 89, 28, 0.08),
+    0 10px 22px -18px rgba(31, 41, 55, 0.72);
+}
+
+.pilgrimage-marker-photo-frame::after {
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(180deg, transparent 60%, rgba(38, 49, 58, 0.12)),
+    radial-gradient(circle at 12% 10%, rgba(255, 255, 255, 0.2), transparent 34%);
+  content: '';
+  pointer-events: none;
 }
 
 .pilgrimage-route-actor {
@@ -287,7 +524,7 @@
   height: 28px;
   width: 28px;
   place-items: center;
-  color: var(--route-color, #2f8f83);
+  color: var(--route-color, #5f9dcb);
   font-size: 21px;
   line-height: 1;
   text-shadow:
@@ -301,12 +538,12 @@
 @keyframes pilgrimage-route-current-pulse {
   from {
     opacity: 0.55;
-    transform: translateX(-50%) scale(0.72);
+    transform: translate(-50%, -50%) scale(0.72);
   }
 
   to {
     opacity: 0;
-    transform: translateX(-50%) scale(1.8);
+    transform: translate(-50%, -50%) scale(1.8);
   }
 }
 
@@ -317,6 +554,31 @@
 }
 
 @media (max-width: 1023px) {
+  .pilgrimage-map-frame::before,
+  .pilgrimage-map-frame::after {
+    height: 26px;
+    width: 88px;
+    background:
+      linear-gradient(90deg, rgba(252, 211, 77, 0.3), rgba(255, 255, 255, 0.5)),
+      repeating-linear-gradient(
+        115deg,
+        rgba(201, 135, 145, 0.22) 0,
+        rgba(201, 135, 145, 0.22) 5px,
+        transparent 5px,
+        transparent 12px
+      );
+  }
+
+  .pilgrimage-map-frame::before {
+    left: -28px;
+    top: 10px;
+  }
+
+  .pilgrimage-map-frame::after {
+    right: -30px;
+    bottom: 8px;
+  }
+
   .pilgrimage-page .leaflet-control-zoom {
     margin-top: 96px;
   }
@@ -341,8 +603,8 @@
   }
 
   .pilgrimage-route-order {
-    left: calc(var(--marker-left, 0px) + var(--marker-width, 40px) - 15px);
-    top: calc(var(--marker-top, 0px) + 22px);
+    left: calc(var(--marker-pointer-x, 50%) + 10px);
+    top: calc(var(--marker-pointer-y, 94%) - 38px);
     height: 15px;
     min-width: 15px;
     font-size: 8px;
@@ -355,10 +617,11 @@
   }
 
   .pilgrimage-marker-photo-bubble {
-    width: var(--marker-photo-width, 112px);
+    width: var(--marker-photo-width, 118px);
+    padding: 6px 6px 10px;
   }
 
   .pilgrimage-marker-photo-frame {
-    height: calc(var(--marker-photo-height, 98px) - 8px);
+    height: calc(var(--marker-photo-height, 104px) - 20px);
   }
 }

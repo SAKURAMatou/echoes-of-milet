@@ -1,12 +1,12 @@
 <template>
-  <article
-    class="pilgrimage-page overflow-hidden rounded-lg bg-[image:linear-gradient(180deg,rgba(255,255,255,0.78),rgba(247,251,249,0.86)),linear-gradient(135deg,rgba(232,248,244,0.64),rgba(255,241,242,0.52))] text-[#24323a] lg:mb-6"
-  >
+  <article class="pilgrimage-page overflow-hidden rounded-lg text-[#24323a] lg:mb-6">
     <section
-      class="pilgrimage-workspace relative grid min-h-0 grid-rows-[auto_auto_auto] overflow-visible lg:h-[calc(100vh-7.5rem)] lg:min-h-[800px] lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)] lg:grid-rows-[auto_auto_minmax(0,1fr)] lg:overflow-hidden 2xl:overflow-visible"
+      class="pilgrimage-workspace relative z-[1] grid min-h-0 grid-rows-[auto_auto_auto] overflow-visible lg:h-[calc(100vh-5.5rem)] lg:min-h-[880px] lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)] lg:grid-rows-[auto_auto_minmax(0,1fr)] lg:overflow-hidden 2xl:overflow-visible"
     >
-      <header class="border-b border-white/70 px-4 py-4 sm:px-5 lg:col-span-2 lg:px-7 lg:py-5">
-        <div class="grid gap-4">
+      <header
+        class="relative border-b border-[#c9ddea]/70 px-4 py-4 sm:px-5 lg:col-span-2 lg:px-7 lg:py-5"
+      >
+        <div class="grid gap-4 pr-0 lg:pr-48">
           <div class="min-w-0">
             <h1 class="font-serif text-[clamp(2.4rem,4.3vw,4.1rem)] leading-none text-[#26313a]">
               {{ pageText.title }}
@@ -16,13 +16,20 @@
             </p>
           </div>
         </div>
+        <div
+          class="pilgrimage-postmark pointer-events-none absolute right-4 top-3 rotate-[-4deg] rounded-[4px] border-2 border-[#c4b5fd]/45 px-[18px] pb-2.5 pt-3 text-center text-[#7b68a8] opacity-35 shadow-[inset_0_0_0_1px_rgba(255,255,255,0.52)] sm:opacity-45 max-lg:right-2.5 max-lg:top-3.5 max-lg:z-0 max-lg:origin-top-right max-lg:rotate-[-5deg] max-lg:scale-[0.86] max-lg:border-[#c4b5fd]/30 max-lg:px-3 max-lg:pb-[7px] max-lg:pt-2 max-lg:text-[#7b68a8]/60 lg:right-6 lg:top-4 lg:opacity-100"
+          aria-hidden="true"
+        >
+          <span class="block text-[11px] font-black uppercase tracking-[0.2em]">Keep walking</span>
+          <span class="mt-1 block font-serif text-xl italic leading-none">with milet</span>
+        </div>
       </header>
 
       <div
-        class="grid gap-3 border-b border-white/70 px-4 py-3 sm:grid-cols-[minmax(0,1fr)_220px] sm:px-5 lg:col-start-1 lg:row-start-2 lg:grid-cols-[minmax(0,1fr)_240px] lg:px-7"
+        class="grid gap-3 border-b border-[#c9ddea]/70 px-4 py-3 sm:grid-cols-[minmax(0,1fr)_220px] sm:px-5 lg:col-start-1 lg:row-start-2 lg:grid-cols-[minmax(0,1fr)_240px] lg:px-7"
       >
         <div
-          class="rounded-lg border border-[#9bd0c8]/70 bg-[#f0fbf8]/88 px-3 py-2 shadow-[0_14px_34px_-30px_rgba(31,41,55,0.72)]"
+          class="rounded-lg border border-[#99e6d6]/70 bg-[#f0fdfa]/58 px-3 py-2 shadow-[0_14px_34px_-30px_rgba(47,143,131,0.34)] backdrop-blur"
         >
           <div class="text-[10px] font-semibold uppercase tracking-[0.18em] text-[#2f8f83]">
             {{ pageText.dataCreditLabel }}
@@ -33,42 +40,64 @@
         </div>
 
         <div
-          class="min-w-0 rounded-lg border border-white/70 bg-white/64 px-3 py-2 text-sm text-[#526670]"
+          class="min-w-0 rounded-lg border border-[#fcd34d]/50 bg-[#fffbeb]/58 px-3 py-2 text-sm text-[#526670] shadow-[0_16px_36px_-34px_rgba(182,138,47,0.38)] backdrop-blur"
         >
           <span class="block text-[11px] font-semibold uppercase tracking-[0.16em] text-[#7c9197]">
             {{ pageText.currentArea }}
+          </span>
+          <span class="mt-1 block truncate font-semibold text-[#76591c]">
+            {{ currentAreaText }}
           </span>
         </div>
       </div>
 
       <div
-        class="relative h-[72svh] max-h-[820px] min-h-[620px] min-w-0 overflow-hidden border-b border-white/70 sm:h-[74svh] sm:min-h-[680px] lg:col-start-1 lg:row-start-3 lg:h-full lg:max-h-none lg:min-h-0 lg:border-b-0 lg:border-r"
+        class="pilgrimage-map-frame relative box-border h-[72svh] max-h-[820px] min-h-[620px] min-w-0 overflow-hidden border-b border-[#c9ddea]/70 sm:h-[74svh] sm:min-h-[680px] lg:col-start-1 lg:row-start-3 lg:h-full lg:max-h-none lg:min-h-0 lg:border-b-0 lg:border-r lg:border-[#c9ddea]/70"
       >
-        <PilgrimageAreaControls
-          :page-text="pageText"
-          :cities="cities"
-          :selected-city="selectedCity"
-          :selected-district="selectedDistrict"
-          :selected-city-id="selectedCityId"
-          :selected-district-id="selectedDistrictId"
-          :routes="routes"
-          :selected-route="selectedRoute"
-          :selected-route-id="selectedRouteId"
-          @select-city="selectCity"
-          @select-district="selectDistrict"
-          @select-route="selectRoute"
-        />
+        <div
+          class="pilgrimage-map-note pilgrimage-map-note--top pointer-events-none absolute left-20 right-3 top-2 z-[24] flex min-w-0 items-center gap-2 text-[11px] font-semibold text-[#4d8f86] sm:left-24 sm:text-xs lg:left-32 lg:right-8 lg:top-4 lg:gap-3 lg:text-sm"
+          aria-hidden="true"
+        >
+          <span class="shrink-0 font-serif text-[#5eead4]/80">&#10022;</span>
+          <span class="block min-w-0 truncate">{{ mapTopNoteText }}</span>
+        </div>
+        <div
+          class="pilgrimage-map-note pointer-events-none absolute bottom-2 left-1/2 z-[24] flex max-w-[calc(100%-2rem)] -translate-x-1/2 items-center gap-2 overflow-hidden whitespace-nowrap font-serif text-xs italic tracking-[0.04em] text-[#9a7740] sm:text-sm lg:bottom-3 lg:gap-3 lg:text-lg"
+          aria-hidden="true"
+        >
+          <span class="shrink-0 font-serif text-[#f9a8d4]/80">&#10022;</span>
+          <span class="block min-w-0 truncate">I walk, I see, I remember - with milet.</span>
+          <span class="shrink-0 font-serif text-[#fcd34d]/80">&#10022;</span>
+        </div>
+        <div
+          class="pilgrimage-map-postcard-surface absolute inset-x-3 bottom-9 top-9 overflow-hidden rounded-[10px] border border-[#cbe0ec]/90 shadow-[0_0_0_1px_rgba(255,255,255,0.74),0_18px_42px_-34px_rgba(58,91,119,0.66)] sm:bottom-10 sm:top-10 lg:inset-x-4 lg:bottom-12 lg:top-12"
+        >
+          <PilgrimageAreaControls
+            :page-text="pageText"
+            :cities="cities"
+            :selected-city="selectedCity"
+            :selected-district="selectedDistrict"
+            :selected-city-id="selectedCityId"
+            :selected-district-id="selectedDistrictId"
+            :routes="routes"
+            :selected-route="selectedRoute"
+            :selected-route-id="selectedRouteId"
+            @select-city="selectCity"
+            @select-district="selectDistrict"
+            @select-route="selectRoute"
+          />
 
-        <PilgrimageMapPane
-          ref="mapPaneRef"
-          :page-text="pageText"
-          :map-loading="mapLoading"
-          :map-transitioning="mapTransitioning"
-          :spots-loading="spotsLoading"
-          :markers-visible="markersVisible"
-          :selected-district="selectedDistrict"
-          :spots-count="spots.length"
-        />
+          <PilgrimageMapPane
+            ref="mapPaneRef"
+            :page-text="pageText"
+            :map-loading="mapLoading"
+            :map-transitioning="mapTransitioning"
+            :spots-loading="spotsLoading"
+            :markers-visible="markersVisible"
+            :selected-district="selectedDistrict"
+            :spots-count="spots.length"
+          />
+        </div>
       </div>
 
       <PilgrimageSpotDetailPanel
@@ -78,6 +107,8 @@
         :navigation-url="navigationUrl"
         :gallery-name="galleryName"
         :spots-loading="spotsLoading"
+        :spot-detail-loading="spotDetailLoading"
+        :lang="currentLang"
         @close="closeSpotDetail"
       />
     </section>
@@ -107,6 +138,7 @@ import PilgrimageAreaControls from '@/components/milet/pilgrimage/PilgrimageArea
 import PilgrimageMapPane from '@/components/milet/pilgrimage/PilgrimageMapPane.vue'
 import PilgrimageSeoSpotList from '@/components/milet/pilgrimage/PilgrimageSeoSpotList.vue'
 import PilgrimageSpotDetailPanel from '@/components/milet/pilgrimage/PilgrimageSpotDetailPanel.vue'
+import { pilgrimageMapConfig } from '@/components/milet/pilgrimage/pilgrimageMapConfig'
 import {
   findInitialDistrict,
   normalizePilgrimageLang,
@@ -140,6 +172,17 @@ let fancyboxApi: (typeof import('@fancyapps/ui'))['Fancybox'] | null = null
 
 const currentLang = computed(() => normalizePilgrimageLang(String(route.params.lang || 'zh')))
 const pageText = computed(() => PILGRIMAGE_TEXT[currentLang.value])
+const mapTopNoteText = computed(() =>
+  currentLang.value === 'jp'
+    ? 'miletの足跡をたどり、一つひとつの風景を記録する。'
+    : '追随 milet 的足迹，记录每一段风景。',
+)
+const currentAreaText = computed(() => {
+  const parts = [selectedCity.value?.name, selectedDistrict.value?.name, selectedRoute.value?.title]
+    .filter(Boolean)
+    .map((item) => String(item))
+  return parts.length > 0 ? parts.join(' / ') : pageText.value.allCities
+})
 const {
   regionTree,
   markerSkins,
@@ -152,6 +195,7 @@ const {
   selectedRouteId,
   mapLoading,
   spotsLoading,
+  spotDetailLoading,
   cities,
   seoSpotListCities,
   selectedCity,
@@ -220,6 +264,7 @@ function selectCity(cityId: string) {
     spotsPayload.value = null
     spotsPayloadDistrictId.value = ''
     spotDetailPayload.value = null
+    spotDetailLoading.value = false
     void transitionSelectedArea('')
   }
   syncPilgrimageState()
@@ -233,6 +278,7 @@ function selectDistrict(districtId: string) {
   spotsPayload.value = null
   spotsPayloadDistrictId.value = ''
   spotDetailPayload.value = null
+  spotDetailLoading.value = false
   void transitionSelectedArea(districtId)
   syncPilgrimageState()
 }
@@ -256,6 +302,7 @@ async function selectRoute(routeId: string) {
 function closeSpotDetail() {
   selectedSpotId.value = ''
   spotDetailPayload.value = null
+  spotDetailLoading.value = false
   applyMapZoomLimits()
   renderMarkers()
   syncPilgrimageState()
@@ -302,26 +349,27 @@ async function initMap() {
   mapRef.value = L.map(mapContainer, {
     zoomControl: true,
     attributionControl: true,
+    keyboard: false,
     inertia: false,
     minZoom: 11,
     maxZoom: 20,
     maxBoundsViscosity: 0.52,
   }).setView(center, district?.defaultZoom || 14)
 
-  L.tileLayer('https://tiles.stadiamaps.com/tiles/osm_bright/{z}/{x}/{y}{r}.png', {
+  L.tileLayer(pilgrimageMapConfig.tileLayer.url, {
     maxNativeZoom: 19,
     maxZoom: 20,
     detectRetina: false,
     keepBuffer: 2,
     updateWhenIdle: true,
     updateWhenZooming: false,
-    attribution: '&copy; Stadia Maps &copy; OpenMapTiles &copy; OpenStreetMap contributors',
+    attribution: pilgrimageMapConfig.tileLayer.attribution,
   }).addTo(mapRef.value)
 
   routeLayerRef.value = L.layerGroup().addTo(mapRef.value)
   markerLayerRef.value = L.layerGroup().addTo(mapRef.value)
   animationLayerRef.value = L.layerGroup().addTo(mapRef.value)
-  mapRef.value.on('zoomend moveend', () => {
+  mapRef.value.on('zoomend', () => {
     renderMarkers()
     renderRoutes()
   })
@@ -575,7 +623,7 @@ async function setupFancybox() {
 }
 
 watch(
-  () => [spots.value, selectedSpotId.value, currentLang.value],
+  () => [spots.value, currentLang.value],
   () => {
     renderMarkers()
     renderRoutes()
@@ -584,10 +632,16 @@ watch(
 )
 
 watch(
+  () => selectedSpotId.value,
+  () => {
+    renderMarkers()
+  },
+)
+
+watch(
   () => selectedSpotDetail.value?.id,
   () => {
     if (import.meta.env.SSR) return
-    renderMarkers()
     setupFancybox()
   },
 )

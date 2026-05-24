@@ -1,11 +1,11 @@
 <template>
   <section
     v-if="totalSpotCount > 0"
-    class="pilgrimage-seo-spot-list mx-3 mb-4 mt-3 rounded-lg border border-white/70 bg-white/70 px-4 py-3 text-[#34444b] shadow-[0_18px_54px_-44px_rgba(31,41,55,0.72)] backdrop-blur sm:mx-5 lg:mx-7"
+    class="pilgrimage-seo-spot-list relative mx-3 mb-4 mt-4 rounded-lg border border-[#dccff3]/80 bg-white/66 px-4 py-3 text-[#34444b] shadow-[0_18px_54px_-44px_rgba(97,73,144,0.32)] backdrop-blur sm:mx-5 lg:mx-7"
   >
     <button
       type="button"
-      class="flex w-full items-center justify-between gap-3 rounded-md px-1 py-1 text-left text-sm font-semibold text-[#315761] outline-none transition hover:text-[#1f6a66] focus-visible:ring-4 focus-visible:ring-teal-100"
+      class="flex w-full items-center justify-between gap-3 rounded-md px-1 py-1 text-left text-sm font-semibold text-[#614990] outline-none transition hover:text-[#4f3d7b] focus-visible:ring-4 focus-visible:ring-violet-100"
       :aria-expanded="listOpen"
       @click="toggleList"
     >
@@ -29,11 +29,11 @@
         <section
           v-for="city in cities"
           :key="city.id"
-          class="rounded-lg border border-[#dbe7e4] bg-white/56"
+          class="rounded-lg border border-[#d7ccf2]/80 bg-white/58 shadow-[0_16px_36px_-32px_rgba(97,73,144,0.34)]"
         >
           <button
             type="button"
-            class="flex w-full items-center justify-between gap-3 px-3 py-3 text-left outline-none transition hover:bg-white/70 focus-visible:ring-4 focus-visible:ring-teal-100"
+            class="flex w-full items-center justify-between gap-3 px-3 py-3 text-left outline-none transition hover:bg-[#f5f3ff]/70 focus-visible:ring-4 focus-visible:ring-violet-100"
             :aria-expanded="openCityId === city.id"
             @click="toggleCity(city.id)"
           >
@@ -53,20 +53,20 @@
             </span>
           </button>
 
-          <div v-show="openCityId === city.id" class="space-y-3 border-t border-[#dbe7e4] p-3">
+          <div v-show="openCityId === city.id" class="space-y-3 border-t border-[#d7ccf2] p-3">
             <section
               v-for="district in city.districts"
               :key="district.id"
-              class="rounded-lg border border-[#dbe7e4] bg-[#f7fbfa]/72"
+              class="rounded-lg border border-[#bcebdd] bg-[#f0fdfa]/62"
             >
               <button
                 type="button"
-                class="flex w-full items-center justify-between gap-3 px-3 py-2 text-left outline-none transition hover:bg-white/76 focus-visible:ring-4 focus-visible:ring-rose-100"
+                class="flex w-full items-center justify-between gap-3 px-3 py-2 text-left outline-none transition hover:bg-white/76 focus-visible:ring-4 focus-visible:ring-teal-100"
                 :aria-expanded="openDistrictId === district.id"
                 @click="toggleDistrict(district.id)"
               >
                 <span>
-                  <span class="text-sm font-semibold text-[#315761]">
+                  <span class="text-sm font-semibold text-[#1d6564]">
                     {{ district.name }}
                   </span>
                   <span class="ml-2 text-xs font-normal text-[#789096]">
@@ -80,25 +80,25 @@
 
               <ol
                 v-show="openDistrictId === district.id"
-                class="grid gap-3 border-t border-[#dbe7e4] p-3 md:grid-cols-2"
+                class="grid gap-3 border-t border-[#bcebdd] p-3 md:grid-cols-2"
               >
                 <li
                   v-for="(spot, index) in district.spots"
                   :id="spotAnchorId(spot.id)"
                   :key="spot.id"
-                  class="grid grid-cols-[72px_minmax(0,1fr)] gap-3 rounded-lg border border-[#dbe7e4] bg-white/78 p-2.5"
+                  class="pilgrimage-seo-spot-card grid grid-cols-[72px_minmax(0,1fr)] gap-3 rounded-lg border border-[#d3e5ef]/90 bg-white/76 p-2.5 shadow-[0_14px_36px_-34px_rgba(58,91,119,0.68)] transition-[border-color,box-shadow,transform] duration-150 ease-out hover:-translate-y-px hover:border-[#a8cde2]/95 hover:shadow-[0_18px_42px_-34px_rgba(58,91,119,0.76)]"
                 >
                   <img
                     v-if="spot.coverImageUrl"
                     :src="buildStaticAssetUrl(spot.coverImageUrl)"
                     :alt="spot.title"
-                    class="h-16 w-16 rounded-md object-cover"
+                    class="h-16 w-16 rounded-md border border-white/80 object-cover shadow-[0_10px_24px_-20px_rgba(58,91,119,0.7)]"
                     loading="lazy"
                     decoding="async"
                   />
                   <div
                     v-else
-                    class="grid h-16 w-16 place-items-center rounded-md bg-[#e8f8f4] text-xs font-semibold text-[#6fb8ad]"
+                    class="grid h-16 w-16 place-items-center rounded-md bg-[#fffbeb] text-xs font-semibold text-[#b68a2f]"
                     aria-hidden="true"
                   >
                     {{ index + 1 }}
@@ -215,3 +215,43 @@ function coordinateText(spot: PilgrimageSpotSummary) {
   return `${copy.value.coordinateLabel}: ${lat.toFixed(6)}, ${lng.toFixed(6)}`
 }
 </script>
+
+<style scoped>
+.pilgrimage-seo-spot-list {
+  background-image:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.74), rgba(249, 252, 250, 0.82)),
+    radial-gradient(circle at 100% 0%, rgba(196, 181, 253, 0.18), transparent 30%),
+    radial-gradient(circle at 0% 22%, rgba(252, 211, 77, 0.12), transparent 28%),
+    repeating-linear-gradient(
+      0deg,
+      rgba(97, 73, 144, 0.026) 0,
+      rgba(97, 73, 144, 0.026) 1px,
+      transparent 1px,
+      transparent 22px
+    );
+}
+
+.pilgrimage-seo-spot-list::after {
+  position: absolute;
+  right: 18px;
+  bottom: 12px;
+  color: rgba(201, 135, 145, 0.34);
+  content: 'with milet';
+  font-family: Georgia, serif;
+  font-size: 1.1rem;
+  font-style: italic;
+  pointer-events: none;
+}
+
+.pilgrimage-seo-spot-card:nth-child(3n + 1) {
+  border-color: rgba(125, 211, 252, 0.52);
+}
+
+.pilgrimage-seo-spot-card:nth-child(3n + 2) {
+  border-color: rgba(252, 211, 77, 0.48);
+}
+
+.pilgrimage-seo-spot-card:nth-child(3n) {
+  border-color: rgba(249, 168, 212, 0.48);
+}
+</style>
