@@ -1,7 +1,7 @@
 <template>
   <aside
     id="pilgrimage-detail"
-    class="pilgrimage-detail-panel fixed inset-x-0 bottom-0 z-[1000] max-h-[76svh] scroll-mt-[5.5rem] overflow-y-auto rounded-t-2xl border-t border-[#d0e2ec]/90 bg-[linear-gradient(180deg,rgba(255,255,255,0.94),rgba(244,250,253,0.96))] px-4 pb-5 pt-3 shadow-[0_-24px_70px_-42px_rgba(58,91,119,0.72)] transition-transform duration-300 sm:px-6 md:scroll-mt-[6.5rem] lg:static lg:z-auto lg:h-full lg:max-h-full lg:min-h-0 lg:translate-y-0 lg:overflow-y-auto lg:rounded-none lg:border-t-0 lg:bg-[linear-gradient(180deg,rgba(255,255,255,0.64),rgba(242,249,252,0.82))] lg:px-5 lg:py-5 lg:shadow-none"
+    class="pilgrimage-detail-panel isolate fixed inset-x-0 bottom-0 z-[1000] max-h-[76svh] scroll-mt-[5.5rem] overflow-y-auto rounded-t-2xl border-t border-[#d0e2ec]/90 bg-[linear-gradient(180deg,rgba(255,255,255,0.94),rgba(244,250,253,0.96))] px-4 pb-1 pt-3 shadow-[0_-24px_70px_-42px_rgba(58,91,119,0.72)] transition-transform duration-300 sm:px-6 md:scroll-mt-[6.5rem] lg:static lg:z-auto lg:flex lg:h-full lg:max-h-full lg:min-h-0 lg:translate-y-0 lg:flex-col lg:overflow-hidden lg:rounded-none lg:border-t-0 lg:bg-[linear-gradient(180deg,rgba(255,255,255,0.64),rgba(242,249,252,0.82))] lg:px-5 lg:pb-1 lg:pt-5 lg:shadow-none"
     :class="
       panelVisible
         ? 'translate-y-0'
@@ -19,7 +19,10 @@
       </span>
     </div>
 
-    <div v-if="selectedSpotDetail" class="flex min-h-full flex-col">
+    <div
+      v-if="selectedSpotDetail"
+      class="pilgrimage-detail-content flex min-h-full flex-col lg:min-h-0 lg:flex-1 lg:overflow-y-auto lg:pr-1"
+    >
       <div
         class="sticky top-0 z-30 -mx-4 mb-3 flex h-12 items-center gap-3 bg-[linear-gradient(180deg,rgba(255,255,255,0.98),rgba(255,255,255,0.9))] px-4 pr-14 pt-1 sm:-mx-6 sm:px-6 sm:pr-16 lg:hidden"
       >
@@ -141,7 +144,10 @@
       </section>
     </div>
 
-    <div v-else-if="spotDetailLoading" class="flex min-h-full flex-col">
+    <div
+      v-else-if="spotDetailLoading"
+      class="pilgrimage-detail-content flex min-h-full flex-col lg:min-h-0 lg:flex-1 lg:overflow-y-auto lg:pr-1"
+    >
       <div
         class="sticky top-0 z-30 -mx-4 mb-3 flex h-12 items-center gap-3 bg-[linear-gradient(180deg,rgba(255,255,255,0.98),rgba(255,255,255,0.9))] px-4 pr-14 pt-1 sm:-mx-6 sm:px-6 sm:pr-16 lg:hidden"
       >
@@ -178,9 +184,19 @@
 
     <div
       v-else
-      class="flex min-h-[480px] items-center justify-center rounded-lg border border-dashed border-[#cadbd7] bg-white/48 p-8 text-center text-sm leading-7 text-[#60717a]"
+      class="pilgrimage-detail-content flex min-h-[480px] items-center justify-center rounded-lg border border-dashed border-[#cadbd7] bg-white/48 p-8 text-center text-sm leading-7 text-[#60717a] lg:min-h-0 lg:flex-1"
     >
       {{ spotsLoading ? pageText.loading : pageText.emptySpot }}
+    </div>
+
+    <div class="pilgrimage-detail-illustration mt-4 hidden shrink-0 lg:block" aria-hidden="true">
+      <img
+        src="/pilgrimage/decorations/detail-watercolor-postcard.webp"
+        alt=""
+        class="h-full w-full object-cover object-[62%_45%]"
+        loading="lazy"
+        decoding="async"
+      />
     </div>
   </aside>
 </template>
@@ -252,6 +268,11 @@ const detailNoteText = computed(() =>
     );
 }
 
+.pilgrimage-detail-panel > * {
+  position: relative;
+  z-index: 1;
+}
+
 .pilgrimage-detail-panel::before {
   position: sticky;
   top: 0;
@@ -263,6 +284,57 @@ const detailNoteText = computed(() =>
   border-radius: 999px;
   background: rgba(196, 181, 253, 0.44);
   content: '';
+}
+
+.pilgrimage-detail-panel::after {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.72), rgba(255, 255, 255, 0.9)),
+    url('/pilgrimage/decorations/detail-watercolor-postcard.webp') center bottom / cover no-repeat;
+  content: '';
+  opacity: 0.3;
+  pointer-events: none;
+}
+
+@media (min-width: 1024px) {
+  .pilgrimage-detail-panel::after {
+    display: none;
+  }
+}
+
+.pilgrimage-detail-content {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(196, 181, 253, 0.44) transparent;
+}
+
+.pilgrimage-detail-illustration {
+  position: relative;
+  height: clamp(120px, 15vh, 180px);
+  overflow: hidden;
+  border: 1px solid rgba(211, 229, 239, 0.76);
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.58);
+  box-shadow:
+    0 20px 52px -42px rgba(58, 91, 119, 0.64),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.58);
+}
+
+.pilgrimage-detail-illustration img {
+  display: block;
+  opacity: 0.74;
+  filter: saturate(0.78) contrast(0.92) brightness(1.04);
+}
+
+.pilgrimage-detail-illustration::after {
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.2), rgba(255, 251, 235, 0.32)),
+    radial-gradient(circle at 16% 18%, rgba(249, 168, 212, 0.12), transparent 34%);
+  content: '';
+  pointer-events: none;
 }
 
 .pilgrimage-detail-card {
