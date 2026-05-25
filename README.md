@@ -133,19 +133,6 @@ npm run format
 
 渲染模式集中配置在 [render.config.json](./render.config.json)。
 
-| 路由                            | 模式 | 说明                      |
-| ------------------------------- | ---- | ------------------------- |
-| `/`                             | SSG  | 会按语言生成 `/zh`、`/ja` |
-| `/milet/about`                  | SSG  | 关于页面                  |
-| `/milet`                        | SSR  | milet 首页                |
-| `/milet/anniversary`            | SSR  | 周年记录                  |
-| `/milet/timeline`               | CSR  | 时间线                    |
-| `/milet/galleryList`            | CSR  | 图集列表                  |
-| `/milet/release`                | CSR  | 作品页                    |
-| `/milet/news`                   | CSR  | 新闻合集                  |
-| `/milet/pilgrimage`             | CSR  | 圣地巡礼地图              |
-| `/milet/interactive/song-guess` | CSR  | 歌曲猜测互动              |
-
 SSG 路由会在 `scripts/prerender.mjs` 中按语言生成静态 HTML。SSR 请求由 `functions/[[path]].ts` 在 Cloudflare Pages Functions 中加载 `dist/server/entry-server.js` 完成渲染。
 
 ## Cloudflare Pages 部署
@@ -188,6 +175,7 @@ Cloudflare Pages Functions 只允许代理配置中的路径，未在白名单�
 
 ## 相关文档
 
+- [网站整体架构，功能](./docs/echoes%20of%20milet网站.md)
 - [milet 周年模块数据契约](./docs/milet-anniversary-data-contract.md)
 - [圣地巡礼地图实现计划](./docs/pilgrimage-map-implementation-plan.md)
 
