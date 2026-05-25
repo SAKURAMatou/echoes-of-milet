@@ -94,6 +94,12 @@ export const pilgrimageMapConfig = {
     color: '#5f9dcb',
     haloColor: '#fff7ed',
     arrowColor: '#4f87bd',
+    curve: {
+      enabled: true,
+      curvature: 0.18,
+      maxOffsetPx: 90,
+      samplesPerSegment: 18,
+    },
   },
   markerPalette: [
     {
