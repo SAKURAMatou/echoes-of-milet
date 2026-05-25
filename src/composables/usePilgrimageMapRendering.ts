@@ -12,6 +12,11 @@ import type {
 type LeafletModule = typeof import('leaflet')
 type Point = { x: number; y: number }
 type LatLngTuple = [number, number]
+type RoutePathPoint = {
+  latLng: LatLngTuple
+  legIndex: number
+  legProgress: number
+}
 type SpotMarkerDisplayMode = 'full' | 'dot' | 'hidden'
 type MarkerSkin = PilgrimageMarkerSkin & {
   fallbackImageUrl?: string
@@ -67,6 +72,10 @@ function stableHash(value: string) {
 
 function normalizeMarkerDisplayMode(value: string): SpotMarkerDisplayMode {
   return value === 'hidden' ? 'hidden' : 'dot'
+}
+
+function clamp(value: number, min: number, max: number) {
+  return Math.min(max, Math.max(min, value))
 }
 
 function spotMarkerStyle(spot: PilgrimageSpotSummary) {
@@ -539,6 +548,88 @@ export function usePilgrimageMapRendering(options: UsePilgrimageMapRenderingOpti
       .map((spot) => [spot!.displayLat, spot!.displayLng] as LatLngTuple)
   }
 
+  function routePathFallback(points: LatLngTuple[]): RoutePathPoint[] {
+    return points.map((latLng, index) => ({
+      latLng,
+      legIndex: Math.min(index, Math.max(0, points.length - 2)),
+      legProgress: index === points.length - 1 ? 1 : 0,
+    }))
+  }
+
+  function cubicBezierPoint(
+    start: Point,
+    controlA: Point,
+    controlB: Point,
+    end: Point,
+    progress: number,
+  ): Point {
+    const inverse = 1 - progress
+    const startWeight = inverse * inverse * inverse
+    const controlAWeight = 3 * inverse * inverse * progress
+    const controlBWeight = 3 * inverse * progress * progress
+    const endWeight = progress * progress * progress
+    return {
+      x:
+        start.x * startWeight +
+        controlA.x * controlAWeight +
+        controlB.x * controlBWeight +
+        end.x * endWeight,
+      y:
+        start.y * startWeight +
+        controlA.y * controlAWeight +
+        controlB.y * controlBWeight +
+        end.y * endWeight,
+    }
+  }
+
+  function curvedRoutePath(points: LatLngTuple[]): RoutePathPoint[] {
+    const map = options.mapRef.value
+    const curveConfig = pilgrimageMapConfig.routeLine.curve
+    if (!map || points.length < 2 || !curveConfig.enabled) return routePathFallback(points)
+
+    const samplesPerSegment = Math.max(2, Math.round(curveConfig.samplesPerSegment))
+    const path: RoutePathPoint[] = []
+
+    points.slice(0, -1).forEach((from, legIndex) => {
+      const to = points[legIndex + 1]
+      if (!to) return
+
+      const start = map.latLngToLayerPoint(from)
+      const end = map.latLngToLayerPoint(to)
+      const dx = end.x - start.x
+      const dy = end.y - start.y
+      const distance = Math.hypot(dx, dy)
+      const normal = distance > 0 ? { x: -dy / distance, y: dx / distance } : { x: 0, y: 0 }
+      const direction = legIndex % 2 === 0 ? 1 : -1
+      const offset = clamp(distance * curveConfig.curvature, 0, curveConfig.maxOffsetPx) * direction
+      const controlA = {
+        x: start.x + dx * 0.32 + normal.x * offset,
+        y: start.y + dy * 0.32 + normal.y * offset,
+      }
+      const controlB = {
+        x: start.x + dx * 0.68 + normal.x * offset * 0.62,
+        y: start.y + dy * 0.68 + normal.y * offset * 0.62,
+      }
+
+      for (let step = 0; step <= samplesPerSegment; step += 1) {
+        const progress = step / samplesPerSegment
+        const point = cubicBezierPoint(start, controlA, controlB, end, progress)
+        const latLng = map.layerPointToLatLng(point)
+        path.push({
+          latLng: [latLng.lat, latLng.lng],
+          legIndex,
+          legProgress: progress,
+        })
+      }
+    })
+
+    return path.length > 0 ? path : routePathFallback(points)
+  }
+
+  function routePathLatLngs(path: RoutePathPoint[]) {
+    return path.map((point) => point.latLng)
+  }
+
   function renderRoutes() {
     const L = options.leafletRef.value
     const routeLayer = options.routeLayerRef.value
@@ -549,9 +640,11 @@ export function usePilgrimageMapRendering(options: UsePilgrimageMapRenderingOpti
     const routeItem = options.selectedRoute.value
     if (!routeItem) return
 
-    const points = routePoints(routeItem)
+    const stops = routePoints(routeItem)
 
-    if (points.length < 2) return
+    if (stops.length < 2) return
+    const path = curvedRoutePath(stops)
+    const points = routePathLatLngs(path)
     const routeStyle = pilgrimageMapConfig.routeLine
     L.polyline(points, {
       color: routeStyle.haloColor,
@@ -568,11 +661,15 @@ export function usePilgrimageMapRendering(options: UsePilgrimageMapRenderingOpti
       lineJoin: 'round',
     }).addTo(routeLayer)
 
-    points.slice(0, -1).forEach((point, index) => {
-      const nextPoint = points[index + 1]
-      if (!nextPoint) return
-      const midPoint: LatLngTuple = [(point[0] + nextPoint[0]) / 2, (point[1] + nextPoint[1]) / 2]
-      const from = map.latLngToLayerPoint(point)
+    stops.slice(0, -1).forEach((_, legIndex) => {
+      const legPath = path.filter((point) => point.legIndex === legIndex)
+      if (legPath.length < 2) return
+      const midIndex = Math.max(1, Math.floor(legPath.length / 2))
+      const midPoint = legPath[midIndex]?.latLng
+      const previousPoint = legPath[midIndex - 1]?.latLng
+      const nextPoint = legPath[Math.min(legPath.length - 1, midIndex + 1)]?.latLng
+      if (!midPoint || !previousPoint || !nextPoint) return
+      const from = map.latLngToLayerPoint(previousPoint)
       const to = map.latLngToLayerPoint(nextPoint)
       const angle = Math.atan2(to.y - from.y, to.x - from.x) * (180 / Math.PI)
       L.marker(midPoint, {
@@ -649,23 +746,43 @@ export function usePilgrimageMapRendering(options: UsePilgrimageMapRenderingOpti
     return map.distance(fromPoint, toPoint)
   }
 
-  function routeAnimationTimeline(points: LatLngTuple[]) {
+  function routeAnimationTimeline(path: RoutePathPoint[], stops: LatLngTuple[]) {
     const metersPerSecond = Math.max(
       1,
       pilgrimageMapConfig.routeAnimation.movementSpeed.metersPerSecond,
     )
     const metersPerMs = metersPerSecond / 1000
-    const segments = points.slice(0, -1).map((from, index) => {
-      const to = points[index + 1]
-      const distance = Math.max(1, routeSegmentDistanceMeters(from, to))
-      return {
-        from,
-        to,
-        angle: routeSegmentAngle(from, to),
-        duration: distance / metersPerMs,
-        startedAt: 0,
-      }
-    })
+    const legAngles = stops
+      .slice(0, -1)
+      .map((fromPoint, legIndex) => routeSegmentAngle(fromPoint, stops[legIndex + 1] || fromPoint))
+    const segments = path
+      .slice(0, -1)
+      .map((fromPoint, index) => {
+        const toPoint = path[index + 1]
+        const distance = routeSegmentDistanceMeters(fromPoint.latLng, toPoint.latLng)
+        if (distance < 0.1) return null
+        return {
+          from: fromPoint.latLng,
+          to: toPoint.latLng,
+          legIndex: fromPoint.legIndex,
+          legProgressStart: fromPoint.legProgress,
+          legProgressEnd:
+            toPoint.legIndex === fromPoint.legIndex ? toPoint.legProgress : fromPoint.legProgress,
+          angle: legAngles[fromPoint.legIndex] ?? routeSegmentAngle(fromPoint.latLng, toPoint.latLng),
+          duration: distance / metersPerMs,
+          startedAt: 0,
+        }
+      })
+      .filter(Boolean) as Array<{
+      from: LatLngTuple
+      to: LatLngTuple
+      legIndex: number
+      legProgressStart: number
+      legProgressEnd: number
+      angle: number
+      duration: number
+      startedAt: number
+    }>
 
     let totalDuration = 0
     segments.forEach((segment) => {
@@ -721,10 +838,11 @@ export function usePilgrimageMapRendering(options: UsePilgrimageMapRenderingOpti
     const map = options.mapRef.value
     const animationLayer = options.animationLayerRef.value
     const routeItem = options.selectedRoute.value
-    const points = routePoints(routeItem)
+    const stops = routePoints(routeItem)
+    const path = curvedRoutePath(stops)
 
     stopRouteAnimation(false)
-    if (!L || !map || !animationLayer || !routeItem || points.length < 2) {
+    if (!L || !map || !animationLayer || !routeItem || stops.length < 2 || path.length < 2) {
       renderMarkers()
       return
     }
@@ -732,11 +850,17 @@ export function usePilgrimageMapRendering(options: UsePilgrimageMapRenderingOpti
     const token = ++animationToken
     activeAnimationRouteId = routeItem.id
     const actor = pilgrimageMapConfig.routeAnimation.actor
-    const timeline = routeAnimationTimeline(points)
+    const timeline = routeAnimationTimeline(path, stops)
     const totalDuration = timeline.totalDuration
-    const firstSegmentAngle = timeline.segments[0]?.angle ?? routeSegmentAngle(points[0], points[1])
+    if (timeline.segments.length === 0 || totalDuration <= 0) {
+      renderMarkers()
+      return
+    }
+    const firstSegmentAngle =
+      timeline.segments[0]?.angle ?? routeSegmentAngle(stops[0], stops[1])
+    const startPoint = path[0]?.latLng || stops[0]
 
-    actorMarker = L.marker(points[0], {
+    actorMarker = L.marker(startPoint, {
       interactive: false,
       zIndexOffset: 1200,
       icon: L.divIcon({
@@ -755,8 +879,8 @@ export function usePilgrimageMapRendering(options: UsePilgrimageMapRenderingOpti
         return
       const startedAt = window.performance.now()
       let segmentIndex = 0
-      let lastAngleSegmentIndex = -1
-      actorMarker?.setLatLng(points[0])
+      let lastAngleLegIndex = -1
+      actorMarker?.setLatLng(startPoint)
       setActorAngle(firstSegmentAngle)
       updateRouteAnimationState(1, new Set([1]))
 
@@ -775,6 +899,9 @@ export function usePilgrimageMapRendering(options: UsePilgrimageMapRenderingOpti
         const segmentElapsed = elapsed - segment.startedAt
         const segmentProgress =
           elapsed >= totalDuration ? 1 : Math.min(1, segmentElapsed / segment.duration)
+        const legProgress =
+          segment.legProgressStart +
+          (segment.legProgressEnd - segment.legProgressStart) * segmentProgress
         const from = segment.from
         const to = segment.to
         const nextPosition: LatLngTuple = [
@@ -783,19 +910,19 @@ export function usePilgrimageMapRendering(options: UsePilgrimageMapRenderingOpti
         ]
         const currentOrder =
           elapsed >= totalDuration
-            ? points.length
-            : segmentProgress > 0.86
-              ? segmentIndex + 2
-              : segmentIndex + 1
+            ? stops.length
+            : legProgress > 0.86
+              ? segment.legIndex + 2
+              : segment.legIndex + 1
         const passed = new Set<number>()
-        for (let order = 1; order <= Math.min(currentOrder, points.length); order += 1) {
+        for (let order = 1; order <= Math.min(currentOrder, stops.length); order += 1) {
           passed.add(order)
         }
 
         actorMarker?.setLatLng(nextPosition)
-        if (segmentIndex !== lastAngleSegmentIndex) {
+        if (segment.legIndex !== lastAngleLegIndex) {
           setActorAngle(segment.angle)
-          lastAngleSegmentIndex = segmentIndex
+          lastAngleLegIndex = segment.legIndex
         }
         updateRouteAnimationState(currentOrder, passed)
 
