@@ -16,6 +16,7 @@ export function useReleaseData(options: ReleaseDataOptions) {
   const error = ref<string | null>(null)
   const currentPage = ref(1)
   const hasMore = ref(true)
+  const total = ref(0)
   const isInitialized = ref(false)
   let observer: IntersectionObserver | null = null
 
@@ -31,7 +32,8 @@ export function useReleaseData(options: ReleaseDataOptions) {
       const response = await axiosInstance.get<{ data: Work[]; total: number }>(url)
       const newData = Array.isArray(response.data) ? response.data : []
 
-      hasMore.value = response.total > data.value.length + newData.length
+      total.value = Number(response.total || 0)
+      hasMore.value = total.value > data.value.length + newData.length
       data.value = [...data.value, ...newData]
       currentPage.value = page
     } catch (err) {
@@ -46,6 +48,11 @@ export function useReleaseData(options: ReleaseDataOptions) {
   const loadMore = async () => {
     if (loading.value || !hasMore.value) return
     await fetchData(currentPage.value + 1)
+  }
+
+  const retry = async () => {
+    if (loading.value) return
+    await fetchData(data.value.length > 0 ? currentPage.value + 1 : 1)
   }
 
   const setupObserver = () => {
@@ -86,6 +93,8 @@ export function useReleaseData(options: ReleaseDataOptions) {
     error,
     currentPage,
     hasMore,
+    total,
     loadMore,
+    retry,
   }
 }

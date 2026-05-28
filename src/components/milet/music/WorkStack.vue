@@ -1,110 +1,57 @@
 <template>
-  <div v-if="hasItems" class="relative overflow-visible">
-    <div
-      v-for="(work, index) in props.works"
+  <div
+    v-if="hasItems"
+    :class="
+      viewMode === 'shelf'
+        ? 'grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-3 xl:grid-cols-4'
+        : 'space-y-3'
+    "
+  >
+    <WorkCard
+      v-for="(work, index) in works"
       :key="work.id"
-      class="relative h-[80vh]"
-      :style="getStackItemStyle(index)"
-    >
-      <div class="absolute inset-x-0 top-0 h-full" :ref="(el) => setTrackEl(el as any, index)" />
-      <div class="sticky ttop-0 h-full">
-        <WorkCard
-          :work="work"
-          :progress="progresses[index] ?? 0"
-          :next-progress="progresses[index + 1] ?? 0"
-          :stack-index="index"
-        />
-      </div>
-    </div>
-
-    <div class="h-[2vh]" />
+      :work="work"
+      :variant="index === 0 && viewMode === 'list' ? 'featured' : 'compact'"
+      :expanded="expandedWorkId === work.id"
+      :view-mode="viewMode"
+      @toggle-expand="toggleExpand"
+    />
   </div>
 
-  <div v-else class="py-10 text-slate-500">no data</div>
+  <div v-else class="rounded-lg border border-dashed border-sky-200/80 bg-white/54 px-5 py-10 text-center text-sm text-slate-500">
+    {{ emptyText }}
+  </div>
 </template>
 
 <script setup lang="ts">
-import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
+import { computed, ref, watch } from 'vue'
 import WorkCard from './WorkCard.vue'
-import type { Work, Track } from '@/composables/releaseType'
+import type { Work } from '@/composables/releaseType'
 
-const props = defineProps<{ works: Work[] }>()
-
-const hasItems = computed(() => props.works.length > 0)
-const progresses = ref<number[]>([])
-const trackEls = ref<HTMLElement[]>([])
-const rafId = ref<number | null>(null)
-const viewportHeight = ref(typeof window !== 'undefined' ? window.innerHeight : 0)
-
-const overlapOffset = 0 // 单位是 vh，数值越大重叠区域越高
-
-const clamp = (value: number) => Math.min(1, Math.max(0, value))
-
-const setTrackEl = (el: HTMLElement | null, index: number) => {
-  trackEls.value[index] = el ?? ({} as HTMLElement)
-  scheduleUpdate()
-}
-
-const updateProgress = () => {
-  const list = props.works.map((_, index) => {
-    const el = trackEls.value[index]
-    if (!el) return 0
-    const rect = el.getBoundingClientRect()
-    if (!rect.height) return 0
-    const raw = (viewportHeight.value - rect.top) / rect.height
-    return clamp(raw)
-  })
-  progresses.value = list
-  rafId.value = null
-}
-
-const scheduleUpdate = () => {
-  if (rafId.value === null) {
-    rafId.value = requestAnimationFrame(updateProgress)
-  }
-}
-
-const onScroll = () => scheduleUpdate()
-const onResize = () => {
-  viewportHeight.value = typeof window !== 'undefined' ? window.innerHeight : viewportHeight.value
-  scheduleUpdate()
-}
-
-onMounted(() => {
-  if (typeof window !== 'undefined') {
-    window.addEventListener('scroll', onScroll, { passive: true })
-    window.addEventListener('resize', onResize)
-  }
-  scheduleUpdate()
-})
-
-onBeforeUnmount(() => {
-  if (typeof window !== 'undefined') {
-    window.removeEventListener('scroll', onScroll)
-    window.removeEventListener('resize', onResize)
-  }
-  if (rafId.value) {
-    cancelAnimationFrame(rafId.value)
-  }
-})
-
-watch(
-  () => props.works.length,
-  (len) => {
-    trackEls.value.length = len
-    progresses.value.length = len
-    scheduleUpdate()
+const props = withDefaults(
+  defineProps<{
+    works: Work[]
+    viewMode?: 'list' | 'shelf'
+    emptyText: string
+  }>(),
+  {
+    viewMode: 'list',
   },
-  { immediate: true },
 )
 
-const getStackItemStyle = (index: number) => {
-  const style: Record<string, string> = {
-    zIndex: `${10 + index}`,
-  }
-  if (index > 0) {
-    style.marginTop = `-${overlapOffset}vh`
-  }
-  return style
+const expandedWorkId = ref<string | null>(null)
+const hasItems = computed(() => props.works.length > 0)
+
+function toggleExpand(workId: string) {
+  expandedWorkId.value = expandedWorkId.value === workId ? null : workId
 }
+
+watch(
+  () => props.works.map((work) => work.id).join(','),
+  () => {
+    if (expandedWorkId.value && !props.works.some((work) => work.id === expandedWorkId.value)) {
+      expandedWorkId.value = null
+    }
+  },
+)
 </script>

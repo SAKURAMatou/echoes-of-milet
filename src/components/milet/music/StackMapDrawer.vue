@@ -1,74 +1,99 @@
-<!-- components/StackMapDrawer.vue -->
-
 <template>
   <div v-if="open" class="fixed inset-0 z-[500]">
-    <!-- 遮罩 -->
-    <div class="absolute inset-0 bg-black/30" @click="emit('close')" />
+    <div class="absolute inset-0 bg-slate-950/32 backdrop-blur-[2px]" @click="emit('close')" />
 
-    <!-- 抽屉 -->
-    <div class="absolute inset-x-0 bottom-0 rounded-t-3xl bg-white shadow-2xl border p-4 md:p-6">
-      <div class="flex items-center justify-between">
-        <div>
-          <div class="text-xs tracking-[.18em] text-slate-500/80">STACK MAP</div>
-          <div class="text-lg font-semibold mt-1">{{ pageText.stackMap.desc }}</div>
+    <div
+      class="absolute inset-x-0 bottom-0 rounded-t-3xl border border-white/70 bg-[linear-gradient(180deg,rgba(255,255,255,0.96),rgba(240,249,255,0.94))] p-5 shadow-2xl"
+    >
+      <div class="flex items-start justify-between gap-4">
+        <div class="min-w-0">
+          <div class="text-xs font-medium uppercase tracking-[0.18em] text-[#317f8d]/80">
+            {{ pageText.stackMap.kicker }}
+          </div>
+          <div
+            class="release-drawer-title mt-2 flex items-center gap-3 font-serif text-[1.3rem] leading-none text-[#143d63]"
+          >
+            <span>{{ pageText.page.archiveTitle }}</span>
+          </div>
         </div>
         <button
-          class="rounded-lg border px-3 py-1.5 text-sm hover:bg-slate-50"
+          class="shrink-0 rounded-lg border border-slate-200 bg-white/82 px-3 py-1.5 text-sm text-[#143d63] transition hover:bg-sky-50"
           @click="emit('close')"
         >
           {{ pageText.stackMap.close }}
         </button>
       </div>
 
-      <div class="mt-4 grid gap-3">
-        <button
-          v-for="c in chapters"
-          :key="c.key"
-          class="w-full rounded-2xl border p-3 hover:bg-slate-50 text-left"
-          @click="emit('jump', c.anchorId)"
+      <nav
+        class="release-drawer-nav relative mt-5 grid gap-[1.05rem]"
+        :aria-label="pageText.stackMap.desc"
+      >
+        <a
+          v-for="chapter in chapters"
+          :key="chapter.key"
+          :href="`#${chapter.anchorId}`"
+          class="relative grid w-full grid-cols-[1.45rem_minmax(0,1fr)_auto] items-center gap-3 py-0.5 text-left"
+          @click="emit('close')"
         >
-          <div class="flex items-center justify-between gap-3">
-            <div>
-              <div class="text-base font-medium">{{ c.title }}</div>
-              <div class="text-xs text-slate-500">{{ pageText.stackMap.action }}</div>
-            </div>
-
-            <!-- 右侧缩略封面堆叠 -->
-            <div class="relative h-10 w-24 shrink-0">
-              <div
-                v-for="(cv, i) in c.covers.slice(0, 4)"
-                :key="cv.id"
-                class="absolute top-0 h-10 w-10 overflow-hidden rounded-lg border bg-slate-200"
-                :style="{ right: `${i * 12}px`, zIndex: 10 + i }"
-                :title="cv.title"
-              >
-                <img v-if="cv.coverUrl" :src="cv.coverUrl" class="h-full w-full object-cover" />
-              </div>
-            </div>
-          </div>
-        </button>
-      </div>
-
-      <div class="h-2" />
+          <span
+            class="relative z-[1] flex h-[0.78rem] w-[0.78rem] justify-self-center rounded-full border border-[#317f8d] bg-white/90"
+          >
+            <span class="m-auto block h-[0.34rem] w-[0.34rem] rounded-full bg-[#317f8d]"></span>
+          </span>
+          <span class="min-w-0">
+            <span class="block text-base font-semibold text-[#143d63]">{{ chapter.title }}</span>
+            <span class="mt-0.5 block text-xs text-slate-500">{{ chapter.subtitle }}</span>
+          </span>
+          <span class="font-montserrat text-[0.86rem] tabular-nums text-slate-600/80">
+            {{ chapter.countLabel }}
+          </span>
+        </a>
+      </nav>
     </div>
   </div>
 </template>
+
 <script setup lang="ts">
 import { getCurrentInstance, computed } from 'vue'
 import { RELEASE_PAGE_TEXT } from '@/composables/lang/ReleaseMetaData'
-const pageText = computed(() => {
-  const lang = global.$lang?.lang ? global.$lang.lang : 'zh'
-  return RELEASE_PAGE_TEXT[lang]
-})
-const { appContext } = getCurrentInstance()
+
+const { appContext } = getCurrentInstance()!
 const global = appContext.config.globalProperties
 
-type CoverItem = { id: string; coverUrl?: string; title: string }
-type Chapter = { key: string; title: string; anchorId: string; covers: CoverItem[] }
+const pageText = computed(() => {
+  const lang = global.$lang?.lang === 'jp' ? 'jp' : 'zh'
+  return RELEASE_PAGE_TEXT[lang]
+})
 
-const props = defineProps<{ open: boolean; chapters: Chapter[] }>()
+type Chapter = {
+  key: string
+  title: string
+  subtitle: string
+  countLabel: string
+  anchorId: string
+}
+
+defineProps<{ open: boolean; chapters: Chapter[] }>()
 const emit = defineEmits<{
   (e: 'close'): void
-  (e: 'jump', anchorId: string): void
 }>()
 </script>
+
+<style scoped>
+.release-drawer-title::after {
+  content: '';
+  height: 1px;
+  width: min(9rem, 36vw);
+  background: linear-gradient(90deg, rgba(184, 148, 68, 0.82), rgba(184, 148, 68, 0.16));
+}
+
+.release-drawer-nav::before {
+  content: '';
+  position: absolute;
+  bottom: 0.7rem;
+  left: 0.725rem;
+  top: 0.7rem;
+  width: 1px;
+  background: rgba(100, 116, 139, 0.34);
+}
+</style>

@@ -78,7 +78,7 @@ export const routes: RouteRecordRaw[] = [
           {
             path: 'release',
             name: 'miletRelease',
-            meta: { renderMode: 'csr' },
+            meta: { renderMode: 'csr', widePage: true },
             component: () => import('@/views/milet/ReleasesPage.vue'),
           },
           {
