@@ -5,7 +5,7 @@
         <div>
           <p class="section-eyebrow">anniversary archive</p>
           <h1
-            class="mt-4 font-serif text-5xl leading-[0.95] text-[#1d2b36] sm:text-6xl md:text-7xl"
+            class="milet-page-title-font mt-4 text-5xl leading-[0.95] text-[#1d2b36] sm:text-6xl md:text-7xl"
           >
             {{ content.archiveTitle }}
           </h1>

@@ -15,9 +15,7 @@
             <span class="h-2 w-2 rounded-full bg-sky-400"></span>
             {{ copy.hero.eyebrow }}
           </p>
-          <h1
-            class="font-['Cormorant_Garamond',serif] text-5xl leading-none text-slate-800 md:text-7xl"
-          >
+          <h1 class="milet-page-title-font text-5xl leading-none text-slate-800 md:text-7xl">
             {{ copy.hero.title }}
           </h1>
           <p class="mt-5 max-w-2xl text-lg leading-8 text-slate-600">

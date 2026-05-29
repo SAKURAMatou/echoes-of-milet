@@ -50,7 +50,7 @@
           <p class="text-xs font-medium tracking-[0.16em] text-[#317f8d]">
             {{ pageText.page.current }}
           </p>
-          <h1 class="mt-5 font-serif text-6xl leading-none text-[#143d63] md:text-7xl">
+          <h1 class="milet-page-title-font mt-5 text-6xl leading-none text-[#143d63] md:text-7xl">
             {{ pageText.page.title }}
           </h1>
           <p class="mt-5 max-w-xl text-sm leading-7 text-slate-600">

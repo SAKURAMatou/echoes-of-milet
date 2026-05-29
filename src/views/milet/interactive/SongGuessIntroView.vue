@@ -5,7 +5,7 @@
     <section class="grid grid-cols-[minmax(0,0.9fr)_minmax(280px,1fr)] items-end gap-7 max-md:grid-cols-1">
       <div>
         <div class="text-[0.78rem] font-bold uppercase tracking-[0.16em] text-[#317f8d]">{{ text.introEyebrow }}</div>
-        <h1 class="mt-3 font-serif text-[clamp(3rem,8vw,5rem)] leading-none text-[#1e2a35]">
+        <h1 class="milet-page-title-font mt-3 text-[clamp(3rem,8vw,5rem)] leading-none text-[#1e2a35]">
           {{ text.introTitle }}
         </h1>
         <p class="mt-[22px] max-w-[520px] text-[1.05rem] leading-[1.9] text-[#3f4f5a]">

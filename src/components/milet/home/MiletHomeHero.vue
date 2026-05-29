@@ -59,7 +59,7 @@
           {{ currentYear }} archive
         </span>
         <h1
-          class="hero-title-glow font-serif text-[clamp(2.85rem,7.6vw,4.7rem)] leading-none text-[#1e2a35]"
+          class="hero-title-glow milet-page-title-font text-[clamp(2.85rem,7.6vw,4.7rem)] leading-none text-[#1e2a35]"
         >
           echoes of milet
         </h1>

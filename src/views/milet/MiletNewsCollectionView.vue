@@ -6,7 +6,7 @@
       <p class="font-['Montserrat','sans-serif'] text-[12px] font-medium uppercase tracking-[.18em] text-sky-700/70">
         milet news
       </p>
-      <h1 class="mt-3 font-['Cormorant_Garamond','serif'] text-4xl font-semibold leading-none text-[#1a2c50] sm:text-5xl">
+      <h1 class="milet-page-title-font mt-3 text-4xl leading-none text-[#1a2c50] sm:text-5xl">
         News Collection
       </h1>
       <p class="mt-4 max-w-2xl text-sm leading-7 text-slate-600">

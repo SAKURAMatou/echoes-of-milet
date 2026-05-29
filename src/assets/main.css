@@ -54,6 +54,14 @@
   }
 }
 
+@layer components {
+  .milet-page-title-font {
+    font-family: 'Cormorant Garamond', serif;
+    font-weight: 600;
+    letter-spacing: 0;
+  }
+}
+
 /* @theme {
   --font-family-sans: 'Zhi Mang Xing', 'sans-serif';
 }

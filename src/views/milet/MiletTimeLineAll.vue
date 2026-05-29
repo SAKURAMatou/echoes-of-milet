@@ -1,85 +1,159 @@
 <template>
   <section
     ref="wrapEl"
-    class="relative mx-auto min-h-[calc(100svh-5rem)] max-w-5xl rounded-lg bg-[linear-gradient(to_bottom_right,white,#ebf8ff,#bee3f8)] px-4 py-10 backdrop-blur-xl"
+    class="relative mx-auto min-h-[calc(100svh-5rem)] overflow-hidden rounded-lg bg-[linear-gradient(180deg,rgba(255,255,255,0.76),rgba(240,249,255,0.82))] px-4 py-8 text-[#1e2a35] backdrop-blur-xl sm:px-6 md:px-8 md:py-9"
   >
-    <!-- 中轴线：桌面居中；手机靠左 -->
-    <div class="pointer-events-none absolute top-5 h-full w-2" :class="axisPosClass">
-      <!-- 虚线底线（蓝色） -->
-      <div
-        class="absolute left-1/2 top-0 h-[calc(100%-1.5rem)] w-1 -translate-x-1/2 rounded-full"
-        :class="axisBaseClass"
-      ></div>
+    <div
+      class="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_82%_4%,rgba(186,230,253,0.58),transparent_30%),linear-gradient(135deg,rgba(255,255,255,0.88),rgba(240,249,255,0.42))]"
+    ></div>
 
-      <!-- 进度虚线（更深一点的蓝），高度随滚动 -->
-      <div
-        class="absolute left-1/2 top-0 w-1 -translate-x-1/2 rounded-full transition-[height] duration-200 ease-linear"
-        :class="axisProgClass"
-        :style="{ height: progressPct + '%' }"
-      ></div>
-      <!-- 上方箭头 -->
-      <div
-        class="absolute -top-4 left-[-6px] w-0 h-0 border-l-[10px] border-l-transparent border-r-[10px] border-r-transparent border-b-[14px] border-b-blue-400"
-      ></div>
+    <header class="relative pb-7">
+      <h1 class="milet-page-title-font text-5xl leading-none text-[#143d63] md:text-6xl">Timeline</h1>
+      <p class="mt-4 text-sm font-medium leading-6 text-slate-500">
+        milet activities archive &middot; 2019 &mdash; {{ currentYear }}
+      </p>
+    </header>
+
+    <div v-if="isLoading && !hasLoadedOnce" class="relative flex justify-center py-8">
+      <div class="text-sm font-medium text-slate-500">loading...</div>
     </div>
 
-    <!-- 加载状态提示 -->
-    <div v-if="isLoading" class="flex justify-center py-4">
-      <div class="text-sm text-gray-500">加载中...</div>
-    </div>
-
-    <ul class="space-y-10">
-      <li
-        v-for="(it, i) in items"
-        :key="i"
-        :ref="(el) => setItemRef(el, i)"
-        class="relative"
-        :class="[
-          visibleSet.has(i) ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4',
-          'transition-all duration-500 ease-[cubic-bezier(0.2,0.8,0.2,1)]',
-        ]"
-      >
-        <!-- 节点圆点：白色边框 + 中心不透明色（按 item 色） -->
+    <div v-else class="relative pb-4">
+      <div class="relative h-10">
         <div
-          class="absolute top-6 z-10 h-4 w-4 -translate-x-1/2 rounded-full border-4 border-white shadow-sm transition-transform duration-200"
-          :class="[
-            dotPosClass,
-            i === activeIndex ? 'scale-110' : 'scale-100',
-            colorMap[it.color]?.dot,
-          ]"
+          class="absolute left-0 right-0 top-4 h-px bg-[linear-gradient(90deg,transparent,rgba(184,148,68,0.72),rgba(184,148,68,0.34),transparent)]"
         ></div>
-
-        <!-- 内容区域：手机单列（轴线左，卡片右）；桌面双列左右交替 -->
-        <div class="grid grid-cols-1 sm:grid-cols-2 sm:gap-x-10">
-          <div class="w-[90%] max-w-xl" :class="cardWrapClass(i)">
-            <component
-              :is="hasItemLink(it.link_url) ? 'button' : 'div'"
-              :type="hasItemLink(it.link_url) ? 'button' : undefined"
-              :class="cardClass(i, it.color, hasItemLink(it.link_url))"
-              @click="handleItemClick(it.link_url)"
-            >
-              <div class="text-sm font-semibold tabular-nums" :class="colorMap[it.color]?.time">
-                {{ it.event_date }}
-              </div>
-              <h3 class="mt-1 text-base font-bold" :class="colorMap[it.color]?.title">
-                {{ it.timeline_title }}
-              </h3>
-              <FormattedPlainText
-                class="mt-3 text-sm leading-7 text-black/70"
-                :text="it.timeline_body"
-              />
-            </component>
-          </div>
+        <div
+          class="absolute top-[0.42rem] z-10 flex h-5 w-12 -translate-x-1/2 items-center justify-center"
+          :class="ornamentPosClass"
+          aria-hidden="true"
+        >
+          <span
+            class="absolute h-px w-12 bg-[linear-gradient(90deg,transparent,rgba(184,148,68,0.72),transparent)]"
+          ></span>
+          <span
+            class="h-2.5 w-2.5 rotate-45 border border-[#b89444]/70 bg-white/85 shadow-[0_0_0_3px_rgba(255,255,255,0.72)]"
+          ></span>
+          <span class="absolute h-1 w-1 rounded-full bg-[#b89444]/58"></span>
         </div>
-      </li>
-    </ul>
+      </div>
 
-    <!-- 无限加载触发点 -->
-    <div ref="loadMoreEl" class="h-2" />
+      <div class="relative">
+        <div class="pointer-events-none absolute top-0 h-full w-2" :class="axisPosClass">
+          <div
+            class="absolute left-1/2 top-0 h-full w-px -translate-x-1/2 bg-[linear-gradient(180deg,rgba(100,116,139,0.2),rgba(49,127,141,0.42),rgba(100,116,139,0.18))]"
+          ></div>
+          <div
+            class="absolute left-1/2 top-0 w-px -translate-x-1/2 bg-[linear-gradient(180deg,rgba(49,127,141,0.9),rgba(125,211,252,0.52))] transition-[height] duration-200 ease-linear"
+            :style="{ height: progressPct + '%' }"
+          ></div>
+        </div>
 
-    <!-- 加载完成或无更多数据提示 -->
-    <div v-if="hasLoadedOnce && !hasMoreData" class="text-center py-4">
-      <div class="text-sm text-gray-400">no more data</div>
+        <ul class="relative space-y-10 md:space-y-12">
+          <li
+            v-for="(it, i) in items"
+            :key="`${it.event_date}-${it.timeline_title}-${i}`"
+            :ref="(el) => setItemRef(el, i)"
+            class="relative"
+            :class="[
+              visibleSet.has(i) ? 'translate-y-0 opacity-100' : 'translate-y-4 opacity-0',
+              'transition-all duration-500 ease-[cubic-bezier(0.2,0.8,0.2,1)]',
+            ]"
+          >
+            <div
+              class="absolute top-6 z-20 h-5 w-5 -translate-x-1/2 rounded-full border-[5px] border-white bg-[#1f5f8f] shadow-[0_0_0_1px_rgba(184,148,68,0.38),0_10px_28px_-18px_rgba(20,61,99,0.9)] transition-all duration-300"
+              :class="[
+                dotPosClass,
+                i === activeIndex
+                  ? 'scale-110 shadow-[0_0_0_6px_rgba(184,148,68,0.18),0_12px_30px_-18px_rgba(20,61,99,0.9)]'
+                  : 'scale-100',
+              ]"
+            ></div>
+
+            <span
+              class="pointer-events-none absolute top-[2.12rem] hidden h-px w-9 bg-[linear-gradient(90deg,rgba(184,148,68,0.08),rgba(184,148,68,0.64))] md:block"
+              :class="connectorClass(i)"
+            ></span>
+
+            <div
+              class="pointer-events-none absolute top-[1.125rem] z-10 hidden h-8 w-[15rem] items-center gap-3 md:flex"
+              :class="dateRailClass(i)"
+            >
+              <span
+                class="h-px w-12 shrink-0 bg-[linear-gradient(90deg,rgba(184,148,68,0.14),rgba(184,148,68,0.72))]"
+              ></span>
+              <span class="font-montserrat text-sm font-semibold tabular-nums tracking-[0.02em] text-[#34658f]">
+                {{ it.event_date }}
+              </span>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 md:gap-x-16">
+              <div class="ml-10 md:ml-0" :class="cardWrapClass(i)">
+                <component
+                  :is="hasItemLink(it.link_url) ? 'button' : 'div'"
+                  :type="hasItemLink(it.link_url) ? 'button' : undefined"
+                  :class="cardClass(i, hasItemLink(it.link_url))"
+                  :aria-label="hasItemLink(it.link_url) ? `Open timeline detail: ${it.timeline_title}` : undefined"
+                  @click="handleItemClick(it.link_url)"
+                >
+                  <span
+                    v-if="hasItemLink(it.link_url)"
+                    class="absolute inset-y-0 left-0 w-[3px] rounded-l-lg bg-[#317f8d]"
+                  ></span>
+
+                  <span
+                    v-if="hasItemLink(it.link_url)"
+                    class="absolute right-4 top-4 flex h-8 w-8 items-center justify-center rounded-md border border-[#317f8d]/20 bg-white/82 text-[#317f8d] transition group-hover:border-[#317f8d]/50 group-hover:bg-sky-50"
+                    aria-hidden="true"
+                  >
+                    <svg
+                      viewBox="0 0 24 24"
+                      class="h-4 w-4"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="2"
+                    >
+                      <path d="M7 17 17 7" stroke-linecap="round" stroke-linejoin="round" />
+                      <path d="M9 7h8v8" stroke-linecap="round" stroke-linejoin="round" />
+                    </svg>
+                  </span>
+
+                  <div class="pr-10">
+                    <div class="font-montserrat text-xs font-semibold tracking-[0.08em] text-[#317f8d] md:hidden">
+                      {{ it.event_date }}
+                    </div>
+                    <h2 class="mt-2 text-base font-bold leading-6 text-[#143d63] md:mt-0">
+                      {{ it.timeline_title }}
+                    </h2>
+                    <FormattedPlainText
+                      class="mt-3 text-sm leading-7 text-slate-600"
+                      :text="it.timeline_body"
+                    />
+                  </div>
+
+                  <div
+                    v-if="hasItemLink(it.link_url)"
+                    class="mt-4 flex items-center gap-2 text-xs font-semibold text-[#317f8d]"
+                  >
+                    <span>View detail</span>
+                    <span class="h-px flex-1 bg-[#317f8d]/18"></span>
+                  </div>
+                </component>
+              </div>
+            </div>
+          </li>
+        </ul>
+      </div>
+
+      <div ref="loadMoreEl" class="h-8" />
+
+      <div v-if="isLoading && hasLoadedOnce" class="relative flex justify-center py-4">
+        <div class="text-sm font-medium text-slate-500">loading...</div>
+      </div>
+
+      <div v-if="hasLoadedOnce && !hasMoreData" class="relative py-4 text-center">
+        <div class="text-sm text-slate-400">no more data</div>
+      </div>
     </div>
   </section>
 </template>
@@ -98,27 +172,27 @@ import {
 import axiosInstance from '@/AxiosUtil'
 import { apiRoutes, getBackendOrigin } from '@/config/api'
 import FormattedPlainText from '@/components/FormattedPlainText.vue'
-const { appContext } = getCurrentInstance()
-const global = appContext.config.globalProperties
+
+const instance = getCurrentInstance()
+const global = instance?.appContext.config.globalProperties
+
 type TimeLineResItem = {
   event_date: string
   timeline_title: string
   timeline_body: string
   link_url: string
-  color: string
 }
 
 const displayedData = ref({ zh: [] as TimeLineResItem[], jp: [] as TimeLineResItem[] })
 const wrapEl = ref<HTMLElement | null>(null)
 const loadMoreEl = ref<HTMLElement | null>(null)
-//用来决定每个item的颜色属性的随机数seed
-const seed = ref(0)
-// 分页相关
+const currentYear = new Date().getFullYear()
+
 const currentPage = ref(1)
 const hasMoreData = ref(true)
 const isLoading = ref(false)
 const hasLoadedOnce = ref(false)
-// item DOM
+
 const itemEls = reactive(new Map<number, HTMLElement>())
 function setItemRef(el: any, idx: number) {
   if (el instanceof HTMLElement) {
@@ -128,21 +202,15 @@ function setItemRef(el: any, idx: number) {
   itemEls.delete(idx)
 }
 
-// reveal
 const visibleSet = reactive(new Set<number>())
 let io: IntersectionObserver | null = null
 
-// active
 const activeIndex = ref(0)
-
-//滚动窗口元素
 let scrollContainer: HTMLElement | Window = window
 
-// progress 0~1
 const progress = ref(0)
 const progressPct = computed(() => Math.max(0, Math.min(100, Math.round(progress.value * 100))))
 
-// rAF 节流
 let rafId = 0
 function scheduleUpdate() {
   if (rafId) return
@@ -190,8 +258,6 @@ function updateActiveAndProgress() {
 
   const { viewportTop, viewportHeight } = getScrollMetrics()
   const viewportCenter = viewportTop + viewportHeight * 0.5
-
-  // active：离视口中心最近
   let bestIdx = activeIndex.value
   let bestDist = Infinity
 
@@ -206,21 +272,18 @@ function updateActiveAndProgress() {
   }
   activeIndex.value = bestIdx
 
-  // progress：wrap 顶部 -> active item 中心
   const wrapRect = wrap.getBoundingClientRect()
-  // 使用 scrollHeight 获取实际完整高度，包括所有加载的内容
   const total = wrap.scrollHeight
-
   const activeEl = itemEls.get(bestIdx) as HTMLElement | undefined
   if (!activeEl || total <= 0) {
     progress.value = 0
     return
   }
+
   const aRect = activeEl.getBoundingClientRect()
   const aCenterInWrap = aRect.top + aRect.height * 0.5 - wrapRect.top
   progress.value = Math.max(0, Math.min(1, aCenterInWrap / total))
 
-  // 检查是否需要加载更多数据（距底部500px时触发）
   checkLoadMore()
 }
 
@@ -237,54 +300,9 @@ function checkLoadMore() {
   }
 }
 
-/** 颜色映射：点/卡片/标题跟着变（你可按站点色再微调） */
-const colorMap = {
-  blue: {
-    dot: 'bg-sky-500/90',
-    card: 'bg-sky-50/70 border-sky-200/70',
-    title: 'text-sky-800',
-    time: 'text-sky-700/80',
-    activeRing: 'ring-sky-200/70',
-  },
-  orange: {
-    dot: 'bg-orange-500/90',
-    card: 'bg-orange-50/70 border-orange-200/70',
-    title: 'text-orange-800',
-    time: 'text-orange-700/80',
-    activeRing: 'ring-orange-200/70',
-  },
-  purple: {
-    dot: 'bg-violet-500/90',
-    card: 'bg-violet-50/70 border-violet-200/70',
-    title: 'text-violet-800',
-    time: 'text-violet-700/80',
-    activeRing: 'ring-violet-200/70',
-  },
-  pink: {
-    dot: 'bg-pink-500/90',
-    card: 'bg-pink-50/70 border-pink-200/70',
-    title: 'text-pink-800',
-    time: 'text-pink-700/80',
-    activeRing: 'ring-pink-200/70',
-  },
-  green: {
-    dot: 'bg-emerald-500/90',
-    card: 'bg-emerald-50/70 border-emerald-200/70',
-    title: 'text-emerald-800',
-    time: 'text-emerald-700/80',
-    activeRing: 'ring-emerald-200/70',
-  },
-}
-
-// 轴线位置：手机 left-6；sm 及以上居中
-const axisPosClass = 'left-6 sm:left-1/2 sm:-translate-x-1/2'
-const dotPosClass = 'left-3 sm:left-1/2'
-
-// 蓝色虚线：用 repeating-linear-gradient 做“虚线条纹”
-const axisBaseClass =
-  'bg-[repeating-linear-gradient(to_bottom,rgba(59,130,246,0.25)_0,rgba(59,130,246,0.25)_10px,transparent_10px,transparent_18px)]'
-const axisProgClass =
-  'bg-[repeating-linear-gradient(to_bottom,rgba(59,130,246,0.75)_0,rgba(59,130,246,0.75)_10px,transparent_10px,transparent_18px)]'
+const axisPosClass = 'left-6 md:left-1/2 md:-translate-x-1/2'
+const ornamentPosClass = 'left-6 md:left-1/2'
+const dotPosClass = 'left-6 md:left-1/2'
 
 function getItemHref(link: string | undefined | null) {
   const value = (link || '').trim()
@@ -298,9 +316,7 @@ function getItemHref(link: string | undefined | null) {
   }
 
   const baseOrigin =
-    (typeof window !== 'undefined' && window.location?.origin) ||
-    getBackendOrigin() ||
-    ''
+    (typeof window !== 'undefined' && window.location?.origin) || getBackendOrigin() || ''
 
   try {
     return new URL(value, baseOrigin).toString()
@@ -319,44 +335,50 @@ function hasItemLink(link: string | undefined | null) {
   return Boolean(getItemHref(link))
 }
 
-function cardWrapClass(i) {
-  // 手机：统一在右侧（给轴线留出空间）
-  // 桌面：左右交替
+function cardWrapClass(i: number) {
   if (i % 2 === 0) {
-    return 'ml-10 sm:ml-0 sm:col-start-1 sm:justify-self-end'
+    return 'md:col-start-1 md:justify-self-end'
   }
-  return 'ml-10 sm:ml-0 sm:col-start-2 sm:justify-self-start'
+  return 'md:col-start-2 md:justify-self-start'
 }
 
-function cardClass(i, color, isClickable = false) {
-  const base =
-    'rounded-2xl border px-6 py-5 text-left shadow-sm backdrop-blur transition-all duration-200'
-  const themed = colorMap[color]?.card ?? 'bg-white/70 border-black/10'
-  const normal = isClickable
-    ? 'w-full cursor-pointer hover:-translate-y-0.5 hover:shadow-md focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-sky-200/70'
-    : 'hover:shadow-md'
+function connectorClass(i: number) {
+  if (i % 2 === 0) {
+    return 'left-[calc(50%-2.25rem)] bg-[linear-gradient(90deg,rgba(184,148,68,0.64),rgba(184,148,68,0.08))]'
+  }
+  return 'left-1/2'
+}
 
-  // active 高亮：轻微放大 + ring（跟色）
+function dateRailClass(i: number) {
+  if (i % 2 === 0) {
+    return 'left-1/2 pl-7'
+  }
+  return 'right-1/2 flex-row-reverse pr-7 text-right'
+}
+
+function cardClass(i: number, isClickable = false) {
+  const base =
+    'group relative w-full max-w-[21.5rem] rounded-lg border bg-white/82 px-5 py-5 text-left shadow-[0_18px_45px_-36px_rgba(15,23,42,0.74)] backdrop-blur transition-all duration-300 md:min-h-[10rem]'
+  const quiet = 'border-slate-200/80'
+  const clickable =
+    'cursor-pointer border-[#317f8d]/28 hover:-translate-y-0.5 hover:border-[#317f8d]/48 hover:bg-white/92 hover:shadow-[0_24px_52px_-34px_rgba(20,61,99,0.82)] focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-sky-200/70'
   const active =
     i === activeIndex.value
-      ? `scale-[1.02] shadow-lg ring-4 ${colorMap[color]?.activeRing ?? 'ring-black/10'}`
+      ? 'scale-[1.018] border-[#317f8d]/48 bg-white/94 shadow-[0_26px_58px_-34px_rgba(20,61,99,0.92)] ring-4 ring-sky-100/80'
       : ''
 
-  return `${base} ${themed} ${normal} ${active}`
+  return `${base} ${isClickable ? clickable : quiet} ${active}`
 }
 
 onMounted(async () => {
   document.title = 'milet activities timeline'
-  // 找到最近的 overflow-y-auto 容器（可能是父组件或祖先）
   scrollContainer = findScrollContainer(wrapEl.value)
 
-  // 初始化加载第一页数据
-  hasLoadedOnce.value = true
   isLoading.value = true
   const { hasMore } = await getData(1)
-
+  hasLoadedOnce.value = true
   hasMoreData.value = hasMore
-  currentPage.value = 2 // 准备加载第二页
+  currentPage.value = 2
   isLoading.value = false
 
   await nextTick()
@@ -370,7 +392,7 @@ onMounted(async () => {
         for (const [idx, el] of Array.from(itemEls.entries()) as Array<[number, HTMLElement]>) {
           if (el === e.target) {
             visibleSet.add(idx)
-            io.unobserve(el) // 只做一次 reveal
+            io?.unobserve(el)
             break
           }
         }
@@ -382,31 +404,22 @@ onMounted(async () => {
   for (const el of Array.from(itemEls.values())) io.observe(el)
 
   updateActiveAndProgress()
-  if (scrollContainer) {
-    scrollContainer.addEventListener('scroll', scheduleUpdate, { passive: true })
-  }
+  scrollContainer.addEventListener('scroll', scheduleUpdate, { passive: true })
   window.addEventListener('resize', scheduleUpdate)
-
-  seed.value = 0
 })
 
 onBeforeUnmount(() => {
   if (io) io.disconnect()
-  if (scrollContainer) {
-    scrollContainer.removeEventListener('scroll', scheduleUpdate)
-  }
+  scrollContainer.removeEventListener('scroll', scheduleUpdate)
   window.removeEventListener('resize', scheduleUpdate)
   if (rafId) cancelAnimationFrame(rafId)
 })
 
 const getData = async (page: number = 1) => {
   try {
-    const response = await axiosInstance.get(
-      `${apiRoutes.miletTimeline}/${page}`,
-    )
-    // axios 的 response.data 就是: { data: { zh: [], jp: [] }, hasMore: boolean }
+    const response = await axiosInstance.get(`${apiRoutes.miletTimeline}/${page}`)
     const { data, hasMore } = response.data
-    //data中可能包含不是数组的k-v；把新数组添加到现有数组中，key对应
+
     for (const k of Object.keys(data)) {
       if (Array.isArray(data[k])) {
         displayedData.value[k] = [...displayedData.value[k], ...data[k]]
@@ -434,7 +447,6 @@ const loadMoreData = async () => {
       hasMoreData.value = false
     }
 
-    // 新增数据后，为新增的元素设置 IntersectionObserver
     await nextTick()
     for (let i = previousCount; i < items.value.length; i++) {
       const el = itemEls.get(i)
@@ -442,8 +454,9 @@ const loadMoreData = async () => {
         io.observe(el)
       }
     }
+    scheduleUpdate()
   } catch (error) {
-    console.error('Error loading more data:', error)
+    console.error('Error loading timeline data:', error)
     hasMoreData.value = false
   } finally {
     isLoading.value = false
@@ -451,10 +464,8 @@ const loadMoreData = async () => {
 }
 
 const items = computed<TimeLineResItem[]>(() => {
-  return displayedData.value[global.$lang.lang].map((it, index) => ({
-    ...it,
-    color: Object.keys(colorMap)[(index + seed.value) % Object.keys(colorMap).length] || 'blue', // 默认颜色
-  }))
+  const lang = global?.$lang?.lang === 'jp' ? 'jp' : 'zh'
+  return displayedData.value[lang]
 })
 
 watch(items, async () => {

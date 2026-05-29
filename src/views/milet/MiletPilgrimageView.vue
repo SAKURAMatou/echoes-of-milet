@@ -8,7 +8,7 @@
       >
         <div class="grid gap-4 pr-0 lg:pr-48">
           <div class="min-w-0">
-            <h1 class="font-serif text-[clamp(2.4rem,4.3vw,4.1rem)] leading-none text-[#26313a]">
+            <h1 class="milet-page-title-font text-[clamp(2.4rem,4.3vw,4.1rem)] leading-none text-[#26313a]">
               {{ pageText.title }}
             </h1>
             <p class="mt-2 max-w-4xl text-sm leading-6 text-[#5f7178] lg:text-[15px]">
