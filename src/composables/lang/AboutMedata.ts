@@ -20,7 +20,7 @@ export const ABOUT_COPY = {
           text: '关于本站：目前所有内容均基于网络公开信息整理，并由我持续维护',
           linkLabel: '- miles DML',
           linkUrl: 'https://www.instagram.com/dml_4016/',
-          linkSuffix: '；2026年5月开始有了更多miels的伙伴加入内容的维护。',
+          linkSuffix: '；2026年5月开始有了更多的miles的伙伴加入内容的维护。',
         },
         `关于网站名称：「echoes of milet」这个名字，源于我对现场音乐的一种感受。
 每一次参加 milet 的 live 之后，总会留下难以消散的余韵——
