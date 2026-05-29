@@ -12,18 +12,14 @@
       :class="
         viewMode === 'shelf'
           ? 'grid-cols-1 gap-2.5 p-2.5 sm:p-3'
-          : variant === 'featured'
-            ? 'gap-4 p-3 sm:p-4 lg:grid-cols-[minmax(220px,0.82fr)_minmax(0,0.9fr)_minmax(280px,1.08fr)] lg:gap-5'
-            : 'gap-4 p-3 sm:p-4 md:grid-cols-[minmax(150px,0.42fr)_minmax(0,0.72fr)_minmax(260px,0.9fr)]'
+          : 'grid-cols-1 gap-4 p-3 sm:grid-cols-[minmax(132px,0.44fr)_minmax(0,1fr)] sm:p-4 lg:grid-cols-[minmax(168px,0.5fr)_minmax(0,1fr)] xl:grid-cols-[minmax(200px,0.82fr)_minmax(220px,0.9fr)_minmax(320px,1.24fr)] xl:items-stretch xl:gap-5'
       "
     >
-      <div>
+      <div class="flex min-w-0" :class="viewMode === 'shelf' ? '' : 'sm:items-start xl:h-full'">
         <div
-          class="relative overflow-hidden rounded-md border border-white/80 bg-slate-100 shadow-[0_24px_48px_-34px_rgba(15,23,42,0.82)]"
+          class="relative w-full overflow-hidden rounded-md border border-white/80 bg-slate-100 shadow-[0_24px_48px_-34px_rgba(15,23,42,0.82)]"
           :class="
-            variant === 'featured' || viewMode === 'shelf'
-              ? 'aspect-square'
-              : 'aspect-[16/9] md:aspect-[4/3]'
+            viewMode === 'shelf' ? 'aspect-square' : 'aspect-square sm:max-w-[220px] xl:max-w-none'
           "
         >
           <img
@@ -45,7 +41,7 @@
         </div>
       </div>
 
-      <div class="min-w-0" :class="viewMode === 'shelf' ? 'px-1 pb-1' : ''">
+      <div class="min-w-0" :class="viewMode === 'shelf' ? 'px-1 pb-1' : 'flex flex-col xl:h-full'">
         <div
           class="flex flex-wrap items-center gap-2 font-medium text-[#317f8d]"
           :class="viewMode === 'shelf' ? 'text-[10px]' : 'text-[11px]'"
@@ -61,7 +57,7 @@
             viewMode === 'shelf'
               ? 'line-clamp-2 text-xl leading-tight'
               : variant === 'featured'
-                ? 'text-4xl leading-none md:text-[2.65rem]'
+                ? 'text-4xl leading-none md:text-[2.35rem] xl:text-[2.65rem]'
                 : 'text-2xl leading-tight'
           "
         >
@@ -75,10 +71,10 @@
         </p>
 
         <div
-          class="text-xs text-slate-600"
-          :class="viewMode === 'shelf' ? 'mt-3 grid grid-cols-3 gap-1.5' : 'mt-4 flex gap-4'"
+          class="flex flex-wrap text-xs text-slate-600"
+          :class="viewMode === 'shelf' ? 'mt-3  gap-1.5' : 'mt-4  gap-x-4 gap-y-2'"
         >
-          <div class="border-l border-cyan-700/15 pl-3">
+          <div class="min-w-[5.25rem] border-l border-cyan-700/15 pl-3">
             <span
               class="block text-[0.62rem] font-semibold uppercase tracking-[0.12em] text-slate-500/80"
             >
@@ -91,7 +87,7 @@
               {{ activeReleaseDate }}
             </strong>
           </div>
-          <div class="border-l border-cyan-700/15 pl-3">
+          <div class="min-w-[3.5rem] border-l border-cyan-700/15 pl-3">
             <span
               class="block text-[0.62rem] font-semibold uppercase tracking-[0.12em] text-slate-500/80"
             >
@@ -104,7 +100,7 @@
               {{ editions.length || 1 }}
             </strong>
           </div>
-          <div class="border-l border-cyan-700/15 pl-3">
+          <div class="min-w-[3.5rem] border-l border-cyan-700/15 pl-3">
             <span
               class="block text-[0.62rem] font-semibold uppercase tracking-[0.12em] text-slate-500/80"
             >
@@ -126,7 +122,10 @@
           >
             {{ pageText.workCard.selectedEditionLabel }}
           </div>
-          <div class="scrollbar-none flex gap-2 pb-1">
+          <div
+            class="scrollbar-none flex gap-2 pb-1 flex-wrap overflow-visible"
+            :class="viewMode === 'shelf' ? '' : ' xl:max-h-[5.5rem] xl:overflow-y-auto xl:pr-1'"
+          >
             <button
               v-for="(edition, index) in editions"
               :key="edition.id"
@@ -135,7 +134,7 @@
               :class="[
                 viewMode === 'shelf'
                   ? 'max-w-[8.5rem] px-2 py-1.5 text-[11px] leading-4'
-                  : 'max-w-[11.5rem] px-3 py-2 text-xs leading-5',
+                  : 'max-w-full px-3 py-2 text-xs leading-5 sm:max-w-[11.5rem]',
                 index === activeEditionIndex
                   ? 'border-[#317f8d] bg-[#317f8d] text-white shadow-[0_10px_24px_-18px_rgba(49,127,141,0.9)]'
                   : 'border-slate-200 bg-white/82 text-slate-600 hover:border-sky-200 hover:bg-sky-50',
@@ -150,7 +149,11 @@
 
       <div
         class="min-w-0 rounded-md border border-sky-100/80 bg-white/62 p-3"
-        :class="viewMode === 'shelf' ? 'hidden' : ''"
+        :class="
+          viewMode === 'shelf'
+            ? 'hidden'
+            : 'sm:col-span-2 xl:col-span-1 xl:flex xl:h-full xl:flex-col'
+        "
       >
         <div class="mb-2 flex items-center justify-between gap-3">
           <div class="text-sm font-semibold text-[#164c72]">
