@@ -58,18 +58,21 @@
             <br />
             {{ pageText.page.sublead }}
           </p>
-
         </div>
 
         <aside
           class="relative w-[min(100%,282px)] justify-self-end text-[#173e63] max-lg:justify-self-start max-lg:w-full max-md:hidden"
         >
           <div class="mb-5 flex justify-end">
-            <div class="inline-flex overflow-hidden rounded-md border border-slate-200/80 bg-white/78 shadow-[0_12px_30px_-24px_rgba(15,23,42,0.7)]">
+            <div
+              class="inline-flex overflow-hidden rounded-md border border-slate-200/80 bg-white/78 shadow-[0_12px_30px_-24px_rgba(15,23,42,0.7)]"
+            >
               <button
                 type="button"
                 class="min-h-10 px-4 text-sm font-semibold transition"
-                :class="viewMode === 'list' ? 'bg-[#317f8d] text-white' : 'text-slate-500 hover:bg-sky-50'"
+                :class="
+                  viewMode === 'list' ? 'bg-[#317f8d] text-white' : 'text-slate-500 hover:bg-sky-50'
+                "
                 :aria-label="pageText.page.listViewAria"
                 @click="viewMode = 'list'"
               >
@@ -78,7 +81,11 @@
               <button
                 type="button"
                 class="min-h-10 border-l border-slate-200/80 px-4 text-sm font-semibold transition"
-                :class="viewMode === 'shelf' ? 'bg-[#317f8d] text-white' : 'text-slate-500 hover:bg-sky-50'"
+                :class="
+                  viewMode === 'shelf'
+                    ? 'bg-[#317f8d] text-white'
+                    : 'text-slate-500 hover:bg-sky-50'
+                "
                 :aria-label="pageText.page.shelfViewAria"
                 @click="viewMode = 'shelf'"
               >
@@ -87,7 +94,9 @@
             </div>
           </div>
 
-          <div class="release-archive-map__title relative ml-[2.35rem] flex items-center gap-[0.85rem] max-lg:ml-0">
+          <div
+            class="release-archive-map__title relative ml-[2.35rem] flex items-center gap-[0.85rem] max-lg:ml-0"
+          >
             <div>
               <div class="text-sm font-serif text-[#143d63]">
                 {{ pageText.page.archiveTitle }}
@@ -111,7 +120,9 @@
                 <span class="m-auto block h-[0.34rem] w-[0.34rem] rounded-full bg-[#317f8d]"></span>
               </span>
               <span>
-                <span class="block text-base font-semibold text-[#143d63]">{{ chapter.title }}</span>
+                <span class="block text-base font-semibold text-[#143d63]">{{
+                  chapter.title
+                }}</span>
                 <span class="text-xs text-slate-500">{{ chapter.subtitle }}</span>
               </span>
               <span class="font-montserrat text-[0.86rem] tabular-nums text-slate-600/80">
@@ -172,11 +183,7 @@
   </article>
 
   <Teleport to="body">
-    <StackMapDrawer
-      :open="drawerOpen"
-      :chapters="chapters"
-      @close="drawerOpen = false"
-    />
+    <StackMapDrawer :open="drawerOpen" :chapters="chapters" @close="drawerOpen = false" />
   </Teleport>
 </template>
 
@@ -222,9 +229,7 @@ function countLabel(loaded: number, total: number) {
 
 function chapterSubtitle(loaded: number, total: number) {
   const count = countLabel(loaded, total)
-  return count === '--'
-    ? pageText.value.chapter.all
-    : `${count} ${pageText.value.chapter.releases}`
+  return count === '--' ? pageText.value.chapter.all : `${count} ${pageText.value.chapter.releases}`
 }
 
 const chapters = computed(() => [
@@ -274,7 +279,7 @@ onMounted(() => {
   width: auto;
   background:
     linear-gradient(90deg, rgba(255, 255, 255, 0.08), rgba(239, 248, 255, 0.02)),
-    url('/background/release-hero-bg.png') center right / cover no-repeat;
+    url('/background/release-hero-bg.webp') center right / cover no-repeat;
   opacity: 0.92;
 }
 
