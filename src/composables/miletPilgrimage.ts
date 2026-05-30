@@ -74,7 +74,6 @@ export interface PilgrimageCollection {
   title: string
   description: string
   coverImageUrl: string
-  themeColor?: string
   sortOrder: number
   spots: PilgrimageCollectionSpot[]
 }
@@ -207,7 +206,7 @@ export const PILGRIMAGE_TEXT: Record<PilgrimageLang, PilgrimagePageText> = {
   zh: {
     title: 'milet 圣地巡礼地图',
     subtitle:
-      '由 miles 整理的 milet 圣地巡礼地图，记录着散落在不同城市里的作品场景、MV 拍摄地、公开影像与活动相关地点。以区域与路线的方式重新串联这些 地点，可跟随不同城市中的巡礼动线，查看照片、坐标、导航与地点记录，把原本零散存在于画面中的街道、车站与现场余韵，整理成能够一步步实际走访的 milet 圣地巡礼地图。',
+      '由 miles 整理的 milet 圣地巡礼地图，记录着散落在不同城市里的作品场景、MV 拍摄地、公开影像与活动相关地点。以区域与路线的方式重新串联这些 地点，并提供了根据不同原则分类的地点合集,可跟随不同城市中的巡礼动线，查看照片、坐标、导航与地点记录，把原本零散存在于画面中的街道、车站与现场余韵，整理成能够一步步实际走访的 milet 圣地巡礼地图；也可以合集中查看不同作品，不同类型的巡礼地点，自行规划自己的巡礼行程。',
     cityLabel: '巡礼区域',
     districtLabel: '线路区域',
     routeLabel: '路线',
@@ -230,7 +229,7 @@ export const PILGRIMAGE_TEXT: Record<PilgrimageLang, PilgrimagePageText> = {
   jp: {
     title: 'milet 聖地巡礼マップ',
     subtitle:
-      'miles によって整理・記録されている milet 聖地巡礼マップ。作品の舞台、MV 撮影地、公開映像、街並みや活動にまつわる場所など、さまざまな都市に点在する spot を収録しています。マップはエリアと巡礼ルートを軸に構成されており、都市ごとの空気を辿りながら、写真・座標・ナビゲーション・地点メモをたどることができます。映像の中に散りばめられていた街角や駅、ライブの余韻までも、実際に歩いて巡れるひとつの巡礼体験として繋ぎ直しています。',
+      '本サイトによって整理・記録されている milet 聖地巡礼マップ。作品の舞台、MV 撮影地、公開映像、街並みや活動にまつわる場所など、さまざまな都市に点在する spot を収録しています。マップはエリアと巡礼ルートを軸に構成されており、都市ごとの空気を辿りながら、写真・座標・ナビゲーション・地点メモをたどることができます。映像の中に散りばめられていた街角や駅、ライブの余韻までも、実際に歩いて巡れるひとつの巡礼体験として繋ぎ直しています。それ以外にも、作品やカテゴリごとに整理された地点コレクションを通して、さまざまな切り口で巡礼スポットを眺めることができ、自分なりの巡礼ルートを計画することもできます。',
     cityLabel: '巡礼エリア',
     districtLabel: 'ルートエリア',
     routeLabel: 'ルート',

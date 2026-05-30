@@ -8,7 +8,9 @@
       >
         <div class="grid gap-4 pr-0 lg:pr-48">
           <div class="min-w-0">
-            <h1 class="milet-page-title-font text-[clamp(2.4rem,4.3vw,4.1rem)] leading-none text-[#26313a]">
+            <h1
+              class="milet-page-title-font text-[clamp(2.4rem,4.3vw,4.1rem)] leading-none text-[#26313a]"
+            >
               {{ pageText.title }}
             </h1>
             <p class="mt-2 max-w-4xl text-sm leading-6 text-[#5f7178] lg:text-[15px]">
@@ -40,40 +42,36 @@
         </div>
 
         <div
-          class="min-w-0 rounded-lg border border-[#fcd34d]/50 bg-[#fffbeb]/58 px-3 py-2 text-sm text-[#526670] shadow-[0_16px_36px_-34px_rgba(182,138,47,0.38)] backdrop-blur"
+          class="min-w-0 rounded-lg border border-[#fcd34d]/50 bg-[#fffbeb]/58 p-1.5 text-sm text-[#526670] shadow-[0_16px_36px_-34px_rgba(182,138,47,0.38)] backdrop-blur"
         >
-          <div class="flex items-center justify-between gap-2">
-            <span class="block text-[11px] font-semibold uppercase tracking-[0.16em] text-[#7c9197]">
-              {{ displayMode === 'map' ? pageText.currentArea : collectionModeText.currentCollection }}
-            </span>
-            <span
-              class="relative grid grid-cols-2 rounded-lg border border-white/70 bg-white/54 p-0.5 text-[11px] font-bold shadow-inner"
+          <span
+            class="relative grid h-full min-h-14 grid-cols-2 rounded-lg border border-white/70 bg-white/54 p-0.5 text-sm font-bold shadow-inner"
+          >
+            <button
+              type="button"
+              class="relative z-[1] rounded-md px-3 py-2 transition"
+              :class="displayMode === 'map' ? 'text-[#1d6564]' : 'text-[#7c9197]'"
+              @click="setDisplayMode('map')"
             >
-              <button
-                type="button"
-                class="relative z-[1] rounded-md px-2 py-1 transition"
-                :class="displayMode === 'map' ? 'text-[#1d6564]' : 'text-[#7c9197]'"
-                @click="setDisplayMode('map')"
-              >
-                {{ collectionModeText.map }}
-              </button>
-              <button
-                type="button"
-                class="relative z-[1] rounded-md px-2 py-1 transition"
-                :class="displayMode === 'collection' ? 'text-[#614990]' : 'text-[#7c9197]'"
-                @click="setDisplayMode('collection')"
-              >
-                {{ collectionModeText.collection }}
-              </button>
-              <span
-                class="absolute bottom-0.5 left-0.5 top-0.5 w-[calc(50%-2px)] rounded-md border border-[#99e6d6]/60 bg-[#f0fdfa]/92 shadow-sm transition-transform duration-300"
-                :class="displayMode === 'collection' ? 'translate-x-full border-[#c4b5fd]/60 bg-[#f5f3ff]/92' : 'translate-x-0'"
-                aria-hidden="true"
-              />
-            </span>
-          </div>
-          <span class="mt-1 block truncate font-semibold text-[#76591c]">
-            {{ currentAreaText }}
+              {{ collectionModeText.map }}
+            </button>
+            <button
+              type="button"
+              class="relative z-[1] rounded-md px-3 py-2 transition"
+              :class="displayMode === 'collection' ? 'text-[#614990]' : 'text-[#7c9197]'"
+              @click="setDisplayMode('collection')"
+            >
+              {{ collectionModeText.collection }}
+            </button>
+            <span
+              class="absolute bottom-0.5 left-0.5 top-0.5 w-[calc(50%-2px)] rounded-md border border-[#99e6d6]/60 bg-[#f0fdfa]/92 shadow-sm transition-transform duration-300"
+              :class="
+                displayMode === 'collection'
+                  ? 'translate-x-full border-[#c4b5fd]/60 bg-[#f5f3ff]/92'
+                  : 'translate-x-0'
+              "
+              aria-hidden="true"
+            />
           </span>
         </div>
       </div>
@@ -221,14 +219,10 @@ const collectionModeText = computed(() =>
     ? {
         map: '地図',
         collection: 'コレクション',
-        currentCollection: '現在のコレクション',
-        allCollections: '巡礼コレクション',
       }
     : {
         map: '地图',
         collection: '合集',
-        currentCollection: '当前合集',
-        allCollections: '巡礼合集',
       },
 )
 const mapTopNoteText = computed(() =>
@@ -236,16 +230,6 @@ const mapTopNoteText = computed(() =>
     ? 'miletの足跡をたどり、一つひとつの風景を記録する。'
     : '追随 milet 的足迹，记录每一段风景。',
 )
-const currentAreaText = computed(() => {
-  if (displayMode.value === 'collection') {
-    return selectedCollection.value?.title || collectionModeText.value.allCollections
-  }
-
-  const parts = [selectedCity.value?.name, selectedDistrict.value?.name, selectedRoute.value?.title]
-    .filter(Boolean)
-    .map((item) => String(item))
-  return parts.length > 0 ? parts.join(' / ') : pageText.value.allCities
-})
 const {
   regionTree,
   markerSkins,

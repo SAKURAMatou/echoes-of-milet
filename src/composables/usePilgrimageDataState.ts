@@ -130,7 +130,7 @@ export function usePilgrimageDataState(options: UsePilgrimageDataStateOptions) {
   )
   const collections = computed(() => localizedCollections.value?.collections || [])
   const selectedCollection = computed(
-    () => collections.value.find((item) => item.id === selectedCollectionId.value) || collections.value[0] || null,
+    () => collections.value.find((item) => item.id === selectedCollectionId.value) || null,
   )
   const selectedRoute = computed(
     () => routes.value.find((item) => item.id === selectedRouteId.value) || null,
@@ -307,9 +307,6 @@ export function usePilgrimageDataState(options: UsePilgrimageDataStateOptions) {
   async function loadCollections() {
     if (collectionsPayload.value) {
       collectionsLoading.value = false
-      if (!selectedCollectionId.value && collections.value[0]) {
-        selectedCollectionId.value = collections.value[0].id
-      }
       return
     }
 
@@ -320,10 +317,6 @@ export function usePilgrimageDataState(options: UsePilgrimageDataStateOptions) {
       if (payload) {
         collectionsPayload.value = payload
         usingFallbackData.value = false
-        if (!selectedCollectionId.value) {
-          const localized = getLocalizedBranch(payload, options.currentLang.value)
-          selectedCollectionId.value = localized?.collections[0]?.id || ''
-        }
         syncPilgrimageState()
         return
       }
@@ -450,8 +443,7 @@ export function usePilgrimageDataState(options: UsePilgrimageDataStateOptions) {
   }
 
   async function loadInitialPilgrimageData() {
-    await loadRegionTree()
-    await loadCollections()
+    await Promise.all([loadRegionTree(), loadCollections()])
     const district = applyInitialDistrictSelection()
     if (district) {
       await loadDistrictSpots(district.id, { autoSelect: false })
