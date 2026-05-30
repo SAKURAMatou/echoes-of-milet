@@ -42,9 +42,36 @@
         <div
           class="min-w-0 rounded-lg border border-[#fcd34d]/50 bg-[#fffbeb]/58 px-3 py-2 text-sm text-[#526670] shadow-[0_16px_36px_-34px_rgba(182,138,47,0.38)] backdrop-blur"
         >
-          <span class="block text-[11px] font-semibold uppercase tracking-[0.16em] text-[#7c9197]">
-            {{ pageText.currentArea }}
-          </span>
+          <div class="flex items-center justify-between gap-2">
+            <span class="block text-[11px] font-semibold uppercase tracking-[0.16em] text-[#7c9197]">
+              {{ displayMode === 'map' ? pageText.currentArea : collectionModeText.currentCollection }}
+            </span>
+            <span
+              class="relative grid grid-cols-2 rounded-lg border border-white/70 bg-white/54 p-0.5 text-[11px] font-bold shadow-inner"
+            >
+              <button
+                type="button"
+                class="relative z-[1] rounded-md px-2 py-1 transition"
+                :class="displayMode === 'map' ? 'text-[#1d6564]' : 'text-[#7c9197]'"
+                @click="setDisplayMode('map')"
+              >
+                {{ collectionModeText.map }}
+              </button>
+              <button
+                type="button"
+                class="relative z-[1] rounded-md px-2 py-1 transition"
+                :class="displayMode === 'collection' ? 'text-[#614990]' : 'text-[#7c9197]'"
+                @click="setDisplayMode('collection')"
+              >
+                {{ collectionModeText.collection }}
+              </button>
+              <span
+                class="absolute bottom-0.5 left-0.5 top-0.5 w-[calc(50%-2px)] rounded-md border border-[#99e6d6]/60 bg-[#f0fdfa]/92 shadow-sm transition-transform duration-300"
+                :class="displayMode === 'collection' ? 'translate-x-full border-[#c4b5fd]/60 bg-[#f5f3ff]/92' : 'translate-x-0'"
+                aria-hidden="true"
+              />
+            </span>
+          </div>
           <span class="mt-1 block truncate font-semibold text-[#76591c]">
             {{ currentAreaText }}
           </span>
@@ -72,31 +99,46 @@
         <div
           class="pilgrimage-map-postcard-surface absolute inset-x-3 bottom-9 top-9 overflow-hidden rounded-[10px] border border-[#cbe0ec]/90 shadow-[0_0_0_1px_rgba(255,255,255,0.74),0_18px_42px_-34px_rgba(58,91,119,0.66)] sm:bottom-10 sm:top-10 lg:inset-x-4 lg:bottom-12 lg:top-12"
         >
-          <PilgrimageAreaControls
-            :page-text="pageText"
-            :cities="cities"
-            :selected-city="selectedCity"
-            :selected-district="selectedDistrict"
-            :selected-city-id="selectedCityId"
-            :selected-district-id="selectedDistrictId"
-            :routes="routes"
-            :selected-route="selectedRoute"
-            :selected-route-id="selectedRouteId"
-            @select-city="selectCity"
-            @select-district="selectDistrict"
-            @select-route="selectRoute"
-          />
+          <div v-show="displayMode === 'map'" class="relative h-full">
+            <PilgrimageAreaControls
+              :page-text="pageText"
+              :cities="cities"
+              :selected-city="selectedCity"
+              :selected-district="selectedDistrict"
+              :selected-city-id="selectedCityId"
+              :selected-district-id="selectedDistrictId"
+              :routes="routes"
+              :selected-route="selectedRoute"
+              :selected-route-id="selectedRouteId"
+              @select-city="selectCity"
+              @select-district="selectDistrict"
+              @select-route="selectRoute"
+            />
 
-          <PilgrimageMapPane
-            ref="mapPaneRef"
-            :page-text="pageText"
-            :map-loading="mapLoading"
-            :map-transitioning="mapTransitioning"
-            :spots-loading="spotsLoading"
-            :markers-visible="markersVisible"
-            :selected-district="selectedDistrict"
-            :spots-count="spots.length"
-          />
+            <PilgrimageMapPane
+              ref="mapPaneRef"
+              :page-text="pageText"
+              :map-loading="mapLoading"
+              :map-transitioning="mapTransitioning"
+              :spots-loading="spotsLoading"
+              :markers-visible="markersVisible"
+              :selected-district="selectedDistrict"
+              :spots-count="spots.length"
+            />
+          </div>
+
+          <Transition name="pilgrimage-mode-panel">
+            <PilgrimageCollectionPanel
+              v-if="displayMode === 'collection'"
+              :collections="collections"
+              :selected-collection="selectedCollection"
+              :selected-spot-id="selectedSpotId"
+              :loading="collectionsLoading"
+              :lang="currentLang"
+              @select-collection="selectCollection"
+              @select-spot="selectSpot"
+            />
+          </Transition>
         </div>
       </div>
 
@@ -135,6 +177,7 @@ import {
 import { useRoute } from 'vue-router'
 
 import PilgrimageAreaControls from '@/components/milet/pilgrimage/PilgrimageAreaControls.vue'
+import PilgrimageCollectionPanel from '@/components/milet/pilgrimage/PilgrimageCollectionPanel.vue'
 import PilgrimageMapPane from '@/components/milet/pilgrimage/PilgrimageMapPane.vue'
 import PilgrimageSeoSpotList from '@/components/milet/pilgrimage/PilgrimageSeoSpotList.vue'
 import PilgrimageSpotDetailPanel from '@/components/milet/pilgrimage/PilgrimageSpotDetailPanel.vue'
@@ -143,6 +186,7 @@ import {
   findInitialDistrict,
   normalizePilgrimageLang,
   PILGRIMAGE_TEXT,
+  type PilgrimageDisplayMode,
 } from '@/composables/miletPilgrimage'
 import { usePilgrimageDataState } from '@/composables/usePilgrimageDataState'
 import { usePilgrimageMapRendering } from '@/composables/usePilgrimageMapRendering'
@@ -172,12 +216,31 @@ let fancyboxApi: (typeof import('@fancyapps/ui'))['Fancybox'] | null = null
 
 const currentLang = computed(() => normalizePilgrimageLang(String(route.params.lang || 'zh')))
 const pageText = computed(() => PILGRIMAGE_TEXT[currentLang.value])
+const collectionModeText = computed(() =>
+  currentLang.value === 'jp'
+    ? {
+        map: '地図',
+        collection: 'コレクション',
+        currentCollection: '現在のコレクション',
+        allCollections: '巡礼コレクション',
+      }
+    : {
+        map: '地图',
+        collection: '合集',
+        currentCollection: '当前合集',
+        allCollections: '巡礼合集',
+      },
+)
 const mapTopNoteText = computed(() =>
   currentLang.value === 'jp'
     ? 'miletの足跡をたどり、一つひとつの風景を記録する。'
     : '追随 milet 的足迹，记录每一段风景。',
 )
 const currentAreaText = computed(() => {
+  if (displayMode.value === 'collection') {
+    return selectedCollection.value?.title || collectionModeText.value.allCollections
+  }
+
   const parts = [selectedCity.value?.name, selectedDistrict.value?.name, selectedRoute.value?.title]
     .filter(Boolean)
     .map((item) => String(item))
@@ -193,8 +256,11 @@ const {
   selectedDistrictId,
   selectedSpotId,
   selectedRouteId,
+  displayMode,
+  selectedCollectionId,
   mapLoading,
   spotsLoading,
+  collectionsLoading,
   spotDetailLoading,
   cities,
   seoSpotListCities,
@@ -202,6 +268,8 @@ const {
   selectedDistrict,
   spots,
   routes,
+  collections,
+  selectedCollection,
   selectedRoute,
   routeSpotIds,
   routeOrderMap,
@@ -209,6 +277,7 @@ const {
   navigationUrl,
   galleryName,
   loadDistrictSpots,
+  loadCollections,
   loadSpotDetail,
   loadInitialPilgrimageData: loadInitialPilgrimageDataState,
   syncPilgrimageState,
@@ -287,6 +356,29 @@ async function selectSpot(spotId: string) {
   selectedSpotId.value = spotId
   applyMapZoomLimits()
   await loadSpotDetail(spotId)
+  syncPilgrimageState()
+}
+
+async function setDisplayMode(mode: PilgrimageDisplayMode) {
+  if (displayMode.value === mode) return
+  displayMode.value = mode
+
+  if (mode === 'collection') {
+    stopRouteAnimation(false)
+    await loadCollections()
+  } else {
+    await nextTick()
+    mapRef.value?.invalidateSize({ pan: false })
+    renderMarkers()
+    renderRoutes()
+    if (selectedRoute.value) startRouteAnimation()
+  }
+
+  syncPilgrimageState()
+}
+
+function selectCollection(collectionId: string) {
+  selectedCollectionId.value = collectionId
   syncPilgrimageState()
 }
 

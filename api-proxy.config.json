@@ -21,6 +21,7 @@
     "miletGallery": "/api/milet/gallery",
     "miletAnniversary": "/api/milet/anniversary",
     "miletPilgrimageRegionTree": "/api/milet/pilgrimage/region-tree",
+    "miletPilgrimageCollections": "/api/milet/pilgrimage/collections",
     "miletPilgrimageDistrictSpots": "/api/milet/pilgrimage/districts",
     "miletPilgrimageSpot": "/api/milet/pilgrimage/spots",
     "aboutFeedback": "/api/milet/feedback",

@@ -1,4 +1,5 @@
 export type PilgrimageLang = 'zh' | 'jp'
+export type PilgrimageDisplayMode = 'map' | 'collection'
 
 export interface PilgrimageDistrict {
   id: string
@@ -58,6 +59,26 @@ export interface PilgrimageRoute {
   }>
 }
 
+export interface PilgrimageCollectionSpot extends PilgrimageSpotSummary {
+  cityId: string
+  cityName: string
+  districtId: string
+  districtName: string
+  collectionNote?: string
+  collectionSortOrder: number
+}
+
+export interface PilgrimageCollection {
+  id: string
+  slug: string
+  title: string
+  description: string
+  coverImageUrl: string
+  themeColor?: string
+  sortOrder: number
+  spots: PilgrimageCollectionSpot[]
+}
+
 export interface PilgrimageSpotDetail extends PilgrimageSpotSummary {
   description: string
   address: string
@@ -81,6 +102,10 @@ export interface LocalizedSpotList {
 
 export interface LocalizedSpotDetail {
   spot: PilgrimageSpotDetail | null
+}
+
+export interface LocalizedCollectionList {
+  collections: PilgrimageCollection[]
 }
 
 export interface PilgrimageMarkerSkin {
@@ -109,14 +134,22 @@ export interface PilgrimageSpotDetailResponse {
   zh: LocalizedSpotDetail
 }
 
+export interface PilgrimageCollectionListResponse {
+  jp: LocalizedCollectionList
+  zh: LocalizedCollectionList
+}
+
 export interface PilgrimageSsrPayload {
   regionTree: PilgrimageRegionTreeResponse | null
   markerSkins: PilgrimageMarkerSkin[]
+  collections?: PilgrimageCollectionListResponse | null
   spotsByDistrictId: Record<string, PilgrimageSpotListResponse>
   spotDetailsBySpotId: Record<string, PilgrimageSpotDetailResponse>
   selectedCityId: string
   selectedDistrictId: string
   selectedSpotId: string
+  selectedDisplayMode?: PilgrimageDisplayMode
+  selectedCollectionId?: string
   usingFallbackData: boolean
 }
 

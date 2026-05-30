@@ -118,6 +118,19 @@
   content: '';
 }
 
+.pilgrimage-mode-panel-enter-active,
+.pilgrimage-mode-panel-leave-active {
+  transition:
+    opacity 240ms ease,
+    transform 240ms ease;
+}
+
+.pilgrimage-mode-panel-enter-from,
+.pilgrimage-mode-panel-leave-to {
+  opacity: 0;
+  transform: translateY(8px);
+}
+
 .pilgrimage-page .leaflet-container {
   height: 100%;
   width: 100%;

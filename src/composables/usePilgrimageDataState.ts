@@ -10,7 +10,9 @@ import {
   findInitialDistrict,
   getLocalizedBranch,
   type PilgrimageCity,
+  type PilgrimageCollectionListResponse,
   type PilgrimageDistrict,
+  type PilgrimageDisplayMode,
   type PilgrimageLang,
   type PilgrimageMarkerSkin,
   type PilgrimageRegionTreeResponse,
@@ -41,6 +43,13 @@ function unwrapPayload<T>(response: any): T | null {
   return payload && typeof payload === 'object' ? (payload as T) : null
 }
 
+function emptyCollectionPayload(): PilgrimageCollectionListResponse {
+  return {
+    zh: { collections: [] },
+    jp: { collections: [] },
+  }
+}
+
 export function usePilgrimageDataState(options: UsePilgrimageDataStateOptions) {
   const appState = useAppState()
   const initialPilgrimageData = appState.miletPilgrimageData
@@ -50,6 +59,9 @@ export function usePilgrimageDataState(options: UsePilgrimageDataStateOptions) {
   )
   const markerSkins = ref<PilgrimageMarkerSkin[]>(
     initialPilgrimageData?.markerSkins || initialPilgrimageData?.regionTree?.markerSkins || [],
+  )
+  const collectionsPayload = ref<PilgrimageCollectionListResponse | null>(
+    initialPilgrimageData?.collections || null,
   )
   const spotsPayload = ref<PilgrimageSpotListResponse | null>(
     initialPilgrimageData?.selectedDistrictId
@@ -71,9 +83,14 @@ export function usePilgrimageDataState(options: UsePilgrimageDataStateOptions) {
   const selectedDistrictId = ref(initialPilgrimageData?.selectedDistrictId || '')
   const selectedSpotId = ref(initialPilgrimageData?.selectedSpotId || '')
   const selectedRouteId = ref('')
+  const displayMode = ref<PilgrimageDisplayMode>(
+    initialPilgrimageData?.selectedDisplayMode || 'map',
+  )
+  const selectedCollectionId = ref(initialPilgrimageData?.selectedCollectionId || '')
   const usingFallbackData = ref(initialPilgrimageData?.usingFallbackData || false)
   const mapLoading = ref(!initialPilgrimageData?.regionTree)
   const spotsLoading = ref(false)
+  const collectionsLoading = ref(!initialPilgrimageData?.collections)
   const spotDetailLoading = ref(false)
   let spotDetailLoadToken = 0
 
@@ -108,6 +125,13 @@ export function usePilgrimageDataState(options: UsePilgrimageDataStateOptions) {
   const localizedSpots = computed(() => getLocalizedBranch(spotsPayload.value, options.currentLang.value))
   const spots = computed<PilgrimageSpotSummary[]>(() => localizedSpots.value?.spots || [])
   const routes = computed<PilgrimageRoute[]>(() => localizedSpots.value?.routes || [])
+  const localizedCollections = computed(() =>
+    getLocalizedBranch(collectionsPayload.value, options.currentLang.value),
+  )
+  const collections = computed(() => localizedCollections.value?.collections || [])
+  const selectedCollection = computed(
+    () => collections.value.find((item) => item.id === selectedCollectionId.value) || collections.value[0] || null,
+  )
   const selectedRoute = computed(
     () => routes.value.find((item) => item.id === selectedRouteId.value) || null,
   )
@@ -220,11 +244,14 @@ export function usePilgrimageDataState(options: UsePilgrimageDataStateOptions) {
     return {
       regionTree: regionTree.value,
       markerSkins: markerSkins.value,
+      collections: collectionsPayload.value,
       spotsByDistrictId,
       spotDetailsBySpotId,
       selectedCityId: selectedCityId.value,
       selectedDistrictId: selectedDistrictId.value,
       selectedSpotId: selectedSpotId.value,
+      selectedDisplayMode: displayMode.value,
+      selectedCollectionId: selectedCollectionId.value,
       usingFallbackData: usingFallbackData.value,
     }
   }
@@ -274,6 +301,40 @@ export function usePilgrimageDataState(options: UsePilgrimageDataStateOptions) {
     regionTree.value = fallbackRegionTree
     markerSkins.value = []
     usingFallbackData.value = true
+    syncPilgrimageState()
+  }
+
+  async function loadCollections() {
+    if (collectionsPayload.value) {
+      collectionsLoading.value = false
+      if (!selectedCollectionId.value && collections.value[0]) {
+        selectedCollectionId.value = collections.value[0].id
+      }
+      return
+    }
+
+    collectionsLoading.value = true
+    try {
+      const response = await axiosInstance.get(apiRoutes.miletPilgrimageCollections)
+      const payload = unwrapPayload<PilgrimageCollectionListResponse>(response)
+      if (payload) {
+        collectionsPayload.value = payload
+        usingFallbackData.value = false
+        if (!selectedCollectionId.value) {
+          const localized = getLocalizedBranch(payload, options.currentLang.value)
+          selectedCollectionId.value = localized?.collections[0]?.id || ''
+        }
+        syncPilgrimageState()
+        return
+      }
+    } catch (error) {
+      console.warn('Failed to load pilgrimage collections, using empty collection data.', error)
+    } finally {
+      collectionsLoading.value = false
+    }
+
+    collectionsPayload.value = emptyCollectionPayload()
+    if (!selectedCollectionId.value) selectedCollectionId.value = ''
     syncPilgrimageState()
   }
 
@@ -390,6 +451,7 @@ export function usePilgrimageDataState(options: UsePilgrimageDataStateOptions) {
 
   async function loadInitialPilgrimageData() {
     await loadRegionTree()
+    await loadCollections()
     const district = applyInitialDistrictSelection()
     if (district) {
       await loadDistrictSpots(district.id, { autoSelect: false })
@@ -408,9 +470,12 @@ export function usePilgrimageDataState(options: UsePilgrimageDataStateOptions) {
     selectedDistrictId,
     selectedSpotId,
     selectedRouteId,
+    displayMode,
+    selectedCollectionId,
     usingFallbackData,
     mapLoading,
     spotsLoading,
+    collectionsLoading,
     spotDetailLoading,
     localizedTree,
     cities,
@@ -420,6 +485,9 @@ export function usePilgrimageDataState(options: UsePilgrimageDataStateOptions) {
     localizedSpots,
     spots,
     routes,
+    localizedCollections,
+    collections,
+    selectedCollection,
     selectedRoute,
     routeSpotIds,
     routeOrderMap,
@@ -429,6 +497,7 @@ export function usePilgrimageDataState(options: UsePilgrimageDataStateOptions) {
     galleryName,
     findDistrictById,
     loadDistrictSpots,
+    loadCollections,
     loadSpotDetail,
     loadInitialPilgrimageData,
     syncPilgrimageState,

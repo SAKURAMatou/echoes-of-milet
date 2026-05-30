@@ -1340,3 +1340,220 @@ compactMarker: {
 ```
 
 亮点 marker 仍然可以点击打开 spot 详情，并保留 `aria-label`。它只隐藏视觉上的标题和 pin 形态，不隐藏该 spot 本身。
+
+## 21. 主动维护的巡礼合集功能
+
+合集是一个和城市、区划没有强绑定关系的人工策展入口。它用于把不同地区的 spot 按主题重新组织，例如“香港岛漫步路线”“MV 场景巡礼”“餐饮相关地点”等。合集不替代现有地区/路线体系，第一版作为公开端巡礼页的第二种展示模式，与地图模式共存。
+
+### 21.1 功能目标
+
+- 公开端在巡礼页顶部信息区增加 `地图 / 合集` 切换。
+- 页面上方 `Special thanks`、当前区域/当前视图信息、地图上下的装饰文案保持现有位置和语义，不因为新增合集而整体重写。
+- 地图模式继续使用现有地区、区划、路线、marker、路线动画和 spot 详情逻辑。
+- 合集模式在地图展示区域内显示合集列表和当前合集下的 spot 列表。
+- 点击合集中的 spot 后复用现有 `selectSpot(spotId)` 和 `PilgrimageSpotDetailPanel`，PC 端在右侧展示详情，移动端继续使用底部详情弹窗。
+- 合集由管理端主动维护，不依赖地区树自动生成。
+- 第一版不做合集地图预览、不做合集路线动画、不做合集内真实路线规划。
+
+### 21.2 公开端交互
+
+公开端新增展示模式：
+
+```ts
+type PilgrimageDisplayMode = 'map' | 'collection'
+```
+
+顶部右侧信息卡从单纯的“当前区域”升级为展示模式切换入口：
+
+- `地图`：显示当前城市 / 区划 / 路线。
+- `合集`：显示当前合集标题。
+
+切换按钮建议使用贴纸式 segmented control。选中项使用浅色背景和柔和边框，底色滑块使用 `transform` 过渡；展示区切换使用 `fade + translateY(8px)`，模拟纸页轻轻换页；合集 spot 列表进入时可以做轻量 stagger fade。
+
+展示区域的结构：
+
+```txt
+pilgrimage-map-frame
+  map mode:
+    PilgrimageAreaControls
+    PilgrimageMapPane
+
+  collection mode:
+    PilgrimageCollectionPanel
+      collection tabs/cards
+      selected collection intro
+      spot list
+```
+
+合集模式仍放在原地图明信片区域中，避免破坏巡礼页整体布局。PC 端右侧详情区域不变；移动端点击 spot 后弹出详情，合集列表保持在页面主体中。
+
+### 21.3 数据结构
+
+Worker D1 新增三张表。
+
+```sql
+CREATE TABLE pilgrimage_collections (
+  id TEXT PRIMARY KEY,
+  slug TEXT NOT NULL UNIQUE,
+  cover_image_url TEXT NOT NULL DEFAULT '',
+  theme_color TEXT NOT NULL DEFAULT '',
+  status TEXT NOT NULL DEFAULT 'draft',
+  sort_order INTEGER NOT NULL DEFAULT 0,
+  created_at TEXT NOT NULL,
+  updated_at TEXT NOT NULL
+);
+
+CREATE TABLE pilgrimage_collection_i18n (
+  collection_id TEXT NOT NULL,
+  lang TEXT NOT NULL,
+  title TEXT NOT NULL,
+  description TEXT NOT NULL DEFAULT '',
+  PRIMARY KEY (collection_id, lang)
+);
+
+CREATE TABLE pilgrimage_collection_spots (
+  collection_id TEXT NOT NULL,
+  spot_id TEXT NOT NULL,
+  sort_order INTEGER NOT NULL DEFAULT 0,
+  note_zh TEXT NOT NULL DEFAULT '',
+  note_jp TEXT NOT NULL DEFAULT '',
+  PRIMARY KEY (collection_id, spot_id)
+);
+```
+
+公开端只返回 `published` 合集。合集不保存 city/district 字段，城市和区划信息通过 spot 关联查询得到。删除 spot 时应阻止删除仍被合集引用的 spot，或先移除合集关联。
+
+### 21.4 公开端 API
+
+新增公开 API：
+
+```txt
+GET /api/milet/pilgrimage/collections
+```
+
+返回结构：
+
+```ts
+interface PilgrimageCollectionListResponse {
+  zh: { collections: PilgrimageCollection[] }
+  jp: { collections: PilgrimageCollection[] }
+}
+
+interface PilgrimageCollection {
+  id: string
+  slug: string
+  title: string
+  description: string
+  coverImageUrl: string
+  themeColor?: string
+  sortOrder: number
+  spots: PilgrimageCollectionSpot[]
+}
+
+interface PilgrimageCollectionSpot extends PilgrimageSpotSummary {
+  cityId: string
+  cityName: string
+  districtId: string
+  districtName: string
+  collectionNote?: string
+  collectionSortOrder: number
+}
+```
+
+spot 详情继续使用现有 `GET /api/milet/pilgrimage/spots/:spotId`。
+
+### 21.5 前端状态
+
+`usePilgrimageDataState` 增加 `displayMode`、`collectionsPayload`、`collectionsLoading`、`selectedCollectionId`，并派生 `collections` 和 `selectedCollection`。
+
+状态边界：
+
+- `spots`、`routes`、`selectedDistrict` 仍只服务地图模式。
+- 合集模式使用 `selectedCollection.spots`，不要覆盖 `spotsPayload`。
+- 切换到合集模式时停止路线动画，但不清空当前地区选择。
+- 切回地图模式时恢复现有地图区域，不自动切换地区。
+- 点击合集 spot 时只改变 `selectedSpotId` 和详情数据，不强制地图定位。
+
+SSR payload 可扩展：
+
+```ts
+interface PilgrimageSsrPayload {
+  collections?: PilgrimageCollectionListResponse | null
+  selectedDisplayMode?: PilgrimageDisplayMode
+  selectedCollectionId?: string
+}
+```
+
+### 21.6 管理端功能
+
+管理端入口放在圣地巡礼管理操作 tab 的按钮组中：
+
+```txt
+地区管理 / Spot 管理 / 线路管理 / Marker 皮肤管理 / 合集管理
+```
+
+合集管理第一版支持：
+
+- 合集列表。
+- 新增合集。
+- 编辑合集基础信息。
+- 维护中文 / 日文标题和说明。
+- 设置封面图 URL。
+- 设置主题色。
+- 设置状态：`draft / published / archived`。
+- 设置排序。
+- 添加 spot。
+- 删除合集内 spot。
+- 调整合集内 spot 排序。
+- 维护合集内 spot 备注。
+
+spot 选择器需要支持全局 spot 搜索和按城市/区划筛选。第一版不做合集封面上传、合集地图预览、合集路线动画、锚点或 marker 可视化编辑。
+
+### 21.7 管理端 API
+
+新增管理 API：
+
+```txt
+POST /admin/pilgrimage/collections
+POST /admin/pilgrimage/collections/:collectionId/delete
+```
+
+如果现有管理端统一通过 `/admin/pilgrimage/state` 拉取状态，则 `state` 也需要返回 `collections`。保存合集后返回最新 state，便于管理端一次性刷新。
+
+保存 payload：
+
+```ts
+interface PilgrimageCollectionPayload {
+  id: string
+  slug: string
+  cover_image_url?: string
+  theme_color?: string
+  status: 'draft' | 'published' | 'archived'
+  sort_order: number
+  i18n: {
+    zh: { title: string; description?: string }
+    jp: { title: string; description?: string }
+  }
+  spots: Array<{
+    spot_id: string
+    sort_order: number
+    note_zh?: string
+    note_jp?: string
+  }>
+}
+```
+
+### 21.8 缓存策略
+
+合集公开接口独立缓存，建议 cache key 为 `pilgrimage:collections`。管理端新增、编辑、排序、发布、归档合集后删除该缓存。如果合集内 spot 的标题、封面、城市/区划名称发生变化，保存 spot 或地区树后也应删除合集缓存。简化实现可以在任何 pilgrimage 管理写操作后调用 `deletePilgrimageCache({ type: 'all' })`。
+
+### 21.9 第一版验收
+
+- 公开端能在地图和合集之间切换。
+- 地图模式现有地区/路线/marker/动画不回退。
+- 合集模式能展示 published 合集和合集内 spot。
+- 点击合集 spot 后右侧/移动端详情复用现有详情面板，导航和照片可用。
+- 管理端可以新增、编辑、发布、归档合集。
+- 管理端可以维护合集内 spot，并调整排序。
+- Worker D1 migration、公开 API、管理 API、类型检查通过。
+- 前端 `npm run type-check` 和 `npm run build:ssr` 通过。
