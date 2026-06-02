@@ -13,9 +13,15 @@
             >
               {{ pageText.title }}
             </h1>
-            <p class="mt-2 max-w-4xl text-sm leading-6 text-[#5f7178] lg:text-[15px]">
+            <!-- <p class="mt-2 max-w-4xl text-sm leading-6 text-[#5f7178] lg:text-[15px]">
               {{ pageText.subtitle }}
-            </p>
+            </p> -->
+            <LinkedText
+              class="mt-2 max-w-4xl text-sm leading-6 text-[#5f7178] lg:text-[15px]"
+              :text="pageText.subtitle"
+              :links="pageText.subtitleLink"
+            >
+            </LinkedText>
           </div>
         </div>
         <div
@@ -179,6 +185,8 @@ import PilgrimageCollectionPanel from '@/components/milet/pilgrimage/PilgrimageC
 import PilgrimageMapPane from '@/components/milet/pilgrimage/PilgrimageMapPane.vue'
 import PilgrimageSeoSpotList from '@/components/milet/pilgrimage/PilgrimageSeoSpotList.vue'
 import PilgrimageSpotDetailPanel from '@/components/milet/pilgrimage/PilgrimageSpotDetailPanel.vue'
+import LinkedText from '@/components/LinkedText.vue'
+
 import { pilgrimageMapConfig } from '@/components/milet/pilgrimage/pilgrimageMapConfig'
 import {
   findInitialDistrict,

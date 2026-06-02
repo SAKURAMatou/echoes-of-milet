@@ -29,21 +29,10 @@
               class="story-line rounded-[24px] border border-white/70 bg-white/75 px-5 py-4 text-[15px] leading-8 text-slate-600 shadow-[0_18px_50px_rgba(148,163,184,0.14)] backdrop-blur"
               :style="{ '--story-delay': `${index * 140}ms` }"
             >
-              <template v-if="typeof paragraph === 'string'">
-                {{ paragraph }}
-              </template>
-              <template v-else>
-                {{ paragraph.text }}
-                <a
-                  :href="paragraph.linkUrl"
-                  target="_blank"
-                  rel="noreferrer"
-                  class="font-medium text-sky-700 underline decoration-sky-300 underline-offset-4 transition hover:text-sky-900"
-                >
-                  {{ paragraph.linkLabel }}
-                </a>
-                {{ paragraph.linkSuffix || '' }}
-              </template>
+              <LinkedText
+                :text="getParagraphText(paragraph)"
+                :links="getParagraphLinks(paragraph)"
+              />
             </div>
           </div>
         </div>
@@ -306,6 +295,7 @@ import {
 } from 'vue'
 
 import axiosInstance from '@/AxiosUtil'
+import LinkedText from '@/components/LinkedText.vue'
 import { ABOUT_COPY } from '@/composables/lang/AboutMedata'
 import { apiRoutes } from '@/config/api'
 
@@ -353,7 +343,36 @@ function getParagraphKey(paragraph, index) {
     return paragraph
   }
 
-  return `${index}-${paragraph.linkUrl}`
+  return `${index}-${paragraph.text}`
+}
+
+function getParagraphText(paragraph) {
+  if (typeof paragraph === 'string') {
+    return paragraph
+  }
+
+  if (Array.isArray(paragraph.links)) {
+    return paragraph.text
+  }
+
+  return `${paragraph.text}${paragraph.linkLabel}${paragraph.linkSuffix || ''}`
+}
+
+function getParagraphLinks(paragraph) {
+  if (typeof paragraph === 'string') {
+    return []
+  }
+
+  if (Array.isArray(paragraph.links)) {
+    return paragraph.links
+  }
+
+  return [
+    {
+      text: paragraph.linkLabel,
+      href: paragraph.linkUrl,
+    },
+  ]
 }
 
 function validateField(field) {

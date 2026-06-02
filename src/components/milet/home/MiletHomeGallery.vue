@@ -1,13 +1,10 @@
 <template>
   <section :id="sectionId || undefined" class="mt-16 scroll-mt-24">
-    <MiletHomeSectionTitle
-      :kicker="title.kicker"
-      :title="title.title"
-      :subtitle="title.subtitle"
-    />
+    <MiletHomeSectionTitle :kicker="title.kicker" :title="title.title" :subtitle="title.subtitle" />
     <div class="mt-7 columns-1 gap-4 sm:columns-2">
+      <!-- :is="item.href ? 'a' : RouterLink" -->
       <component
-        :is="item.href ? 'a' : RouterLink"
+        is="div"
         v-for="item in gallery.items"
         :key="item.id"
         v-bind="linkProps(item)"
@@ -30,14 +27,14 @@
         </div>
       </component>
     </div>
-    <div class="mt-5 text-center">
+    <!-- <div class="mt-5 text-center">
       <RouterLink
         :to="gallery.moreTo"
         class="inline-flex min-h-10 w-full items-center justify-center rounded-lg border border-white/70 bg-white/75 px-5 text-sm font-semibold text-[#317f8d] shadow-sm transition hover:-translate-y-0.5 hover:bg-white sm:w-auto"
       >
         {{ gallery.moreLabel }}
       </RouterLink>
-    </div>
+    </div> -->
   </section>
 </template>
 
