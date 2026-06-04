@@ -1,11 +1,11 @@
 <template>
   <aside
     id="pilgrimage-detail"
-    class="pilgrimage-detail-panel isolate fixed inset-x-0 bottom-0 z-[1000] max-h-[76svh] scroll-mt-[5.5rem] overflow-y-auto rounded-t-2xl border-t border-[#d0e2ec]/90 bg-[linear-gradient(180deg,rgba(255,255,255,0.94),rgba(244,250,253,0.96))] px-4 pb-1 pt-3 shadow-[0_-24px_70px_-42px_rgba(58,91,119,0.72)] transition-transform duration-300 sm:px-6 md:scroll-mt-[6.5rem] lg:static lg:z-auto lg:flex lg:h-full lg:max-h-full lg:min-h-0 lg:translate-y-0 lg:flex-col lg:overflow-hidden lg:rounded-none lg:border-t-0 lg:bg-[linear-gradient(180deg,rgba(255,255,255,0.64),rgba(242,249,252,0.82))] lg:px-5 lg:pb-1 lg:pt-5 lg:shadow-none"
+    class="pilgrimage-detail-panel isolate fixed inset-x-0 bottom-0 z-[1000] flex max-h-[76svh] scroll-mt-[5.5rem] flex-col overflow-hidden rounded-t-2xl border-t border-[#d0e2ec]/90 bg-[linear-gradient(180deg,rgba(255,255,255,0.94),rgba(244,250,253,0.96))] px-4 pb-1 pt-3 shadow-[0_-24px_70px_-42px_rgba(58,91,119,0.72)] transition-transform duration-300 [&>*]:relative [&>*]:z-[1] sm:px-6 md:scroll-mt-[6.5rem] lg:relative lg:z-auto lg:h-full lg:max-h-full lg:min-h-0 lg:translate-y-0 lg:rounded-none lg:border-t-0 lg:bg-[linear-gradient(180deg,rgba(255,255,255,0.64),rgba(242,249,252,0.82))] lg:px-5 lg:pb-1 lg:pt-5 lg:shadow-none lg:after:hidden"
     :class="
       panelVisible
         ? 'translate-y-0'
-        : 'hidden pointer-events-none translate-y-[calc(100%+1rem)] lg:block lg:pointer-events-auto'
+        : 'hidden pointer-events-none translate-y-[calc(100%+1rem)] lg:flex lg:pointer-events-auto'
     "
   >
     <div
@@ -19,181 +19,200 @@
       </span>
     </div>
 
-    <div
-      v-if="selectedSpotDetail"
-      class="pilgrimage-detail-content flex min-h-full flex-col lg:min-h-0 lg:flex-1 lg:overflow-y-auto lg:pr-1"
-    >
+    <div class="pilgrimage-detail-scroll-region relative flex min-h-0 flex-1">
       <div
-        class="sticky top-0 z-30 -mx-4 mb-3 flex h-12 items-center gap-3 bg-[linear-gradient(180deg,rgba(255,255,255,0.98),rgba(255,255,255,0.9))] px-4 pr-14 pt-1 sm:-mx-6 sm:px-6 sm:pr-16 lg:hidden"
+        v-if="selectedSpotDetail"
+        ref="detailScrollRef"
+        class="pilgrimage-detail-content flex min-h-0 flex-1 flex-col overflow-y-auto pb-14 pr-1"
+        @load.capture="scheduleScrollHintUpdate"
+        @scroll.passive="updateScrollHint"
       >
-        <span class="min-w-0 flex-1 truncate text-xs font-bold tracking-[0.03em] text-[#6b5a95]">
-          {{ detailNoteText }}
-        </span>
-        <span class="shrink-0 font-serif text-base italic text-[#c98791]">with milet</span>
-        <button
-          type="button"
-          class="absolute right-4 top-1 flex h-8 w-8 items-center justify-center rounded-lg border border-[#d9e7e4] bg-white/92 text-lg leading-none text-[#60717a] shadow-[0_12px_30px_-22px_rgba(31,41,55,0.9)] sm:right-6"
-          aria-label="Close spot detail"
-          @click="$emit('close')"
+        <div
+          class="sticky top-0 z-30 -mx-4 mb-3 flex h-12 items-center gap-3 bg-[linear-gradient(180deg,rgba(255,255,255,0.98),rgba(255,255,255,0.9))] px-4 pr-14 pt-1 sm:-mx-6 sm:px-6 sm:pr-16 lg:hidden"
         >
-          x
-        </button>
-      </div>
-
-      <div
-        class="pilgrimage-detail-card relative shrink-0 overflow-hidden rounded-lg border border-[#d3e5ef]/90 shadow-[0_22px_60px_-42px_rgba(58,91,119,0.72)]"
-      >
-        <img
-          :src="buildStaticAssetUrl(selectedSpotDetail.coverImageUrl)"
-          :alt="selectedSpotDetail.title"
-          class="h-48 w-full object-cover"
-        />
-        <div class="p-4">
-          <div>
-            <p class="text-xs font-semibold uppercase tracking-[0.16em] text-[#789096]">
-              {{ selectedSpotDetail.category }}
-            </p>
-            <h2 class="mt-1 break-words font-serif text-3xl leading-tight text-[#26313a]">
-              {{ selectedSpotDetail.title }}
-            </h2>
-          </div>
-
-          <div class="mt-4 flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-            <div class="min-w-0">
-              <p class="text-xs font-semibold uppercase tracking-[0.14em] text-[#82939a]">
-                {{ pageText.works }}
-              </p>
-              <p class="mt-1 break-words text-sm text-[#34444b]">
-                {{ selectedSpotDetail.workTitle }}
-              </p>
-            </div>
-            <div class="flex shrink-0 flex-wrap gap-2 sm:justify-end">
-              <a
-                :href="navigationUrl"
-                target="_blank"
-                rel="noopener noreferrer"
-                class="rounded-lg border border-[#8bbddd] bg-[#eaf6fb] px-3 py-2 text-center text-sm font-semibold text-[#356f98] shadow-[0_10px_22px_-18px_rgba(58,91,119,0.58)] transition hover:border-[#6da4ca] hover:bg-white focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-sky-100"
-              >
-                {{ pageText.navigation }}
-              </a>
-              <a
-                v-if="spotLinkUrl"
-                :href="spotLinkUrl"
-                target="_blank"
-                rel="noopener noreferrer"
-                class="rounded-lg border border-[#99e6d6] bg-[#f0fdfa]/82 px-3 py-2 text-center text-sm font-semibold text-[#1d6564] transition hover:border-[#5eead4] hover:bg-white focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-teal-100"
-              >
-                {{ pageText.spotLink }}
-              </a>
-            </div>
-          </div>
-
-          <dl class="mt-3 space-y-3 text-sm">
-            <div>
-              <dt class="text-xs font-semibold uppercase tracking-[0.14em] text-[#82939a]">
-                {{ pageText.address }}
-              </dt>
-              <dd class="mt-1 leading-6 text-[#526670]">{{ selectedSpotDetail.address }}</dd>
-            </div>
-          </dl>
-
-          <div class="mt-4 flex flex-wrap gap-2">
-            <span
-              v-for="tag in selectedSpotDetail.tags"
-              :key="tag"
-              class="pilgrimage-detail-tag rounded-lg border border-[#d5e6ef] bg-[#f5fbfe] px-2.5 py-1 text-xs text-[#60717a]"
-            >
-              {{ tag }}
-            </span>
-          </div>
-
-          <FormattedPlainText
-            class="mt-4 text-sm leading-7 text-[#526670]"
-            :text="selectedSpotDetail.description"
-          />
-        </div>
-      </div>
-
-      <section class="mt-5 shrink-0">
-        <div class="mb-3 flex items-center justify-between">
-          <h3 class="text-sm font-semibold uppercase tracking-[0.14em] text-[#64777f]">
-            {{ pageText.photoLabel }}
-          </h3>
-          <span class="text-xs text-[#8a9ca2]">{{ selectedSpotDetail.photos.length }}</span>
-        </div>
-
-        <div class="grid grid-cols-2 gap-3 lg:grid-cols-[repeat(auto-fill,minmax(128px,1fr))]">
-          <a
-            v-for="photo in selectedSpotDetail.photos"
-            :key="photo.id"
-            :href="buildStaticAssetUrl(photo.fullUrl)"
-            :data-fancybox="galleryName"
-            :data-caption="photo.caption"
-            :data-width="photo.width"
-            :data-height="photo.height"
-            :data-download-src="buildStaticAssetUrl(photo.downloadUrl || photo.fullUrl)"
-            class="pilgrimage-photo block overflow-hidden rounded-lg border border-[#d3e5ef]/90 bg-white/76 p-1 shadow-[0_16px_42px_-34px_rgba(58,91,119,0.72)] transition hover:-translate-y-0.5 hover:border-[#a8cde2]"
+          <span class="min-w-0 flex-1 truncate text-xs font-bold tracking-[0.03em] text-[#6b5a95]">
+            {{ detailNoteText }}
+          </span>
+          <span class="shrink-0 font-serif text-base italic text-[#c98791]">with milet</span>
+          <button
+            type="button"
+            class="absolute right-4 top-1 flex h-8 w-8 items-center justify-center rounded-lg border border-[#d9e7e4] bg-white/92 text-lg leading-none text-[#60717a] shadow-[0_12px_30px_-22px_rgba(31,41,55,0.9)] sm:right-6"
+            aria-label="Close spot detail"
+            @click="$emit('close')"
           >
-            <LazyImage
-              :src="buildStaticAssetUrl(photo.thumbUrl || photo.fullUrl)"
-              :alt="photo.alt"
-              :downloadSrc="buildStaticAssetUrl(photo.downloadUrl || photo.fullUrl)"
-            />
-          </a>
+            x
+          </button>
         </div>
-      </section>
-    </div>
 
-    <div
-      v-else-if="spotDetailLoading"
-      class="pilgrimage-detail-content flex min-h-full flex-col lg:min-h-0 lg:flex-1 lg:overflow-y-auto lg:pr-1"
-    >
-      <div
-        class="sticky top-0 z-30 -mx-4 mb-3 flex h-12 items-center gap-3 bg-[linear-gradient(180deg,rgba(255,255,255,0.98),rgba(255,255,255,0.9))] px-4 pr-14 pt-1 sm:-mx-6 sm:px-6 sm:pr-16 lg:hidden"
-      >
-        <span class="min-w-0 flex-1 truncate text-xs font-bold tracking-[0.03em] text-[#6b5a95]">
-          {{ detailNoteText }}
-        </span>
-        <span class="shrink-0 font-serif text-base italic text-[#c98791]">with milet</span>
-        <button
-          type="button"
-          class="absolute right-4 top-1 flex h-8 w-8 items-center justify-center rounded-lg border border-[#d9e7e4] bg-white/92 text-lg leading-none text-[#60717a] shadow-[0_12px_30px_-22px_rgba(31,41,55,0.9)] sm:right-6"
-          aria-label="Close spot detail"
-          @click="$emit('close')"
+        <div
+          class="pilgrimage-detail-card relative shrink-0 overflow-hidden rounded-lg border border-[#d3e5ef]/90 bg-white bg-[linear-gradient(180deg,rgba(255,255,255,0.76),rgba(246,251,253,0.82))] shadow-[0_22px_60px_-42px_rgba(58,91,119,0.72)]"
         >
-          x
-        </button>
+          <img
+            :src="buildStaticAssetUrl(selectedSpotDetail.coverImageUrl)"
+            :alt="selectedSpotDetail.title"
+            class="h-48 w-full object-cover"
+          />
+          <div class="p-4">
+            <div>
+              <p class="text-xs font-semibold uppercase tracking-[0.16em] text-[#789096]">
+                {{ selectedSpotDetail.category }}
+              </p>
+              <h2 class="mt-1 break-words font-serif text-3xl leading-tight text-[#26313a]">
+                {{ selectedSpotDetail.title }}
+              </h2>
+            </div>
+
+            <div class="mt-4 flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+              <div class="min-w-0">
+                <p class="text-xs font-semibold uppercase tracking-[0.14em] text-[#82939a]">
+                  {{ pageText.works }}
+                </p>
+                <p class="mt-1 break-words text-sm text-[#34444b]">
+                  {{ selectedSpotDetail.workTitle }}
+                </p>
+              </div>
+              <div class="flex shrink-0 flex-wrap gap-2 sm:justify-end">
+                <a
+                  :href="navigationUrl"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  class="rounded-lg border border-[#8bbddd] bg-[#eaf6fb] px-3 py-2 text-center text-sm font-semibold text-[#356f98] shadow-[0_10px_22px_-18px_rgba(58,91,119,0.58)] transition hover:border-[#6da4ca] hover:bg-white focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-sky-100"
+                >
+                  {{ pageText.navigation }}
+                </a>
+                <a
+                  v-if="spotLinkUrl"
+                  :href="spotLinkUrl"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  class="rounded-lg border border-[#99e6d6] bg-[#f0fdfa]/82 px-3 py-2 text-center text-sm font-semibold text-[#1d6564] transition hover:border-[#5eead4] hover:bg-white focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-teal-100"
+                >
+                  {{ pageText.spotLink }}
+                </a>
+              </div>
+            </div>
+
+            <dl class="mt-3 space-y-3 text-sm">
+              <div>
+                <dt class="text-xs font-semibold uppercase tracking-[0.14em] text-[#82939a]">
+                  {{ pageText.address }}
+                </dt>
+                <dd class="mt-1 leading-6 text-[#526670]">{{ selectedSpotDetail.address }}</dd>
+              </div>
+            </dl>
+
+            <div class="mt-4 flex flex-wrap gap-2">
+              <span
+                v-for="tag in selectedSpotDetail.tags"
+                :key="tag"
+                class="pilgrimage-detail-tag rounded-lg border border-[#d5e6ef] bg-[#f5fbfe] px-2.5 py-1 text-xs text-[#60717a]"
+              >
+                {{ tag }}
+              </span>
+            </div>
+
+            <FormattedPlainText
+              class="mt-4 text-sm leading-7 text-[#526670]"
+              :text="selectedSpotDetail.description"
+            />
+          </div>
+        </div>
+
+        <section class="mt-5 shrink-0">
+          <div class="mb-3 flex items-center justify-between">
+            <h3 class="text-sm font-semibold uppercase tracking-[0.14em] text-[#64777f]">
+              {{ pageText.photoLabel }}
+            </h3>
+            <span class="text-xs text-[#8a9ca2]">{{ selectedSpotDetail.photos.length }}</span>
+          </div>
+
+          <div class="grid grid-cols-2 gap-3 lg:grid-cols-[repeat(auto-fill,minmax(128px,1fr))]">
+            <a
+              v-for="photo in selectedSpotDetail.photos"
+              :key="photo.id"
+              :href="buildStaticAssetUrl(photo.fullUrl)"
+              :data-fancybox="galleryName"
+              :data-caption="photo.caption"
+              :data-width="photo.width"
+              :data-height="photo.height"
+              :data-download-src="buildStaticAssetUrl(photo.downloadUrl || photo.fullUrl)"
+              class="pilgrimage-photo block overflow-hidden rounded-lg border border-[#d3e5ef]/90 bg-white/76 p-1 shadow-[0_16px_42px_-34px_rgba(58,91,119,0.72)] transition hover:-translate-y-0.5 hover:border-[#a8cde2]"
+            >
+              <LazyImage
+                :src="buildStaticAssetUrl(photo.thumbUrl || photo.fullUrl)"
+                :alt="photo.alt"
+                :downloadSrc="buildStaticAssetUrl(photo.downloadUrl || photo.fullUrl)"
+              />
+            </a>
+          </div>
+        </section>
       </div>
 
       <div
-        class="shrink-0 overflow-hidden rounded-lg border border-[#d3e5ef]/90 bg-white/68 p-4 shadow-[0_22px_60px_-42px_rgba(58,91,119,0.72)]"
-        aria-busy="true"
+        v-else-if="spotDetailLoading"
+        class="pilgrimage-detail-content flex min-h-0 flex-1 flex-col overflow-y-auto pr-1"
       >
-        <div class="pilgrimage-detail-skeleton h-48 rounded-lg bg-[#e2ece9]" />
-        <div class="mt-4 space-y-3">
-          <div class="pilgrimage-detail-skeleton h-3 w-24 rounded-full bg-[#d7e5e1]" />
-          <div class="pilgrimage-detail-skeleton h-8 w-3/4 rounded-full bg-[#e2ece9]" />
-          <div class="pilgrimage-detail-skeleton h-4 w-full rounded-full bg-[#e8f1ee]" />
-          <div class="pilgrimage-detail-skeleton h-4 w-5/6 rounded-full bg-[#e8f1ee]" />
+        <div
+          class="sticky top-0 z-30 -mx-4 mb-3 flex h-12 items-center gap-3 bg-[linear-gradient(180deg,rgba(255,255,255,0.98),rgba(255,255,255,0.9))] px-4 pr-14 pt-1 sm:-mx-6 sm:px-6 sm:pr-16 lg:hidden"
+        >
+          <span class="min-w-0 flex-1 truncate text-xs font-bold tracking-[0.03em] text-[#6b5a95]">
+            {{ detailNoteText }}
+          </span>
+          <span class="shrink-0 font-serif text-base italic text-[#c98791]">with milet</span>
+          <button
+            type="button"
+            class="absolute right-4 top-1 flex h-8 w-8 items-center justify-center rounded-lg border border-[#d9e7e4] bg-white/92 text-lg leading-none text-[#60717a] shadow-[0_12px_30px_-22px_rgba(31,41,55,0.9)] sm:right-6"
+            aria-label="Close spot detail"
+            @click="$emit('close')"
+          >
+            x
+          </button>
         </div>
-        <p class="mt-5 text-center text-sm font-semibold text-[#60717a]">
-          {{ pageText.loading }}
-        </p>
+
+        <div
+          class="shrink-0 overflow-hidden rounded-lg border border-[#d3e5ef]/90 bg-white/68 p-4 shadow-[0_22px_60px_-42px_rgba(58,91,119,0.72)]"
+          aria-busy="true"
+        >
+          <div class="pilgrimage-detail-skeleton h-48 rounded-lg bg-[#e2ece9]" />
+          <div class="mt-4 space-y-3">
+            <div class="pilgrimage-detail-skeleton h-3 w-24 rounded-full bg-[#d7e5e1]" />
+            <div class="pilgrimage-detail-skeleton h-8 w-3/4 rounded-full bg-[#e2ece9]" />
+            <div class="pilgrimage-detail-skeleton h-4 w-full rounded-full bg-[#e8f1ee]" />
+            <div class="pilgrimage-detail-skeleton h-4 w-5/6 rounded-full bg-[#e8f1ee]" />
+          </div>
+          <p class="mt-5 text-center text-sm font-semibold text-[#60717a]">
+            {{ pageText.loading }}
+          </p>
+        </div>
       </div>
+
+      <div
+        v-else
+        class="pilgrimage-detail-content flex min-h-[480px] flex-1 items-center justify-center rounded-lg border border-dashed border-[#cadbd7] bg-white/48 p-8 text-center text-sm leading-7 text-[#60717a] lg:min-h-0"
+      >
+        {{ spotsLoading ? pageText.loading : pageText.emptySpot }}
+      </div>
+
+      <button
+        v-if="selectedSpotDetail"
+        v-show="showScrollHint"
+        type="button"
+        class="pilgrimage-detail-scroll-cue absolute bottom-3 left-1/2 z-40 flex h-9 w-12 -translate-x-1/2 items-center justify-center rounded-lg border border-[#c4b5fd]/55 bg-white/82 shadow-[0_14px_34px_-22px_rgba(97,73,144,0.68)] backdrop-blur"
+        :aria-label="scrollHintLabel"
+        @click="scrollDetailDown"
+      >
+        <span class="pilgrimage-detail-scroll-cue__chevrons" aria-hidden="true" />
+      </button>
     </div>
 
     <div
-      v-else
-      class="pilgrimage-detail-content flex min-h-[480px] items-center justify-center rounded-lg border border-dashed border-[#cadbd7] bg-white/48 p-8 text-center text-sm leading-7 text-[#60717a] lg:min-h-0 lg:flex-1"
+      class="pilgrimage-detail-illustration relative mt-4 hidden h-[clamp(120px,15vh,180px)] shrink-0 overflow-hidden rounded-[10px] border border-[#d3e5ef]/75 bg-white/58 shadow-[0_20px_52px_-42px_rgba(58,91,119,0.64),inset_0_0_0_1px_rgba(255,255,255,0.58)] lg:block"
+      aria-hidden="true"
     >
-      {{ spotsLoading ? pageText.loading : pageText.emptySpot }}
-    </div>
-
-    <div class="pilgrimage-detail-illustration mt-4 hidden shrink-0 lg:block" aria-hidden="true">
       <img
         src="/pilgrimage/decorations/detail-watercolor-postcard.webp"
         alt=""
-        class="h-full w-full object-cover object-[62%_45%]"
+        class="block h-full w-full object-cover object-[62%_45%] opacity-[0.74] brightness-[1.04] contrast-[0.92] saturate-[0.78]"
         loading="lazy"
         decoding="async"
       />
@@ -202,7 +221,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import FormattedPlainText from '@/components/FormattedPlainText.vue'
 import LazyImage from '@/components/LazyImage.vue'
 import type {
@@ -251,6 +270,59 @@ const panelVisible = computed(() => Boolean(props.selectedSpotDetail || props.sp
 const detailNoteText = computed(() =>
   props.lang === 'jp' ? 'すべての場所は、記憶されるべき。' : '每一个地点都应该被记住',
 )
+const scrollHintLabel = computed(() => (props.lang === 'jp' ? '下へスクロール' : '继续向下滚动'))
+const detailScrollRef = ref<HTMLElement | null>(null)
+const showScrollHint = ref(false)
+let resizeObserver: ResizeObserver | null = null
+let scrollHintFrame = 0
+
+function updateScrollHint() {
+  const container = detailScrollRef.value
+  if (!container || !props.selectedSpotDetail) {
+    showScrollHint.value = false
+    return
+  }
+
+  const remaining = container.scrollHeight - container.clientHeight - container.scrollTop
+  showScrollHint.value = container.scrollHeight > container.clientHeight + 12 && remaining > 16
+}
+
+function scheduleScrollHintUpdate() {
+  if (typeof window === 'undefined') return
+  cancelAnimationFrame(scrollHintFrame)
+  scrollHintFrame = requestAnimationFrame(updateScrollHint)
+}
+
+function scrollDetailDown() {
+  const container = detailScrollRef.value
+  if (!container) return
+  container.scrollBy({ top: Math.max(160, container.clientHeight * 0.62), behavior: 'smooth' })
+}
+
+watch(
+  () => props.selectedSpotDetail?.id,
+  async () => {
+    await nextTick()
+    if (detailScrollRef.value) resizeObserver?.observe(detailScrollRef.value)
+    detailScrollRef.value?.scrollTo({ top: 0 })
+    scheduleScrollHintUpdate()
+  },
+)
+
+onMounted(() => {
+  if (typeof ResizeObserver !== 'undefined') {
+    resizeObserver = new ResizeObserver(scheduleScrollHintUpdate)
+    if (detailScrollRef.value) resizeObserver.observe(detailScrollRef.value)
+  }
+  window.addEventListener('resize', scheduleScrollHintUpdate)
+  nextTick(scheduleScrollHintUpdate)
+})
+
+onBeforeUnmount(() => {
+  resizeObserver?.disconnect()
+  window.removeEventListener('resize', scheduleScrollHintUpdate)
+  cancelAnimationFrame(scrollHintFrame)
+})
 </script>
 
 <style scoped>
@@ -266,11 +338,6 @@ const detailNoteText = computed(() =>
       transparent 1px,
       transparent 24px
     );
-}
-
-.pilgrimage-detail-panel > * {
-  position: relative;
-  z-index: 1;
 }
 
 .pilgrimage-detail-panel::before {
@@ -298,33 +365,24 @@ const detailNoteText = computed(() =>
   pointer-events: none;
 }
 
-@media (min-width: 1024px) {
-  .pilgrimage-detail-panel::after {
-    display: none;
-  }
-}
-
 .pilgrimage-detail-content {
   scrollbar-width: thin;
   scrollbar-color: rgba(196, 181, 253, 0.44) transparent;
 }
 
-.pilgrimage-detail-illustration {
-  position: relative;
-  height: clamp(120px, 15vh, 180px);
-  overflow: hidden;
-  border: 1px solid rgba(211, 229, 239, 0.76);
-  border-radius: 10px;
-  background: rgba(255, 255, 255, 0.58);
-  box-shadow:
-    0 20px 52px -42px rgba(58, 91, 119, 0.64),
-    inset 0 0 0 1px rgba(255, 255, 255, 0.58);
+.pilgrimage-detail-scroll-cue {
+  animation: pilgrimage-detail-scroll-cue-fade 2.4s ease-in-out infinite;
 }
 
-.pilgrimage-detail-illustration img {
-  display: block;
-  opacity: 0.74;
-  filter: saturate(0.78) contrast(0.92) brightness(1.04);
+.pilgrimage-detail-scroll-cue__chevrons {
+  position: relative;
+  width: 11px;
+  height: 11px;
+  margin-top: -7px;
+  border-right: 2px solid rgba(107, 90, 149, 0.82);
+  border-bottom: 2px solid rgba(107, 90, 149, 0.82);
+  transform: rotate(45deg);
+  animation: pilgrimage-detail-scroll-cue-down 1.5s ease-in-out infinite;
 }
 
 .pilgrimage-detail-illustration::after {
@@ -335,10 +393,6 @@ const detailNoteText = computed(() =>
     radial-gradient(circle at 16% 18%, rgba(249, 168, 212, 0.12), transparent 34%);
   content: '';
   pointer-events: none;
-}
-
-.pilgrimage-detail-card {
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.76), rgba(246, 251, 253, 0.82)), #fff;
 }
 
 .pilgrimage-detail-card::after {
@@ -400,6 +454,35 @@ const detailNoteText = computed(() =>
 
   to {
     opacity: 0.88;
+  }
+}
+
+@keyframes pilgrimage-detail-scroll-cue-fade {
+  0%,
+  100% {
+    opacity: 0.36;
+  }
+
+  48% {
+    opacity: 0.96;
+  }
+}
+
+@keyframes pilgrimage-detail-scroll-cue-down {
+  0%,
+  100% {
+    transform: translateY(-1px) rotate(45deg);
+  }
+
+  50% {
+    transform: translateY(4px) rotate(45deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pilgrimage-detail-scroll-cue,
+  .pilgrimage-detail-scroll-cue__chevrons {
+    animation: none;
   }
 }
 </style>
