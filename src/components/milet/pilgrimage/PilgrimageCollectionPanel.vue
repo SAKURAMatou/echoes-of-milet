@@ -42,7 +42,7 @@
               v-for="(collection, index) in collections"
               :key="collection.id"
               type="button"
-              class="pilgrimage-collection-card group grid min-h-28 grid-cols-[5rem_minmax(0,1fr)] gap-3 rounded-lg border p-3 text-left transition focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-teal-100"
+              class="pilgrimage-collection-card group flex flex-col min-h-28 rounded-lg border p-3 text-left transition focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-teal-100"
               :class="
                 activeCollection?.id === collection.id
                   ? 'shadow-[0_18px_42px_-34px_rgba(47,143,131,0.7)]'
@@ -51,35 +51,45 @@
               :style="collectionCardStyle(index, activeCollection?.id === collection.id)"
               @click="openCollection(collection)"
             >
-              <img
-                v-if="collection.coverImageUrl"
-                :src="buildStaticAssetUrl(collection.coverImageUrl)"
-                :alt="collection.title"
-                class="h-20 w-20 rounded-md object-cover shadow-[0_10px_24px_-18px_rgba(31,41,55,0.8)]"
-                loading="lazy"
-                decoding="async"
-              />
-              <span
-                v-else
-                class="grid h-20 w-20 place-items-center rounded-md bg-[#edf7f5] font-serif text-2xl text-[#7b68a8]"
-                :style="collectionCoverFallbackStyle(index)"
-              >
-                m
-              </span>
-              <span class="min-w-0 self-center">
-                <span class="block truncate text-base font-bold text-[#34444b]">
-                  {{ collection.title }}
-                </span>
-                <span class="mt-1 block line-clamp-2 text-sm leading-6 text-[#60717a]">
-                  {{ collection.description || text.noDescription }}
-                </span>
+              <div class="grid grid-cols-[5rem_minmax(0,1fr)] gap-3">
+                <img
+                  v-if="collection.coverImageUrl"
+                  :src="buildStaticAssetUrl(collection.coverImageUrl)"
+                  :alt="collection.title"
+                  class="h-20 w-20 rounded-md object-cover shadow-[0_10px_24px_-18px_rgba(31,41,55,0.8)]"
+                  loading="lazy"
+                  decoding="async"
+                />
                 <span
-                  class="mt-2 block text-xs font-semibold"
-                  :style="{ color: collectionTone(index).accent }"
+                  v-else
+                  class="grid h-20 w-20 place-items-center rounded-md bg-[#edf7f5] font-serif text-2xl text-[#7b68a8]"
+                  :style="collectionCoverFallbackStyle(index)"
                 >
-                  {{ collection.spots.length }} spots
+                  m
                 </span>
-              </span>
+                <span class="min-w-0 self-center">
+                  <span class="block truncate text-base font-bold text-[#34444b]">
+                    {{ collection.title }}
+                  </span>
+                  <span class="mt-1 block line-clamp-2 text-sm leading-6 text-[#60717a]">
+                    {{ collection.description || text.noDescription }}
+                  </span>
+                  <span
+                    class="mt-2 block text-xs font-semibold"
+                    :style="{ color: collectionTone(index).accent }"
+                  >
+                    {{ collection.spots.length }} spots
+                  </span>
+                </span>
+              </div>
+              <RelatedArticleList
+                v-if="collection?.articles?.items?.length"
+                class="mt-3"
+                :articles="collection.articles"
+                variant="release"
+                :lang="lang"
+                @click.stop
+              />
             </button>
           </div>
         </div>
