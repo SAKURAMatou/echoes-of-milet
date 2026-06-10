@@ -90,6 +90,7 @@ export async function render(url: string, request: RenderRequest = {}): Promise<
     headTags: renderSeoTags(matchedSeoKey, state.lang, {
       path: currentRoute.path,
       pilgrimageSpots: collectPilgrimageSeoSpots(state),
+      article: state.miletArticleData,
     }),
     initialState: state,
     htmlLang: toHtmlLang(state.lang),

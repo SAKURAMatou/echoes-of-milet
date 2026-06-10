@@ -28,7 +28,8 @@ export function useReleaseData(options: ReleaseDataOptions) {
     error.value = null
 
     try {
-      const url = `${apiBaseUrl}${options.type}?page=${page}&pageSize=${pageSize}`
+      const lang = window.location.pathname.startsWith('/ja') ? 'ja' : 'zh'
+      const url = `${apiBaseUrl}${options.type}?page=${page}&pageSize=${pageSize}&lang=${lang}`
       const response = await axiosInstance.get<{ data: Work[]; total: number }>(url)
       const newData = Array.isArray(response.data) ? response.data : []
 

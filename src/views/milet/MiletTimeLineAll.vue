@@ -139,6 +139,14 @@
                     <span class="h-px flex-1 bg-[#317f8d]/18"></span>
                   </div>
                 </component>
+                <RelatedArticleList
+                  v-if="it.articles?.items?.length"
+                  class="w-full max-w-[21.5rem] md:min-h-0"
+                  :articles="it.articles"
+                  variant="timeline"
+                  :limit="1"
+                  :lang="currentLang"
+                />
               </div>
             </div>
           </li>
@@ -172,6 +180,8 @@ import {
 import axiosInstance from '@/AxiosUtil'
 import { apiRoutes, getBackendOrigin } from '@/config/api'
 import FormattedPlainText from '@/components/FormattedPlainText.vue'
+import RelatedArticleList from '@/components/milet/article/RelatedArticleList.vue'
+import type { RelatedArticleGroup } from '@/composables/articleType'
 
 const instance = getCurrentInstance()
 const global = instance?.appContext.config.globalProperties
@@ -181,12 +191,15 @@ type TimeLineResItem = {
   timeline_title: string
   timeline_body: string
   link_url: string
+  timeline_id?: number | string
+  articles?: RelatedArticleGroup
 }
 
 const displayedData = ref({ zh: [] as TimeLineResItem[], jp: [] as TimeLineResItem[] })
 const wrapEl = ref<HTMLElement | null>(null)
 const loadMoreEl = ref<HTMLElement | null>(null)
 const currentYear = new Date().getFullYear()
+const currentLang = computed<SupportedLang>(() => (global?.$lang?.lang === 'jp' ? 'jp' : 'zh'))
 
 const currentPage = ref(1)
 const hasMoreData = ref(true)
@@ -464,8 +477,7 @@ const loadMoreData = async () => {
 }
 
 const items = computed<TimeLineResItem[]>(() => {
-  const lang = global?.$lang?.lang === 'jp' ? 'jp' : 'zh'
-  return displayedData.value[lang]
+  return displayedData.value[currentLang.value]
 })
 
 watch(items, async () => {

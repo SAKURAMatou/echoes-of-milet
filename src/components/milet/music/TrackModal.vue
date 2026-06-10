@@ -182,6 +182,14 @@
                         </div>
                       </div>
 
+                      <RelatedArticleList
+                        v-if="track.articles?.items?.length"
+                        :articles="track.articles"
+                        variant="modal"
+                        :limit="1"
+                        :lang="currentLang"
+                      />
+
                       <div
                         class="rounded-[16px] border border-slate-200/80 bg-white/88 p-4 shadow-[0_28px_72px_-48px_rgba(15,23,42,0.5)] lg:flex lg:min-h-0 lg:flex-1 lg:flex-col"
                       >
@@ -454,6 +462,7 @@
 <script setup lang="ts">
 import { computed, getCurrentInstance, ref, watch } from 'vue'
 import type { Track, TrackListenData } from '@/composables/releaseType'
+import RelatedArticleList from '@/components/milet/article/RelatedArticleList.vue'
 import TrackListenPlatformIcon from './TrackListenPlatformIcon.vue'
 
 const TRACK_MODAL_TEXT = {

@@ -145,6 +145,15 @@
             </button>
           </div>
         </div>
+
+        <RelatedArticleList
+          v-if="work.articles?.items?.length"
+          :class="viewMode === 'shelf' ? 'mt-3' : 'mt-4'"
+          :articles="work.articles"
+          variant="release"
+          :limit="1"
+          :lang="currentLang"
+        />
       </div>
 
       <div
@@ -265,6 +274,7 @@ import axiosInstance from '@/AxiosUtil'
 import { initImgUrl } from '@/composables/ImgUrlUtil'
 import { apiRoutes } from '@/config/api'
 import { WORK_TEXT } from '@/composables/lang/ReleaseMetaData'
+import RelatedArticleList from '@/components/milet/article/RelatedArticleList.vue'
 import type { Disc, ReleaseEdition, Track, Work } from '@/composables/releaseType'
 
 const TrackModal = defineAsyncComponent(() => import('./TrackModal.vue'))
@@ -289,9 +299,9 @@ const emit = defineEmits<{
 
 const { appContext } = getCurrentInstance()!
 const global = appContext.config.globalProperties
+const currentLang = computed<SupportedLang>(() => (global.$lang?.lang === 'jp' ? 'jp' : 'zh'))
 const pageText = computed(() => {
-  const lang = global.$lang?.lang === 'jp' ? 'jp' : 'zh'
-  return WORK_TEXT[lang]
+  return WORK_TEXT[currentLang.value]
 })
 
 const modalOpen = ref(false)
@@ -389,7 +399,7 @@ function formatDuration(seconds: number) {
 async function openTrack(t: Track) {
   if (!t.lyric || !t.listenData) {
     const detail = await axiosInstance.get<{ data?: Partial<Track> }>(
-      apiRoutes.miletReleaseDetail + t.showId,
+      `${apiRoutes.miletReleaseDetail}${t.showId}?lang=${currentLang.value === 'jp' ? 'ja' : 'zh'}`,
     )
     if (detail && Object.keys(detail).length > 0) {
       const d = detail.data || {}
@@ -400,6 +410,7 @@ async function openTrack(t: Track) {
       t.recorded_at = d.recorded_at || t.recorded_at
       t.singer = d.singer || t.singer
       t.listenData = d.listenData || t.listenData
+      t.articles = d.articles || t.articles
     }
   }
   modalTrack.value = t

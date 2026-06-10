@@ -24,6 +24,7 @@
     "miletPilgrimageCollections": "/api/milet/pilgrimage/collections",
     "miletPilgrimageDistrictSpots": "/api/milet/pilgrimage/districts",
     "miletPilgrimageSpot": "/api/milet/pilgrimage/spots",
+    "miletArticle": "/api/articles/",
     "aboutFeedback": "/api/milet/feedback",
     "blogDetail": "/api/blog/detail/",
     "blogList": "/api/blog/datalist/current/",

@@ -1,7 +1,8 @@
 import { stripLangPrefix, toUrlLang } from '@/composables/useLangRoute'
 import { getSiteOrigin } from '@/config/api'
+import type { PublicArticleDetail } from '@/composables/articleType'
 
-export type SeoKey = 'home' | 'milet' | 'about' | 'anniversary' | 'pilgrimage'
+export type SeoKey = 'home' | 'milet' | 'about' | 'anniversary' | 'pilgrimage' | 'article'
 
 interface SeoLocaleContent {
   title: string
@@ -22,6 +23,7 @@ interface SeoMeta {
 interface RenderSeoOptions {
   path?: string
   pilgrimageSpots?: PilgrimageSeoSpot[]
+  article?: PublicArticleDetail | null
 }
 
 export interface PilgrimageSeoSpot {
@@ -39,6 +41,27 @@ export interface PilgrimageSeoSpot {
 const siteUrl = getSiteOrigin()
 
 const seoMap: Record<SeoKey, SeoMeta> = {
+  article: {
+    content: {
+      zh: {
+        title: 'Article | Echoes of milet',
+        description: 'Echoes of milet article.',
+        keywords: ['Echoes of milet', 'milet', 'article'],
+        imageAlt: 'Echoes of milet article',
+      },
+      jp: {
+        title: 'Article | Echoes of milet',
+        description: 'Echoes of milet article.',
+        keywords: ['Echoes of milet', 'milet', 'article'],
+        imageAlt: 'Echoes of milet article',
+      },
+    },
+    image: '/echoes-of-milet-OG.webp',
+    canonicalPath: '/milet/articles',
+    type: 'article',
+    schemaType: 'WebPage',
+    allowDynamicPath: true,
+  },
   home: {
     content: {
       zh: {
@@ -416,7 +439,16 @@ export function renderSeoTags(
 ) {
   const meta = resolveSeoMeta(seoKey)
   const resolvedLang = resolveLang(lang)
-  const localized = meta.content[resolvedLang]
+  let localized = meta.content[resolvedLang]
+  if (seoKey === 'article' && options.article) {
+    localized = {
+      ...localized,
+      title: `${options.article.title} | Echoes of milet`,
+      description: options.article.summary || localized.description,
+      keywords: ['Echoes of milet', 'milet', options.article.title],
+      imageAlt: options.article.title,
+    }
+  }
   const canonicalPath = resolveCanonicalPath(meta, options)
   const canonicalUrl = createLocalizedUrl(canonicalPath, resolvedLang)
   const imageUrl = meta.image.startsWith('http') ? meta.image : `${siteUrl}${meta.image}`

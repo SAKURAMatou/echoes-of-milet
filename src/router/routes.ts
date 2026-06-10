@@ -6,7 +6,7 @@ import { buildShortLinkTarget, shortLinks } from '@/config/shortLinks'
 declare module 'vue-router' {
   interface RouteMeta {
     renderMode?: 'ssg' | 'ssr' | 'csr'
-    seoKey?: 'home' | 'milet' | 'about' | 'anniversary' | 'pilgrimage'
+    seoKey?: 'home' | 'milet' | 'about' | 'anniversary' | 'pilgrimage' | 'article'
     widePage?: boolean
   }
 }
@@ -80,6 +80,12 @@ export const routes: RouteRecordRaw[] = [
             name: 'miletRelease',
             meta: { renderMode: 'csr', widePage: true },
             component: () => import('@/views/milet/ReleasesPage.vue'),
+          },
+          {
+            path: 'articles/:slug',
+            name: 'miletArticle',
+            meta: { renderMode: 'ssr', seoKey: 'article' },
+            component: () => import('@/views/milet/MiletArticleView.vue'),
           },
           {
             path: 'interactive/song-guess',
