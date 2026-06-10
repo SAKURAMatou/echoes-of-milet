@@ -108,6 +108,14 @@
               </span>
             </div>
 
+            <RelatedArticleList
+              v-if="activeCollection.articles?.items?.length"
+              class="mt-3"
+              :articles="activeCollection.articles"
+              variant="release"
+              :lang="lang"
+            />
+
             <div class="mt-4 min-h-0 flex-1 overflow-y-auto pr-1">
               <button
                 v-for="(spot, index) in activeCollection.spots"
@@ -163,6 +171,7 @@
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue'
 
+import RelatedArticleList from '@/components/milet/article/RelatedArticleList.vue'
 import type { PilgrimageCollection, PilgrimageLang } from '@/composables/miletPilgrimage'
 import { buildStaticAssetUrl } from '@/config/api'
 

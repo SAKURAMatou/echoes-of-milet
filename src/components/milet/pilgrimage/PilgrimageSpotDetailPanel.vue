@@ -115,6 +115,14 @@
               class="mt-4 text-sm leading-7 text-[#526670]"
               :text="selectedSpotDetail.description"
             />
+
+            <RelatedArticleList
+              v-if="selectedSpotDetail.articles?.items?.length"
+              class="mt-4"
+              :articles="selectedSpotDetail.articles"
+              variant="modal"
+              :lang="lang"
+            />
           </div>
         </div>
 
@@ -224,6 +232,7 @@
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import FormattedPlainText from '@/components/FormattedPlainText.vue'
 import LazyImage from '@/components/LazyImage.vue'
+import RelatedArticleList from '@/components/milet/article/RelatedArticleList.vue'
 import type {
   PilgrimageLang,
   PilgrimagePageText,
