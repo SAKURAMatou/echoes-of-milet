@@ -71,7 +71,7 @@ import { useAppState } from '@/composables/useAppState'
 import type { PublicArticleDetail } from '@/composables/articleType'
 
 import '../../assets/article-content.css'
-import '../../assets/milet-article.css'
+import '../../assets/mixed-media.css'
 
 const route = useRoute()
 const state = useAppState()
@@ -140,7 +140,7 @@ watch(
 )
 </script>
 
-<!-- <style scoped>
+<style scoped>
 .article-content {
   color: #243447;
   font-size: 1rem;
@@ -253,4 +253,4 @@ watch(
     min-width: 0;
   }
 }
-</style> -->
+</style>
