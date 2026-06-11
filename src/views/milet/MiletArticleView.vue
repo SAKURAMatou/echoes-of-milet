@@ -23,7 +23,10 @@
         </p>
         <div class="mt-5 flex flex-wrap items-center gap-3 text-xs font-medium text-slate-500">
           <span v-if="article?.publishedAt">{{ formatDate(article.publishedAt) }}</span>
-          <span v-if="article?.fallbackLang" class="rounded-full border border-sky-100 bg-sky-50 px-2.5 py-1 text-[#317f8d]">
+          <span
+            v-if="article?.fallbackLang"
+            class="rounded-full border border-sky-100 bg-sky-50 px-2.5 py-1 text-[#317f8d]"
+          >
             fallback: {{ article.fallbackLang }}
           </span>
         </div>
@@ -31,10 +34,16 @@
     </div>
 
     <div class="article-body-layout mx-auto px-4 py-8 sm:px-6 md:px-8 md:py-10">
-      <div v-if="loading" class="rounded-lg border border-dashed border-slate-200 bg-white/72 p-8 text-center text-sm text-slate-500">
+      <div
+        v-if="loading"
+        class="rounded-lg border border-dashed border-slate-200 bg-white/72 p-8 text-center text-sm text-slate-500"
+      >
         loading...
       </div>
-      <div v-else-if="error" class="rounded-lg border border-dashed border-rose-200 bg-rose-50/70 p-8 text-center text-sm text-rose-700">
+      <div
+        v-else-if="error"
+        class="rounded-lg border border-dashed border-rose-200 bg-rose-50/70 p-8 text-center text-sm text-rose-700"
+      >
         {{ error }}
       </div>
       <template v-else-if="article?.html">
@@ -43,7 +52,10 @@
           <ArticleToc :items="article.toc" :title="routeLang === 'ja' ? 'Contents' : '目录'" />
         </aside>
       </template>
-      <div v-else class="rounded-lg border border-dashed border-slate-200 bg-white/72 p-8 text-center text-sm text-slate-500">
+      <div
+        v-else
+        class="rounded-lg border border-dashed border-slate-200 bg-white/72 p-8 text-center text-sm text-slate-500"
+      >
         No article content.
       </div>
     </div>
@@ -57,6 +69,9 @@ import axiosInstance from '@/AxiosUtil'
 import ArticleToc from '@/components/milet/article/ArticleToc.vue'
 import { useAppState } from '@/composables/useAppState'
 import type { PublicArticleDetail } from '@/composables/articleType'
+
+import '../../assets/article-content.css'
+import '../../assets/milet-article.css'
 
 const route = useRoute()
 const state = useAppState()
@@ -78,9 +93,11 @@ async function fetchArticle() {
   loading.value = true
   error.value = ''
   try {
-    const response = await axiosInstance.get<{ success: boolean; item?: PublicArticleDetail; message?: string }>(
-      `/api/articles/${routeLang.value}/${slug}`,
-    )
+    const response = await axiosInstance.get<{
+      success: boolean
+      item?: PublicArticleDetail
+      message?: string
+    }>(`/api/articles/${routeLang.value}/${slug}`)
     if (!response.success || !response.item) {
       throw new Error(response.message || 'Article not found.')
     }
@@ -105,7 +122,11 @@ onServerPrefetch(fetchArticle)
 
 onMounted(() => {
   const currentLang = global.$lang?.lang === 'jp' ? 'ja' : 'zh'
-  if (!article.value || article.value.slug !== route.params.slug || article.value.requestedLang !== currentLang) {
+  if (
+    !article.value ||
+    article.value.slug !== route.params.slug ||
+    article.value.requestedLang !== currentLang
+  ) {
     fetchArticle()
   }
   if (article.value?.title) document.title = `${article.value.title} | Echoes of milet`
@@ -119,7 +140,7 @@ watch(
 )
 </script>
 
-<style scoped>
+<!-- <style scoped>
 .article-content {
   color: #243447;
   font-size: 1rem;
@@ -232,4 +253,4 @@ watch(
     min-width: 0;
   }
 }
-</style>
+</style> -->
