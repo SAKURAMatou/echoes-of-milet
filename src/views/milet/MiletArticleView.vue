@@ -1,65 +1,67 @@
 <template>
-  <article
-    class="article-page min-h-[calc(100svh-5rem)] overflow-hidden rounded-lg bg-[linear-gradient(180deg,rgba(255,255,255,0.82),rgba(248,253,255,0.9))] text-[#1e2a35]"
-  >
-    <div
-      class="relative overflow-hidden border-b border-slate-200/80 px-4 py-8 sm:px-6 md:px-8 md:py-10"
+  <div class="article-detail-shell">
+    <article
+      class="article-page min-h-[calc(100svh-5rem)] overflow-hidden rounded-lg bg-[linear-gradient(180deg,rgba(255,255,255,0.82),rgba(248,253,255,0.9))] text-[#1e2a35]"
     >
       <div
-        class="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_76%_12%,rgba(186,230,253,0.52),transparent_30%),linear-gradient(135deg,rgba(255,255,255,0.9),rgba(240,249,255,0.5))]"
-      ></div>
-      <div class="relative mx-auto max-w-4xl">
-        <RouterLink
-          :to="{ name: 'milet', params: { lang: routeLang } }"
-          class="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.16em] text-[#317f8d] transition hover:text-[#143d63]"
-        >
-          ← Echoes of milet
-        </RouterLink>
-        <h1 class="mt-5 font-serif text-4xl leading-tight text-[#143d63] md:text-5xl">
-          {{ article?.title || fallbackTitle }}
-        </h1>
-        <p v-if="article?.summary" class="mt-4 max-w-3xl text-sm leading-7 text-slate-600">
-          {{ article.summary }}
-        </p>
-        <div class="mt-5 flex flex-wrap items-center gap-3 text-xs font-medium text-slate-500">
-          <span v-if="article?.publishedAt">{{ formatDate(article.publishedAt) }}</span>
-          <span
-            v-if="article?.fallbackLang"
-            class="rounded-full border border-sky-100 bg-sky-50 px-2.5 py-1 text-[#317f8d]"
+        class="relative overflow-hidden border-b border-slate-200/80 px-4 py-8 sm:px-6 md:px-8 md:py-10"
+      >
+        <div
+          class="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_76%_12%,rgba(186,230,253,0.52),transparent_30%),linear-gradient(135deg,rgba(255,255,255,0.9),rgba(240,249,255,0.5))]"
+        ></div>
+        <div class="relative mx-auto max-w-4xl">
+          <RouterLink
+            :to="{ name: 'milet', params: { lang: routeLang } }"
+            class="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.16em] text-[#317f8d] transition hover:text-[#143d63]"
           >
-            fallback: {{ article.fallbackLang }}
-          </span>
+            ← Echoes of milet
+          </RouterLink>
+          <h1 class="mt-5 font-serif text-4xl leading-tight text-[#143d63] md:text-5xl">
+            {{ article?.title || fallbackTitle }}
+          </h1>
+          <p v-if="article?.summary" class="mt-4 max-w-3xl text-sm leading-7 text-slate-600">
+            {{ article.summary }}
+          </p>
+          <div class="mt-5 flex flex-wrap items-center gap-3 text-xs font-medium text-slate-500">
+            <span v-if="article?.publishedAt">{{ formatDate(article.publishedAt) }}</span>
+            <span
+              v-if="article?.fallbackLang"
+              class="rounded-full border border-sky-100 bg-sky-50 px-2.5 py-1 text-[#317f8d]"
+            >
+              fallback: {{ article.fallbackLang }}
+            </span>
+          </div>
         </div>
       </div>
-    </div>
 
-    <div class="article-body-layout mx-auto px-4 py-8 sm:px-6 md:px-8 md:py-10">
-      <div
-        v-if="loading"
-        class="rounded-lg border border-dashed border-slate-200 bg-white/72 p-8 text-center text-sm text-slate-500"
-      >
-        loading...
+      <div class="article-body-layout mx-auto px-4 py-8 sm:px-6 md:px-8 md:py-10">
+        <div
+          v-if="loading"
+          class="rounded-lg border border-dashed border-slate-200 bg-white/72 p-8 text-center text-sm text-slate-500"
+        >
+          loading...
+        </div>
+        <div
+          v-else-if="error"
+          class="rounded-lg border border-dashed border-rose-200 bg-rose-50/70 p-8 text-center text-sm text-rose-700"
+        >
+          {{ error }}
+        </div>
+        <div v-else-if="article?.html" class="article-content" v-html="article.html"></div>
+        <div
+          v-else
+          class="rounded-lg border border-dashed border-slate-200 bg-white/72 p-8 text-center text-sm text-slate-500"
+        >
+          No article content.
+        </div>
       </div>
-      <div
-        v-else-if="error"
-        class="rounded-lg border border-dashed border-rose-200 bg-rose-50/70 p-8 text-center text-sm text-rose-700"
-      >
-        {{ error }}
-      </div>
-      <template v-else-if="article?.html">
-        <div class="article-content" v-html="article.html"></div>
-        <aside v-if="article.toc?.length" class="article-side-toc">
-          <ArticleToc :items="article.toc" :title="routeLang === 'ja' ? 'Contents' : '目录'" />
-        </aside>
-      </template>
-      <div
-        v-else
-        class="rounded-lg border border-dashed border-slate-200 bg-white/72 p-8 text-center text-sm text-slate-500"
-      >
-        No article content.
-      </div>
-    </div>
-  </article>
+    </article>
+    <!-- <Teleport to="body"> -->
+    <aside v-if="article?.toc?.length" class="article-side-toc">
+      <ArticleToc :items="article.toc" :title="routeLang === 'ja' ? 'Contents' : '目录'" />
+    </aside>
+    <!-- </Teleport> -->
+  </div>
 </template>
 
 <script setup lang="ts">
@@ -147,11 +149,16 @@ watch(
   line-height: 1.9;
 }
 
+.article-detail-shell {
+  width: 100%;
+}
+
+.article-page {
+  min-width: 0;
+}
+
 .article-body-layout {
-  display: grid;
-  grid-template-columns: minmax(0, 56rem);
-  justify-content: center;
-  max-width: 92rem;
+  max-width: 56rem;
 }
 
 .article-side-toc {
@@ -175,6 +182,10 @@ watch(
   color: #317f8d;
   text-decoration: underline;
   text-underline-offset: 0.2em;
+}
+
+.article-content :deep([id]) {
+  scroll-margin-top: 6rem;
 }
 
 .article-content :deep(img) {
@@ -242,15 +253,21 @@ watch(
 }
 
 @media (min-width: 1180px) {
-  .article-body-layout {
-    grid-template-columns: minmax(0, 56rem) 14rem;
-    gap: 3rem;
+  .article-detail-shell {
+    display: grid;
+    grid-template-columns: minmax(0, 70.25rem) 12rem;
+    gap: 2.5rem;
     align-items: start;
+    max-width: 86rem;
+    margin-inline: auto;
   }
 
   .article-side-toc {
     display: block;
     min-width: 0;
+    position: sticky;
+    top: 5.5rem;
+    align-self: start;
   }
 }
 </style>

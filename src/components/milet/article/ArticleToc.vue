@@ -7,6 +7,7 @@
       class="article-toc__link"
       :class="`article-toc__link--h${item.level}`"
       :href="`#${item.id}`"
+      @click="handleClick($event, item)"
     >
       {{ item.text }}
     </a>
@@ -25,6 +26,22 @@ withDefaults(
     title: 'Contents',
   },
 )
+
+function handleClick(event: MouseEvent, item: ArticleTocItem) {
+  event.preventDefault()
+
+  if (import.meta.env.SSR) return
+
+  const target = document.getElementById(item.id)
+
+  if (!target) return
+
+  target.scrollIntoView({
+    behavior: 'smooth',
+    block: 'start',
+  })
+  window.history.replaceState(null, '', `${window.location.pathname}${window.location.search}#${item.id}`)
+}
 </script>
 
 <style scoped>
