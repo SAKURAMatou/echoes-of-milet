@@ -21,6 +21,7 @@ export interface PublicArticleDetail {
   articleType: string
   title: string
   summary: string
+  coverImage?: ArticleCoverImage | null
   html: string
   imageIds: number[]
   toc?: ArticleTocItem[]
@@ -31,6 +32,20 @@ export interface PublicArticleDetail {
   i18nEnabled: boolean
   updatedAt: string
   publishedAt: string | null
+}
+
+export interface ArticleCoverImage {
+  id: number
+  imgId: string
+  storage: 'milet' | 'blog'
+  imgType: string
+  link: string
+  prelink: string
+  accessRoute?: string
+  urlOriginal?: string
+  urlWebp?: string
+  fname: string
+  comment: string
 }
 
 export interface ArticleTocItem {

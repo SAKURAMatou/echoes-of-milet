@@ -16,7 +16,7 @@ interface SeoMeta {
   image: string
   canonicalPath: string
   type?: 'website' | 'article'
-  schemaType?: 'WebPage' | 'AboutPage' | 'CollectionPage'
+  schemaType?: 'WebPage' | 'AboutPage' | 'CollectionPage' | 'Article'
   allowDynamicPath?: boolean
 }
 
@@ -59,7 +59,7 @@ const seoMap: Record<SeoKey, SeoMeta> = {
     image: '/echoes-of-milet-OG.webp',
     canonicalPath: '/milet/articles',
     type: 'article',
-    schemaType: 'WebPage',
+    schemaType: 'Article',
     allowDynamicPath: true,
   },
   home: {
@@ -284,6 +284,12 @@ function toAbsoluteUrl(value?: string | null) {
   return `${siteUrl}${url.startsWith('/') ? url : `/${url}`}`
 }
 
+function resolveArticleImage(article?: PublicArticleDetail | null) {
+  const image = article?.coverImage
+  if (!image) return undefined
+  return toAbsoluteUrl(image.urlWebp || image.urlOriginal || image.prelink || image.link)
+}
+
 function resolveLang(lang?: string | null): SupportedLang {
   return lang === 'jp' ? 'jp' : 'zh'
 }
@@ -331,8 +337,9 @@ function renderStructuredData(
   canonicalUrl: string,
   imageUrl: string,
   lang: SupportedLang,
+  article?: PublicArticleDetail | null,
 ) {
-  return JSON.stringify({
+  const baseData = {
     '@context': 'https://schema.org',
     '@type': meta.schemaType ?? 'WebPage',
     name: localized.title,
@@ -359,7 +366,18 @@ function renderStructuredData(
         name: 'miles DML',
       },
     },
-  })
+  }
+
+  if (meta.schemaType === 'Article' && article) {
+    return JSON.stringify({
+      ...baseData,
+      headline: article.title,
+      datePublished: article.publishedAt || undefined,
+      dateModified: article.updatedAt || undefined,
+    })
+  }
+
+  return JSON.stringify(baseData)
 }
 
 function renderPilgrimageSpotListStructuredData(
@@ -451,12 +469,12 @@ export function renderSeoTags(
   }
   const canonicalPath = resolveCanonicalPath(meta, options)
   const canonicalUrl = createLocalizedUrl(canonicalPath, resolvedLang)
-  const imageUrl = meta.image.startsWith('http') ? meta.image : `${siteUrl}${meta.image}`
+  const imageUrl = resolveArticleImage(options.article) || toAbsoluteUrl(meta.image) || `${siteUrl}/echoes-of-milet-OG.webp`
   const escapedTitle = escapeHtml(localized.title)
   const escapedDescription = escapeHtml(localized.description)
   const escapedImageAlt = escapeHtml(localized.imageAlt)
   const structuredDataScripts = [
-    `<script type="application/ld+json">${escapeJsonForHtml(renderStructuredData(meta, localized, canonicalUrl, imageUrl, resolvedLang))}</script>`,
+    `<script type="application/ld+json">${escapeJsonForHtml(renderStructuredData(meta, localized, canonicalUrl, imageUrl, resolvedLang, options.article))}</script>`,
   ]
 
   if (seoKey === 'pilgrimage' && options.pilgrimageSpots?.length) {
