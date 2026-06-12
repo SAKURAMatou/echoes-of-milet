@@ -39,6 +39,12 @@ export const routes: RouteRecordRaw[] = [
         component: () => import('@/views/milet/MiletAnniversaryView.vue'),
       },
       {
+        path: 'milet/articles/:slug',
+        name: 'miletArticle',
+        meta: { renderMode: 'ssr', seoKey: 'article' },
+        component: () => import('@/views/milet/MiletArticleView.vue'),
+      },
+      {
         path: 'milet',
         component: () => import('@/views/LayoutApp.vue'),
         children: [
@@ -80,12 +86,6 @@ export const routes: RouteRecordRaw[] = [
             name: 'miletRelease',
             meta: { renderMode: 'csr', widePage: true },
             component: () => import('@/views/milet/ReleasesPage.vue'),
-          },
-          {
-            path: 'articles/:slug',
-            name: 'miletArticle',
-            meta: { renderMode: 'ssr', seoKey: 'article' },
-            component: () => import('@/views/milet/MiletArticleView.vue'),
           },
           {
             path: 'interactive/song-guess',
