@@ -117,7 +117,7 @@
 
       <aside
         v-if="article?.toc?.length"
-        class="hidden min-w-0 self-start min-[1180px]:sticky min-[1180px]:top-20 min-[1180px]:block min-[1180px]:max-h-[calc(100svh-6.25rem)] min-[1180px]:w-full"
+        class="hidden min-w-0 self-start min-[1180px]:sticky min-[1180px]:top-32 min-[1180px]:block min-[1180px]:max-h-[calc(100svh-6.25rem)] min-[1180px]:w-full"
       >
         <ArticleToc :items="article.toc" :title="routeLang === 'ja' ? 'Contents' : '目录'" />
       </aside>
