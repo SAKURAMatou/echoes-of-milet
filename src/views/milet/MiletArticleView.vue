@@ -1,20 +1,23 @@
 <template>
-  <div class="article-reading-page">
+  <div class="min-h-svh">
     <Header :showHanbor="false" />
     <LanguageSelect class="max-md:hidden" />
 
-    <div v-if="article?.toc?.length" class="article-mobile-toc">
+    <div
+      v-if="article?.toc?.length"
+      class="pointer-events-none fixed inset-x-0 top-[3.45rem] z-40 block px-4 pt-2 min-[1180px]:hidden"
+    >
       <button
         type="button"
-        class="article-mobile-toc__button"
+        class="pointer-events-auto mx-auto flex h-11 w-full max-w-md items-center justify-center gap-2 rounded-lg border border-[rgba(171,209,223,0.72)] bg-[linear-gradient(180deg,rgba(255,255,255,0.9),rgba(239,249,255,0.86)),radial-gradient(circle_at_92%_0,rgba(186,230,253,0.36),transparent_9rem)] text-[0.8rem] font-bold uppercase tracking-[0.12em] text-[#143d63] shadow-[0_16px_42px_-32px_rgba(20,61,99,0.72)] backdrop-blur-xl transition active:translate-y-px"
         aria-controls="article-mobile-toc-panel"
         :aria-expanded="mobileTocOpen"
         @click="mobileTocOpen = !mobileTocOpen"
       >
         <span>{{ routeLang === 'ja' ? 'Contents' : '目录' }}</span>
         <svg
-          class="article-mobile-toc__icon"
-          :class="{ 'article-mobile-toc__icon--open': mobileTocOpen }"
+          class="h-4 w-4 text-[#317f8d] transition-transform duration-200"
+          :class="{ 'rotate-180': mobileTocOpen }"
           viewBox="0 0 20 20"
           fill="none"
           aria-hidden="true"
@@ -33,7 +36,7 @@
         <div
           v-if="mobileTocOpen"
           id="article-mobile-toc-panel"
-          class="article-mobile-toc__panel"
+          class="pointer-events-auto mx-auto mt-2 w-full max-w-md rounded-lg border border-[rgba(171,209,223,0.72)] bg-[linear-gradient(180deg,rgba(255,255,255,0.94),rgba(241,250,255,0.9)),radial-gradient(circle_at_100%_0,rgba(186,230,253,0.28),transparent_10rem)] shadow-[0_24px_58px_-34px_rgba(20,61,99,0.72)] backdrop-blur-[18px]"
           @click="handleMobileTocClick"
         >
           <ArticleToc
@@ -46,11 +49,15 @@
     </div>
 
     <main
-      class="article-detail-shell"
-      :class="{ 'article-detail-shell--with-mobile-toc': article?.toc?.length }"
+      class="flex min-h-svh w-full flex-col items-center bg-[radial-gradient(circle_at_16%_7%,rgba(186,230,253,0.45),transparent_24rem),radial-gradient(circle_at_88%_22%,rgba(204,251,241,0.3),transparent_20rem),linear-gradient(180deg,#f7fbfd_0%,#eef8fb_48%,#f8fbfd_100%)] px-[clamp(1rem,2.8vw,2.5rem)] pb-[clamp(1rem,2.8vw,2.5rem)] min-[1180px]:grid min-[1180px]:grid-cols-[minmax(0,70.25rem)_minmax(13rem,15rem)] min-[1180px]:items-start min-[1180px]:justify-center min-[1180px]:gap-[clamp(1.5rem,3vw,2.75rem)] min-[1180px]:px-[clamp(1.5rem,4vw,4rem)]"
+      :class="
+        article?.toc?.length
+          ? 'pt-[calc(7.25rem+clamp(1rem,2.8vw,2.5rem))] min-[1180px]:pt-[calc(4rem+clamp(1rem,2.8vw,2.5rem))]'
+          : 'pt-[calc(4rem+clamp(1rem,2.8vw,2.5rem))]'
+      "
     >
       <article
-        class="article-page min-h-[calc(100svh-5rem)] overflow-hidden rounded-lg bg-[linear-gradient(180deg,rgba(255,255,255,0.82),rgba(248,253,255,0.9))] text-[#1e2a35]"
+        class="min-h-[calc(100svh-5rem)] w-[min(100%,70.25rem)] min-w-0 overflow-hidden rounded-lg bg-[linear-gradient(180deg,rgba(255,255,255,0.82),rgba(248,253,255,0.9))] text-[#1e2a35] shadow-[0_28px_90px_-66px_rgba(15,23,42,0.65)]"
       >
         <div
           class="relative overflow-hidden border-b border-slate-200/80 px-4 py-8 sm:px-6 md:px-8 md:py-10"
@@ -83,7 +90,9 @@
           </div>
         </div>
 
-        <div class="article-body-layout mx-auto px-4 py-8 sm:px-6 md:px-8 md:py-10">
+        <div
+          class="mx-auto w-[min(100%,var(--article-readable-max-width,56rem))] max-w-[var(--article-readable-max-width,56rem)] px-4 py-8 sm:px-6 md:px-8 md:py-10"
+        >
           <div
             v-if="loading"
             class="rounded-lg border border-dashed border-slate-200 bg-white/72 p-8 text-center text-sm text-slate-500"
@@ -106,7 +115,10 @@
         </div>
       </article>
 
-      <aside v-if="article?.toc?.length" class="article-side-toc">
+      <aside
+        v-if="article?.toc?.length"
+        class="hidden min-w-0 self-start min-[1180px]:sticky min-[1180px]:top-20 min-[1180px]:block min-[1180px]:max-h-[calc(100svh-6.25rem)] min-[1180px]:w-full"
+      >
         <ArticleToc :items="article.toc" :title="routeLang === 'ja' ? 'Contents' : '目录'" />
       </aside>
     </main>
@@ -214,76 +226,6 @@ watch(
   line-height: 1.9;
 }
 
-.article-reading-page {
-  min-height: 100svh;
-}
-
-.article-mobile-toc {
-  position: fixed;
-  top: 3.45rem;
-  right: 0;
-  left: 0;
-  z-index: 40;
-  display: block;
-  padding: 0.5rem 1rem 0;
-  pointer-events: none;
-}
-
-.article-mobile-toc__button {
-  display: flex;
-  width: min(100%, 28rem);
-  height: 2.75rem;
-  align-items: center;
-  justify-content: center;
-  gap: 0.5rem;
-  margin-inline: auto;
-  border: 1px solid rgba(171, 209, 223, 0.72);
-  border-radius: 8px;
-  background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.9), rgba(239, 249, 255, 0.86)),
-    radial-gradient(circle at 92% 0, rgba(186, 230, 253, 0.36), transparent 9rem);
-  box-shadow: 0 16px 42px -32px rgba(20, 61, 99, 0.72);
-  color: #143d63;
-  font-size: 0.8rem;
-  font-weight: 700;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  backdrop-filter: blur(16px);
-  pointer-events: auto;
-  transition:
-    border-color 0.16s ease,
-    color 0.16s ease,
-    transform 0.16s ease;
-}
-
-.article-mobile-toc__button:active {
-  transform: translateY(1px);
-}
-
-.article-mobile-toc__icon {
-  width: 1rem;
-  height: 1rem;
-  color: #317f8d;
-  transition: transform 0.18s ease;
-}
-
-.article-mobile-toc__icon--open {
-  transform: rotate(180deg);
-}
-
-.article-mobile-toc__panel {
-  width: min(100%, 28rem);
-  margin: 0.5rem auto 0;
-  border: 1px solid rgba(171, 209, 223, 0.72);
-  border-radius: 8px;
-  background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.94), rgba(241, 250, 255, 0.9)),
-    radial-gradient(circle at 100% 0, rgba(186, 230, 253, 0.28), transparent 10rem);
-  box-shadow: 0 24px 58px -34px rgba(20, 61, 99, 0.72);
-  backdrop-filter: blur(18px);
-  pointer-events: auto;
-}
-
 .article-mobile-toc-panel-enter-active,
 .article-mobile-toc-panel-leave-active {
   transition:
@@ -295,41 +237,6 @@ watch(
 .article-mobile-toc-panel-leave-to {
   opacity: 0;
   transform: translateY(-0.5rem);
-}
-
-.article-detail-shell {
-  --article-shell-top-offset: 4rem;
-
-  display: flex;
-  min-height: 100svh;
-  width: 100%;
-  flex-direction: column;
-  align-items: center;
-  padding: calc(var(--article-shell-top-offset) + clamp(1rem, 2.8vw, 2.5rem)) clamp(1rem, 2.8vw, 2.5rem)
-    clamp(1rem, 2.8vw, 2.5rem);
-  background:
-    radial-gradient(circle at 16% 7%, rgba(186, 230, 253, 0.45), transparent 24rem),
-    radial-gradient(circle at 88% 22%, rgba(204, 251, 241, 0.3), transparent 20rem),
-    linear-gradient(180deg, #f7fbfd 0%, #eef8fb 48%, #f8fbfd 100%);
-}
-
-.article-detail-shell--with-mobile-toc {
-  --article-shell-top-offset: 7.25rem;
-}
-
-.article-page {
-  min-width: 0;
-  width: min(100%, 70.25rem);
-  box-shadow: 0 28px 90px -66px rgba(15, 23, 42, 0.65);
-}
-
-.article-body-layout {
-  width: min(100%, var(--article-readable-max-width, 56rem));
-  max-width: var(--article-readable-max-width, 56rem);
-}
-
-.article-side-toc {
-  display: none;
 }
 
 .article-content :deep(h1),
@@ -366,29 +273,5 @@ watch(
   color: #475569;
   margin: 1.5rem 0;
   padding-left: 1rem;
-}
-
-@media (min-width: 1180px) {
-  .article-mobile-toc {
-    display: none;
-  }
-
-  .article-detail-shell {
-    --article-shell-top-offset: 4rem;
-
-    display: grid;
-    grid-template-columns: minmax(0, 70.25rem) minmax(13rem, 15rem);
-    justify-content: center;
-    align-items: start;
-    gap: clamp(1.5rem, 3vw, 2.75rem);
-    padding-inline: clamp(1.5rem, 4vw, 4rem);
-  }
-
-  .article-side-toc {
-    display: block;
-    min-width: 0;
-    align-self: start;
-    width: 100%;
-  }
 }
 </style>

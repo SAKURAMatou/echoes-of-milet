@@ -1,16 +1,26 @@
 <template>
   <nav
     v-if="items.length"
-    class="article-toc"
-    :class="`article-toc--${variant}`"
+    class="overflow-auto rounded-lg border border-[rgba(171,209,223,0.72)] bg-[linear-gradient(180deg,rgba(255,255,255,0.78),rgba(240,249,255,0.72)),radial-gradient(circle_at_100%_0,rgba(186,230,253,0.35),transparent_8rem)] p-4 pr-3 shadow-[0_18px_44px_-36px_rgba(20,61,99,0.55)] [backdrop-filter:blur(16px)] [scrollbar-color:rgba(49,127,141,0.36)_transparent] [scrollbar-width:thin]"
+    :class="
+      variant === 'mobile'
+        ? 'max-h-[min(56svh,25rem)] border-0 bg-transparent p-3 shadow-none [backdrop-filter:none]'
+        : 'max-h-[calc(100svh-6.25rem)]'
+    "
     aria-label="Article contents"
   >
-    <div class="article-toc__title">{{ title }}</div>
+    <div
+      class="mb-3.5 h-0.5 w-11 rounded-full bg-[linear-gradient(90deg,#317f8d,rgba(186,230,253,0.2))]"
+      aria-hidden="true"
+    ></div>
+    <div class="mb-3 text-[0.72rem] font-bold uppercase tracking-[0.12em] text-[#143d63]">
+      {{ title }}
+    </div>
     <a
       v-for="item in items"
       :key="`${item.id}-${item.order}`"
-      class="article-toc__link"
-      :class="`article-toc__link--h${item.level}`"
+      class="block rounded-r-md border-l-2 border-l-[rgba(49,127,141,0.18)] px-2.5 py-1.5 text-[0.82rem] leading-[1.45] text-[#5b6c78] no-underline transition hover:border-l-[#317f8d] hover:bg-[rgba(236,248,251,0.9)] hover:text-[#143d63]"
+      :class="tocLinkLevelClass(item.level)"
       :href="`#${item.id}`"
       @click="handleClick($event, item)"
     >
@@ -49,92 +59,11 @@ function handleClick(event: MouseEvent, item: ArticleTocItem) {
   })
   window.history.replaceState(null, '', `${window.location.pathname}${window.location.search}#${item.id}`)
 }
+
+function tocLinkLevelClass(level: number) {
+  if (level <= 1) return 'font-semibold'
+  if (level === 2) return 'pl-3.5'
+  if (level === 3) return 'pl-5'
+  return 'pl-7 text-[0.78rem]'
+}
 </script>
-
-<style scoped>
-nav.article-toc {
-  overflow: auto;
-  border: 1px solid rgba(171, 209, 223, 0.72);
-  border-radius: 8px;
-  padding: 1rem 0.75rem 1rem 1rem;
-  background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.78), rgba(240, 249, 255, 0.72)),
-    radial-gradient(circle at 100% 0, rgba(186, 230, 253, 0.35), transparent 8rem);
-  box-shadow: 0 18px 44px -36px rgba(20, 61, 99, 0.55);
-  backdrop-filter: blur(16px);
-  scrollbar-width: thin;
-  scrollbar-color: rgba(49, 127, 141, 0.36) transparent;
-}
-
-nav.article-toc--side {
-  position: sticky;
-  top: 5rem;
-  max-height: calc(100svh - 6.25rem);
-}
-
-nav.article-toc--mobile {
-  max-height: min(56svh, 25rem);
-  border: 0;
-  padding: 0.75rem;
-  background: transparent;
-  box-shadow: none;
-  backdrop-filter: none;
-}
-
-nav.article-toc::before {
-  display: block;
-  width: 2.75rem;
-  height: 2px;
-  margin-bottom: 0.85rem;
-  border-radius: 999px;
-  background: linear-gradient(90deg, #317f8d, rgba(186, 230, 253, 0.2));
-  content: "";
-}
-
-.article-toc .article-toc__title {
-  margin-bottom: 0.75rem;
-  color: #143d63;
-  font-size: 0.72rem;
-  font-weight: 700;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-}
-
-.article-toc .article-toc__link {
-  display: block;
-  border-left: 2px solid rgba(49, 127, 141, 0.18);
-  border-radius: 0 6px 6px 0;
-  padding: 0.38rem 0.55rem;
-  color: #5b6c78;
-  font-size: 0.82rem;
-  line-height: 1.45;
-  text-decoration: none;
-  transition:
-    border-color 0.15s ease,
-    color 0.15s ease,
-    background-color 0.15s ease;
-}
-
-.article-toc .article-toc__link:hover {
-  border-left-color: #317f8d;
-  background: rgba(236, 248, 251, 0.9);
-  color: #143d63;
-}
-
-.article-toc .article-toc__link--h1 {
-  font-weight: 650;
-}
-
-.article-toc .article-toc__link--h2 {
-  padding-left: 0.9rem;
-}
-
-.article-toc .article-toc__link--h3 {
-  padding-left: 1.35rem;
-}
-
-.article-toc .article-toc__link--h4 {
-  padding-left: 1.8rem;
-  font-size: 0.78rem;
-}
-</style>
