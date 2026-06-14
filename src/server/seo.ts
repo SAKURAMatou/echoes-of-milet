@@ -1,5 +1,5 @@
 import { stripLangPrefix, toUrlLang } from '@/composables/useLangRoute'
-import { getSiteOrigin } from '@/config/api'
+import { getSiteOrigin, getImginOrigin } from '@/config/api'
 import type { PublicArticleDetail } from '@/composables/articleType'
 
 export type SeoKey = 'home' | 'milet' | 'about' | 'anniversary' | 'pilgrimage' | 'article'
@@ -281,9 +281,14 @@ function toAbsoluteUrl(value?: string | null) {
   const url = (value || '').trim()
   if (!url) return undefined
   if (/^https?:\/\//i.test(url)) return url
-  return `${siteUrl}${url.startsWith('/') ? url : `/${url}`}`
+  return `${getImginOrigin()}${url.startsWith('/') ? url : `/${url}`}`
 }
 
+/**
+ * 后端的文章中使用的图片需要使用后端域名进行发访问
+ * @param article
+ * @returns
+ */
 function resolveArticleImage(article?: PublicArticleDetail | null) {
   const image = article?.coverImage
   if (!image) return undefined
@@ -469,7 +474,10 @@ export function renderSeoTags(
   }
   const canonicalPath = resolveCanonicalPath(meta, options)
   const canonicalUrl = createLocalizedUrl(canonicalPath, resolvedLang)
-  const imageUrl = resolveArticleImage(options.article) || toAbsoluteUrl(meta.image) || `${siteUrl}/echoes-of-milet-OG.webp`
+  const imageUrl =
+    resolveArticleImage(options.article) ||
+    toAbsoluteUrl(meta.image) ||
+    `${siteUrl}/echoes-of-milet-OG.webp`
   const escapedTitle = escapeHtml(localized.title)
   const escapedDescription = escapeHtml(localized.description)
   const escapedImageAlt = escapeHtml(localized.imageAlt)
