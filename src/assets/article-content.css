@@ -591,12 +591,73 @@
 }
 
 .article-content .article-image-gallery--carousel.is-autoplay .article-image-gallery__track {
+  display: grid;
   gap: 0;
-  animation: article-gallery-auto-slide var(--gallery-duration, 8s) linear infinite;
 }
 
-.article-content .article-image-gallery--carousel.is-autoplay:hover .article-image-gallery__track,
-.article-content .article-image-gallery--carousel.is-autoplay:focus-within .article-image-gallery__track {
+.article-content .article-image-gallery--carousel.is-autoplay .article-image-gallery__item {
+  grid-area: 1 / 1;
+  opacity: 0;
+  pointer-events: none;
+  scroll-snap-align: none;
+  animation-duration: var(--gallery-duration, 8s);
+  animation-delay: var(--gallery-item-delay, 0s);
+  animation-fill-mode: both;
+  animation-iteration-count: infinite;
+  animation-timing-function: ease-in-out;
+}
+
+.article-content .article-image-gallery--carousel.is-autoplay.article-image-gallery--count-1 .article-image-gallery__item {
+  opacity: 1;
+  animation: none;
+}
+
+.article-image-gallery--carousel.is-autoplay.article-image-gallery--count-2 .article-image-gallery__item {
+  animation-name: article-gallery-fade-2;
+}
+
+.article-image-gallery--carousel.is-autoplay.article-image-gallery--count-3 .article-image-gallery__item {
+  animation-name: article-gallery-fade-3;
+}
+
+.article-image-gallery--carousel.is-autoplay.article-image-gallery--count-4 .article-image-gallery__item {
+  animation-name: article-gallery-fade-4;
+}
+
+.article-image-gallery--carousel.is-autoplay.article-image-gallery--count-5 .article-image-gallery__item {
+  animation-name: article-gallery-fade-5;
+}
+
+.article-image-gallery--carousel.is-autoplay.article-image-gallery--count-6 .article-image-gallery__item {
+  animation-name: article-gallery-fade-6;
+}
+
+.article-image-gallery--carousel.is-autoplay.article-image-gallery--count-7 .article-image-gallery__item {
+  animation-name: article-gallery-fade-7;
+}
+
+.article-image-gallery--carousel.is-autoplay.article-image-gallery--count-8 .article-image-gallery__item {
+  animation-name: article-gallery-fade-8;
+}
+
+.article-image-gallery--carousel.is-autoplay.article-image-gallery--count-9 .article-image-gallery__item {
+  animation-name: article-gallery-fade-9;
+}
+
+.article-image-gallery--carousel.is-autoplay.article-image-gallery--count-10 .article-image-gallery__item {
+  animation-name: article-gallery-fade-10;
+}
+
+.article-image-gallery--carousel.is-autoplay.article-image-gallery--count-11 .article-image-gallery__item {
+  animation-name: article-gallery-fade-11;
+}
+
+.article-image-gallery--carousel.is-autoplay.article-image-gallery--count-12 .article-image-gallery__item {
+  animation-name: article-gallery-fade-12;
+}
+
+.article-content .article-image-gallery--carousel.is-autoplay:hover .article-image-gallery__item,
+.article-content .article-image-gallery--carousel.is-autoplay:focus-within .article-image-gallery__item {
   animation-play-state: paused;
 }
 
@@ -647,12 +708,178 @@
   }
 }
 
-@keyframes article-gallery-auto-slide {
+@keyframes article-gallery-fade-2 {
   0% {
-    transform: translateX(0);
+    opacity: 0;
   }
 
+  6%,
+  44% {
+    opacity: 1;
+  }
+
+  50%,
   100% {
-    transform: translateX(var(--gallery-slide-distance, 0%));
+    opacity: 0;
+  }
+}
+
+@keyframes article-gallery-fade-3 {
+  0% {
+    opacity: 0;
+  }
+
+  5%,
+  28.333% {
+    opacity: 1;
+  }
+
+  33.333%,
+  100% {
+    opacity: 0;
+  }
+}
+
+@keyframes article-gallery-fade-4 {
+  0% {
+    opacity: 0;
+  }
+
+  4%,
+  21% {
+    opacity: 1;
+  }
+
+  25%,
+  100% {
+    opacity: 0;
+  }
+}
+
+@keyframes article-gallery-fade-5 {
+  0% {
+    opacity: 0;
+  }
+
+  4%,
+  16% {
+    opacity: 1;
+  }
+
+  20%,
+  100% {
+    opacity: 0;
+  }
+}
+
+@keyframes article-gallery-fade-6 {
+  0% {
+    opacity: 0;
+  }
+
+  3.5%,
+  13.167% {
+    opacity: 1;
+  }
+
+  16.667%,
+  100% {
+    opacity: 0;
+  }
+}
+
+@keyframes article-gallery-fade-7 {
+  0% {
+    opacity: 0;
+  }
+
+  3%,
+  11.286% {
+    opacity: 1;
+  }
+
+  14.286%,
+  100% {
+    opacity: 0;
+  }
+}
+
+@keyframes article-gallery-fade-8 {
+  0% {
+    opacity: 0;
+  }
+
+  2.8%,
+  9.7% {
+    opacity: 1;
+  }
+
+  12.5%,
+  100% {
+    opacity: 0;
+  }
+}
+
+@keyframes article-gallery-fade-9 {
+  0% {
+    opacity: 0;
+  }
+
+  2.5%,
+  8.611% {
+    opacity: 1;
+  }
+
+  11.111%,
+  100% {
+    opacity: 0;
+  }
+}
+
+@keyframes article-gallery-fade-10 {
+  0% {
+    opacity: 0;
+  }
+
+  2.2%,
+  7.8% {
+    opacity: 1;
+  }
+
+  10%,
+  100% {
+    opacity: 0;
+  }
+}
+
+@keyframes article-gallery-fade-11 {
+  0% {
+    opacity: 0;
+  }
+
+  2%,
+  7.091% {
+    opacity: 1;
+  }
+
+  9.091%,
+  100% {
+    opacity: 0;
+  }
+}
+
+@keyframes article-gallery-fade-12 {
+  0% {
+    opacity: 0;
+  }
+
+  1.8%,
+  6.533% {
+    opacity: 1;
+  }
+
+  8.333%,
+  100% {
+    opacity: 0;
   }
 }
