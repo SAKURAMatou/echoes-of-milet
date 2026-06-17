@@ -87,32 +87,24 @@ const text = computed(() =>
 )
 
 const encodedUrl = computed(() => encodeURIComponent(props.url))
-const encodedTitle = computed(() => encodeURIComponent(props.title || 'Echoes of milet'))
-const encodedSummary = computed(() => encodeURIComponent(props.summary || props.title || 'Echoes of milet'))
-const encodedCover = computed(() => encodeURIComponent(props.coverImageUrl || ''))
+const shareText = computed(() => `${props.title || 'Echoes of milet'}\n${props.url}`)
+const encodedShareText = computed(() => encodeURIComponent(shareText.value))
 
 const platformOptions = computed(() => [
   {
     key: 'x',
     label: 'X / Twitter',
-    href: `https://twitter.com/intent/tweet?text=${encodedTitle.value}&url=${encodedUrl.value}`,
+    href: `https://twitter.com/intent/tweet?text=${encodedShareText.value}`,
   },
   {
     key: 'line',
     label: 'LINE',
-    href: `https://social-plugins.line.me/lineit/share?url=${encodedUrl.value}`,
+    href: `https://social-plugins.line.me/lineit/share?url=${encodedUrl.value}&text=${encodedShareText.value}`,
   },
   {
     key: 'facebook',
     label: 'Facebook',
-    href: `https://www.facebook.com/sharer/sharer.php?u=${encodedUrl.value}`,
-  },
-  {
-    key: 'weibo',
-    label: '微博',
-    href: `https://service.weibo.com/share/share.php?url=${encodedUrl.value}&title=${encodedSummary.value}${
-      props.coverImageUrl ? `&pic=${encodedCover.value}` : ''
-    }`,
+    href: `https://www.facebook.com/sharer/sharer.php?u=${encodedUrl.value}&quote=${encodedShareText.value}`,
   },
 ])
 
