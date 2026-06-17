@@ -376,6 +376,10 @@ function renderStructuredData(
   if (meta.schemaType === 'Article' && article) {
     return JSON.stringify({
       ...baseData,
+      author: {
+        '@type': 'Person',
+        name: article.createdBy || 'miles DML',
+      },
       headline: article.title,
       datePublished: article.publishedAt || undefined,
       dateModified: article.updatedAt || undefined,

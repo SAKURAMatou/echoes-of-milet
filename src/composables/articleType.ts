@@ -32,6 +32,7 @@ export interface PublicArticleDetail {
   i18nEnabled: boolean
   updatedAt: string
   publishedAt: string | null
+  createdBy?: string | null
 }
 
 export interface ArticleCoverImage {

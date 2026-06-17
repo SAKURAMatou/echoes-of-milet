@@ -80,12 +80,24 @@
             </p>
             <div class="mt-5 flex flex-wrap items-center gap-3 text-xs font-medium text-slate-500">
               <span v-if="article?.publishedAt">{{ formatDate(article.publishedAt) }}</span>
+              <span v-if="article?.createdBy" class="inline-flex items-center gap-1">
+                <span>{{ routeLang === 'ja' ? 'Author' : '创建人' }}</span>
+                <span class="font-semibold text-[#143d63]">{{ article.createdBy }}</span>
+              </span>
               <span
                 v-if="article?.fallbackLang"
                 class="rounded-full border border-sky-100 bg-sky-50 px-2.5 py-1 text-[#317f8d]"
               >
                 fallback: {{ article.fallbackLang }}
               </span>
+              <ArticleShareMenu
+                v-if="article"
+                :title="article.title || fallbackTitle"
+                :summary="article.summary"
+                :url="articleShareUrl"
+                :lang="routeLang"
+                :cover-image-url="articleCoverShareUrl"
+              />
             </div>
           </div>
         </div>
@@ -136,7 +148,9 @@ import axiosInstance from '@/AxiosUtil'
 import Header from '@/components/TWHeader.vue'
 import LanguageSelect from '@/components/LanguageSelect.vue'
 import TWUpToTop from '@/components/TWUpToTop.vue'
+import ArticleShareMenu from '@/components/milet/article/ArticleShareMenu.vue'
 import ArticleToc from '@/components/milet/article/ArticleToc.vue'
+import { getImginOrigin, getSiteOrigin } from '@/config/api'
 import { useAppState } from '@/composables/useAppState'
 import type { PublicArticleDetail } from '@/composables/articleType'
 
@@ -154,6 +168,18 @@ const article = ref<PublicArticleDetail | null>(state.miletArticleData)
 const mobileTocOpen = ref(false)
 const routeLang = computed(() => (String(route.params.lang) === 'ja' ? 'ja' : 'zh'))
 const fallbackTitle = computed(() => (routeLang.value === 'ja' ? 'Article' : 'Article'))
+const articleShareUrl = computed(() => {
+  const slug = article.value?.slug || String(route.params.slug || '').trim()
+  const base = getSiteOrigin().replace(/\/+$/, '')
+  return `${base}/${routeLang.value}/milet/articles/${encodeURIComponent(slug)}`
+})
+const articleCoverShareUrl = computed(() => {
+  const image = article.value?.coverImage
+  const url = image?.urlWebp || image?.urlOriginal || image?.prelink || image?.link || ''
+  if (!url) return ''
+  if (/^https?:\/\//i.test(url)) return url
+  return `${getImginOrigin()}${url.startsWith('/') ? url : `/${url}`}`
+})
 
 async function fetchArticle() {
   const slug = String(route.params.slug || '').trim()
