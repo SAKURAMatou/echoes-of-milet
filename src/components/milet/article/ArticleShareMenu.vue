@@ -145,8 +145,27 @@ function handleDocumentClick(event: MouseEvent) {
   if (!root.value.contains(event.target)) close()
 }
 
-function openPlatform(href: string) {
+async function copyShareTextToClipboard(closeAfterCopy = false) {
+  if (typeof navigator === 'undefined') return false
+  try {
+    await navigator.clipboard?.writeText(shareText.value)
+    copied.value = true
+    if (closeAfterCopy) {
+      window.setTimeout(() => {
+        copied.value = false
+        close()
+      }, 1100)
+    }
+    return true
+  } catch {
+    copied.value = false
+    return false
+  }
+}
+
+async function openPlatform(href: string) {
   if (typeof window === 'undefined') return
+  await copyShareTextToClipboard()
   window.open(href, '_blank', 'noopener,noreferrer')
   close()
 }
@@ -154,9 +173,10 @@ function openPlatform(href: string) {
 async function shareNative() {
   if (typeof navigator === 'undefined' || !navigator.share) return
   try {
+    await copyShareTextToClipboard()
     await navigator.share({
       title: props.title,
-      text: props.summary || props.title,
+      text: shareText.value,
       url: props.url,
     })
     close()
@@ -168,17 +188,7 @@ async function shareNative() {
 }
 
 async function copyLink() {
-  if (typeof navigator === 'undefined') return
-  try {
-    await navigator.clipboard?.writeText(props.url)
-    copied.value = true
-    window.setTimeout(() => {
-      copied.value = false
-      close()
-    }, 1100)
-  } catch {
-    copied.value = false
-  }
+  await copyShareTextToClipboard(true)
 }
 
 onMounted(() => {
