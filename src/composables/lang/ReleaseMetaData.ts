@@ -1,9 +1,9 @@
 export const RELEASE_PAGE_TEXT = {
   jp: {
-    metaTitle: 'milet releases',
+    metaTitle: 'milet discography',
     page: {
-      title: 'Releases',
-      current: 'CURRENT: Releases',
+      title: 'Discography',
+      current: 'CURRENT: Discography',
       sectionKicker: 'RELEASES',
       lead: 'miletの音楽の軌跡を、ここに。',
       sublead: '一枚一枚の作品が、そっと心に寄り添いますように。',
@@ -24,16 +24,16 @@ export const RELEASE_PAGE_TEXT = {
       live: 'ライブ映像作品の記録',
     },
     chapter: {
-      releases: 'releases',
+      releases: 'discography',
       archived: 'archived',
       current: 'current',
-      all: 'all releases',
+      all: 'all discographies',
     },
     pagination: {
       loadMoreAlbum: 'アルバムをもっと見る',
       loadMoreEp: 'EP / シングルをもっと見る',
       loadMoreLive: 'ライブ作品をもっと見る',
-      nextBatch: 'Next 5 releases',
+      nextBatch: 'Next 5 discography',
       loading: '読み込み中...',
       allAlbum: 'すべてのアルバムを表示しました',
       allEp: 'すべてのEP / シングルを表示しました',
@@ -50,10 +50,10 @@ export const RELEASE_PAGE_TEXT = {
     },
   },
   zh: {
-    metaTitle: 'milet releases',
+    metaTitle: 'milet discography',
     page: {
-      title: 'Releases',
-      current: 'CURRENT: Releases',
+      title: 'Discography',
+      current: 'CURRENT: Discography',
       sectionKicker: 'RELEASES',
       lead: '把 milet 的音乐轨迹，收在这里。',
       sublead: '愿每一张作品，都像被认真收藏过的一页。',

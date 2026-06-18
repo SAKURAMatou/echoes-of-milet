@@ -57,7 +57,7 @@ export function getMenu(now = new Date()): MenuItem[] {
     },
     {
       key: 'release',
-      label: 'RELEASE',
+      label: 'DISCOGRAPHY',
       sub: '- The milet anthology',
       color: 'violet',
       routerName: 'miletRelease',
