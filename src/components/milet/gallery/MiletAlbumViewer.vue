@@ -159,6 +159,7 @@ function setupLightbox() {
   if (!rootRef.value) return
   Fancybox.unbind(rootRef.value, fancyboxSelector.value)
   Fancybox.bind(rootRef.value, fancyboxSelector.value, {
+    Hash: false,
     Carousel: {
       Toolbar: {
         display: {

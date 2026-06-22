@@ -95,6 +95,7 @@ export function useArticleImageEnhancements() {
 
     if (wrappedImages.length > 0 || enhancedAnchors.length > 0) {
       fancyboxApi.bind(container, selector, {
+        Hash: false,
         Carousel: {
           Toolbar: {
             display: {
