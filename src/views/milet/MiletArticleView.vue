@@ -117,7 +117,12 @@
           >
             {{ error }}
           </div>
-          <div v-else-if="article?.html" class="article-content" v-html="article.html"></div>
+          <div
+            v-else-if="article?.html"
+            ref="articleContentRef"
+            class="article-content"
+            v-html="article.html"
+          ></div>
           <div
             v-else
             class="rounded-lg border border-dashed border-slate-200 bg-white/72 p-8 text-center text-sm text-slate-500"
@@ -142,7 +147,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, getCurrentInstance, onMounted, onServerPrefetch, ref, watch } from 'vue'
+import { computed, getCurrentInstance, nextTick, onBeforeUnmount, onMounted, onServerPrefetch, ref, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import axiosInstance from '@/AxiosUtil'
 import Header from '@/components/TWHeader.vue'
@@ -152,6 +157,8 @@ import ArticleShareMenu from '@/components/milet/article/ArticleShareMenu.vue'
 import ArticleToc from '@/components/milet/article/ArticleToc.vue'
 import { getImginOrigin, getSiteOrigin } from '@/config/api'
 import { useAppState } from '@/composables/useAppState'
+import { useArticleAlbumEmbeds } from '@/composables/useArticleAlbumEmbeds'
+import { useArticleImageEnhancements } from '@/composables/useArticleImageEnhancements'
 import type { PublicArticleDetail } from '@/composables/articleType'
 
 import '../../assets/article-content.css'
@@ -165,7 +172,10 @@ const global = appContext.config.globalProperties
 const loading = ref(false)
 const error = ref('')
 const article = ref<PublicArticleDetail | null>(state.miletArticleData)
+const articleContentRef = ref<HTMLElement | null>(null)
 const mobileTocOpen = ref(false)
+const albumEmbeds = useArticleAlbumEmbeds(appContext)
+const imageEnhancements = useArticleImageEnhancements()
 const routeLang = computed(() => (String(route.params.lang) === 'ja' ? 'ja' : 'zh'))
 const fallbackTitle = computed(() => (routeLang.value === 'ja' ? 'Article' : 'Article'))
 const articleShareUrl = computed(() => {
@@ -181,7 +191,24 @@ const articleCoverShareUrl = computed(() => {
   return `${getImginOrigin()}${url.startsWith('/') ? url : `/${url}`}`
 })
 
+function articleEnhancementKey() {
+  return article.value?.id ? String(article.value.id) : String(route.params.slug || 'current')
+}
+
+async function setupArticleEnhancements() {
+  if (import.meta.env.SSR || !article.value?.html) return
+  await nextTick()
+  await albumEmbeds.mount(articleContentRef.value, routeLang.value)
+  await imageEnhancements.enhance(articleContentRef.value, articleEnhancementKey())
+}
+
+function cleanupArticleEnhancements() {
+  albumEmbeds.cleanup()
+  imageEnhancements.cleanup()
+}
+
 async function fetchArticle() {
+  cleanupArticleEnhancements()
   const slug = String(route.params.slug || '').trim()
   if (!slug) {
     error.value = 'Missing article slug.'
@@ -200,6 +227,7 @@ async function fetchArticle() {
     }
     article.value = response.item
     state.miletArticleData = response.item
+    await setupArticleEnhancements()
   } catch (err) {
     error.value = err instanceof Error ? err.message : 'Article load failed.'
     article.value = null
@@ -232,6 +260,8 @@ onMounted(() => {
     article.value.requestedLang !== currentLang
   ) {
     fetchArticle()
+  } else {
+    setupArticleEnhancements()
   }
   if (article.value?.title) document.title = `${article.value.title} | Echoes of milet`
 })
@@ -243,4 +273,8 @@ watch(
     if (!import.meta.env.SSR) fetchArticle()
   },
 )
+
+onBeforeUnmount(() => {
+  cleanupArticleEnhancements()
+})
 </script>
