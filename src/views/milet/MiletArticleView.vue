@@ -174,7 +174,7 @@ const error = ref('')
 const article = ref<PublicArticleDetail | null>(state.miletArticleData)
 const articleContentRef = ref<HTMLElement | null>(null)
 const mobileTocOpen = ref(false)
-const albumEmbeds = useArticleAlbumEmbeds(appContext)
+const albumEmbeds = useArticleAlbumEmbeds()
 const imageEnhancements = useArticleImageEnhancements()
 const routeLang = computed(() => (String(route.params.lang) === 'ja' ? 'ja' : 'zh'))
 const fallbackTitle = computed(() => (routeLang.value === 'ja' ? 'Article' : 'Article'))
@@ -216,6 +216,7 @@ async function fetchArticle() {
   }
   loading.value = true
   error.value = ''
+  let shouldSetupEnhancements = false
   try {
     const response = await axiosInstance.get<{
       success: boolean
@@ -227,13 +228,16 @@ async function fetchArticle() {
     }
     article.value = response.item
     state.miletArticleData = response.item
-    await setupArticleEnhancements()
+    shouldSetupEnhancements = true
   } catch (err) {
     error.value = err instanceof Error ? err.message : 'Article load failed.'
     article.value = null
     state.miletArticleData = null
   } finally {
     loading.value = false
+  }
+  if (shouldSetupEnhancements) {
+    await setupArticleEnhancements()
   }
 }
 

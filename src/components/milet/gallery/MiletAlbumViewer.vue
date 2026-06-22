@@ -29,7 +29,7 @@
           :data-download-src="img.link"
         >
           <img
-            :src="img.prelink || img.link"
+            v-lazy="img.prelink || img.link"
             :alt="img.comment || `Image ${index + 1}`"
             class="block w-full rounded-lg object-contain shadow-[0_24px_70px_-48px_rgba(15,23,42,0.7)]"
             loading="lazy"

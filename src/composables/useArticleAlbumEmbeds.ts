@@ -1,4 +1,6 @@
-import { createApp, nextTick, type App, type AppContext } from 'vue'
+import { createApp, nextTick, type App } from 'vue'
+import VueLazyLoad from 'vue3-lazyload'
+import loadingImg from '@/assets/loading.gif'
 
 type MountedAlbumApp = {
   app: App
@@ -15,7 +17,7 @@ function normalizeLayout(value: string | null): 'detail' | 'compact' {
   return value === 'compact' ? 'compact' : 'detail'
 }
 
-export function useArticleAlbumEmbeds(appContext: AppContext) {
+export function useArticleAlbumEmbeds() {
   const mountedApps: MountedAlbumApp[] = []
 
   function cleanup() {
@@ -48,7 +50,10 @@ export function useArticleAlbumEmbeds(appContext: AppContext) {
         showTip: normalizeBoolean(host.dataset.showTip || null, false),
         lang,
       })
-      Object.assign(app._context, appContext)
+      app.use(VueLazyLoad, {
+        loading: loadingImg,
+        error: './assets/default_images_list.svg',
+      })
       app.mount(host)
       mountedApps.push({ app, host })
     }
