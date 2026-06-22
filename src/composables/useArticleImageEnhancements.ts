@@ -65,6 +65,7 @@ export function useArticleImageEnhancements() {
 
       item.image.removeAttribute('data-article-lazy-src')
       item.image.removeAttribute('data-article-lazy-state')
+      item.image.removeAttribute('data-article-lazy-managed')
     }
 
     for (const item of enhancedAnchors.splice(0)) {
@@ -114,12 +115,12 @@ export function useArticleImageEnhancements() {
   }
 
   function resolveImageSrc(img: HTMLImageElement) {
-    return img.currentSrc || img.getAttribute('src') || img.src || ''
+    return img.getAttribute('data-article-lazy-src') || img.currentSrc || img.getAttribute('src') || img.src || ''
   }
 
   function applyGifLazyLoading(img: HTMLImageElement) {
     const src = resolveImageSrc(img)
-    if (!src || src === loadingImg || img.getAttribute('data-article-lazy-src')) return src
+    if (!src || src === loadingImg || img.getAttribute('data-article-lazy-managed') === 'true') return src
     if (!lazyObserver) {
       img.setAttribute('loading', 'lazy')
       img.setAttribute('decoding', 'async')
@@ -137,6 +138,7 @@ export function useArticleImageEnhancements() {
 
     img.setAttribute('data-article-lazy-src', src)
     img.setAttribute('data-article-lazy-state', 'pending')
+    img.setAttribute('data-article-lazy-managed', 'true')
     img.setAttribute('loading', 'lazy')
     img.setAttribute('decoding', 'async')
     img.removeAttribute('srcset')
