@@ -1,7 +1,7 @@
 <template>
   <article class="pilgrimage-page overflow-hidden rounded-lg text-[#24323a] lg:mb-6">
     <section
-      class="pilgrimage-workspace relative z-[1] grid min-h-0 grid-rows-[auto_auto_auto] overflow-visible lg:h-[calc(100vh-5.5rem)] lg:min-h-[880px] lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)] lg:grid-rows-[auto_auto_minmax(0,1fr)] lg:overflow-hidden 2xl:overflow-visible"
+      class="pilgrimage-workspace relative z-[1] grid min-h-0 grid-rows-[auto_auto_auto] overflow-visible lg:h-[calc(100vh+2rem)] lg:min-h-[1000px] lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)] lg:grid-rows-[auto_auto_minmax(0,1fr)] lg:overflow-hidden 2xl:overflow-visible"
     >
       <header
         class="relative border-b border-[#c9ddea]/70 px-4 py-4 sm:px-5 lg:col-span-2 lg:px-7 lg:py-5"
@@ -83,7 +83,7 @@
       </div>
 
       <div
-        class="pilgrimage-map-frame relative box-border h-[72svh] max-h-[820px] min-h-[620px] min-w-0 overflow-hidden border-b border-[#c9ddea]/70 sm:h-[74svh] sm:min-h-[680px] lg:col-start-1 lg:row-start-3 lg:h-full lg:max-h-none lg:min-h-0 lg:border-b-0 lg:border-r lg:border-[#c9ddea]/70"
+        class="pilgrimage-map-frame relative box-border h-[calc(72svh+7.5rem)] max-h-[940px] min-h-[740px] min-w-0 overflow-hidden border-b border-[#c9ddea]/70 sm:h-[calc(74svh+7rem)] sm:min-h-[800px] lg:col-start-1 lg:row-start-3 lg:h-full lg:max-h-none lg:min-h-0 lg:border-b-0 lg:border-r lg:border-[#c9ddea]/70"
       >
         <div
           class="pilgrimage-map-note pilgrimage-map-note--top pointer-events-none absolute left-20 right-3 top-2 z-[24] flex min-w-0 items-center gap-2 text-[11px] font-semibold text-[#4d8f86] sm:left-24 sm:text-xs lg:left-32 lg:right-8 lg:top-4 lg:gap-3 lg:text-sm"
