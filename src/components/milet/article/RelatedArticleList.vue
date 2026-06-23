@@ -4,16 +4,17 @@
       ref="triggerEl"
       type="button"
       :class="[triggerClass, { 'is-open': listOpen }]"
+      :style="accentStyle"
       :aria-expanded="listOpen"
       :aria-label="triggerAriaLabel"
       @click="toggleList"
     >
       <span
-        class="relative z-[1] h-5 w-0.5 shrink-0 rounded-full bg-[linear-gradient(180deg,#317f8d,rgba(125,211,252,0.28))]"
+        class="relative z-[1] h-5 w-0.5 shrink-0 rounded-full bg-[linear-gradient(180deg,var(--related-article-accent),var(--related-article-accent-soft))]"
         aria-hidden="true"
       ></span>
       <span
-        class="related-article-signal relative z-[1] flex h-4 w-4 shrink-0 items-center justify-center text-[0.82rem] font-bold leading-none text-[#317f8d] drop-shadow-[0_0_8px_rgba(49,127,141,0.24)]"
+        class="related-article-signal relative z-[1] flex h-4 w-4 shrink-0 items-center justify-center text-[0.82rem] font-bold leading-none text-[var(--related-article-accent)]"
         aria-hidden="true"
       >
         ✦
@@ -25,7 +26,7 @@
         {{ visibleItems[0]?.title }}
       </span>
       <span
-        class="related-article-chevron relative z-[1] flex h-5 w-5 shrink-0 items-center justify-center text-[#317f8d] transition-transform duration-200 group-hover:text-[#143d63]"
+        class="related-article-chevron relative z-[1] flex h-5 w-5 shrink-0 items-center justify-center text-[var(--related-article-accent)] transition-transform duration-200 group-hover:text-[var(--related-article-accent-hover)]"
         :class="{ 'rotate-180': listOpen }"
         aria-hidden="true"
       >
@@ -93,15 +94,62 @@ const props = withDefaults(
   defineProps<{
     articles?: RelatedArticleGroup | null
     variant?: 'timeline' | 'release' | 'modal' | 'chip'
+    accent?: 'amber' | 'violet' | 'coral' | 'mint' | 'cyan' | 'pearl'
     limit?: number
     lang?: SupportedLang | 'ja'
   }>(),
   {
     variant: 'timeline',
+    accent: 'amber',
     limit: 1,
     lang: 'zh',
   },
 )
+
+const accentPalettes = {
+  amber: {
+    accent: '#b7791f',
+    accentHover: '#78350f',
+    accentSoft: 'rgba(251, 191, 36, 0.34)',
+    glowRgb: '245, 158, 11',
+    sweepRgb: '251, 191, 36',
+  },
+  violet: {
+    accent: '#7c3aed',
+    accentHover: '#4c1d95',
+    accentSoft: 'rgba(196, 181, 253, 0.34)',
+    glowRgb: '167, 139, 250',
+    sweepRgb: '196, 181, 253',
+  },
+  coral: {
+    accent: '#be5b5b',
+    accentHover: '#7f1d1d',
+    accentSoft: 'rgba(251, 146, 60, 0.28)',
+    glowRgb: '251, 113, 133',
+    sweepRgb: '251, 146, 60',
+  },
+  mint: {
+    accent: '#059669',
+    accentHover: '#064e3b',
+    accentSoft: 'rgba(110, 231, 183, 0.3)',
+    glowRgb: '52, 211, 153',
+    sweepRgb: '110, 231, 183',
+  },
+  cyan: {
+    accent: '#317f8d',
+    accentHover: '#143d63',
+    accentSoft: 'rgba(125, 211, 252, 0.28)',
+    glowRgb: '125, 211, 252',
+    sweepRgb: '125, 211, 252',
+  },
+  pearl: {
+    accent: '#64748b',
+    accentHover: '#334155',
+    accentSoft: 'rgba(226, 232, 240, 0.44)',
+    glowRgb: '226, 232, 240',
+    sweepRgb: '255, 255, 255',
+  },
+} as const
 
 const listOpen = ref(false)
 const triggerEl = ref<HTMLElement | null>(null)
@@ -116,6 +164,16 @@ const labelText = computed(() => (hasMultiple.value ? `Related articles ${articl
 const triggerAriaLabel = computed(() => {
   const title = visibleItems.value[0]?.title || 'Related article'
   return hasMultiple.value ? `${title}. Related articles ${articleCount.value}` : `${title}. Related article`
+})
+const accentStyle = computed<Record<string, string>>(() => {
+  const palette = accentPalettes[props.accent]
+  return {
+    '--related-article-accent': palette.accent,
+    '--related-article-accent-hover': palette.accentHover,
+    '--related-article-accent-soft': palette.accentSoft,
+    '--related-article-glow-rgb': palette.glowRgb,
+    '--related-article-sweep-rgb': palette.sweepRgb,
+  }
 })
 
 const rootClass = computed(() => {
@@ -217,8 +275,8 @@ onBeforeUnmount(closeList)
   content: '';
   border-radius: inherit;
   box-shadow:
-    inset 0 0 0 1px rgba(125, 211, 252, 0.18),
-    inset 0 0 18px rgba(125, 211, 252, 0.04);
+    inset 0 0 0 1px rgba(var(--related-article-glow-rgb), 0.18),
+    inset 0 0 18px rgba(var(--related-article-glow-rgb), 0.04);
   opacity: 0.55;
   animation: related-article-border-glow 5.6s ease-in-out infinite;
 }
@@ -233,9 +291,9 @@ onBeforeUnmount(closeList)
     110deg,
     transparent 0%,
     transparent 36%,
-    rgba(125, 211, 252, 0.2) 46%,
+    rgba(var(--related-article-sweep-rgb), 0.2) 46%,
     rgba(255, 255, 255, 0.38) 50%,
-    rgba(125, 211, 252, 0.16) 54%,
+    rgba(var(--related-article-sweep-rgb), 0.16) 54%,
     transparent 64%,
     transparent 100%
   );
@@ -255,8 +313,8 @@ onBeforeUnmount(closeList)
 .related-article-trigger.is-open::before {
   animation-play-state: paused;
   box-shadow:
-    inset 0 0 0 1px rgba(125, 211, 252, 0.42),
-    inset 0 0 20px rgba(125, 211, 252, 0.08);
+    inset 0 0 0 1px rgba(var(--related-article-glow-rgb), 0.42),
+    inset 0 0 20px rgba(var(--related-article-glow-rgb), 0.08);
   opacity: 1;
 }
 
@@ -290,14 +348,14 @@ onBeforeUnmount(closeList)
   58%,
   100% {
     box-shadow:
-      inset 0 0 0 1px rgba(125, 211, 252, 0.16),
-      inset 0 0 16px rgba(125, 211, 252, 0.03);
+      inset 0 0 0 1px rgba(var(--related-article-glow-rgb), 0.16),
+      inset 0 0 16px rgba(var(--related-article-glow-rgb), 0.03);
     opacity: 0.5;
   }
   72% {
     box-shadow:
-      inset 0 0 0 1px rgba(125, 211, 252, 0.42),
-      inset 0 0 22px rgba(125, 211, 252, 0.12);
+      inset 0 0 0 1px rgba(var(--related-article-glow-rgb), 0.42),
+      inset 0 0 22px rgba(var(--related-article-glow-rgb), 0.12);
     opacity: 0.95;
   }
 }
@@ -306,11 +364,11 @@ onBeforeUnmount(closeList)
   0%,
   72%,
   100% {
-    text-shadow: 0 0 0 rgba(49, 127, 141, 0);
+    text-shadow: 0 0 0 rgba(var(--related-article-glow-rgb), 0);
     opacity: 0.82;
   }
   82% {
-    text-shadow: 0 0 10px rgba(49, 127, 141, 0.42);
+    text-shadow: 0 0 10px rgba(var(--related-article-glow-rgb), 0.42);
     opacity: 1;
   }
 }
