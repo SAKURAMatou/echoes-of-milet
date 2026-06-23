@@ -5,6 +5,7 @@
 
     <div
       v-if="article?.toc?.length"
+      ref="mobileTocRoot"
       class="pointer-events-none fixed inset-x-0 top-[3.45rem] z-40 block px-4 pt-2 min-[1180px]:hidden"
     >
       <button
@@ -173,6 +174,7 @@ const loading = ref(false)
 const error = ref('')
 const article = ref<PublicArticleDetail | null>(state.miletArticleData)
 const articleContentRef = ref<HTMLElement | null>(null)
+const mobileTocRoot = ref<HTMLElement | null>(null)
 const mobileTocOpen = ref(false)
 const albumEmbeds = useArticleAlbumEmbeds()
 const imageEnhancements = useArticleImageEnhancements()
@@ -254,9 +256,18 @@ function handleMobileTocClick(event: MouseEvent) {
   }
 }
 
+function handleMobileTocOutsidePointer(event: PointerEvent) {
+  if (!mobileTocOpen.value) return
+  const target = event.target
+  if (!(target instanceof Node)) return
+  if (mobileTocRoot.value?.contains(target)) return
+  mobileTocOpen.value = false
+}
+
 onServerPrefetch(fetchArticle)
 
 onMounted(() => {
+  document.addEventListener('pointerdown', handleMobileTocOutsidePointer, true)
   const currentLang = global.$lang?.lang === 'jp' ? 'ja' : 'zh'
   if (
     !article.value ||
@@ -279,6 +290,7 @@ watch(
 )
 
 onBeforeUnmount(() => {
+  document.removeEventListener('pointerdown', handleMobileTocOutsidePointer, true)
   cleanupArticleEnhancements()
 })
 </script>
