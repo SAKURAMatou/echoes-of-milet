@@ -16,7 +16,7 @@
         class="related-article-signal relative z-[1] flex h-4 w-4 shrink-0 items-center justify-center text-[0.82rem] font-bold leading-none text-[#317f8d] drop-shadow-[0_0_8px_rgba(49,127,141,0.24)]"
         aria-hidden="true"
       >
-        *
+        ✦
       </span>
       <span
         class="relative z-[1] min-w-0 flex-1 truncate text-left text-sm font-semibold text-[#143d63]"
@@ -209,6 +209,20 @@ onBeforeUnmount(closeList)
 </script>
 
 <style scoped>
+.related-article-trigger::before {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  content: '';
+  border-radius: inherit;
+  box-shadow:
+    inset 0 0 0 1px rgba(125, 211, 252, 0.18),
+    inset 0 0 18px rgba(125, 211, 252, 0.04);
+  opacity: 0.55;
+  animation: related-article-border-glow 5.6s ease-in-out infinite;
+}
+
 .related-article-trigger::after {
   position: absolute;
   inset: -1px;
@@ -236,6 +250,16 @@ onBeforeUnmount(closeList)
   opacity: 0;
 }
 
+.related-article-trigger:hover::before,
+.related-article-trigger:focus-visible::before,
+.related-article-trigger.is-open::before {
+  animation-play-state: paused;
+  box-shadow:
+    inset 0 0 0 1px rgba(125, 211, 252, 0.42),
+    inset 0 0 20px rgba(125, 211, 252, 0.08);
+  opacity: 1;
+}
+
 .related-article-signal {
   animation: related-article-pulse 3.4s ease-in-out infinite;
 }
@@ -258,6 +282,23 @@ onBeforeUnmount(closeList)
   74%,
   100% {
     transform: translateX(125%);
+  }
+}
+
+@keyframes related-article-border-glow {
+  0%,
+  58%,
+  100% {
+    box-shadow:
+      inset 0 0 0 1px rgba(125, 211, 252, 0.16),
+      inset 0 0 16px rgba(125, 211, 252, 0.03);
+    opacity: 0.5;
+  }
+  72% {
+    box-shadow:
+      inset 0 0 0 1px rgba(125, 211, 252, 0.42),
+      inset 0 0 22px rgba(125, 211, 252, 0.12);
+    opacity: 0.95;
   }
 }
 
@@ -286,6 +327,7 @@ onBeforeUnmount(closeList)
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .related-article-trigger::before,
   .related-article-trigger::after,
   .related-article-signal,
   .related-article-chevron-icon {
