@@ -3,20 +3,42 @@
     <button
       ref="triggerEl"
       type="button"
-      :class="triggerClass"
+      :class="[triggerClass, { 'is-open': listOpen }]"
       :aria-expanded="listOpen"
+      :aria-label="triggerAriaLabel"
       @click="toggleList"
     >
-      <span class="min-w-0 flex-1 truncate text-left text-sm font-semibold text-[#143d63]">
+      <span
+        class="relative z-[1] h-5 w-0.5 shrink-0 rounded-full bg-[linear-gradient(180deg,#317f8d,rgba(125,211,252,0.28))]"
+        aria-hidden="true"
+      ></span>
+      <span
+        class="related-article-signal relative z-[1] flex h-4 w-4 shrink-0 items-center justify-center text-[0.82rem] font-bold leading-none text-[#317f8d] drop-shadow-[0_0_8px_rgba(49,127,141,0.24)]"
+        aria-hidden="true"
+      >
+        *
+      </span>
+      <span
+        class="relative z-[1] min-w-0 flex-1 truncate text-left text-sm font-semibold text-[#143d63]"
+        :title="visibleItems[0]?.title"
+      >
         {{ visibleItems[0]?.title }}
       </span>
       <span
-        v-if="hasMultiple"
-        class="shrink-0 rounded-full border border-[#317f8d]/20 bg-sky-50 px-2 py-0.5 text-[11px] font-semibold text-[#317f8d]"
+        class="related-article-chevron relative z-[1] flex h-5 w-5 shrink-0 items-center justify-center text-[#317f8d] transition-transform duration-200 group-hover:text-[#143d63]"
+        :class="{ 'rotate-180': listOpen }"
+        aria-hidden="true"
       >
-        {{ moreText }}
+        <svg class="related-article-chevron-icon h-3.5 w-3.5" viewBox="0 0 20 20" fill="none">
+          <path
+            d="M5 7.5L10 12.5L15 7.5"
+            stroke="currentColor"
+            stroke-width="1.8"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          />
+        </svg>
       </span>
-      <span v-else class="shrink-0 text-[11px] font-semibold text-[#317f8d]">View</span>
     </button>
 
     <Teleport to="body">
@@ -91,7 +113,10 @@ const visibleItems = computed(() => allItems.value.slice(0, 1))
 const articleCount = computed(() => props.articles?.count || allItems.value.length)
 const hasMultiple = computed(() => articleCount.value > 1)
 const labelText = computed(() => (hasMultiple.value ? `Related articles ${articleCount.value}` : 'Related article'))
-const moreText = computed(() => `+${Math.max(0, articleCount.value - 1)} more`)
+const triggerAriaLabel = computed(() => {
+  const title = visibleItems.value[0]?.title || 'Related article'
+  return hasMultiple.value ? `${title}. Related articles ${articleCount.value}` : `${title}. Related article`
+})
 
 const rootClass = computed(() => {
   if (props.variant === 'chip') return 'relative inline-flex'
@@ -101,17 +126,17 @@ const rootClass = computed(() => {
 
 const triggerClass = computed(() => {
   const base =
-    'group flex w-full min-w-0 items-center gap-2 rounded-md border text-left transition focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-sky-100'
+    'related-article-trigger group relative isolate flex w-full min-w-0 items-center gap-2 overflow-hidden rounded-md border text-left transition duration-200 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-sky-100'
   if (props.variant === 'modal') {
-    return `${base} border-slate-200/80 bg-white/86 px-3.5 py-2 shadow-[0_16px_42px_-36px_rgba(15,23,42,0.5)] hover:border-sky-200 hover:bg-sky-50/70`
+    return `${base} border-sky-100/90 bg-[linear-gradient(135deg,rgba(255,255,255,0.9),rgba(239,249,255,0.72))] px-3.5 py-2 shadow-[0_18px_46px_-34px_rgba(15,23,42,0.55)] hover:-translate-y-px hover:border-[#7fc7d6]/80 hover:bg-sky-50/80 hover:shadow-[0_20px_50px_-34px_rgba(20,61,99,0.55)]`
   }
   if (props.variant === 'release') {
-    return `${base} border-sky-100/80 bg-white/70 px-3 py-1.5 hover:border-sky-200 hover:bg-sky-50/70`
+    return `${base} border-sky-100/90 bg-[linear-gradient(135deg,rgba(255,255,255,0.82),rgba(239,249,255,0.64))] px-3 py-1.5 shadow-[0_12px_32px_-30px_rgba(20,61,99,0.55)] hover:-translate-y-px hover:border-[#7fc7d6]/80 hover:bg-sky-50/80`
   }
   if (props.variant === 'chip') {
-    return `${base} border-sky-100/80 bg-white/78 px-3 py-1.5 hover:border-sky-200 hover:bg-sky-50/70`
+    return `${base} border-sky-100/90 bg-[linear-gradient(135deg,rgba(255,255,255,0.84),rgba(239,249,255,0.62))] px-3 py-1.5 shadow-[0_12px_32px_-30px_rgba(20,61,99,0.55)] hover:-translate-y-px hover:border-[#7fc7d6]/80 hover:bg-sky-50/80`
   }
-  return `${base} border-sky-100/80 bg-white/74 px-3 py-1.5 shadow-[0_14px_38px_-34px_rgba(15,23,42,0.62)] backdrop-blur hover:border-sky-200 hover:bg-sky-50/70`
+  return `${base} border-sky-100/90 bg-[linear-gradient(135deg,rgba(255,255,255,0.84),rgba(239,249,255,0.66))] px-3 py-1.5 shadow-[0_14px_38px_-32px_rgba(15,23,42,0.62)] backdrop-blur hover:-translate-y-px hover:border-[#7fc7d6]/80 hover:bg-sky-50/80 hover:shadow-[0_18px_44px_-32px_rgba(20,61,99,0.58)]`
 })
 
 const popoverClass = computed(() => {
@@ -182,3 +207,89 @@ function handleKeydown(event: KeyboardEvent) {
 
 onBeforeUnmount(closeList)
 </script>
+
+<style scoped>
+.related-article-trigger::after {
+  position: absolute;
+  inset: -1px;
+  z-index: 0;
+  pointer-events: none;
+  content: '';
+  background: linear-gradient(
+    110deg,
+    transparent 0%,
+    transparent 36%,
+    rgba(125, 211, 252, 0.2) 46%,
+    rgba(255, 255, 255, 0.38) 50%,
+    rgba(125, 211, 252, 0.16) 54%,
+    transparent 64%,
+    transparent 100%
+  );
+  transform: translateX(-125%);
+  animation: related-article-sweep 5.6s ease-in-out infinite;
+}
+
+.related-article-trigger:hover::after,
+.related-article-trigger:focus-visible::after,
+.related-article-trigger.is-open::after {
+  animation-play-state: paused;
+  opacity: 0;
+}
+
+.related-article-signal {
+  animation: related-article-pulse 3.4s ease-in-out infinite;
+}
+
+.related-article-chevron-icon {
+  animation: related-article-chevron 2.8s ease-in-out infinite;
+}
+
+.related-article-trigger:hover .related-article-chevron-icon,
+.related-article-trigger:focus-visible .related-article-chevron-icon,
+.related-article-trigger.is-open .related-article-chevron-icon {
+  animation-play-state: paused;
+}
+
+@keyframes related-article-sweep {
+  0%,
+  54% {
+    transform: translateX(-125%);
+  }
+  74%,
+  100% {
+    transform: translateX(125%);
+  }
+}
+
+@keyframes related-article-pulse {
+  0%,
+  72%,
+  100% {
+    text-shadow: 0 0 0 rgba(49, 127, 141, 0);
+    opacity: 0.82;
+  }
+  82% {
+    text-shadow: 0 0 10px rgba(49, 127, 141, 0.42);
+    opacity: 1;
+  }
+}
+
+@keyframes related-article-chevron {
+  0%,
+  74%,
+  100% {
+    transform: translateY(0);
+  }
+  84% {
+    transform: translateY(1.5px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .related-article-trigger::after,
+  .related-article-signal,
+  .related-article-chevron-icon {
+    animation: none;
+  }
+}
+</style>
