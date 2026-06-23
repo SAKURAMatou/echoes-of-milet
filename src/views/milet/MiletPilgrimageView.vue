@@ -93,6 +93,25 @@
           <span class="block min-w-0 truncate">{{ mapTopNoteText }}</span>
         </div>
         <div
+          v-show="displayMode === 'map'"
+          class="pilgrimage-area-dock absolute inset-x-4 top-10 z-[35] sm:inset-x-5 sm:top-12 lg:inset-x-7 lg:top-14"
+        >
+          <PilgrimageAreaControls
+            :page-text="pageText"
+            :cities="cities"
+            :selected-city="selectedCity"
+            :selected-district="selectedDistrict"
+            :selected-city-id="selectedCityId"
+            :selected-district-id="selectedDistrictId"
+            :routes="routes"
+            :selected-route="selectedRoute"
+            :selected-route-id="selectedRouteId"
+            @select-city="selectCity"
+            @select-district="selectDistrict"
+            @select-route="selectRoute"
+          />
+        </div>
+        <div
           class="pilgrimage-map-note pointer-events-none absolute bottom-2 left-1/2 z-[24] flex max-w-[calc(100%-2rem)] -translate-x-1/2 items-center gap-2 overflow-hidden whitespace-nowrap font-serif text-xs italic tracking-[0.04em] text-[#9a7740] sm:text-sm lg:bottom-3 lg:gap-3 lg:text-lg"
           aria-hidden="true"
         >
@@ -101,24 +120,14 @@
           <span class="shrink-0 font-serif text-[#fcd34d]/80">&#10022;</span>
         </div>
         <div
-          class="pilgrimage-map-postcard-surface absolute inset-x-3 bottom-9 top-9 overflow-hidden rounded-[10px] border border-[#cbe0ec]/90 shadow-[0_0_0_1px_rgba(255,255,255,0.74),0_18px_42px_-34px_rgba(58,91,119,0.66)] sm:bottom-10 sm:top-10 lg:inset-x-4 lg:bottom-12 lg:top-12"
+          class="pilgrimage-map-postcard-surface absolute inset-x-3 bottom-9 overflow-hidden rounded-[10px] border border-[#cbe0ec]/90 shadow-[0_0_0_1px_rgba(255,255,255,0.74),0_18px_42px_-34px_rgba(58,91,119,0.66)] sm:bottom-10 lg:inset-x-4 lg:bottom-12"
+          :class="
+            displayMode === 'map'
+              ? 'top-[8.5rem] sm:top-[9.25rem] lg:top-[10.5rem]'
+              : 'top-9 sm:top-10 lg:top-12'
+          "
         >
           <div v-show="displayMode === 'map'" class="relative h-full">
-            <PilgrimageAreaControls
-              :page-text="pageText"
-              :cities="cities"
-              :selected-city="selectedCity"
-              :selected-district="selectedDistrict"
-              :selected-city-id="selectedCityId"
-              :selected-district-id="selectedDistrictId"
-              :routes="routes"
-              :selected-route="selectedRoute"
-              :selected-route-id="selectedRouteId"
-              @select-city="selectCity"
-              @select-district="selectDistrict"
-              @select-route="selectRoute"
-            />
-
             <PilgrimageMapPane
               ref="mapPaneRef"
               :page-text="pageText"
@@ -495,7 +504,7 @@ function defaultMapZoom() {
 
 function mapViewPadding() {
   return {
-    paddingTopLeft: [56, isMobileViewport.value ? 96 : 236] as [number, number],
+    paddingTopLeft: [56, isMobileViewport.value ? 72 : 80] as [number, number],
     paddingBottomRight: [56, 72] as [number, number],
   }
 }

@@ -1,10 +1,10 @@
 <template>
   <div
-    class="pilgrimage-area-controls absolute left-3 right-3 top-1 z-30 rounded-lg border border-[#d2e5ef]/90 bg-white/72 p-2 shadow-[0_18px_54px_-42px_rgba(58,91,119,0.72)] backdrop-blur lg:left-5 lg:right-auto lg:w-[min(48rem,calc(100%-2.5rem))]"
+    class="pilgrimage-area-controls relative z-30 mx-auto w-full rounded-lg border border-[#d2e5ef]/90 bg-white/78 p-2 shadow-[0_18px_54px_-42px_rgba(58,91,119,0.72)] backdrop-blur"
   >
     <button
       type="button"
-      class="flex w-full items-center justify-between gap-3 rounded-md px-2 py-1.5 text-left cursor-pointer transition hover:bg-white/58 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-teal-100"
+      class="flex w-full cursor-pointer items-center justify-between gap-3 rounded-md px-2 py-1.5 text-left transition hover:bg-white/58 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-teal-100 lg:px-4 lg:py-2.5"
       :aria-expanded="controlsExpanded"
       aria-controls="pilgrimage-area-controls-body"
       @click="toggleControls"
@@ -28,7 +28,7 @@
 
     <div
       id="pilgrimage-area-controls-body"
-      class="mt-2 space-y-3"
+      class="absolute left-0 right-0 top-[calc(100%+0.5rem)] max-h-[min(44svh,24rem)] space-y-3 overflow-y-auto rounded-lg border border-[#d2e5ef]/90 bg-white/88 p-3 shadow-[0_24px_62px_-36px_rgba(58,91,119,0.82)] backdrop-blur lg:p-4"
       :class="controlsExpanded ? 'block' : 'hidden'"
     >
       <div class="flex flex-col gap-3">

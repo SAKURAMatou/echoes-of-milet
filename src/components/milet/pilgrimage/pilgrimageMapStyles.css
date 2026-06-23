@@ -181,7 +181,7 @@
 }
 
 .pilgrimage-page .leaflet-control-zoom {
-  margin-top: 186px;
+  margin-top: 28px;
   overflow: hidden;
   border: 1px solid rgba(198, 220, 233, 0.86);
   border-radius: 8px;
@@ -593,7 +593,7 @@
   }
 
   .pilgrimage-page .leaflet-control-zoom {
-    margin-top: 96px;
+    margin-top: 24px;
   }
 
   .pilgrimage-marker--personalized {
