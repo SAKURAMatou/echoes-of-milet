@@ -1,6 +1,6 @@
 import './assets/main.css'
 
-import { createApp as createClientApp, createSSRApp, reactive } from 'vue'
+import { createApp as createClientApp, createSSRApp, reactive, type DirectiveBinding } from 'vue'
 import VueLazyLoad from 'vue3-lazyload'
 
 import App from './App.vue'
@@ -36,6 +36,12 @@ export function createApp(options: CreateAppOptions = {}) {
     app.use(VueLazyLoad, {
       loading: loadingImg,
       error: './assets/default_images_list.svg',
+    })
+  } else {
+    app.directive('lazy', {
+      getSSRProps(binding: DirectiveBinding<string>) {
+        return binding.value ? { src: binding.value } : {}
+      },
     })
   }
 
