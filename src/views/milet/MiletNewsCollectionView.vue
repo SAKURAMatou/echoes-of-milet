@@ -2,19 +2,51 @@
   <section
     class="news-collection mx-auto min-h-[calc(100svh-5rem)] w-full max-w-5xl rounded-lg bg-[linear-gradient(to_bottom_right,white,#ebf8ff,#bee3f8)] px-4 py-8 backdrop-blur-xl sm:px-6 sm:py-10"
   >
-    <header class="mb-8 border-b border-sky-100/80 pb-6">
-      <p class="font-['Montserrat','sans-serif'] text-[12px] font-medium uppercase tracking-[.18em] text-sky-700/70">
-        milet news
-      </p>
-      <h1 class="milet-page-title-font mt-3 text-4xl leading-none text-[#1a2c50] sm:text-5xl">
-        News Collection
-      </h1>
-      <p class="mt-4 max-w-2xl text-sm leading-7 text-slate-600">
-        {{ pageText.lead }}
-      </p>
-      <p class="mt-4 max-w-3xl rounded-lg border border-sky-100 bg-sky-50/55 px-4 py-3 text-[13px] leading-6 text-slate-500">
-        {{ pageText.disclaimer }}
-      </p>
+    <header
+      class="news-hero relative isolate -mx-4 -mt-8 mb-8 overflow-hidden rounded-t-lg px-4 py-8 sm:-mx-6 sm:-mt-10 sm:px-6 sm:py-10"
+    >
+      <div
+        class="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_78%_5%,rgba(186,230,253,0.6),transparent_30%),linear-gradient(135deg,rgba(255,255,255,0.95),rgba(240,249,255,0.5))]"
+      ></div>
+      <div class="news-hero-paper pointer-events-none absolute inset-y-0 right-0 w-[58%]"></div>
+      <div class="relative min-h-[15rem]">
+        <div class="relative z-10 max-w-3xl">
+          <p class="font-['Montserrat','sans-serif'] text-[12px] font-semibold uppercase tracking-[.18em] text-[#317f8d]">
+            CURRENT: News
+          </p>
+          <h1 class="milet-page-title-font mt-5 text-5xl leading-none text-[#143d63] sm:text-6xl md:text-7xl">
+            News Collection
+          </h1>
+          <p class="mt-5 max-w-2xl text-sm font-medium leading-7 text-slate-600">
+            {{ pageText.lead }}
+          </p>
+          <p class="mt-4 max-w-3xl rounded-lg border border-sky-100/80 bg-white/58 px-4 py-3 text-[13px] leading-6 text-slate-500 shadow-[0_18px_45px_-36px_rgba(15,23,42,0.64)] backdrop-blur">
+            {{ pageText.disclaimer }}
+          </p>
+        </div>
+
+        <div
+          class="news-hero-ambient pointer-events-none absolute inset-y-0 right-0 hidden w-[44%] lg:block"
+          aria-hidden="true"
+        >
+          <div class="absolute right-0 top-3 flex w-64 items-center gap-4">
+            <span class="h-px flex-1 bg-[linear-gradient(90deg,rgba(184,148,68,0.16),rgba(184,148,68,0.76))]"></span>
+            <span class="h-2.5 w-2.5 rotate-45 border border-[#b89444]/60 bg-white/82 shadow-[0_0_0_5px_rgba(255,255,255,0.38)]"></span>
+          </div>
+          <div class="absolute bottom-2 right-4 h-24 w-72 overflow-hidden opacity-65">
+            <span
+              v-for="line in 10"
+              :key="line"
+              class="news-hero-signal absolute bottom-0 h-[18px] w-px origin-bottom bg-[#317f8d]/30"
+              :style="{
+                left: `${line * 9}%`,
+                transform: `scaleY(${0.35 + (line % 4) * 0.22})`,
+                animationDelay: `${line * 90}ms`,
+              }"
+            ></span>
+          </div>
+        </div>
+      </div>
     </header>
 
     <div
@@ -542,6 +574,30 @@ onBeforeUnmount(() => {
   text-decoration: none;
 }
 
+.news-hero {
+  min-height: 20rem;
+}
+
+.news-hero-paper {
+  background:
+    linear-gradient(90deg, rgba(255, 255, 255, 0.92), rgba(240, 249, 255, 0.1) 34%, rgba(255, 255, 255, 0.03)),
+    url('/background/news-hero-bg.webp') center right / cover no-repeat;
+  opacity: 0.9;
+}
+
+.news-hero::after {
+  content: '';
+  pointer-events: none;
+  position: absolute;
+  inset: auto 2rem 1.4rem 2rem;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(184, 148, 68, 0.48), rgba(184, 148, 68, 0.12), transparent);
+}
+
+.news-hero-signal {
+  animation: news-signal-pulse 2.8s ease-in-out infinite;
+}
+
 .topic-filter {
   position: relative;
   overflow: hidden;
@@ -760,6 +816,17 @@ onBeforeUnmount(() => {
   45% {
     opacity: 0.95;
     transform: translate(0.16rem, 0);
+  }
+}
+
+@keyframes news-signal-pulse {
+  0%,
+  100% {
+    opacity: 0.36;
+  }
+
+  50% {
+    opacity: 0.74;
   }
 }
 

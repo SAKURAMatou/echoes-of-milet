@@ -7,11 +7,63 @@
       class="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_82%_4%,rgba(186,230,253,0.58),transparent_30%),linear-gradient(135deg,rgba(255,255,255,0.88),rgba(240,249,255,0.42))]"
     ></div>
 
-    <header class="relative pb-7">
-      <h1 class="milet-page-title-font text-5xl leading-none text-[#143d63] md:text-6xl">Timeline</h1>
-      <p class="mt-4 text-sm font-medium leading-6 text-slate-500">
-        milet activities archive &middot; 2019 &mdash; {{ currentYear }}
-      </p>
+    <header
+      class="timeline-hero relative isolate -mx-4 -mt-8 mb-8 overflow-hidden rounded-t-lg px-4 py-8 sm:-mx-6 sm:px-6 md:-mx-8 md:px-8 md:py-9"
+    >
+      <div
+        class="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_72%_8%,rgba(186,230,253,0.62),transparent_28%),linear-gradient(135deg,rgba(255,255,255,0.94),rgba(240,249,255,0.48))]"
+      ></div>
+      <div class="timeline-hero-photo pointer-events-none absolute inset-y-0 right-0 w-[58%]"></div>
+      <div class="relative grid gap-9 lg:grid-cols-[minmax(0,1fr)_minmax(18rem,27rem)] lg:items-end">
+        <div>
+          <p class="font-montserrat text-xs font-semibold uppercase tracking-[0.18em] text-[#317f8d]">
+            CURRENT: Timeline
+          </p>
+          <h1 class="milet-page-title-font mt-5 text-6xl leading-none text-[#143d63] md:text-7xl">
+            Timeline
+          </h1>
+          <p class="mt-5 max-w-xl text-sm font-medium leading-7 text-slate-600">
+            milet activities archive &middot; 2019 &mdash; {{ currentYear }}
+          </p>
+        </div>
+
+        <aside
+          class="timeline-hero-rail relative mt-8 min-h-[5.75rem] text-[#173e63] md:mt-0 md:min-h-[10rem]"
+          aria-label="Timeline year range"
+        >
+          <div class="mb-6 flex items-center justify-end gap-4 md:mb-8">
+            <span class="hidden font-serif text-base text-[#143d63] sm:inline">years in archive</span>
+            <span
+              class="h-px min-w-24 flex-1 bg-[linear-gradient(90deg,rgba(184,148,68,0.82),rgba(184,148,68,0.16))]"
+            ></span>
+          </div>
+          <div class="relative px-3 pt-6 md:pt-8">
+            <div
+              class="absolute left-3 right-3 top-[2.35rem] h-px bg-[linear-gradient(90deg,rgba(184,148,68,0.18),rgba(49,127,141,0.42),rgba(184,148,68,0.24))] md:top-[2.85rem]"
+            ></div>
+            <div class="relative grid grid-cols-4 gap-2">
+              <div
+                v-for="(year, index) in timelineHeroYears"
+                :key="year"
+                class="grid justify-items-center gap-3"
+              >
+                <span
+                  class="relative z-10 flex h-4 w-4 items-center justify-center rounded-full border border-[#317f8d]/70 bg-white/90 shadow-[0_0_0_5px_rgba(255,255,255,0.58)]"
+                  :class="index === timelineHeroYears.length - 1 ? 'scale-110 border-[#b89444]' : ''"
+                >
+                  <span
+                    class="block h-1.5 w-1.5 rounded-full"
+                    :class="index === timelineHeroYears.length - 1 ? 'bg-[#b89444]' : 'bg-[#317f8d]'"
+                  ></span>
+                </span>
+                <span class="font-montserrat text-xs font-semibold tabular-nums tracking-[0.08em] text-slate-600">
+                  {{ year }}
+                </span>
+              </div>
+            </div>
+          </div>
+        </aside>
+      </div>
     </header>
 
     <div v-if="isLoading && !hasLoadedOnce" class="relative flex justify-center py-8">
@@ -199,6 +251,10 @@ const displayedData = ref({ zh: [] as TimeLineResItem[], jp: [] as TimeLineResIt
 const wrapEl = ref<HTMLElement | null>(null)
 const loadMoreEl = ref<HTMLElement | null>(null)
 const currentYear = new Date().getFullYear()
+const timelineHeroYears = computed(() => {
+  const markerYears = [2019, 2021, 2023, currentYear]
+  return Array.from(new Set(markerYears)).sort((a, b) => a - b)
+})
 const currentLang = computed<SupportedLang>(() => (global?.$lang?.lang === 'jp' ? 'jp' : 'zh'))
 
 const currentPage = ref(1)
@@ -313,7 +369,7 @@ function checkLoadMore() {
   }
 }
 
-const axisPosClass = 'left-6 md:left-1/2 md:-translate-x-1/2'
+const axisPosClass = 'left-6 -translate-x-1/2 md:left-1/2'
 const ornamentPosClass = 'left-6 md:left-1/2'
 const dotPosClass = 'left-6 md:left-1/2'
 
@@ -485,3 +541,52 @@ watch(items, async () => {
   scheduleUpdate()
 })
 </script>
+
+<style scoped>
+.timeline-hero {
+  min-height: 18rem;
+}
+
+.timeline-hero-photo {
+  background:
+    linear-gradient(90deg, rgba(255, 255, 255, 0.9), rgba(240, 249, 255, 0.08) 34%, rgba(255, 255, 255, 0.03)),
+    url('/background/timeline-hero-bg.webp') center right / cover no-repeat;
+  opacity: 0.9;
+}
+
+.timeline-hero::after {
+  content: '';
+  pointer-events: none;
+  position: absolute;
+  inset: auto 2rem 1.4rem 2rem;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(184, 148, 68, 0.58), rgba(184, 148, 68, 0.16), transparent);
+}
+
+.timeline-hero-rail::after {
+  content: '';
+  position: absolute;
+  right: 11%;
+  top: 1.2rem;
+  height: 0.62rem;
+  width: 0.62rem;
+  border: 1px solid rgba(184, 148, 68, 0.56);
+  background: rgba(255, 255, 255, 0.78);
+  box-shadow:
+    0 0 0 0.45rem rgba(255, 255, 255, 0.42),
+    0 18px 45px -24px rgba(20, 61, 99, 0.72);
+  transform: rotate(45deg);
+}
+
+@media (max-width: 767px) {
+  .timeline-hero {
+    min-height: 15rem;
+  }
+
+  .timeline-hero-photo {
+    width: 100%;
+    background-position: 48% center;
+    opacity: 0.4;
+  }
+}
+</style>
