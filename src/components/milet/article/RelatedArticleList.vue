@@ -26,6 +26,12 @@
         {{ visibleItems[0]?.title }}
       </span>
       <span
+        class="relative z-[1] shrink-0 rounded-full border border-[var(--related-article-accent-soft)] bg-white/72 px-1.5 py-0.5 text-[10px] font-bold leading-none text-[var(--related-article-accent)] shadow-[0_6px_16px_-12px_rgba(var(--related-article-glow-rgb),0.72)]"
+        :title="countTitle"
+      >
+        {{ countText }}
+      </span>
+      <span
         class="related-article-chevron relative z-[1] flex h-5 w-5 shrink-0 items-center justify-center text-[var(--related-article-accent)] transition-transform duration-200 group-hover:text-[var(--related-article-accent-hover)]"
         :class="{ 'rotate-180': listOpen }"
         aria-hidden="true"
@@ -161,6 +167,14 @@ const visibleItems = computed(() => allItems.value.slice(0, 1))
 const articleCount = computed(() => props.articles?.count || allItems.value.length)
 const hasMultiple = computed(() => articleCount.value > 1)
 const labelText = computed(() => (hasMultiple.value ? `Related articles ${articleCount.value}` : 'Related article'))
+const countText = computed(() => {
+  const unit = props.lang === 'ja' || props.lang === 'jp' ? '件' : '篇'
+  return `${articleCount.value}${unit}`
+})
+const countTitle = computed(() => {
+  const unit = props.lang === 'ja' || props.lang === 'jp' ? 'related articles' : '篇关联文章'
+  return props.lang === 'ja' || props.lang === 'jp' ? `${articleCount.value} ${unit}` : `${articleCount.value}${unit}`
+})
 const triggerAriaLabel = computed(() => {
   const title = visibleItems.value[0]?.title || 'Related article'
   return hasMultiple.value ? `${title}. Related articles ${articleCount.value}` : `${title}. Related article`
