@@ -143,8 +143,9 @@
               :data-caption="photo.caption"
               :data-width="photo.width"
               :data-height="photo.height"
+              :data-thumb-src="buildStaticAssetUrl(photo.thumbUrl || photo.fullUrl)"
               :data-download-src="buildStaticAssetUrl(photo.downloadUrl || photo.fullUrl)"
-              class="pilgrimage-photo block overflow-hidden rounded-lg border border-[#d3e5ef]/90 bg-white/76 p-1 shadow-[0_16px_42px_-34px_rgba(58,91,119,0.72)] transition hover:-translate-y-0.5 hover:border-[#a8cde2]"
+              class="pilgrimage-photo group relative block overflow-hidden rounded-lg border border-[#d3e5ef]/90 bg-white/76 p-1 shadow-[0_16px_42px_-34px_rgba(58,91,119,0.72)] transition hover:-translate-y-0.5 hover:border-[#a8cde2]"
             >
               <img
                 v-lazy="buildStaticAssetUrl(photo.thumbUrl || photo.fullUrl)"
