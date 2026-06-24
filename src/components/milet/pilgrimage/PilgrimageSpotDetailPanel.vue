@@ -146,11 +146,43 @@
               :data-download-src="buildStaticAssetUrl(photo.downloadUrl || photo.fullUrl)"
               class="pilgrimage-photo block overflow-hidden rounded-lg border border-[#d3e5ef]/90 bg-white/76 p-1 shadow-[0_16px_42px_-34px_rgba(58,91,119,0.72)] transition hover:-translate-y-0.5 hover:border-[#a8cde2]"
             >
-              <LazyImage
-                :src="buildStaticAssetUrl(photo.thumbUrl || photo.fullUrl)"
+              <img
+                v-lazy="buildStaticAssetUrl(photo.thumbUrl || photo.fullUrl)"
                 :alt="photo.alt"
-                :downloadSrc="buildStaticAssetUrl(photo.downloadUrl || photo.fullUrl)"
+                class="preview-image block w-full rounded-lg object-cover"
+                loading="lazy"
+                decoding="async"
+                @load="scheduleScrollHintUpdate"
               />
+              <span
+                class="absolute inset-x-0 bottom-0 flex translate-y-0 items-center justify-center bg-black/50 transition-transform duration-300 ease-out md:translate-y-full md:group-hover:translate-y-0"
+                aria-hidden="false"
+              >
+                <button
+                  type="button"
+                  class="flex h-12 w-full cursor-pointer select-none items-center justify-center text-sm font-medium text-white"
+                  title="download"
+                  @click="
+                    downloadPhoto($event, buildStaticAssetUrl(photo.downloadUrl || photo.fullUrl))
+                  "
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    class="mr-2 h-5 w-5"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                    aria-hidden="true"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2M7 10l5 5 5-5M12 15V3"
+                    />
+                  </svg>
+                </button>
+              </span>
             </a>
           </div>
         </section>
@@ -228,7 +260,6 @@
 <script setup lang="ts">
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import FormattedPlainText from '@/components/FormattedPlainText.vue'
-import LazyImage from '@/components/LazyImage.vue'
 import RelatedArticleList from '@/components/milet/article/RelatedArticleList.vue'
 import type {
   PilgrimageLang,
@@ -306,6 +337,19 @@ function scrollDetailDown() {
   const container = detailScrollRef.value
   if (!container) return
   container.scrollBy({ top: Math.max(160, container.clientHeight * 0.62), behavior: 'smooth' })
+}
+
+function downloadPhoto(event: MouseEvent, downloadUrl: string) {
+  event.stopPropagation()
+  event.preventDefault()
+  if (typeof document === 'undefined' || !downloadUrl) return
+
+  const link = document.createElement('a')
+  link.href = `${downloadUrl}?download=true`
+  link.download = ''
+  document.body.appendChild(link)
+  link.click()
+  document.body.removeChild(link)
 }
 
 watch(
