@@ -13,9 +13,6 @@
             >
               {{ pageText.title }}
             </h1>
-            <!-- <p class="mt-2 max-w-4xl text-sm leading-6 text-[#5f7178] lg:text-[15px]">
-              {{ pageText.subtitle }}
-            </p> -->
             <LinkedText
               class="mt-2 max-w-4xl text-sm leading-6 text-[#5f7178] lg:text-[15px]"
               :text="pageText.subtitle"
@@ -83,7 +80,8 @@
       </div>
 
       <div
-        class="pilgrimage-map-frame relative box-border h-[calc(72svh+7.5rem)] max-h-[940px] min-h-[740px] min-w-0 overflow-hidden border-b border-[#c9ddea]/70 sm:h-[calc(74svh+7rem)] sm:min-h-[800px] lg:col-start-1 lg:row-start-3 lg:h-full lg:max-h-none lg:min-h-0 lg:border-b-0 lg:border-r lg:border-[#c9ddea]/70"
+        ref="mapFrameRef"
+        class="pilgrimage-map-frame relative box-border h-[calc(100svh-4.25rem)] max-h-none min-h-[calc(100svh-4.25rem)] min-w-0 overflow-hidden border-b border-[#c9ddea]/70 sm:h-[calc(100svh-4.75rem)] sm:min-h-[calc(100svh-4.75rem)] lg:col-start-1 lg:row-start-3 lg:h-full lg:max-h-none lg:min-h-0 lg:border-b-0 lg:border-r lg:border-[#c9ddea]/70"
       >
         <div
           class="pilgrimage-map-note pilgrimage-map-note--top pointer-events-none absolute left-20 right-3 top-2 z-[24] flex min-w-0 items-center gap-2 text-[11px] font-semibold text-[#4d8f86] sm:left-24 sm:text-xs lg:left-32 lg:right-8 lg:top-4 lg:gap-3 lg:text-sm"
@@ -93,8 +91,15 @@
           <span class="block min-w-0 truncate">{{ mapTopNoteText }}</span>
         </div>
         <div
+          ref="areaDockRef"
           v-show="displayMode === 'map'"
-          class="pilgrimage-area-dock absolute inset-x-4 top-10 z-[35] sm:inset-x-5 sm:top-12 lg:inset-x-7 lg:top-14"
+          class="pilgrimage-area-dock"
+          :class="
+            areaDockPinned
+              ? 'fixed z-[60] lg:absolute lg:inset-x-7 lg:top-14 lg:z-[35]'
+              : 'absolute inset-x-4 top-10 z-[35] sm:inset-x-5 sm:top-12 lg:inset-x-7 lg:top-14'
+          "
+          :style="areaDockPinned ? areaDockFixedStyle : undefined"
         >
           <PilgrimageAreaControls
             :page-text="pageText"
@@ -163,6 +168,7 @@
         :gallery-name="galleryName"
         :spots-loading="spotsLoading"
         :spot-detail-loading="spotDetailLoading"
+        :spot-detail-error="spotDetailError"
         :lang="currentLang"
         @close="closeSpotDetail"
       />
@@ -215,6 +221,8 @@ const MAP_BOUNDS_PADDING_RATIO = 1
 
 const route = useRoute()
 const mapPaneRef = ref<PilgrimageMapPaneExpose | null>(null)
+const mapFrameRef = ref<HTMLElement | null>(null)
+const areaDockRef = ref<HTMLElement | null>(null)
 const mapRef = shallowRef<any>(null)
 const markerLayerRef = shallowRef<any>(null)
 const routeLayerRef = shallowRef<any>(null)
@@ -223,8 +231,11 @@ const leafletRef = shallowRef<LeafletModule | null>(null)
 const mapTransitioning = ref(false)
 const markersVisible = ref(false)
 const isMobileViewport = ref(false)
+const areaDockPinned = ref(false)
+const areaDockFixedStyle = ref<Record<string, string>>({})
 let districtLoadToken = 0
 let resizeFrame = 0
+let areaDockPinFrame = 0
 let lastViewportWidth = 0
 let suppressDistrictWatch = false
 let fancyboxApi: (typeof import('@fancyapps/ui'))['Fancybox'] | null = null
@@ -263,6 +274,7 @@ const {
   spotsLoading,
   collectionsLoading,
   spotDetailLoading,
+  spotDetailError,
   cities,
   seoSpotListCities,
   selectedCity,
@@ -317,6 +329,13 @@ async function loadInitialPilgrimageData() {
   }
 }
 
+function resetSpotDetailState() {
+  selectedSpotId.value = ''
+  spotDetailPayload.value = null
+  spotDetailLoading.value = false
+  spotDetailError.value = false
+}
+
 function selectCity(cityId: string) {
   const city = cities.value.find((item) => item.id === cityId)
   if (!city) return
@@ -330,11 +349,9 @@ function selectCity(cityId: string) {
     stopRouteAnimation(false)
     selectedDistrictId.value = ''
     selectedRouteId.value = ''
-    selectedSpotId.value = ''
     spotsPayload.value = null
     spotsPayloadDistrictId.value = ''
-    spotDetailPayload.value = null
-    spotDetailLoading.value = false
+    resetSpotDetailState()
     void transitionSelectedArea('')
   }
   syncPilgrimageState()
@@ -344,11 +361,9 @@ function selectDistrict(districtId: string) {
   stopRouteAnimation(false)
   selectedDistrictId.value = districtId
   selectedRouteId.value = ''
-  selectedSpotId.value = ''
   spotsPayload.value = null
   spotsPayloadDistrictId.value = ''
-  spotDetailPayload.value = null
-  spotDetailLoading.value = false
+  resetSpotDetailState()
   void transitionSelectedArea(districtId)
   syncPilgrimageState()
 }
@@ -376,6 +391,7 @@ async function setDisplayMode(mode: PilgrimageDisplayMode) {
   }
 
   syncPilgrimageState()
+  scheduleAreaDockPinUpdate()
 }
 
 function selectCollection(collectionId: string) {
@@ -393,9 +409,7 @@ async function selectRoute(routeId: string) {
 }
 
 function closeSpotDetail() {
-  selectedSpotId.value = ''
-  spotDetailPayload.value = null
-  spotDetailLoading.value = false
+  resetSpotDetailState()
   applyMapZoomLimits()
   renderMarkers()
   syncPilgrimageState()
@@ -417,7 +431,56 @@ function updateViewportMode() {
     }
     renderMarkers()
     renderRoutes()
+    scheduleAreaDockPinUpdate()
   })
+}
+
+function areaDockTopOffset() {
+  return window.matchMedia('(min-width: 640px)').matches ? 76 : 68
+}
+
+function areaDockHorizontalInset() {
+  return window.matchMedia('(min-width: 640px)').matches ? 20 : 16
+}
+
+function updateAreaDockPin() {
+  if (typeof window === 'undefined') return
+  const frame = mapFrameRef.value
+  const dock = areaDockRef.value
+  const top = areaDockTopOffset()
+  const shouldEvaluate = isMobileViewport.value && displayMode.value === 'map' && frame && dock
+
+  if (!shouldEvaluate) {
+    areaDockPinned.value = false
+    areaDockFixedStyle.value = {}
+    return
+  }
+
+  const frameRect = frame.getBoundingClientRect()
+  const dockHeight = dock.offsetHeight || 0
+  const isWithinMap = frameRect.top <= top && frameRect.bottom - dockHeight - 12 > top
+
+  if (!isWithinMap) {
+    areaDockPinned.value = false
+    areaDockFixedStyle.value = {}
+    return
+  }
+
+  const inset = areaDockHorizontalInset()
+  const workspaceRect = frame.closest('.pilgrimage-workspace')?.getBoundingClientRect()
+  const viewportLeft = frameRect.left + inset
+  areaDockPinned.value = true
+  areaDockFixedStyle.value = {
+    left: `${Math.max(0, viewportLeft - (workspaceRect?.left || 0))}px`,
+    top: `${top - (workspaceRect?.top || 0)}px`,
+    width: `${Math.max(0, frameRect.width - inset * 2)}px`,
+  }
+}
+
+function scheduleAreaDockPinUpdate() {
+  if (typeof window === 'undefined') return
+  cancelAnimationFrame(areaDockPinFrame)
+  areaDockPinFrame = requestAnimationFrame(updateAreaDockPin)
 }
 
 function getMapContainer() {
@@ -671,9 +734,8 @@ async function transitionSelectedArea(districtId: string) {
     })
   } else {
     spotsLoading.value = false
-    selectedSpotId.value = ''
     selectedRouteId.value = ''
-    spotDetailPayload.value = null
+    resetSpotDetailState()
     spotsPayload.value = null
     spotsPayloadDistrictId.value = ''
     syncPilgrimageState()
@@ -756,15 +818,19 @@ onServerPrefetch(loadInitialPilgrimageData)
 onMounted(async () => {
   updateViewportMode()
   window.addEventListener('resize', updateViewportMode)
+  window.addEventListener('scroll', scheduleAreaDockPinUpdate, { passive: true })
   if (mapLoading.value || !selectedDistrictId.value) {
     await loadInitialPilgrimageData()
   }
   await initMap()
+  scheduleAreaDockPinUpdate()
 })
 
 onBeforeUnmount(() => {
   window.removeEventListener('resize', updateViewportMode)
+  window.removeEventListener('scroll', scheduleAreaDockPinUpdate)
   cancelAnimationFrame(resizeFrame)
+  cancelAnimationFrame(areaDockPinFrame)
   stopRouteAnimation(false)
   fancyboxApi?.destroy()
   if (mapRef.value) {

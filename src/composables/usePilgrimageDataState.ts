@@ -92,6 +92,7 @@ export function usePilgrimageDataState(options: UsePilgrimageDataStateOptions) {
   const spotsLoading = ref(false)
   const collectionsLoading = ref(!initialPilgrimageData?.collections)
   const spotDetailLoading = ref(false)
+  const spotDetailError = ref(false)
   let spotDetailLoadToken = 0
 
   const localizedTree = computed(() => getLocalizedBranch(regionTree.value, options.currentLang.value))
@@ -341,6 +342,7 @@ export function usePilgrimageDataState(options: UsePilgrimageDataStateOptions) {
     spotsLoading.value = true
     selectedSpotId.value = ''
     spotDetailPayload.value = null
+    spotDetailError.value = false
 
     const cachedPayload = spotPayloadCache.get(districtId)
     if (spotPayloadMatchesDistrict(districtId, cachedPayload)) {
@@ -402,6 +404,14 @@ export function usePilgrimageDataState(options: UsePilgrimageDataStateOptions) {
     }
   }
 
+  function waitForSpotDetailLoading(startedAt: number) {
+    const remaining = 480 - (Date.now() - startedAt)
+    if (remaining <= 0) return Promise.resolve()
+    return new Promise<void>((resolve) => {
+      window.setTimeout(resolve, remaining)
+    })
+  }
+
   async function loadSpotDetail(spotId: string) {
     if (!spotId) return
 
@@ -410,20 +420,25 @@ export function usePilgrimageDataState(options: UsePilgrimageDataStateOptions) {
     if (cachedPayload) {
       spotDetailPayload.value = cachedPayload
       spotDetailLoading.value = false
+      spotDetailError.value = false
       usingFallbackData.value = appState.miletPilgrimageData?.usingFallbackData || false
       syncPilgrimageState()
       return
     }
 
     spotDetailLoading.value = true
+    spotDetailError.value = false
     spotDetailPayload.value = null
+    const loadingStartedAt = Date.now()
     try {
       const response = await axiosInstance.get(`${apiRoutes.miletPilgrimageSpot}/${spotId}`)
       const payload = unwrapPayload<PilgrimageSpotDetailResponse>(response)
+      await waitForSpotDetailLoading(loadingStartedAt)
       if (token !== spotDetailLoadToken || selectedSpotId.value !== spotId) return
       if (payload) {
         spotDetailPayload.value = payload
         spotDetailLoading.value = false
+        spotDetailError.value = false
         usingFallbackData.value = false
         syncPilgrimageState()
         return
@@ -432,11 +447,14 @@ export function usePilgrimageDataState(options: UsePilgrimageDataStateOptions) {
       console.warn('Failed to load pilgrimage spot detail, using fallback data.', error)
     }
 
+    await waitForSpotDetailLoading(loadingStartedAt)
     if (token !== spotDetailLoadToken || selectedSpotId.value !== spotId) return
-    spotDetailPayload.value = fallbackSpotDetails[spotId] || {
+    const fallbackPayload = fallbackSpotDetails[spotId]
+    spotDetailPayload.value = fallbackPayload || {
       zh: { spot: null },
       jp: { spot: null },
     }
+    spotDetailError.value = !fallbackPayload
     usingFallbackData.value = true
     syncPilgrimageState()
     spotDetailLoading.value = false
@@ -469,6 +487,7 @@ export function usePilgrimageDataState(options: UsePilgrimageDataStateOptions) {
     spotsLoading,
     collectionsLoading,
     spotDetailLoading,
+    spotDetailError,
     localizedTree,
     cities,
     seoSpotListCities,

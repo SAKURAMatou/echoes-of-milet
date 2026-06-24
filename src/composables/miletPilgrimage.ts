@@ -168,6 +168,7 @@ export interface PilgrimagePageText {
   mapLabel: string
   detailLabel: string
   loading: string
+  spotDetailError: string
   emptyDistrict: string
   emptySpot: string
   photoLabel: string
@@ -230,6 +231,7 @@ export const PILGRIMAGE_TEXT: Record<PilgrimageLang, PilgrimagePageText> = {
     mapLabel: '地图',
     detailLabel: '地点详情',
     loading: '加载中...',
+    spotDetailError: '地点详情暂时加载失败，请稍后再试或重新选择地图上的标记。',
     emptyDistrict: '请选择一个区划查看点位。',
     emptySpot: '选择地图上的标记，查看照片和地点说明。',
     photoLabel: '照片',
@@ -263,6 +265,8 @@ export const PILGRIMAGE_TEXT: Record<PilgrimageLang, PilgrimagePageText> = {
     mapLabel: '地図',
     detailLabel: 'スポット詳細',
     loading: '読み込み中...',
+    spotDetailError:
+      'スポット詳細を読み込めませんでした。少し時間をおいて、もう一度マーカーを選択してください。',
     emptyDistrict: 'エリアを選んでスポットを表示します。',
     emptySpot: '地図上のマーカーを選ぶと、写真と説明を表示します。',
     photoLabel: '写真',

@@ -1,7 +1,7 @@
 <template>
   <aside
     id="pilgrimage-detail"
-    class="pilgrimage-detail-panel isolate fixed inset-x-0 bottom-0 z-[1000] flex max-h-[76svh] scroll-mt-[5.5rem] flex-col overflow-hidden rounded-t-2xl border-t border-[#d0e2ec]/90 bg-[linear-gradient(180deg,rgba(255,255,255,0.94),rgba(244,250,253,0.96))] px-4 pb-1 pt-3 shadow-[0_-24px_70px_-42px_rgba(58,91,119,0.72)] transition-transform duration-300 [&>*]:relative [&>*]:z-[1] sm:px-6 md:scroll-mt-[6.5rem] lg:relative lg:z-auto lg:h-full lg:max-h-full lg:min-h-0 lg:translate-y-0 lg:rounded-none lg:border-t-0 lg:bg-[linear-gradient(180deg,rgba(255,255,255,0.64),rgba(242,249,252,0.82))] lg:px-5 lg:pb-1 lg:pt-5 lg:shadow-none lg:after:hidden"
+    class="pilgrimage-detail-panel isolate fixed inset-x-0 bottom-0 z-[1000] flex max-h-[76svh] scroll-mt-[5.5rem] flex-col overflow-x-hidden overflow-y-hidden rounded-t-2xl border-t border-[#d0e2ec]/90 bg-[linear-gradient(180deg,rgba(255,255,255,0.94),rgba(244,250,253,0.96))] px-4 pb-1 pt-3 shadow-[0_-24px_70px_-42px_rgba(58,91,119,0.72)] transition-transform duration-300 [&>*]:relative [&>*]:z-[1] sm:px-6 md:scroll-mt-[6.5rem] lg:relative lg:z-auto lg:h-full lg:max-h-full lg:min-h-0 lg:translate-y-0 lg:rounded-none lg:border-t-0 lg:bg-[linear-gradient(180deg,rgba(255,255,255,0.64),rgba(242,249,252,0.82))] lg:px-5 lg:pb-1 lg:pt-5 lg:shadow-none lg:after:hidden"
     :class="
       panelVisible
         ? 'translate-y-0'
@@ -9,7 +9,7 @@
     "
   >
     <div
-      class="mb-3.5 flex items-baseline justify-between gap-3 border-b border-dashed border-[#c4b5fd]/45 px-0.5 pb-2.5 text-[0.82rem] font-bold tracking-[0.03em] text-[#6b5a95] max-md:hidden"
+      class="mb-3.5 hidden items-baseline justify-between gap-3 border-b border-dashed border-[#c4b5fd]/45 px-0.5 pb-2.5 text-[0.82rem] font-bold tracking-[0.03em] text-[#6b5a95] lg:flex"
     >
       <span>{{ detailNoteText }}</span>
       <span
@@ -19,31 +19,31 @@
       </span>
     </div>
 
-    <div class="pilgrimage-detail-scroll-region relative flex min-h-0 flex-1">
+    <div
+      class="relative z-30 -mx-4 mb-3 flex h-12 items-center gap-3 bg-[linear-gradient(180deg,rgba(255,255,255,0.98),rgba(255,255,255,0.9))] px-4 pr-14 pt-1 sm:-mx-6 sm:px-6 sm:pr-16 lg:hidden"
+    >
+      <span class="min-w-0 flex-1 truncate text-xs font-bold tracking-[0.03em] text-[#6b5a95]">
+        {{ detailNoteText }}
+      </span>
+      <span class="shrink-0 font-serif text-base italic text-[#c98791]">with milet</span>
+      <button
+        type="button"
+        class="absolute right-4 top-1 flex h-8 w-8 items-center justify-center rounded-lg border border-[#d9e7e4] bg-white/92 text-lg leading-none text-[#60717a] shadow-[0_12px_30px_-22px_rgba(31,41,55,0.9)] sm:right-6"
+        aria-label="Close spot detail"
+        @click="$emit('close')"
+      >
+        x
+      </button>
+    </div>
+
+    <div class="pilgrimage-detail-scroll-region relative flex min-w-0 min-h-0 flex-1 overflow-x-hidden">
       <div
         v-if="selectedSpotDetail"
         ref="detailScrollRef"
-        class="pilgrimage-detail-content flex min-h-0 flex-1 flex-col overflow-y-auto pb-14 pr-1"
+        class="pilgrimage-detail-content flex min-h-0 min-w-0 flex-1 flex-col overflow-x-hidden overflow-y-auto pb-14 pr-1"
         @load.capture="scheduleScrollHintUpdate"
         @scroll.passive="updateScrollHint"
       >
-        <div
-          class="sticky top-0 z-30 -mx-4 mb-3 flex h-12 items-center gap-3 bg-[linear-gradient(180deg,rgba(255,255,255,0.98),rgba(255,255,255,0.9))] px-4 pr-14 pt-1 sm:-mx-6 sm:px-6 sm:pr-16 lg:hidden"
-        >
-          <span class="min-w-0 flex-1 truncate text-xs font-bold tracking-[0.03em] text-[#6b5a95]">
-            {{ detailNoteText }}
-          </span>
-          <span class="shrink-0 font-serif text-base italic text-[#c98791]">with milet</span>
-          <button
-            type="button"
-            class="absolute right-4 top-1 flex h-8 w-8 items-center justify-center rounded-lg border border-[#d9e7e4] bg-white/92 text-lg leading-none text-[#60717a] shadow-[0_12px_30px_-22px_rgba(31,41,55,0.9)] sm:right-6"
-            aria-label="Close spot detail"
-            @click="$emit('close')"
-          >
-            x
-          </button>
-        </div>
-
         <div
           class="pilgrimage-detail-card relative shrink-0 overflow-hidden rounded-lg border border-[#d3e5ef]/90 bg-white bg-[linear-gradient(180deg,rgba(255,255,255,0.76),rgba(246,251,253,0.82))] shadow-[0_22px_60px_-42px_rgba(58,91,119,0.72)]"
         >
@@ -158,25 +158,8 @@
 
       <div
         v-else-if="spotDetailLoading"
-        class="pilgrimage-detail-content flex min-h-0 flex-1 flex-col overflow-y-auto pr-1"
+        class="pilgrimage-detail-content flex min-h-0 min-w-0 flex-1 flex-col overflow-x-hidden overflow-y-auto pr-1"
       >
-        <div
-          class="sticky top-0 z-30 -mx-4 mb-3 flex h-12 items-center gap-3 bg-[linear-gradient(180deg,rgba(255,255,255,0.98),rgba(255,255,255,0.9))] px-4 pr-14 pt-1 sm:-mx-6 sm:px-6 sm:pr-16 lg:hidden"
-        >
-          <span class="min-w-0 flex-1 truncate text-xs font-bold tracking-[0.03em] text-[#6b5a95]">
-            {{ detailNoteText }}
-          </span>
-          <span class="shrink-0 font-serif text-base italic text-[#c98791]">with milet</span>
-          <button
-            type="button"
-            class="absolute right-4 top-1 flex h-8 w-8 items-center justify-center rounded-lg border border-[#d9e7e4] bg-white/92 text-lg leading-none text-[#60717a] shadow-[0_12px_30px_-22px_rgba(31,41,55,0.9)] sm:right-6"
-            aria-label="Close spot detail"
-            @click="$emit('close')"
-          >
-            x
-          </button>
-        </div>
-
         <div
           class="shrink-0 overflow-hidden rounded-lg border border-[#d3e5ef]/90 bg-white/68 p-4 shadow-[0_22px_60px_-42px_rgba(58,91,119,0.72)]"
           aria-busy="true"
@@ -195,8 +178,22 @@
       </div>
 
       <div
+        v-else-if="spotDetailError"
+        class="pilgrimage-detail-content flex min-h-0 min-w-0 flex-1 flex-col overflow-x-hidden overflow-y-auto pr-1"
+      >
+        <div
+          class="shrink-0 rounded-lg border border-[#f5b9d6]/80 bg-[#fdf2f8]/78 p-5 text-center shadow-[0_22px_60px_-42px_rgba(143,63,104,0.62)]"
+          role="status"
+        >
+          <p class="text-sm font-semibold leading-7 text-[#8f3f68]">
+            {{ pageText.spotDetailError }}
+          </p>
+        </div>
+      </div>
+
+      <div
         v-else
-        class="pilgrimage-detail-content flex min-h-[480px] flex-1 items-center justify-center rounded-lg border border-dashed border-[#cadbd7] bg-white/48 p-8 text-center text-sm leading-7 text-[#60717a] lg:min-h-0"
+        class="pilgrimage-detail-content flex min-h-[480px] min-w-0 flex-1 items-center justify-center overflow-x-hidden rounded-lg border border-dashed border-[#cadbd7] bg-white/48 p-8 text-center text-sm leading-7 text-[#60717a] lg:min-h-0"
       >
         {{ spotsLoading ? pageText.loading : pageText.emptySpot }}
       </div>
@@ -247,6 +244,7 @@ const props = defineProps<{
   galleryName: string
   spotsLoading: boolean
   spotDetailLoading: boolean
+  spotDetailError: boolean
   lang: PilgrimageLang
 }>()
 
@@ -275,7 +273,9 @@ function safeSpotHref(value?: string | null) {
 }
 
 const spotLinkUrl = computed(() => safeSpotHref(props.selectedSpotDetail?.linkUrl))
-const panelVisible = computed(() => Boolean(props.selectedSpotDetail || props.spotDetailLoading))
+const panelVisible = computed(() =>
+  Boolean(props.selectedSpotDetail || props.spotDetailLoading || props.spotDetailError),
+)
 const detailNoteText = computed(() =>
   props.lang === 'jp' ? 'すべての場所は、記憶されるべき。' : '每一个地点都应该被记住',
 )

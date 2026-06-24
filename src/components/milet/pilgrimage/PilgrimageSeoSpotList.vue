@@ -41,9 +41,6 @@
               <span class="font-serif text-xl leading-tight text-[#26313a]">
                 {{ city.name }}
               </span>
-              <!-- <span class="ml-2 align-middle text-xs font-sans text-[#8a9ca2]">
-                {{ city.countryCode }}
-              </span> -->
               <span class="ml-3 text-xs text-[#789096]">
                 {{ copy.spotCount(citySpotCount(city)) }}
               </span>
@@ -148,7 +145,6 @@ interface SeoSpotListDistrict {
 interface SeoSpotListCity {
   id: string
   name: string
-  countryCode: string
   districts: SeoSpotListDistrict[]
 }
 
