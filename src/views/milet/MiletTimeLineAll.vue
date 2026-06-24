@@ -1,19 +1,15 @@
 <template>
   <section
     ref="wrapEl"
-    class="relative mx-auto min-h-[calc(100svh-5rem)] overflow-hidden rounded-lg bg-[linear-gradient(180deg,rgba(255,255,255,0.76),rgba(240,249,255,0.82))] px-4 py-8 text-[#1e2a35] backdrop-blur-xl sm:px-6 md:px-8 md:py-9"
+    class="relative mx-auto min-h-[calc(100svh-5rem)] overflow-hidden rounded-lg bg-[linear-gradient(to_bottom_right,white,#ebf8ff,#bee3f8)] px-4 py-8 text-[#1e2a35] backdrop-blur-xl sm:px-6 md:px-8 md:py-9"
   >
-    <div
-      class="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_82%_4%,rgba(186,230,253,0.58),transparent_30%),linear-gradient(135deg,rgba(255,255,255,0.88),rgba(240,249,255,0.42))]"
-    ></div>
-
     <header
       class="timeline-hero relative isolate -mx-4 -mt-8 mb-8 overflow-hidden rounded-t-lg px-4 py-8 sm:-mx-6 sm:px-6 md:-mx-8 md:px-8 md:py-9"
     >
       <div
         class="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_72%_8%,rgba(186,230,253,0.62),transparent_28%),linear-gradient(135deg,rgba(255,255,255,0.94),rgba(240,249,255,0.48))]"
       ></div>
-      <div class="timeline-hero-photo pointer-events-none absolute inset-y-0 right-0 w-[58%]"></div>
+      <div class="timeline-hero-photo pointer-events-none absolute inset-0"></div>
       <div
         class="relative grid gap-9 lg:grid-cols-[minmax(0,1fr)_minmax(18rem,27rem)] lg:items-end"
       >
@@ -42,10 +38,16 @@
             <span
               class="h-px min-w-24 flex-1 bg-[linear-gradient(90deg,rgba(184,148,68,0.82),rgba(184,148,68,0.16))]"
             ></span>
+            <span
+              class="grid h-2.5 w-2.5 shrink-0 rotate-45 place-items-center border border-[#b89444]/60 bg-white/80 shadow-[0_0_0_7px_rgba(255,255,255,0.36),0_18px_45px_-24px_rgba(20,61,99,0.72)]"
+              aria-hidden="true"
+            >
+              <span class="h-1 w-1 rounded-full bg-[#b89444]/70"></span>
+            </span>
           </div>
           <div class="relative px-3 pt-6 md:pt-8">
             <div
-              class="absolute left-3 right-3 top-[2.35rem] h-px bg-[linear-gradient(90deg,rgba(184,148,68,0.18),rgba(49,127,141,0.42),rgba(184,148,68,0.24))] md:top-[2.85rem]"
+              class="absolute left-3 right-3 top-[2rem] h-px bg-[linear-gradient(90deg,rgba(184,148,68,0.18),rgba(49,127,141,0.42),rgba(184,148,68,0.24))] md:top-[2.5rem]"
             ></div>
             <div class="relative grid grid-cols-4 gap-2">
               <div
@@ -594,28 +596,12 @@ watch(items, async () => {
   );
 }
 
-.timeline-hero-rail::after {
-  content: '';
-  position: absolute;
-  right: 11%;
-  top: 1.2rem;
-  height: 0.62rem;
-  width: 0.62rem;
-  border: 1px solid rgba(184, 148, 68, 0.56);
-  background: rgba(255, 255, 255, 0.78);
-  box-shadow:
-    0 0 0 0.45rem rgba(255, 255, 255, 0.42),
-    0 18px 45px -24px rgba(20, 61, 99, 0.72);
-  transform: rotate(45deg);
-}
-
 @media (max-width: 767px) {
   .timeline-hero {
     min-height: 15rem;
   }
 
   .timeline-hero-photo {
-    width: 100%;
     background-position: 48% center;
     opacity: 0.4;
   }
