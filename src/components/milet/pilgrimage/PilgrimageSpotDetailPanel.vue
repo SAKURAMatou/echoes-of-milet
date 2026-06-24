@@ -1,11 +1,11 @@
 <template>
   <aside
     id="pilgrimage-detail"
-    class="pilgrimage-detail-panel isolate fixed inset-x-0 bottom-0 z-[1000] flex max-h-[76svh] scroll-mt-[5.5rem] flex-col overflow-x-hidden overflow-y-hidden rounded-t-2xl border-t border-[#d0e2ec]/90 bg-[linear-gradient(180deg,rgba(255,255,255,0.94),rgba(244,250,253,0.96))] px-4 pb-1 pt-3 shadow-[0_-24px_70px_-42px_rgba(58,91,119,0.72)] transition-transform duration-300 [&>*]:relative [&>*]:z-[1] sm:px-6 md:scroll-mt-[6.5rem] lg:relative lg:z-auto lg:h-full lg:max-h-full lg:min-h-0 lg:translate-y-0 lg:rounded-none lg:border-t-0 lg:bg-[linear-gradient(180deg,rgba(255,255,255,0.64),rgba(242,249,252,0.82))] lg:px-5 lg:pb-1 lg:pt-5 lg:shadow-none lg:after:hidden"
+    class="pilgrimage-detail-panel isolate fixed inset-x-0 bottom-0 z-[1000] flex max-h-[76svh] scroll-mt-[5.5rem] flex-col overflow-x-hidden overflow-y-hidden rounded-t-2xl border-t border-[#d0e2ec]/90 bg-[linear-gradient(180deg,rgba(255,255,255,0.94),rgba(244,250,253,0.96))] px-4 pb-1 pt-3 shadow-[0_-24px_70px_-42px_rgba(58,91,119,0.72)] transition-[transform,opacity] duration-300 will-change-transform [&>*]:relative [&>*]:z-[1] sm:px-6 md:scroll-mt-[6.5rem] lg:relative lg:z-auto lg:h-full lg:max-h-full lg:min-h-0 lg:translate-y-0 lg:rounded-none lg:border-t-0 lg:bg-[linear-gradient(180deg,rgba(255,255,255,0.64),rgba(242,249,252,0.82))] lg:px-5 lg:pb-1 lg:pt-5 lg:opacity-100 lg:shadow-none lg:will-change-auto lg:after:hidden"
     :class="
       panelVisible
-        ? 'translate-y-0'
-        : 'hidden pointer-events-none translate-y-[calc(100%+1rem)] lg:flex lg:pointer-events-auto'
+        ? 'translate-y-0 opacity-100'
+        : 'pointer-events-none translate-y-[calc(100%+1rem)] opacity-0 lg:pointer-events-auto lg:translate-y-0 lg:opacity-100'
     "
   >
     <div
@@ -36,7 +36,7 @@
       </button>
     </div>
 
-    <div class="pilgrimage-detail-scroll-region relative flex min-w-0 min-h-0 flex-1 overflow-x-hidden">
+    <div class="pilgrimage-detail-scroll-region relative flex min-h-0 min-w-0 flex-1 overflow-x-hidden">
       <div
         v-if="selectedSpotDetail"
         ref="detailScrollRef"
@@ -148,7 +148,7 @@
               class="pilgrimage-photo group relative block overflow-hidden rounded-lg border border-[#d3e5ef]/90 bg-white/76 p-1 shadow-[0_16px_42px_-34px_rgba(58,91,119,0.72)] transition hover:-translate-y-0.5 hover:border-[#a8cde2]"
             >
               <img
-                v-lazy="buildStaticAssetUrl(photo.thumbUrl || photo.fullUrl)"
+                :src="buildStaticAssetUrl(photo.thumbUrl || photo.fullUrl)"
                 :alt="photo.alt"
                 class="preview-image block w-full rounded-lg object-cover"
                 loading="lazy"
