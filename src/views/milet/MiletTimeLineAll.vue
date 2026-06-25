@@ -10,9 +10,13 @@
         class="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_72%_8%,rgba(186,230,253,0.62),transparent_28%),linear-gradient(135deg,rgba(255,255,255,0.94),rgba(240,249,255,0.48))]"
       ></div>
       <div class="timeline-hero-photo pointer-events-none absolute inset-0"></div>
-      <div class="relative grid gap-9 lg:grid-cols-[minmax(0,1fr)_minmax(18rem,27rem)] lg:items-end">
+      <div
+        class="relative grid gap-9 lg:grid-cols-[minmax(0,1fr)_minmax(18rem,27rem)] lg:items-end"
+      >
         <div>
-          <p class="font-montserrat text-xs font-semibold uppercase tracking-[0.18em] text-[#317f8d]">
+          <p
+            class="font-montserrat text-xs font-semibold uppercase tracking-[0.18em] text-[#317f8d]"
+          >
             CURRENT: Timeline
           </p>
           <h1 class="milet-page-title-font mt-5 text-6xl leading-none text-[#143d63] md:text-7xl">
@@ -24,11 +28,13 @@
         </div>
 
         <aside
-          class="timeline-hero-rail relative mt-8 min-h-[5.75rem] text-[#173e63] md:mt-0 md:min-h-[10rem]"
+          class="timeline-hero-rail relative mt-8 min-h-[5.75rem] text-[#173e63] max-md:hidden md:mt-0 md:min-h-[10rem]"
           aria-label="Timeline year range"
         >
           <div class="mb-6 flex items-center justify-end gap-4 md:mb-8">
-            <span class="hidden font-serif text-base text-[#143d63] sm:inline">years in archive</span>
+            <span class="hidden font-serif text-base text-[#143d63] sm:inline"
+              >years in archive</span
+            >
             <span
               class="h-px min-w-24 flex-1 bg-[linear-gradient(90deg,rgba(184,148,68,0.82),rgba(184,148,68,0.16))]"
             ></span>
@@ -51,14 +57,20 @@
               >
                 <span
                   class="relative z-10 flex h-4 w-4 items-center justify-center rounded-full border border-[#317f8d]/70 bg-white/90 shadow-[0_0_0_5px_rgba(255,255,255,0.58)]"
-                  :class="index === timelineHeroYears.length - 1 ? 'scale-110 border-[#b89444]' : ''"
+                  :class="
+                    index === timelineHeroYears.length - 1 ? 'scale-110 border-[#b89444]' : ''
+                  "
                 >
                   <span
                     class="block h-1.5 w-1.5 rounded-full"
-                    :class="index === timelineHeroYears.length - 1 ? 'bg-[#b89444]' : 'bg-[#317f8d]'"
+                    :class="
+                      index === timelineHeroYears.length - 1 ? 'bg-[#b89444]' : 'bg-[#317f8d]'
+                    "
                   ></span>
                 </span>
-                <span class="font-montserrat text-xs font-semibold tabular-nums tracking-[0.08em] text-slate-600">
+                <span
+                  class="font-montserrat text-xs font-semibold tabular-nums tracking-[0.08em] text-slate-600"
+                >
                   {{ year }}
                 </span>
               </div>
@@ -136,7 +148,9 @@
               <span
                 class="h-px w-12 shrink-0 bg-[linear-gradient(90deg,rgba(184,148,68,0.14),rgba(184,148,68,0.72))]"
               ></span>
-              <span class="font-montserrat text-sm font-semibold tabular-nums tracking-[0.02em] text-[#34658f]">
+              <span
+                class="font-montserrat text-sm font-semibold tabular-nums tracking-[0.02em] text-[#34658f]"
+              >
                 {{ it.event_date }}
               </span>
             </div>
@@ -147,7 +161,11 @@
                   :is="hasItemLink(it.link_url) ? 'button' : 'div'"
                   :type="hasItemLink(it.link_url) ? 'button' : undefined"
                   :class="cardClass(i, hasItemLink(it.link_url))"
-                  :aria-label="hasItemLink(it.link_url) ? `Open timeline detail: ${it.timeline_title}` : undefined"
+                  :aria-label="
+                    hasItemLink(it.link_url)
+                      ? `Open timeline detail: ${it.timeline_title}`
+                      : undefined
+                  "
                   @click="handleItemClick(it.link_url)"
                 >
                   <span
@@ -173,7 +191,9 @@
                   </span>
 
                   <div class="pr-10">
-                    <div class="font-montserrat text-xs font-semibold tracking-[0.08em] text-[#317f8d] md:hidden">
+                    <div
+                      class="font-montserrat text-xs font-semibold tracking-[0.08em] text-[#317f8d] md:hidden"
+                    >
                       {{ it.event_date }}
                     </div>
                     <h2 class="mt-2 text-base font-bold leading-6 text-[#143d63] md:mt-0">
@@ -551,7 +571,12 @@ watch(items, async () => {
 
 .timeline-hero-photo {
   background:
-    linear-gradient(90deg, rgba(255, 255, 255, 0.9), rgba(240, 249, 255, 0.08) 34%, rgba(255, 255, 255, 0.03)),
+    linear-gradient(
+      90deg,
+      rgba(255, 255, 255, 0.9),
+      rgba(240, 249, 255, 0.08) 34%,
+      rgba(255, 255, 255, 0.03)
+    ),
     url('/background/timeline-hero-bg.webp') center right / cover no-repeat;
   opacity: 0.9;
 }
@@ -562,7 +587,13 @@ watch(items, async () => {
   position: absolute;
   inset: auto 2rem 1.4rem 2rem;
   height: 1px;
-  background: linear-gradient(90deg, transparent, rgba(184, 148, 68, 0.58), rgba(184, 148, 68, 0.16), transparent);
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(184, 148, 68, 0.58),
+    rgba(184, 148, 68, 0.16),
+    transparent
+  );
 }
 
 @media (max-width: 767px) {
