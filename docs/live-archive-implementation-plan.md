@@ -144,6 +144,23 @@ Back to Live Archive
 
 ## 公开端详情页布局
 
+### 第一版视觉基准
+
+第一版先做一组演出详情页，用于验证内容模型、交互和显示配置能力。视觉基准使用以下两张效果图。
+
+One Man Live 详情页基准：
+
+![One Man Live 详情页基准](./assets/live-archive/one-man-compact-related.png)
+
+巡演详情页基准：
+
+![巡演蛇形路线详情页基准](./assets/live-archive/tour-serpentine-route.png)
+
+第一版以这两种页面为目标：
+
+- one man live 使用紧凑档案布局，重点验证日期切换、场次事实、setlist、轻量关联入口。
+- tour 使用纵向蛇形巡演路线布局，重点验证 20 场以内的场次可视化导航、当前场次详情、setlist 联动。
+
 ### 共用组件
 
 不同详情页布局应尽量复用同一批组件：
@@ -151,7 +168,7 @@ Back to Live Archive
 ```text
 MainVisualPanel
 DateStrip
-TourStopRail
+TourRouteNavigator
 SelectedPerformanceFacts
 SelectedStopDrawer
 ProgressStrip
@@ -166,8 +183,9 @@ CompactRelatedLinks
   - 支持 one man live、tour、special live。
 - `DateStrip`
   - 适合 one man live 的 Day 1 / Day 2 切换。
-- `TourStopRail`
-  - 适合巡演的站点列表切换。
+- `TourRouteNavigator`
+  - 适合巡演的场次导航。
+  - 第一版使用 `serpentine` 形态，用纵向蛇形路线承载最多 20 个左右的紧凑场次节点。
 - `SelectedPerformanceFacts`
   - 展示当前选中场次的日期、开场、开演、城市、场馆。
 - `SelectedStopDrawer`
@@ -225,7 +243,7 @@ LiveDetailShell
 推荐 blueprint：
 
 ```text
-tour-visual-console
+tour-serpentine-route
 ```
 
 结构：
@@ -234,7 +252,7 @@ tour-visual-console
 LiveDetailShell
   TourDashboardHeader
   TourConsole
-    TourStopRail
+    TourRouteNavigator.serpentine
     MainVisualPanel
     SelectedStopDrawer
   ProgressStrip
@@ -248,8 +266,8 @@ LiveDetailShell
 1. 用户进入巡演详情页，默认选中场次由 API 返回：
    - 巡演未结束时，选中距离当前时间最近的场次。
    - 巡演已结束时，选中最后一场。
-2. 左侧站点列表展示日期、城市和场馆摘要。
-3. 中间展示巡演主视觉图，不做复杂地图。
+2. 蛇形路线节点展示日期、城市和场馆摘要。
+3. 中间使用纵向蛇形路线展示全部场次节点，不做复杂地图。
 4. 右侧展示当前站点详情。
 5. 切换站点后：
    - 当前站点详情更新。
@@ -274,18 +292,21 @@ Live Performance 具体场次
 id
 slug
 type: one_man | tour | special_live | festival
-title
-titleJa
-titleZh
 artist
 year
 dateStart
 dateEnd
-summaryZh
-summaryJa
 mainVisualImageId
+mainVisualAlt
+mainVisualFocalPoint
+mainVisualFitMode: cover | contain
+mainVisualCredit
 status: draft | published | archived
-eventState: upcoming | ongoing | ended
+eventStateOverride: upcoming | ongoing | ended | null
+defaultLang: zh | ja
+draftRevision
+deletedFlag
+deletedAt
 sortNo
 createdAt
 updatedAt
@@ -295,10 +316,34 @@ updatedAt
 
 - `type` 决定管理端表单和默认 blueprint。
 - `mainVisualImageId` 是演出主视觉图。
+- 主视觉需要保存 alt、焦点、适配模式和来源信息，列表页和详情页都依赖它。
 - 列表页和详情页都使用主视觉图。
 - `summary` 是内容字段，不包含 theme / motif 文案。
 - `status` 是内容发布状态。
-- `eventState` 是演出时间状态，可由日期计算，也可在管理端手动覆盖，用于控制缓存和默认选中场次。
+- `eventStateOverride` 是可选手动覆盖值，不直接作为最终演出时间状态。
+- API 返回时根据场次日期和固定 JST 计算 `computedEventState`；如果存在 `eventStateOverride`，由 service 层按明确优先级覆盖计算结果。
+- 默认选中场次、缓存策略和公开端状态展示都使用 API 返回的 `computedEventState`，避免存储状态过期。
+- `draftRevision` 在演出草稿相关数据保存时更新，用于让旧 preview token 失效。
+- 删除采用软删除，公开端列表和详情必须过滤 `deletedFlag`。
+- 多语言标题、简介和 SEO 文案不放在主表，使用 `live_event_i18n` 维护。
+
+演出多语言字段：
+
+```text
+eventId
+lang: zh | ja
+title
+summary
+seoTitle
+seoDescription
+```
+
+多语言规则：
+
+- URL 的 `:lang` 决定公开端优先语言。
+- 缺失目标语言时 fallback 到 `defaultLang`。
+- 管理端发布时至少要求 `defaultLang` 的标题和简介完整。
+- 城市和场馆名称第一阶段可直接使用原始名称；如后续需要翻译，再增加 performance i18n，而不是提前把字段塞进主表。
 
 ### Live Performance
 
@@ -408,6 +453,31 @@ notes
 - SSR 首屏使用同一个合成函数生成默认选中场次的 setlist，客户端切换场次时复用该函数。
 - 这样 20 场左右的巡演也只需要传输一份默认 setlist 和少量差异数据。
 
+合成顺序：
+
+1. 读取演出级默认 setlist。
+2. 按 `section` 和 `sortNo` 得到默认顺序。
+3. 对当前场次应用 `remove`。
+4. 对当前场次应用 `replace`。
+5. 对当前场次应用 `move`。
+6. 对当前场次应用 `note`。
+7. 对当前场次应用 `add`。
+8. 最后再次按 `section` 和 `sortNo` 输出有效 setlist。
+
+override 约束：
+
+- 同一 `performanceId + baseItemKey` 只能存在一个 `remove / replace / move / note` 主操作，避免同一默认曲目同时 remove 和 replace。
+- `note` 如果需要和 `move` 或 `replace` 同时存在，优先作为字段合并到同一 override 记录，不拆成多条。
+- `add` 使用 `overrideItemKey`，并要求同一 `performanceId + overrideItemKey` 唯一。
+- `sortNo` 是 section 内排序，不是全局排序。
+- 默认 setlist item 删除时，对应 `baseItemKey` 的 override 视为 orphan，管理端需要在保存默认 setlist 后提示清理或自动禁用。
+- 默认 setlist item 的 `itemKey` 一旦生成不随排序、section、曲目替换而变化；真正删除后不能复用旧 key。
+
+测试要求：
+
+- setlist 合成纯函数必须补单测。
+- 覆盖 add、remove、replace、move、note、跨 section move、orphan override、无 override 等场景。
+
 ### 关联文章和相册
 
 关联内容只考虑：
@@ -417,7 +487,14 @@ related_articles
 related_galleries
 ```
 
-关联采用通用关联表设计，不为 live 单独建立文章/相册关联表。
+关联采用“按内容类型拆分的通用关联表”设计，不为 live 单独建立文章/相册专用关联表。
+
+```text
+文章 -> article_relations
+相册 -> gallery_relations
+```
+
+这样文章继续复用现有文章关联体系；相册新增一张和 `article_relations` 类似的通用关联表，后续也可以扩展到其他 target。
 
 关联目标层级：
 
@@ -432,24 +509,30 @@ event 级
 - 相册只做 event 级关联。
 - 单次巡演公开照片数量通常不会多到需要为每个场次单独组织相册，因此不考虑 performance 级相册。
 
-通用关联字段建议：
+文章关联规则：
 
 ```text
-targetType: live_event
-targetTable
-targetId
-relationType: article | gallery
-relationTable
-relationId
-sortNo
+article_relations.article_id
+article_relations.target_type = live_event
+article_relations.target_id = live_events.id
+article_relations.sort_no
+```
+
+相册关联字段建议：
+
+```text
+gallery_relations.gallery_id
+gallery_relations.target_type = live_event
+gallery_relations.target_id = live_events.id
+gallery_relations.sort_no
 ```
 
 约束：
 
-- `relationType = gallery` 时，`targetType` 只允许 `live_event`。
-- `relationType = article` 时，`targetType` 只允许 `live_event`。
+- 第一阶段 `article_relations.target_type` 增加 `live_event`。
+- 第一阶段 `gallery_relations.target_type` 只开放 `live_event`。
 - 第一阶段不支持 `live_performance` 级关联。
-- `targetTable` 和 `relationTable` 用于标记实际关联表或稳定表 key，避免通用关联扩展后只靠类型推断。
+- 后续如有需要，可以继续给两张关联表扩展 `target_type`，例如其他公开内容对象。
 
 公开端展示规则：
 
@@ -496,9 +579,14 @@ eventId
 status: draft | published
 blueprint
 themePreset
-components[]
 updatedAt
 ```
+
+第一版范围：
+
+- Phase 1-4 只支持 `blueprint + themePreset`。
+- 组件级启用/隐藏、组件顺序和局部参数放到 Phase 5。
+- 第一版页面组件组合由 blueprint 固定决定，降低管理端和 SSR 复杂度。
 
 显示效果配置需要区分草稿和发布状态：
 
@@ -517,16 +605,26 @@ updatedAt
 - setlist 至少包含一个 `main` section 曲目。
 - 已关联曲目必须能映射到发布物曲目关联使用的 track 标识。
 - 显示配置未发布时允许发布演出，但公开端使用默认 blueprint。
-- 显示配置发布时必须校验 blueprint、themePreset 和 componentKey 均在公开端 catalog 中存在。
+- 第一版显示配置发布时只校验 blueprint 和 themePreset 均在 catalog 中存在。
+- Phase 5 增加组件级配置后，再校验 componentKey。
+
+catalog 存放规则：
+
+- catalog 不能只存在于公开端源码组件 registry 中，否则 Worker 发布校验无法读取。
+- 第一阶段建议维护一个稳定 JSON catalog，作为公开端和 Worker 的共同契约。
+- 公开端用 catalog 驱动可选 blueprint、themePreset、componentKey 的展示。
+- Worker 用同一份 catalog 内容或同步后的静态常量做发布校验。
+- Vue 组件 registry 只负责把已经校验过的 `componentKey` 映射到组件实现。
+- catalog 的 key 必须稳定，组件文件路径可以变，key 不应随文件重构变化。
 
 `blueprint` 示例：
 
 ```text
 one-man-magazine
-tour-visual-console
+tour-serpentine-route
 ```
 
-`components` 示例：
+Phase 5 组件级配置示例：
 
 ```text
 mainVisual.default
@@ -534,7 +632,7 @@ dateStrip.default
 performanceFacts.default
 setlist.clickable
 related.compact
-tourStopRail.default
+tourRouteNavigator.serpentine
 selectedStopDrawer.default
 progressStrip.default
 ```
@@ -598,6 +696,168 @@ componentKey -> Vue component
   - tour 已结束：最后一场。
   - 默认选中结果必须由 API 明确返回为 `initialPerformanceId`。
 
+动态 SEO 链路：
+
+- `RouteMeta.seoKey` 需要增加 `liveEventDetail`。
+- SSR 初始状态需要增加 `miletLiveDetailData`，保存 live 详情页首屏数据。
+- `LiveDetailView` 或对应 composable 在 `onServerPrefetch` 中拉取 live detail，并写入 AppState 的 `miletLiveDetailData`。
+- `src/server/render.ts` 保持现有模式：`renderToString` 后读取 AppState，再交给 SEO 生成逻辑。
+- `src/server/seo.ts` 的 `renderSeoTags` 读取 `miletLiveDetailData`：
+  - title 优先使用 `live_event_i18n.seoTitle`。
+  - description 优先使用 `live_event_i18n.seoDescription`。
+  - OG image 使用演出主视觉图。
+  - 缺失 SEO 字段时 fallback 到演出标题和简介。
+- 客户端 hydrate 后不得重新计算出不同的 title/OG 数据，避免 SSR head 与客户端状态不一致。
+
+缓存 key 建议：
+
+```text
+live:list:{lang}:{type}:{year}:{keyword}:{page}:{pageSize}
+live:detail:{lang}:{slug}
+live:display:{eventId}:published
+live-preview:{previewId}
+```
+
+缓存失效：
+
+- 演出基础信息发布、归档、删除：清理对应详情缓存和全部 live list 缓存。
+- 场次更新：清理对应详情缓存和全部 live list 缓存。
+- setlist 或场次差异更新：清理对应详情缓存。
+- 显示配置发布：清理对应详情缓存和 `live:display:{eventId}:published`。
+- preview 草稿更新：清理对应 `live-preview:{previewId}`。
+
+管理端需要提供 cache clear 能力：
+
+```text
+POST /admin/live/events/:id/cache/clear
+POST /admin/live/cache/clear-list
+```
+
+## 草稿预览与跨域安全
+
+管理端和公开端可能部署在不同域名下，预览不能依赖跨域 cookie，也不能让公开端读取管理端登录态。第一阶段采用 KV 暂存 preview token 和草稿快照。
+
+### 预览流程
+
+```text
+管理端已登录用户
+  -> POST /admin/live/events/:id/preview-token
+  -> Worker 校验 live.view / live.update 权限
+  -> Worker 聚合当前草稿数据并写入 KV
+  -> 返回 previewId、previewToken、previewUrl、expiresAt
+  -> 管理端 iframe 或新窗口打开公开端 previewUrl
+  -> 公开端 SSR 请求 /api/milet/live/preview/:previewId?token=...
+  -> Worker 校验 KV 中 token 后返回草稿快照
+```
+
+公开端预览 URL：
+
+```text
+/:lang/milet/live-preview/:previewId?token=...
+```
+
+公开端预览 API：
+
+```text
+GET /api/milet/live/preview/:previewId?token=...
+```
+
+### KV 数据设计
+
+KV binding 建议：
+
+```text
+LIVE_PREVIEW_KV
+```
+
+KV key：
+
+```text
+live-preview:{previewId}
+live-preview-index:{eventId}:{previewId}
+```
+
+KV value：
+
+```ts
+type LivePreviewSnapshot = {
+  previewId: string
+  eventId: number
+  draftRevision: string
+  lang: 'zh' | 'ja'
+  tokenHash: string
+  consumedAt: string | null
+  createdBy: string
+  createdAt: string
+  expiresAt: string
+  payload: {
+    event: LiveEventDetail
+    performances: LivePerformance[]
+    eventSetlist: LiveSetlist
+    setlistOverridesByPerformanceId: Record<string, LiveSetlistOverride[]>
+    relatedArticles: RelatedArticleSummary[]
+    relatedGalleries: RelatedGallerySummary[]
+    displayConfig: LiveDisplayConfig
+    initialPerformanceId: string
+  }
+}
+```
+
+KV TTL：
+
+- 默认有效期 10-30 分钟。
+- 第一版建议 15 分钟。
+- KV 写入时设置 expirationTtl。
+- `expiresAt` 也写入 value，作为服务端二次校验。
+
+token 规则：
+
+- `previewToken` 使用高随机值。
+- preview token 是临时生成的一次性 token。
+- KV 中只保存 `tokenHash`，不保存明文 token。
+- API 请求时对 query token 做 hash 后常量时间比较。
+- token 绑定 `previewId`、`eventId`、`draftRevision`、`lang`、`createdBy` 和过期时间。
+- Worker 成功读取预览后，应将 KV 中 `consumedAt` 写入或删除该 key，使同一 token 不能重复使用。
+- 如 iframe 刷新需要多次读取，管理端应重新生成 preview token。
+
+### 安全响应头
+
+preview 页面和 preview API 必须禁用索引和缓存：
+
+```text
+Cache-Control: no-store
+X-Robots-Tag: noindex, nofollow
+Referrer-Policy: no-referrer
+```
+
+iframe 预览时，只允许管理端域名嵌入 preview 页面：
+
+```text
+Content-Security-Policy: frame-ancestors <管理端域名>
+```
+
+注意：
+
+- 只对 preview 路由设置 frame-ancestors，不要放开整个公开端。
+- 如果管理端使用 iframe 和公开端通信，只允许白名单 origin 的 `postMessage`。
+
+### 失效规则
+
+- KV TTL 到期自动失效。
+- 演出重新保存草稿后，`draftRevision` 变化，管理端需要重新生成 preview token。
+- 保存新草稿时应通过 `live-preview-index:{eventId}:*` 主动删除该 event 旧的 preview KV key，避免旧 snapshot 在 TTL 前仍可访问。
+- 演出发布、归档、删除后，已有 preview token 视为无效。
+- Worker 校验 preview 时，如果 snapshot 中 event 状态或 `draftRevision` 与当前 event 不一致，应拒绝或提示重新生成预览。
+
+### SSR 注意事项
+
+- preview 路由仍走公开端 SSR 管线，但数据源为 KV snapshot。
+- preview SSR 不写入普通 `live:detail:*` 缓存。
+- preview 不读取管理端 cookie，不依赖跨域登录态。
+- preview 的 `initialPerformanceId` 来自 snapshot，确保服务端和客户端水合一致。
+- preview token 是一次性的，SSR 成功读取后客户端 hydrate 必须复用 SSR initial state，不再二次请求 preview API。
+- 如果 preview 页面以 CSR fallback 方式直接请求 preview API，成功后也要避免刷新式重复请求；刷新页面应提示重新生成预览。
+
 ## Worker API
 
 ### 公开端 API
@@ -607,6 +867,29 @@ componentKey -> Vue component
 ```text
 GET /api/milet/live/events
 GET /api/milet/live/events/:slug
+GET /api/milet/live/preview/:previewId?token=...
+```
+
+列表接口 query：
+
+```text
+lang=zh|ja
+type=all|one_man|tour|special_live|festival
+year=2024
+keyword=...
+page=1
+pageSize=12
+```
+
+列表接口分页返回：
+
+```text
+items[]
+page
+pageSize
+total
+totalPages
+filters
 ```
 
 列表接口返回：
@@ -645,6 +928,14 @@ initialPerformanceId
 echoes-of-milet/api-proxy.config.json
 ```
 
+代理白名单应使用 `/api/milet/live` 前缀，覆盖列表、详情和 preview：
+
+```text
+/api/milet/live
+```
+
+不要只登记 `/api/milet/live/events`，否则 `/api/milet/live/preview/:previewId` 可能无法通过 Pages Function 代理。
+
 ### 管理端 API
 
 建议新增：
@@ -656,6 +947,8 @@ POST /admin/live/events/save
 POST /admin/live/events/delete
 POST /admin/live/events/:id/publish
 POST /admin/live/events/:id/archive
+POST /admin/live/events/:id/cache/clear
+POST /admin/live/cache/clear-list
 
 GET  /admin/live/events/:id/performances
 POST /admin/live/performances/save
@@ -670,6 +963,8 @@ POST /admin/live/performances/:id/setlist-overrides/save
 GET  /admin/live/events/:id/display
 POST /admin/live/events/:id/display/save
 POST /admin/live/events/:id/display/publish
+
+POST /admin/live/events/:id/preview-token
 ```
 
 管理端新增 API 后需要更新：
@@ -679,6 +974,14 @@ data-admin/public/_worker.js
 ```
 
 Worker 中 `/admin` 路由需要显式配置权限。
+
+删除语义：
+
+- `POST /admin/live/events/delete` 第一阶段采用软删除，不做物理删除。
+- 已发布或归档演出删除时标记 deleted，不直接移除关联表、setlist 和场次数据。
+- 草稿演出如没有公开引用，可以允许物理清理，但第一阶段建议仍走软删除，降低误删风险。
+- 公开端列表和详情接口必须过滤 deleted 数据。
+- 如后续需要物理清理，单独增加管理员维护工具，不复用普通 delete 接口。
 
 ## 管理端设计
 
@@ -865,10 +1168,9 @@ setlist 设置使用多个弹窗入口，避免单个表单过重。
 ```text
 blueprint
 themePreset
-组件启用状态
-组件顺序
-局部参数
 ```
+
+第一版只配置 `blueprint + themePreset`。组件启用状态、组件顺序和局部参数属于 Phase 5 增强能力。
 
 管理端不直接渲染公开端组件。建议使用 component catalog：
 
@@ -884,10 +1186,10 @@ componentKey
 真实预览通过公开端 preview 路由完成：
 
 ```text
-/:lang/milet/live-preview/:draftId
+/:lang/milet/live-preview/:previewId?token=...
 ```
 
-管理端保存显示配置草稿后，在 iframe 或新窗口中打开公开端 preview。
+管理端保存显示配置草稿后，调用 `POST /admin/live/events/:id/preview-token` 生成短期 token，再在 iframe 或新窗口中打开公开端 preview。
 
 ## 数据库建议
 
@@ -895,55 +1197,88 @@ componentKey
 
 ```text
 live_events
+live_event_i18n
 live_performances
 live_setlists
 live_setlist_items
 live_performance_setlist_overrides
-content_relations
+gallery_relations
 live_display_configs
 ```
 
-`content_relations` 使用通用关联设计：
+文章关联不新增表，复用现有 `article_relations`：
+
+```text
+article_relations.target_type 增加 live_event
+article_relations.target_id = live_events.id
+```
+
+`article_relations` 迁移注意：
+
+- 现有表存在 `CHECK (target_type IN (...))`。
+- D1 / SQLite 不能简单 ALTER 已有 CHECK。
+- 新迁移应重建 `article_relations` 表并复制旧数据。
+- 重建后建议移除数据库层面的 target_type CHECK，改由 `ArticleUtil.TARGET_TYPES`、路由 validator 和 service 校验控制范围。
+- 这样后续新增关联对象时，只需要更新服务端类型/校验和目标 provider，不必反复删表重建。
+- `ArticleUtil.TARGET_TYPES` 和文章关联目标 provider 需要同步加入 `live_event`。
+
+相册新增 `gallery_relations`，结构参考 `article_relations`：
 
 ```text
 id
-target_type: live_event | live_performance
-target_table
+gallery_id
+target_type
 target_id
-relation_type: article | gallery
-relation_table
-relation_id
 sort_no
 created_at
 updated_at
+updated_by
 ```
 
 约束建议：
 
 ```text
-UNIQUE(target_type, target_id, relation_type, relation_id)
-INDEX(target_type, target_id, relation_type, sort_no)
-INDEX(relation_type, relation_id)
+UNIQUE(target_type, target_id, gallery_id)
+INDEX(target_type, target_id, sort_no, id)
+INDEX(gallery_id, target_type, target_id)
 ```
 
 规则：
 
-- 第一阶段文章关联只支持 `live_event`。
-- 第一阶段相册关联只支持 `live_event`。
+- 第一阶段文章关联通过 `article_relations` 支持 `live_event`。
+- 第一阶段相册关联通过 `gallery_relations` 支持 `live_event`。
 - 相册从现有 gallery 模块中选择。
-- `target_table` / `relation_table` 使用稳定表 key，例如 `live_events`、`articles`、`gallery`，用于明确关联指向。
-- `target_type` 保留扩展空间，但第一阶段只开放 live archive 的 `live_event`。
-- 如果后续其他模块也需要通用关联，可以复用 `content_relations`。
+- `gallery_relations.target_type` 也不使用数据库 CHECK，统一由服务端 TARGET_TYPES / validator / service 校验。
+- 后续如其他模块需要相册关联，只扩展服务端校验和目标 provider。
+- Worker service 层对公开端统一聚合为 `relatedArticles` 和 `relatedGalleries`，前端不关心底层来自哪张表。
 
 setlist 表关系：
 
 ```text
+live_event_i18n.event_id -> live_events.id
 live_setlists.event_id -> live_events.id
 live_setlist_items.setlist_id -> live_setlists.id
 live_performance_setlist_overrides.performance_id -> live_performances.id
 ```
 
 `live_display_configs` 需要保存草稿和发布状态。第一阶段不考虑发布历史版本，只保留当前草稿和当前发布配置，并约束同一 event 同一 status 只有一条有效配置。
+
+## Worker 绑定
+
+草稿预览使用 KV 暂存，不新增 D1 preview 表。
+
+`wrangler.jsonc` 需要新增 KV binding：
+
+```text
+LIVE_PREVIEW_KV
+```
+
+用途：
+
+- 保存 `live-preview:{previewId}`。
+- value 中包含草稿快照、tokenHash、expiresAt、createdBy。
+- 写入时设置 `expirationTtl`。
+- preview API 只读取 KV，不访问管理端 cookie。
 
 ## 公开端路由和导航
 
@@ -963,7 +1298,22 @@ api-proxy.config.json
 /:lang/milet/live/:slug
 ```
 
-列表页可使用现有公开端布局。
+路由层级必须明确：
+
+- `/:lang/milet/live` 是列表页，放在现有 `LayoutApp` 的 `milet` children 下，沿用公开端现有布局和导航。
+- `/:lang/milet/live/:slug` 是详情页，不能放在 `LayoutApp` children 下，否则会自动套主布局。
+- 详情页应和现有文章详情页一样，作为 `/:lang` children 下、`milet` route 的 sibling route。
+- 详情页内部使用 `LiveDetailShell` 提供 site title、语言切换和返回列表按钮。
+
+示意：
+
+```text
+/:lang
+  milet/articles/:slug      -> sibling route, 不套 LayoutApp
+  milet/live/:slug          -> sibling route, 不套 LayoutApp
+  milet                     -> LayoutApp
+    live                    -> 列表页，套 LayoutApp
+```
 
 详情页 meta 中明确 SSR：
 
@@ -979,25 +1329,39 @@ seoKey: liveEventDetail
 Worker 新增管理权限：
 
 ```text
-live:read
-live:create
-live:update
-live:delete
-live:publish
-live:display:update
+{ subject: 'live', action: 'view' }
+{ subject: 'live', action: 'create' }
+{ subject: 'live', action: 'update' }
+{ subject: 'live', action: 'delete' }
+{ subject: 'live', action: 'publish' }
+{ subject: 'live', action: 'archive' }
 ```
 
 管理端按钮通过现有 `PermissionButton` 和权限 composable 控制。
+
+说明：
+
+- 权限命名保持和现有 Worker / Admin 权限系统一致。
+- 不使用 `live:read`、`live:display:update` 这类字符串式权限。
+- 显示效果配置属于 live 更新能力，第一阶段使用 `live.update`。
+- 发布演出使用 `live.publish`，归档/下架使用 `live.archive`。
+- 生成预览 token 需要 `live.view` 和 `live.update`，确保只有有权限维护演出的管理员可以查看草稿预览。
 
 ## 分阶段落地
 
 ### Phase 1：数据模型与 Worker API
 
 - 新增 migration。
+- 新增 `live_event_i18n`。
+- 重建 `article_relations` 以移除数据库 CHECK，并在服务端校验中增加 `live_event`。
+- 新增 `gallery_relations`，结构参考 `article_relations`，第一阶段支持 `live_event`。
 - 新增 ORM / Repository。
 - 新增 service。
 - 新增管理端 API。
 - 新增公开端列表和详情 API。
+- 新增 display config 表和基础读写 API，保证详情页第一版可以读取固定 blueprint / themePreset。
+- 新增 `LIVE_PREVIEW_KV` binding。
+- 新增 preview token 生成 API 和公开端 preview 读取 API。
 - 更新管理端与公开端代理白名单。
 
 ### Phase 2：管理端基础数据维护
@@ -1025,14 +1389,15 @@ live:display:update
 - 实现场次切换。
 - 实现 setlist 曲目点击打开歌曲详情弹窗。
 - 实现轻量关联文章和相册入口。
+- 实现最小可用公开端 preview 路由，读取 KV snapshot 渲染草稿。
 
-### Phase 5：显示效果配置
+### Phase 5：显示效果配置增强
 
-- 新增 display config 数据维护。
 - 新增 component catalog。
-- 管理端显示效果配置页。
+- 管理端显示效果配置页，用于替代早期固定配置。
 - 公开端 registry。
-- 公开端 preview 路由。
+- 管理端 iframe / 新窗口预览体验、postMessage 白名单和错误提示优化。
+- 组件级配置变更后的 preview 交互增强。
 
 ### Phase 6：验证和优化
 
@@ -1047,17 +1412,19 @@ live:display:update
   - 语言切换。
   - 返回列表。
   - 无关联内容时模块隐藏。
+  - 管理端生成 preview token 后跨域打开公开端预览。
+  - preview 过期、token 错误、发布后失效的提示。
 
 ## MVP 范围建议
 
-第一版建议控制范围：
+第一版先做一组演出的详细页面，对齐本文“第一版视觉基准”中的两张效果图。建议控制范围：
 
 1. 演出类型支持：
    - one man live
    - tour
 2. 详情 blueprint 支持：
    - `one-man-magazine`
-   - `tour-visual-console`
+   - `tour-serpentine-route`
 3. 关联内容：
    - event 级文章
    - event 级相册，从现有 gallery 中选择
@@ -1069,13 +1436,14 @@ live:display:update
 5. 显示配置：
    - blueprint
    - themePreset
-   - 组件启用/隐藏
    - 草稿 / 发布状态
+   - 组件组合由 blueprint 固定决定
 
 暂不做：
 
 - 真实地图。
 - 复杂自定义组件在线编辑。
+- 组件级启用/隐藏、排序和局部参数。
 - performance 级文章。
 - performance 级相册。
 - 多套完全不同的自定义页面。
@@ -1089,7 +1457,9 @@ live:display:update
 4. 显示效果配置需要草稿和发布状态区分。
 5. 演出详情页采用 SSR。
 6. 进行中巡演的数据可能调整，因此不作为第一阶段 SSG 对象，应使用短缓存和管理端更新后的缓存失效。
-7. 演出与文章、相册的关联采用通用关联表。
+7. 演出与文章、相册的关联采用按内容类型拆分的通用关联表：
+   - 文章复用 `article_relations`，新增 `target_type = live_event`。
+   - 相册新增 `gallery_relations`，结构参考 `article_relations`。
 8. 相册只做 event 级关联。
 9. 文章也只做 event 级关联。
 10. 显示效果发布不保留历史版本，只保留当前草稿和当前发布配置。
