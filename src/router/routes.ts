@@ -6,7 +6,7 @@ import { buildShortLinkTarget, shortLinks } from '@/config/shortLinks'
 declare module 'vue-router' {
   interface RouteMeta {
     renderMode?: 'ssg' | 'ssr' | 'csr'
-    seoKey?: 'home' | 'milet' | 'about' | 'anniversary' | 'pilgrimage' | 'article'
+    seoKey?: 'home' | 'milet' | 'about' | 'anniversary' | 'pilgrimage' | 'article' | 'liveArchive' | 'liveEvent'
     widePage?: boolean
   }
 }
@@ -45,6 +45,18 @@ export const routes: RouteRecordRaw[] = [
         component: () => import('@/views/milet/MiletArticleView.vue'),
       },
       {
+        path: 'milet/live/:slug',
+        name: 'miletLiveDetail',
+        meta: { renderMode: 'ssr', seoKey: 'liveEvent' },
+        component: () => import('@/views/milet/MiletLiveDetailView.vue'),
+      },
+      {
+        path: 'milet/live-preview/:previewId',
+        name: 'miletLivePreview',
+        meta: { renderMode: 'ssr', seoKey: 'liveEvent' },
+        component: () => import('@/views/milet/MiletLivePreviewView.vue'),
+      },
+      {
         path: 'milet',
         component: () => import('@/views/LayoutApp.vue'),
         children: [
@@ -56,6 +68,12 @@ export const routes: RouteRecordRaw[] = [
               seoKey: 'milet',
             },
             component: () => import('@/views/milet/MiletHomeView.vue'),
+          },
+          {
+            path: 'live',
+            name: 'miletLiveArchive',
+            meta: { renderMode: getConfiguredRenderMode('/milet/live'), seoKey: 'liveArchive', widePage: true },
+            component: () => import('@/views/milet/MiletLiveArchiveView.vue'),
           },
           {
             path: 'galleryList',

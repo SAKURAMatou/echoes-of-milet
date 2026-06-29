@@ -177,6 +177,21 @@ function stripProxyResponseHeaders(headers: Headers) {
   hopByHopHeaders.forEach((name) => cloned.delete(name))
   return cloned
 }
+
+function buildHtmlResponseHeaders(pathname: string) {
+  const headers = new Headers({
+    'content-type': 'text/html; charset=utf-8',
+  })
+
+  if (pathname.includes('/milet/live-preview/')) {
+    headers.set('cache-control', 'no-store')
+    headers.set('x-robots-tag', 'noindex, nofollow')
+    headers.set('referrer-policy', 'no-referrer')
+  }
+
+  return headers
+}
+
 function isPathUnder(pathname: string, prefix: string) {
   if (prefix.endsWith('/')) {
     return pathname.startsWith(prefix)
@@ -359,9 +374,7 @@ export const onRequest = async (context: FunctionContext) => {
 
     return new Response(html, {
       status: rendered.status || 200,
-      headers: {
-        'content-type': 'text/html; charset=utf-8',
-      },
+      headers: buildHtmlResponseHeaders(pathname),
     })
   } catch (error) {
     const errorText = error instanceof Error ? error.stack || error.message : String(error)

@@ -40,6 +40,14 @@ export function getMenu(now = new Date()): MenuItem[] {
       shown: true,
     },
     {
+      key: 'live-archive',
+      label: 'LIVE ARCHIVE',
+      sub: '- Live records',
+      color: 'sky',
+      routerName: 'miletLiveArchive',
+      shown: true,
+    },
+    {
       key: 'timeline',
       label: 'TIMELINE',
       sub: '- Activity of milet',

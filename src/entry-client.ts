@@ -7,7 +7,11 @@ declare global {
 }
 
 const appRoot = document.querySelector('#app')
-const shouldHydrate = Boolean(appRoot?.innerHTML.trim())
+const shouldHydrate = Array.from(appRoot?.childNodes || []).some((node) => {
+  if (node.nodeType === Node.ELEMENT_NODE) return true
+  if (node.nodeType !== Node.TEXT_NODE) return false
+  return Boolean(node.textContent?.trim())
+})
 
 const { app, router } = createApp({
   initialState: window.__INITIAL_STATE__,

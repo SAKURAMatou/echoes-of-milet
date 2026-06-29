@@ -1,8 +1,17 @@
 import { stripLangPrefix, toUrlLang } from '@/composables/useLangRoute'
 import { getSiteOrigin, getImginOrigin } from '@/config/api'
 import type { PublicArticleDetail } from '@/composables/articleType'
+import { resolveLiveImageUrl, type LiveEventDetailPayload } from '@/composables/liveArchive'
 
-export type SeoKey = 'home' | 'milet' | 'about' | 'anniversary' | 'pilgrimage' | 'article'
+export type SeoKey =
+  | 'home'
+  | 'milet'
+  | 'about'
+  | 'anniversary'
+  | 'pilgrimage'
+  | 'article'
+  | 'liveArchive'
+  | 'liveEvent'
 
 interface SeoLocaleContent {
   title: string
@@ -24,6 +33,7 @@ interface RenderSeoOptions {
   path?: string
   pilgrimageSpots?: PilgrimageSeoSpot[]
   article?: PublicArticleDetail | null
+  liveDetail?: LiveEventDetailPayload | null
 }
 
 export interface PilgrimageSeoSpot {
@@ -41,6 +51,47 @@ export interface PilgrimageSeoSpot {
 const siteUrl = getSiteOrigin()
 
 const seoMap: Record<SeoKey, SeoMeta> = {
+  liveEvent: {
+    content: {
+      zh: {
+        title: 'Live Event | Echoes of milet',
+        description: 'Echoes of milet live event archive.',
+        keywords: ['Echoes of milet', 'milet', 'live', 'setlist'],
+        imageAlt: 'Echoes of milet live event',
+      },
+      jp: {
+        title: 'Live Event | Echoes of milet',
+        description: 'Echoes of milet live event archive.',
+        keywords: ['Echoes of milet', 'milet', 'live', 'setlist'],
+        imageAlt: 'Echoes of milet live event',
+      },
+    },
+    image: '/echoes-of-milet-OG.webp',
+    canonicalPath: '/milet/live',
+    type: 'article',
+    schemaType: 'Article',
+    allowDynamicPath: true,
+  },
+  liveArchive: {
+    content: {
+      zh: {
+        title: 'Live Archive | Echoes of milet',
+        description: '整理 milet 演出的日期、场馆、setlist 与关联内容。',
+        keywords: ['Echoes of milet', 'milet', 'live archive', 'milet live', 'setlist'],
+        imageAlt: 'Echoes of milet Live Archive',
+      },
+      jp: {
+        title: 'Live Archive | Echoes of milet',
+        description: 'milet の公演日、会場、setlist、関連コンテンツを整理する Live Archive です。',
+        keywords: ['Echoes of milet', 'milet', 'live archive', 'milet live', 'setlist'],
+        imageAlt: 'Echoes of milet Live Archive',
+      },
+    },
+    image: '/echoes-of-milet-OG.webp',
+    canonicalPath: '/milet/live',
+    type: 'website',
+    schemaType: 'CollectionPage',
+  },
   article: {
     content: {
       zh: {
@@ -295,6 +346,11 @@ function resolveArticleImage(article?: PublicArticleDetail | null) {
   return toAbsoluteUrl(image.urlWebp || image.urlOriginal || image.prelink || image.link)
 }
 
+function resolveLiveDetailImage(liveDetail?: LiveEventDetailPayload | null) {
+  const imageUrl = resolveLiveImageUrl(liveDetail?.event.mainVisual)
+  return toAbsoluteUrl(imageUrl)
+}
+
 function resolveLang(lang?: string | null): SupportedLang {
   return lang === 'jp' ? 'jp' : 'zh'
 }
@@ -476,9 +532,22 @@ export function renderSeoTags(
       imageAlt: options.article.title,
     }
   }
+  if (seoKey === 'liveEvent' && options.liveDetail?.event) {
+    localized = {
+      ...localized,
+      title: `${options.liveDetail.event.title} | Echoes of milet`,
+      description: options.liveDetail.event.summary || localized.description,
+      keywords: ['Echoes of milet', 'milet', 'live', options.liveDetail.event.title],
+      imageAlt: options.liveDetail.event.title,
+    }
+  }
   const canonicalPath = resolveCanonicalPath(meta, options)
   const canonicalUrl = createLocalizedUrl(canonicalPath, resolvedLang)
+  const robots = seoKey === 'liveEvent' && options.path?.includes('/milet/live-preview/')
+    ? 'noindex,nofollow,noarchive'
+    : 'index,follow,max-image-preview:large'
   const imageUrl =
+    resolveLiveDetailImage(options.liveDetail) ||
     resolveArticleImage(options.article) ||
     toAbsoluteUrl(meta.image) ||
     `${siteUrl}/echoes-of-milet-OG.webp`
@@ -508,7 +577,7 @@ export function renderSeoTags(
     `<meta name="keywords" content="${escapeHtml(localized.keywords.join(', '))}">`,
     `<link rel="canonical" href="${canonicalUrl}">`,
     renderAlternateLinks(canonicalPath),
-    `<meta name="robots" content="index,follow,max-image-preview:large">`,
+    `<meta name="robots" content="${robots}">`,
     `<meta property="og:title" content="${escapedTitle}">`,
     `<meta property="og:description" content="${escapedDescription}">`,
     `<meta property="og:type" content="${meta.type ?? 'website'}">`,

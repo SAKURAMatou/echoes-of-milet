@@ -91,6 +91,7 @@ export async function render(url: string, request: RenderRequest = {}): Promise<
       path: currentRoute.path,
       pilgrimageSpots: collectPilgrimageSeoSpots(state),
       article: state.miletArticleData,
+      liveDetail: state.miletLivePreviewData?.payload || state.miletLiveDetailData?.payload,
     }),
     initialState: state,
     htmlLang: toHtmlLang(state.lang),

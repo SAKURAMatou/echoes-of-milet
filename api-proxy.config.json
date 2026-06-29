@@ -20,6 +20,7 @@
     "miletSongGuess": "/api/milet/interactive/song-guess",
     "miletGallery": "/api/milet/gallery",
     "miletAnniversary": "/api/milet/anniversary",
+    "miletLive": "/api/milet/live",
     "miletPilgrimageRegionTree": "/api/milet/pilgrimage/region-tree",
     "miletPilgrimageCollections": "/api/milet/pilgrimage/collections",
     "miletPilgrimageDistrictSpots": "/api/milet/pilgrimage/districts",
