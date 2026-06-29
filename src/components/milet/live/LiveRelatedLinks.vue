@@ -14,13 +14,24 @@
           v-for="article in articles.slice(0, 2)"
           :key="article.id"
           :to="articleTo(article)"
-          class="group rounded-md border border-white/10 bg-white/[0.03] px-4 py-3 text-sm transition hover:border-[#9fd4ff]/45 hover:bg-white/[0.06]"
+          class="group grid grid-cols-[4.75rem_minmax(0,1fr)_auto] items-center gap-3 rounded-md border border-white/10 bg-white/[0.03] p-2.5 text-sm transition hover:border-[#9fd4ff]/45 hover:bg-white/[0.06]"
         >
-          <span class="block text-xs text-[#91a9ba]">{{ formatLiveDate(article.publishedAt) }}</span>
-          <span class="mt-1 flex items-center justify-between gap-3 text-[#f3eadf]">
-            <span class="min-w-0 truncate">{{ article.title }}</span>
-            <span class="text-[#d9b77c] transition group-hover:translate-x-0.5">›</span>
+          <img
+            v-if="articleCoverUrl(article)"
+            :src="articleCoverUrl(article)"
+            :alt="article.title"
+            class="h-14 w-20 rounded object-cover"
+            loading="lazy"
+            decoding="async"
+          />
+          <span v-else class="grid h-14 w-20 place-items-center rounded bg-white/5 font-serif text-[#d9b77c]">
+            Article
           </span>
+          <span class="min-w-0">
+            <span class="block text-xs text-[#91a9ba]">{{ formatLiveDate(article.publishedAt || article.updatedAt) }}</span>
+            <span class="mt-1 block truncate text-[#f3eadf]">{{ article.title }}</span>
+          </span>
+          <span class="text-[#d9b77c] transition group-hover:translate-x-0.5">›</span>
         </RouterLink>
       </div>
 
@@ -33,18 +44,20 @@
           class="group grid grid-cols-[4.75rem_minmax(0,1fr)_auto] items-center gap-3 rounded-md border border-white/10 bg-white/[0.03] p-2.5 text-sm transition hover:border-[#9fd4ff]/45 hover:bg-white/[0.06]"
         >
           <img
-            v-if="resolveLiveImageUrl(gallery.coverImage)"
-            :src="resolveLiveImageUrl(gallery.coverImage)"
+            v-if="galleryCoverUrl(gallery)"
+            :src="galleryCoverUrl(gallery)"
             :alt="gallery.title"
             class="h-14 w-20 rounded object-cover"
+            loading="lazy"
+            decoding="async"
           />
           <span v-else class="grid h-14 w-20 place-items-center rounded bg-white/5 font-serif text-[#d9b77c]">
             Live
           </span>
           <span class="min-w-0">
             <span class="block truncate text-[#f3eadf]">{{ gallery.title }}</span>
-            <span v-if="gallery.photoCount" class="mt-1 block text-xs text-[#91a9ba]">
-              {{ gallery.photoCount }} photos
+            <span v-if="galleryPhotoCount(gallery)" class="mt-1 block text-xs text-[#91a9ba]">
+              {{ galleryPhotoCount(gallery) }} photos
             </span>
           </span>
           <span class="text-[#d9b77c] transition group-hover:translate-x-0.5">›</span>
@@ -89,8 +102,20 @@ function galleryTo(gallery: LiveRelatedGallery): RouteLocationRaw {
     name: 'galleryDetail',
     params: {
       lang: props.routeLang,
-      galleryId: gallery.slug || gallery.id,
+      galleryId: gallery.galleryId || gallery.slug || gallery.id,
     },
   }
+}
+
+function articleCoverUrl(article: LiveRelatedArticle) {
+  return resolveLiveImageUrl(article.coverImage || article.coverUrlAccess || article.coverUrl || article.coverImageUrl)
+}
+
+function galleryCoverUrl(gallery: LiveRelatedGallery) {
+  return resolveLiveImageUrl(gallery.coverImage || gallery.coverUrlAccess || gallery.coverUrl)
+}
+
+function galleryPhotoCount(gallery: LiveRelatedGallery) {
+  return Number(gallery.photoCount ?? gallery.imgCount ?? 0)
 }
 </script>

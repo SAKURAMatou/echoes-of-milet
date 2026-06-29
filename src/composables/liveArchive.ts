@@ -15,6 +15,9 @@ export interface LiveImage {
   prelink?: string
   urlWebp?: string
   urlOriginal?: string
+  urlPreview?: string
+  accessRoute?: string
+  filename?: string
   alt?: string
   credit?: string
   focalPoint?: string
@@ -104,17 +107,26 @@ export interface LiveRelatedArticle {
   title: string
   summary?: string
   publishedAt?: string
+  updatedAt?: string
   coverImage?: LiveImage | string | null
+  coverImageUrl?: string
+  coverUrl?: string
+  coverUrlAccess?: string
   url?: string
 }
 
 export interface LiveRelatedGallery {
   id: string | number
+  galleryId?: string | number
   slug?: string
   title: string
   description?: string
   coverImage?: LiveImage | string | null
+  coverUrl?: string
+  coverUrlAccess?: string
+  imgCount?: number
   photoCount?: number
+  updatedAt?: string
   url?: string
 }
 
@@ -342,7 +354,16 @@ export function resolveLiveImageUrl(image?: LiveImage | string | null) {
     return buildStaticAssetUrl(image)
   }
 
-  const raw = image.urlWebp || image.urlOriginal || image.url || image.src || image.prelink || image.link || ''
+  const raw =
+    image.urlWebp ||
+    image.urlOriginal ||
+    image.url ||
+    image.src ||
+    image.urlPreview ||
+    image.prelink ||
+    image.link ||
+    image.accessRoute ||
+    ''
   if (!raw) return ''
   if (/^https?:\/\//i.test(raw)) return raw
   if (raw.startsWith('/static/')) return `${getImginOrigin()}${raw}`
@@ -371,6 +392,21 @@ function applyReplacement(item: LiveSetlistItem, override: LiveSetlistOverride):
     duration: override.duration ?? item.duration,
     changed: true,
   }
+}
+
+function liveSetlistSectionRank(section?: string | null) {
+  if (section === 'main') return 1
+  if (section === 'encore') return 2
+  if (section === 'double_encore') return 3
+  return 99
+}
+
+function compareLiveSetlistItemsForDisplay(a: LiveSetlistItem, b: LiveSetlistItem) {
+  const sectionDelta = liveSetlistSectionRank(a.section) - liveSetlistSectionRank(b.section)
+  if (sectionDelta !== 0) return sectionDelta
+  const sortDelta = (Number(a.sortNo) || 0) - (Number(b.sortNo) || 0)
+  if (sortDelta !== 0) return sortDelta
+  return String(a.itemKey).localeCompare(String(b.itemKey))
 }
 
 export function composeLiveSetlist(
@@ -444,7 +480,7 @@ export function composeLiveSetlist(
 }
 
 export function segmentLiveSetlist(items: LiveSetlistItem[]): LiveSetlistSegment[] {
-  return items.reduce<LiveSetlistSegment[]>((segments, item) => {
+  return [...items].sort(compareLiveSetlistItemsForDisplay).reduce<LiveSetlistSegment[]>((segments, item) => {
     const last = segments[segments.length - 1]
     if (last && last.section === item.section) {
       last.items.push(item)

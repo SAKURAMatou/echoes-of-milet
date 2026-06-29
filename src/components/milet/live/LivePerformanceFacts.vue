@@ -7,13 +7,76 @@
     </h2>
 
     <dl class="mt-5 grid gap-4 text-[#f3eadf]">
-      <div v-for="fact in facts" :key="fact.label" class="grid gap-1">
-        <dt class="text-[11px] font-semibold uppercase tracking-[0.16em] text-[#d9b77c]/85">
-          {{ fact.label }}
-        </dt>
-        <dd class="text-lg leading-7">
-          {{ fact.value }}
-        </dd>
+      <div v-for="fact in facts" :key="fact.label" class="grid grid-cols-[2rem_minmax(0,1fr)] gap-3">
+        <span
+          class="mt-0.5 grid size-8 place-items-center rounded-full border border-[#d9b77c]/32 bg-[#d9b77c]/8 text-[#d9b77c]"
+          aria-hidden="true"
+        >
+          <svg
+            v-if="fact.icon === 'calendar'"
+            class="size-4"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.8"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <path d="M8 2v4" />
+            <path d="M16 2v4" />
+            <rect width="18" height="18" x="3" y="4" rx="2" />
+            <path d="M3 10h18" />
+          </svg>
+          <svg
+            v-else-if="fact.icon === 'clock'"
+            class="size-4"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.8"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <circle cx="12" cy="12" r="9" />
+            <path d="M12 7v5l3 2" />
+          </svg>
+          <svg
+            v-else-if="fact.icon === 'venue'"
+            class="size-4"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.8"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <path d="M4 20h16" />
+            <path d="M6 20V9l6-4 6 4v11" />
+            <path d="M9 20v-6h6v6" />
+            <path d="M9 10h6" />
+          </svg>
+          <svg
+            v-else
+            class="size-4"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.8"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <path d="M12 21s7-4.4 7-11a7 7 0 1 0-14 0c0 6.6 7 11 7 11Z" />
+            <circle cx="12" cy="10" r="2.3" />
+          </svg>
+        </span>
+        <div class="min-w-0">
+          <dt class="text-[11px] font-semibold uppercase tracking-[0.16em] text-[#d9b77c]/85">
+            {{ fact.label }}
+          </dt>
+          <dd class="mt-1 break-words text-lg leading-7">
+            {{ fact.value }}
+          </dd>
+        </div>
       </div>
     </dl>
 
@@ -44,10 +107,18 @@ const facts = computed(() => {
   if (!performance) return []
 
   return [
-    { label: 'Date', value: [formatLiveDate(performance.date), performanceLabel(performance)].filter(Boolean).join(' / ') },
-    { label: 'Open / Start', value: [performance.openTime, performance.startTime].filter(Boolean).join(' / ') },
-    { label: 'Venue', value: performance.venueName || performance.venueAddress || '' },
-    { label: 'City', value: [performance.city, performance.region].filter(Boolean).join(', ') },
+    {
+      icon: 'calendar',
+      label: 'Date',
+      value: [formatLiveDate(performance.date), performanceLabel(performance)].filter(Boolean).join(' / '),
+    },
+    {
+      icon: 'clock',
+      label: 'Open / Start',
+      value: [performance.openTime, performance.startTime].filter(Boolean).join(' / '),
+    },
+    { icon: 'venue', label: 'Venue', value: performance.venueName || performance.venueAddress || '' },
+    { icon: 'city', label: 'City', value: [performance.city, performance.region].filter(Boolean).join(', ') },
   ].filter((fact) => fact.value)
 })
 
