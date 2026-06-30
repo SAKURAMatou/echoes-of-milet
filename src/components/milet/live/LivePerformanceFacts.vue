@@ -2,16 +2,19 @@
   <section
     class="rounded-lg border border-[#d9b77c]/28 bg-[#061827]/78 p-5 shadow-[0_28px_90px_-64px_rgba(3,19,34,0.95)]"
   >
-    <h2 class="font-['Montserrat','sans-serif'] text-sm font-semibold uppercase tracking-[0.18em] text-[#d9b77c]">
+    <h2
+      class="font-['Montserrat','sans-serif'] text-sm font-semibold uppercase tracking-[0.18em] text-[#d9b77c]"
+    >
       Performance
     </h2>
 
     <dl class="mt-5 grid gap-4 text-[#f3eadf]">
-      <div v-for="fact in facts" :key="fact.label" class="grid grid-cols-[2.5rem_minmax(0,1fr)] gap-3">
-        <span
-          class="mt-0.5 grid size-10 place-items-center text-[#d9b77c]"
-          aria-hidden="true"
-        >
+      <div
+        v-for="fact in facts"
+        :key="fact.label"
+        class="grid grid-cols-[2.5rem_minmax(0,1fr)] gap-3"
+      >
+        <span class="mt-0.5 grid size-10 place-items-center text-[#d9b77c]" aria-hidden="true">
           <svg
             v-if="fact.icon === 'calendar'"
             class="size-[1.45rem]"
@@ -91,7 +94,7 @@
 
     <img
       v-if="venueLineArtUrl"
-      :src="venueLineArtUrl"
+      :src="buildStaticAssetUrl(venueLineArtUrl)"
       alt=""
       loading="lazy"
       decoding="async"
@@ -117,6 +120,8 @@ import {
   type LivePerformance,
 } from '@/composables/liveArchive'
 
+import { buildStaticAssetUrl } from '@/config/api'
+
 const props = defineProps<{
   performance: LivePerformance | null
   lang: LiveLang
@@ -130,7 +135,9 @@ const facts = computed(() => {
     {
       icon: 'calendar',
       label: 'Date',
-      value: [formatLiveDate(performance.date), performanceLabel(performance)].filter(Boolean).join(' / '),
+      value: [formatLiveDate(performance.date), performanceLabel(performance)]
+        .filter(Boolean)
+        .join(' / '),
     },
     {
       icon: 'clock',
@@ -143,7 +150,11 @@ const facts = computed(() => {
       value: performance.venueName || performance.venueAddress || '',
       href: performance.venueName ? normalizeExternalUrl(performance.venueOfficialUrl) : '',
     },
-    { icon: 'city', label: 'City', value: [performance.city, performance.region].filter(Boolean).join(', ') },
+    {
+      icon: 'city',
+      label: 'City',
+      value: [performance.city, performance.region].filter(Boolean).join(', '),
+    },
   ].filter((fact) => fact.value)
 })
 

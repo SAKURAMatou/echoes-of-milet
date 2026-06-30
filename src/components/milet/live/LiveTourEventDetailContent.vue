@@ -3,7 +3,9 @@
     <section class="relative overflow-hidden border-b border-[#d9b77c]/18 pb-5 pt-2">
       <div class="grid gap-6 lg:grid-cols-[minmax(0,1.18fr)_minmax(23rem,0.82fr)] lg:items-end">
         <div class="min-w-0">
-          <p class="font-['Montserrat','sans-serif'] text-xs font-semibold uppercase text-[#d9b77c]">
+          <p
+            class="font-['Montserrat','sans-serif'] text-xs font-semibold uppercase text-[#d9b77c]"
+          >
             {{ formatLiveType(event.type) }}
           </p>
           <h1 class="mt-3 font-serif text-5xl leading-none text-[#f3eadf] sm:text-6xl xl:text-7xl">
@@ -31,7 +33,9 @@
           </p>
         </div>
 
-        <dl class="grid grid-cols-2 rounded-lg border border-[#d9b77c]/22 bg-[#031322]/38 sm:grid-cols-4">
+        <dl
+          class="grid grid-cols-2 rounded-lg border border-[#d9b77c]/22 bg-[#031322]/38 sm:grid-cols-4"
+        >
           <div
             v-for="stat in tourStats"
             :key="stat.label"
@@ -64,7 +68,9 @@
                   stroke-linecap="round"
                   stroke-linejoin="round"
                 >
-                  <path d="m12 2 3.1 6.3 6.9 1-5 4.9 1.2 6.8-6.2-3.2L5.8 21 7 14.2 2 9.3l6.9-1L12 2Z" />
+                  <path
+                    d="m12 2 3.1 6.3 6.9 1-5 4.9 1.2 6.8-6.2-3.2L5.8 21 7 14.2 2 9.3l6.9-1L12 2Z"
+                  />
                 </svg>
                 <svg
                   v-else-if="stat.icon === 'pin'"
@@ -117,7 +123,9 @@
       @select="selectPerformance"
     />
 
-    <section class="rounded-lg border border-[#d9b77c]/45 bg-[#031322]/64 p-5 shadow-[0_32px_96px_-62px_rgba(244,211,151,0.82)] sm:p-6">
+    <section
+      class="rounded-lg border border-[#d9b77c]/45 bg-[#031322]/64 p-5 shadow-[0_32px_96px_-62px_rgba(244,211,151,0.82)] sm:p-6"
+    >
       <div
         class="grid gap-5 lg:items-center"
         :class="
@@ -168,7 +176,9 @@
             <p class="mt-1 text-sm text-[#b8c8d5]">{{ selectedVenueLine }}</p>
           </div>
         </div>
-        <dl class="grid grid-cols-2 gap-3 border-[#d9b77c]/22 text-sm text-[#d8e8f3] lg:border-l lg:pl-6">
+        <dl
+          class="grid grid-cols-2 gap-3 border-[#d9b77c]/22 text-sm text-[#d8e8f3] lg:border-l lg:pl-6"
+        >
           <div>
             <dt class="font-['Montserrat','sans-serif'] text-xs uppercase text-[#d9b77c]">Open</dt>
             <dd class="mt-1 text-lg text-[#f3eadf]">{{ selectedPerformance?.openTime || '-' }}</dd>
@@ -183,7 +193,7 @@
           class="flex min-h-28 items-center justify-center border-[#d9b77c]/22 lg:border-l lg:pl-6"
         >
           <img
-            :src="selectedVenueLineArtUrl"
+            :src="buildStaticAssetUrl(selectedVenueLineArtUrl)"
             alt=""
             loading="lazy"
             decoding="async"
@@ -192,7 +202,9 @@
         </figure>
       </div>
 
-      <div class="mt-6 flex items-center gap-4 border-t border-[#d9b77c]/18 pt-4 text-sm font-semibold uppercase text-[#d9b77c]">
+      <div
+        class="mt-6 flex items-center gap-4 border-t border-[#d9b77c]/18 pt-4 text-sm font-semibold uppercase text-[#d9b77c]"
+      >
         <button
           type="button"
           class="inline-flex items-center gap-2 transition hover:text-white disabled:cursor-default disabled:opacity-40"
@@ -202,7 +214,9 @@
           <span aria-hidden="true">←</span>
           <span>Prev</span>
         </button>
-        <span class="h-px flex-1 bg-gradient-to-r from-[#d9b77c]/25 via-[#f4d397]/58 to-[#d9b77c]/25"></span>
+        <span
+          class="h-px flex-1 bg-gradient-to-r from-[#d9b77c]/25 via-[#f4d397]/58 to-[#d9b77c]/25"
+        ></span>
         <button
           type="button"
           class="inline-flex items-center gap-2 transition hover:text-white disabled:cursor-default disabled:opacity-40"
@@ -282,7 +296,7 @@ import {
   type LiveSetlistItem,
 } from '@/composables/liveArchive'
 import type { Track } from '@/composables/releaseType'
-import { apiRoutes } from '@/config/api'
+import { apiRoutes, buildStaticAssetUrl } from '@/config/api'
 
 const TrackModal = defineAsyncComponent(() => import('@/components/milet/music/TrackModal.vue'))
 
@@ -313,11 +327,15 @@ const selectedPerformance = computed(() => {
   )
 })
 const selectedPerformanceIndex = computed(() => {
-  const index = performances.value.findIndex((item) => String(item.id) === selectedPerformanceId.value)
+  const index = performances.value.findIndex(
+    (item) => String(item.id) === selectedPerformanceId.value,
+  )
   return index >= 0 ? index : 0
 })
 const cityCount = computed(
-  () => event.value.cityCount || new Set(performances.value.map((item) => item.city).filter(Boolean)).size,
+  () =>
+    event.value.cityCount ||
+    new Set(performances.value.map((item) => item.city).filter(Boolean)).size,
 )
 const dateRange = computed(() => formatLiveDateRange(event.value))
 const artistLine = computed(() => event.value.artist || 'milet')
@@ -362,11 +380,15 @@ const setlistSubtitle = computed(() =>
 )
 const setlistState = computed(() => resolveLiveSetlistState(props.payload))
 const setlistEmptyMessage = computed(() => resolveSetlistEmptyMessage(props.payload, props.lang))
-const selectedStopNumber = computed(() => String(selectedPerformanceIndex.value + 1).padStart(2, '0'))
+const selectedStopNumber = computed(() =>
+  String(selectedPerformanceIndex.value + 1).padStart(2, '0'),
+)
 const selectedDateLine = computed(() => {
   const performance = selectedPerformance.value
   if (!performance) return ''
-  return [formatLiveDate(performance.date), performanceLabel(performance)].filter(Boolean).join(' / ')
+  return [formatLiveDate(performance.date), performanceLabel(performance)]
+    .filter(Boolean)
+    .join(' / ')
 })
 const selectedVenueLine = computed(() => {
   const performance = selectedPerformance.value
@@ -444,7 +466,9 @@ async function loadTrackDetail(track: Track) {
 async function handleTrackSelect(item: LiveSetlistItem) {
   const showId = String(item.songTrackId || item.songWorkId || '').trim()
   if (showId) {
-    trackModalTrack.value = await loadTrackDetail(emptyTrack(showId, item.displayTitle, item.duration))
+    trackModalTrack.value = await loadTrackDetail(
+      emptyTrack(showId, item.displayTitle, item.duration),
+    )
     trackModalMounted.value = true
     trackModalOpen.value = true
     return
