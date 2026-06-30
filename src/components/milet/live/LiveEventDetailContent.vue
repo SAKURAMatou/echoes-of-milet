@@ -25,6 +25,13 @@
       </div>
     </div>
 
+    <LiveTourEventDetailContent
+      v-else-if="payload && isTour"
+      :payload="payload"
+      :lang="lang"
+      :route-lang="routeLang"
+    />
+
     <article v-else-if="payload" class="grid gap-6">
       <section
         class="grid gap-7 rounded-lg border border-white/10 bg-[#031322]/38 p-4 shadow-[0_32px_120px_-80px_rgba(125,211,252,0.65)] sm:p-6 lg:grid-cols-[minmax(0,1fr)_minmax(20rem,28rem)_minmax(14rem,20rem)] lg:items-center"
@@ -82,48 +89,6 @@
         @select="selectPerformance"
       />
 
-      <section
-        v-if="isTour"
-        class="rounded-lg border border-[#86bde6]/22 bg-[#041827]/56 p-5"
-      >
-        <div class="flex flex-wrap items-center justify-between gap-3">
-          <h2 class="font-['Montserrat','sans-serif'] text-sm font-semibold uppercase tracking-[0.18em] text-[#d9b77c]">
-            Tour Route
-          </h2>
-          <span class="text-xs text-[#b8c8d5]">
-            {{ lang === 'ja' ? '各公演を選択できます' : '选择场次查看当日 setlist' }}
-          </span>
-        </div>
-        <div class="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5">
-          <button
-            v-for="(performance, index) in performances"
-            :key="performance.id"
-            type="button"
-            class="group min-w-0 rounded-lg border p-3 text-left transition"
-            :class="
-              selectedPerformanceId === String(performance.id)
-                ? 'border-[#d9b77c]/70 bg-[#d9b77c]/10 text-white shadow-[0_18px_44px_-35px_rgba(217,183,124,0.85)]'
-                : 'border-white/10 bg-white/[0.025] text-[#b8c8d5] hover:border-[#86bde6]/42 hover:bg-white/[0.055]'
-            "
-            @click="selectPerformance(performance.id)"
-          >
-            <span class="flex items-center gap-3">
-              <span
-                class="grid h-8 w-8 shrink-0 place-items-center rounded-full border border-current font-['Montserrat','sans-serif'] text-xs"
-              >
-                {{ String(index + 1).padStart(2, '0') }}
-              </span>
-              <span class="min-w-0">
-                <span class="block truncate font-serif text-xl leading-none">
-                  {{ performance.city || performanceLabel(performance, index) }}
-                </span>
-                <span class="mt-1 block truncate text-xs">{{ formatLiveDate(performance.date) }}</span>
-              </span>
-            </span>
-          </button>
-        </div>
-      </section>
-
       <section class="grid gap-5 lg:grid-cols-[minmax(15rem,20rem)_minmax(0,1fr)]">
         <LivePerformanceFacts :performance="selectedPerformance" :lang="lang" />
         <LiveSetlist
@@ -176,9 +141,9 @@ import LivePerformanceFacts from '@/components/milet/live/LivePerformanceFacts.v
 import LivePerformanceTabs from '@/components/milet/live/LivePerformanceTabs.vue'
 import LiveRelatedLinks from '@/components/milet/live/LiveRelatedLinks.vue'
 import LiveSetlist from '@/components/milet/live/LiveSetlist.vue'
+import LiveTourEventDetailContent from '@/components/milet/live/LiveTourEventDetailContent.vue'
 import {
   composeLiveSetlist,
-  formatLiveDate,
   formatLiveDateRange,
   formatLiveType,
   performanceLabel,
