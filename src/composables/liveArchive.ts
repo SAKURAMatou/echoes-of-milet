@@ -382,9 +382,6 @@ function cloneSetlistItem(item: LiveSetlistItem): LiveSetlistItem {
 function applyReplacement(item: LiveSetlistItem, override: LiveSetlistOverride): LiveSetlistItem {
   return {
     ...item,
-    itemKey: override.overrideItemKey || item.itemKey,
-    sortNo: override.sortNo ?? item.sortNo,
-    section: override.section || item.section,
     songWorkId: override.songWorkId ?? item.songWorkId,
     songTrackId: override.songTrackId ?? item.songTrackId,
     displayTitle: override.displayTitle || item.displayTitle,
@@ -407,6 +404,13 @@ function compareLiveSetlistItemsForDisplay(a: LiveSetlistItem, b: LiveSetlistIte
   const sortDelta = (Number(a.sortNo) || 0) - (Number(b.sortNo) || 0)
   if (sortDelta !== 0) return sortDelta
   return String(a.itemKey).localeCompare(String(b.itemKey))
+}
+
+function renumberLiveSetlistItems(items: LiveSetlistItem[]) {
+  return [...items].sort(compareLiveSetlistItemsForDisplay).map((item, index) => ({
+    ...item,
+    sortNo: index + 1,
+  }))
 }
 
 export function composeLiveSetlist(
@@ -470,13 +474,7 @@ export function composeLiveSetlist(
     })
   }
 
-  return items
-    .filter((item) => item.displayTitle)
-    .sort((a, b) => {
-      const sortDelta = (Number(a.sortNo) || 0) - (Number(b.sortNo) || 0)
-      if (sortDelta !== 0) return sortDelta
-      return String(a.itemKey).localeCompare(String(b.itemKey))
-    })
+  return renumberLiveSetlistItems(items.filter((item) => item.displayTitle))
 }
 
 export function segmentLiveSetlist(items: LiveSetlistItem[]): LiveSetlistSegment[] {

@@ -7,14 +7,14 @@
     </h2>
 
     <dl class="mt-5 grid gap-4 text-[#f3eadf]">
-      <div v-for="fact in facts" :key="fact.label" class="grid grid-cols-[2rem_minmax(0,1fr)] gap-3">
+      <div v-for="fact in facts" :key="fact.label" class="grid grid-cols-[2.5rem_minmax(0,1fr)] gap-3">
         <span
-          class="mt-0.5 grid size-8 place-items-center rounded-full border border-[#d9b77c]/32 bg-[#d9b77c]/8 text-[#d9b77c]"
+          class="mt-0.5 grid size-10 place-items-center text-[#d9b77c]"
           aria-hidden="true"
         >
           <svg
             v-if="fact.icon === 'calendar'"
-            class="size-4"
+            class="size-[1.45rem]"
             viewBox="0 0 24 24"
             fill="none"
             stroke="currentColor"
@@ -29,7 +29,7 @@
           </svg>
           <svg
             v-else-if="fact.icon === 'clock'"
-            class="size-4"
+            class="size-[1.45rem]"
             viewBox="0 0 24 24"
             fill="none"
             stroke="currentColor"
@@ -42,7 +42,7 @@
           </svg>
           <svg
             v-else-if="fact.icon === 'venue'"
-            class="size-4"
+            class="size-[1.45rem]"
             viewBox="0 0 24 24"
             fill="none"
             stroke="currentColor"
@@ -57,7 +57,7 @@
           </svg>
           <svg
             v-else
-            class="size-4"
+            class="size-[1.45rem]"
             viewBox="0 0 24 24"
             fill="none"
             stroke="currentColor"
