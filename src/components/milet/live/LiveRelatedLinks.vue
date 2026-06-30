@@ -7,7 +7,10 @@
       Related
     </h2>
 
-    <div class="mt-5 grid gap-5 lg:grid-cols-2">
+    <div
+      class="mt-5 grid gap-5"
+      :class="layout === 'rail' ? '' : 'lg:grid-cols-2'"
+    >
       <div v-if="articles.length" class="grid gap-2">
         <h3 class="text-sm font-semibold text-[#f3eadf]">{{ lang === 'ja' ? 'Articles' : '关联文章' }}</h3>
         <RouterLink
@@ -83,7 +86,10 @@ const props = defineProps<{
   galleries: LiveRelatedGallery[]
   lang: LiveLang
   routeLang: string
+  layout?: 'auto' | 'rail'
 }>()
+
+const layout = props.layout || 'auto'
 
 function articleTo(article: LiveRelatedArticle): RouteLocationRaw {
   if (article.url) return article.url

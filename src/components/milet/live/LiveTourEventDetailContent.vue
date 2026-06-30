@@ -1,74 +1,209 @@
 <template>
   <article class="grid gap-6">
-    <section
-      class="grid gap-6 overflow-hidden rounded-lg border border-[#86bde6]/24 bg-[#031322]/50 p-4 shadow-[0_34px_120px_-82px_rgba(125,211,252,0.72)] sm:p-6 lg:grid-cols-[minmax(0,1fr)_minmax(18rem,25rem)] lg:items-center"
-    >
-      <div class="min-w-0">
-        <p class="font-['Montserrat','sans-serif'] text-xs font-semibold uppercase tracking-[0.18em] text-[#d9b77c]">
-          {{ formatLiveType(event.type) }}
-        </p>
-        <h1 class="mt-4 font-serif text-[clamp(2.9rem,7vw,5.7rem)] leading-[0.92] text-[#f3eadf]">
-          {{ event.title }}
-        </h1>
-        <div class="mt-5 flex flex-wrap gap-2 text-xs font-semibold text-[#d9b77c]">
-          <span v-if="formatLiveDateRange(event)" class="rounded-full border border-[#d9b77c]/38 px-3 py-1">
-            {{ formatLiveDateRange(event) }}
-          </span>
-          <span class="rounded-full border border-[#d9b77c]/38 px-3 py-1">
-            {{ performances.length }} {{ lang === 'ja' ? 'Shows' : '场次' }}
-          </span>
-          <span v-if="cityCount" class="rounded-full border border-[#d9b77c]/38 px-3 py-1">
-            {{ cityCount }} {{ lang === 'ja' ? 'Cities' : '城市' }}
-          </span>
+    <section class="relative overflow-hidden border-b border-[#d9b77c]/18 pb-5 pt-2">
+      <div class="grid gap-6 lg:grid-cols-[minmax(0,1.18fr)_minmax(23rem,0.82fr)] lg:items-end">
+        <div class="min-w-0">
+          <p class="font-['Montserrat','sans-serif'] text-xs font-semibold uppercase text-[#d9b77c]">
+            {{ formatLiveType(event.type) }}
+          </p>
+          <h1 class="mt-3 font-serif text-5xl leading-none text-[#f3eadf] sm:text-6xl xl:text-7xl">
+            {{ event.title }}
+          </h1>
+          <p class="mt-2 font-serif text-2xl leading-tight text-[#f3eadf]/82">
+            {{ artistLine }}
+          </p>
+          <div class="mt-4 flex flex-wrap gap-2 text-xs font-semibold text-[#d9b77c]">
+            <span class="rounded-full border border-[#d9b77c]/45 px-3 py-1">
+              {{ formatLiveType(event.type) }}
+            </span>
+            <span v-if="dateRange" class="rounded-full border border-[#d9b77c]/45 px-3 py-1">
+              {{ dateRange }}
+            </span>
+            <span class="rounded-full border border-[#d9b77c]/45 px-3 py-1">
+              {{ performances.length }} {{ lang === 'ja' ? 'Performances' : '场次' }}
+            </span>
+            <span v-if="cityCount" class="rounded-full border border-[#d9b77c]/45 px-3 py-1">
+              {{ cityCount }} {{ lang === 'ja' ? 'Cities' : '城市' }}
+            </span>
+          </div>
+          <p class="mt-5 max-w-2xl whitespace-pre-line text-base leading-8 text-[#d8e8f3]">
+            {{ event.summary || fallbackSummary }}
+          </p>
         </div>
-        <p class="mt-7 max-w-2xl text-base leading-8 text-[#d8e8f3]">
-          {{ event.summary || fallbackSummary }}
-        </p>
-      </div>
 
-      <LiveMainVisualPanel :event="event" class="min-h-[18rem]" />
+        <dl class="grid grid-cols-2 rounded-lg border border-[#d9b77c]/22 bg-[#031322]/38 sm:grid-cols-4">
+          <div
+            v-for="stat in tourStats"
+            :key="stat.label"
+            class="grid min-h-[7.2rem] place-items-center border-[#d9b77c]/18 px-4 py-3 text-center sm:border-l first:border-l-0"
+          >
+            <dt class="grid gap-2 text-[#d9b77c]">
+              <span class="mx-auto grid size-9 place-items-center" aria-hidden="true">
+                <svg
+                  v-if="stat.icon === 'calendar'"
+                  class="size-7"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="1.7"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                >
+                  <path d="M8 2v4" />
+                  <path d="M16 2v4" />
+                  <rect width="18" height="18" x="3" y="4" rx="2" />
+                  <path d="M3 10h18" />
+                </svg>
+                <svg
+                  v-else-if="stat.icon === 'star'"
+                  class="size-7"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="1.7"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                >
+                  <path d="m12 2 3.1 6.3 6.9 1-5 4.9 1.2 6.8-6.2-3.2L5.8 21 7 14.2 2 9.3l6.9-1L12 2Z" />
+                </svg>
+                <svg
+                  v-else-if="stat.icon === 'pin'"
+                  class="size-7"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="1.7"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                >
+                  <path d="M12 21s7-4.4 7-11a7 7 0 1 0-14 0c0 6.6 7 11 7 11Z" />
+                  <circle cx="12" cy="10" r="2.4" />
+                </svg>
+                <svg
+                  v-else
+                  class="size-7"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="1.7"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                >
+                  <path d="M16 21v-2a4 4 0 0 0-8 0v2" />
+                  <circle cx="12" cy="7" r="4" />
+                  <path d="M22 21v-2a4 4 0 0 0-3-3.87" />
+                  <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+                  <path d="M2 21v-2a4 4 0 0 1 3-3.87" />
+                  <path d="M8 3.13a4 4 0 0 0 0 7.75" />
+                </svg>
+              </span>
+              <span class="text-xs text-[#d9b77c]/78">{{ stat.label }}</span>
+            </dt>
+            <dd class="mt-2 font-serif text-xl leading-tight text-[#f3eadf]">
+              {{ stat.value }}
+            </dd>
+          </div>
+        </dl>
+      </div>
     </section>
 
-    <section class="grid gap-5 xl:grid-cols-[minmax(0,1fr)_minmax(18rem,24rem)]">
-      <LiveTourRoute
-        :performances="performances"
-        :selected-id="selectedPerformanceId"
-        :title="event.title"
-        :city-count="cityCount"
-        :lang="lang"
-        @select="selectPerformance"
-      />
+    <LiveTourRoute
+      :event="event"
+      :performances="performances"
+      :selected-id="selectedPerformanceId"
+      :title="event.title"
+      :city-count="cityCount"
+      :lang="lang"
+      @select="selectPerformance"
+    />
 
-      <div class="grid gap-5">
-        <section class="rounded-lg border border-[#d9b77c]/24 bg-[#061827]/78 p-5">
-          <p class="font-['Montserrat','sans-serif'] text-xs font-semibold uppercase tracking-[0.18em] text-[#d9b77c]">
-            Current Stop
+    <section class="rounded-lg border border-[#d9b77c]/45 bg-[#031322]/64 p-5 shadow-[0_32px_96px_-62px_rgba(244,211,151,0.82)] sm:p-6">
+      <div class="grid gap-5 lg:grid-cols-[8rem_minmax(0,1fr)_minmax(12rem,18rem)_minmax(9rem,12rem)_minmax(12rem,1fr)] lg:items-center">
+        <div class="border-[#d9b77c]/30 lg:border-r">
+          <p class="text-sm text-[#d9b77c]">{{ lang === 'ja' ? '選択公演' : '选中场次' }}</p>
+          <p class="mt-2 font-['Montserrat','sans-serif'] text-6xl leading-none text-[#f4d397]">
+            {{ selectedStopNumber }}
           </p>
-          <h2 class="mt-3 font-serif text-3xl leading-tight text-[#f3eadf]">
+        </div>
+        <div>
+          <h2 class="font-serif text-4xl leading-tight text-[#f3eadf]">
             {{ selectedPerformance?.city || setlistSubtitle }}
           </h2>
-          <p class="mt-2 text-sm leading-6 text-[#b8c8d5]">
-            {{ [selectedPerformance?.venueName, selectedPerformance?.region].filter(Boolean).join(' / ') || event.venueSummary || '-' }}
-          </p>
-        </section>
+          <p class="mt-2 text-lg text-[#d8e8f3]">{{ selectedDateLine }}</p>
+        </div>
+        <div class="flex items-start gap-3 text-[#d8e8f3]">
+          <svg
+            class="mt-1 size-6 shrink-0 text-[#d9b77c]"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.8"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            aria-hidden="true"
+          >
+            <path d="M12 21s7-4.4 7-11a7 7 0 1 0-14 0c0 6.6 7 11 7 11Z" />
+            <circle cx="12" cy="10" r="2.4" />
+          </svg>
+          <div class="min-w-0">
+            <p class="break-words text-lg text-[#f3eadf]">{{ selectedPerformance?.venueName || '-' }}</p>
+            <p class="mt-1 text-sm text-[#b8c8d5]">{{ selectedVenueLine }}</p>
+          </div>
+        </div>
+        <dl class="grid grid-cols-2 gap-3 border-[#d9b77c]/22 text-sm text-[#d8e8f3] lg:border-l lg:pl-6">
+          <div>
+            <dt class="font-['Montserrat','sans-serif'] text-xs uppercase text-[#d9b77c]">Open</dt>
+            <dd class="mt-1 text-lg text-[#f3eadf]">{{ selectedPerformance?.openTime || '-' }}</dd>
+          </div>
+          <div>
+            <dt class="font-['Montserrat','sans-serif'] text-xs uppercase text-[#d9b77c]">Start</dt>
+            <dd class="mt-1 text-lg text-[#f3eadf]">{{ selectedPerformance?.startTime || '-' }}</dd>
+          </div>
+        </dl>
+        <p class="text-sm leading-6 text-[#d8e8f3]">
+          {{ selectedNote || (lang === 'ja' ? '選択した公演の setlist を表示中です。' : '正在展示选中场次的 setlist。') }}
+        </p>
+      </div>
 
-        <LivePerformanceFacts :performance="selectedPerformance" :lang="lang" />
+      <div class="mt-6 flex items-center gap-4 border-t border-[#d9b77c]/18 pt-4 text-sm font-semibold uppercase text-[#d9b77c]">
+        <button
+          type="button"
+          class="inline-flex items-center gap-2 transition hover:text-white disabled:cursor-default disabled:opacity-40"
+          :disabled="performances.length < 2"
+          @click="selectAdjacent(-1)"
+        >
+          <span aria-hidden="true">←</span>
+          <span>Prev</span>
+        </button>
+        <span class="h-px flex-1 bg-gradient-to-r from-[#d9b77c]/25 via-[#f4d397]/58 to-[#d9b77c]/25"></span>
+        <button
+          type="button"
+          class="inline-flex items-center gap-2 transition hover:text-white disabled:cursor-default disabled:opacity-40"
+          :disabled="performances.length < 2"
+          @click="selectAdjacent(1)"
+        >
+          <span>Next</span>
+          <span aria-hidden="true">→</span>
+        </button>
       </div>
     </section>
 
-    <LiveSetlist
-      :segments="setlistSegments"
-      :subtitle="setlistSubtitle"
-      :lang="lang"
-      @select-track="handleTrackSelect"
-    />
+    <section class="grid gap-5 xl:grid-cols-[minmax(0,1.45fr)_minmax(19rem,0.85fr)] xl:items-start">
+      <LiveSetlist
+        :segments="setlistSegments"
+        :subtitle="setlistSubtitle"
+        :lang="lang"
+        @select-track="handleTrackSelect"
+      />
 
-    <LiveRelatedLinks
-      :articles="payload.relatedArticles || []"
-      :galleries="payload.relatedGalleries || []"
-      :lang="lang"
-      :route-lang="routeLang"
-    />
+      <LiveRelatedLinks
+        :articles="payload.relatedArticles || []"
+        :galleries="payload.relatedGalleries || []"
+        :lang="lang"
+        :route-lang="routeLang"
+        layout="rail"
+      />
+    </section>
 
     <p
       v-if="trackNotice"
@@ -99,17 +234,17 @@ import { computed, defineAsyncComponent, onBeforeUnmount, ref, watch } from 'vue
 import { RouterLink } from 'vue-router'
 
 import axiosInstance from '@/AxiosUtil'
-import LiveMainVisualPanel from '@/components/milet/live/LiveMainVisualPanel.vue'
-import LivePerformanceFacts from '@/components/milet/live/LivePerformanceFacts.vue'
 import LiveRelatedLinks from '@/components/milet/live/LiveRelatedLinks.vue'
 import LiveSetlist from '@/components/milet/live/LiveSetlist.vue'
 import LiveTourRoute from '@/components/milet/live/LiveTourRoute.vue'
 import {
   composeLiveSetlist,
+  formatLiveDate,
   formatLiveDateRange,
   formatLiveType,
   performanceLabel,
   segmentLiveSetlist,
+  selectedPerformanceNotes,
   type LiveEventDetailPayload,
   type LiveLang,
   type LiveSetlistItem,
@@ -145,14 +280,42 @@ const selectedPerformance = computed(() => {
     null
   )
 })
+const selectedPerformanceIndex = computed(() => {
+  const index = performances.value.findIndex((item) => String(item.id) === selectedPerformanceId.value)
+  return index >= 0 ? index : 0
+})
 const cityCount = computed(
   () => event.value.cityCount || new Set(performances.value.map((item) => item.city).filter(Boolean)).size,
 )
+const dateRange = computed(() => formatLiveDateRange(event.value))
+const artistLine = computed(() => event.value.artist || 'milet')
 const fallbackSummary = computed(() =>
   props.lang === 'ja'
     ? 'ツアーの日程、会場、setlist と関連コンテンツを記録しています。'
     : '记录这轮巡演的日程、场地、曲目与相关内容。',
 )
+const tourStats = computed(() => [
+  {
+    icon: 'calendar',
+    label: props.lang === 'ja' ? '巡演期間' : '巡演期间',
+    value: dateRange.value || '-',
+  },
+  {
+    icon: 'star',
+    label: props.lang === 'ja' ? 'Performances' : '场次',
+    value: String(performances.value.length || event.value.performanceCount || 0),
+  },
+  {
+    icon: 'pin',
+    label: props.lang === 'ja' ? 'Cities' : '城市',
+    value: String(cityCount.value || 0),
+  },
+  {
+    icon: 'people',
+    label: props.lang === 'ja' ? 'Tour' : '类型',
+    value: formatLiveType(event.value.type),
+  },
+])
 const selectedOverrides = computed(() => {
   const key = selectedPerformance.value?.id
   if (key === undefined || key === null) return []
@@ -165,6 +328,20 @@ const setlistSegments = computed(() => segmentLiveSetlist(setlistItems.value))
 const setlistSubtitle = computed(() =>
   selectedPerformance.value ? performanceLabel(selectedPerformance.value) : '',
 )
+const selectedStopNumber = computed(() => String(selectedPerformanceIndex.value + 1).padStart(2, '0'))
+const selectedDateLine = computed(() => {
+  const performance = selectedPerformance.value
+  if (!performance) return ''
+  return [formatLiveDate(performance.date), performanceLabel(performance)].filter(Boolean).join(' / ')
+})
+const selectedVenueLine = computed(() => {
+  const performance = selectedPerformance.value
+  if (!performance) return ''
+  return [performance.city, performance.region].filter(Boolean).join(', ')
+})
+const selectedNote = computed(() =>
+  selectedPerformance.value ? selectedPerformanceNotes(selectedPerformance.value, props.lang) : '',
+)
 
 function syncInitialPerformance() {
   const initial = props.payload.initialPerformanceId
@@ -174,6 +351,14 @@ function syncInitialPerformance() {
 
 function selectPerformance(id: string | number) {
   selectedPerformanceId.value = String(id)
+}
+
+function selectAdjacent(delta: number) {
+  if (performances.value.length < 2) return
+  const nextIndex =
+    (selectedPerformanceIndex.value + delta + performances.value.length) % performances.value.length
+  const next = performances.value[nextIndex]
+  if (next) selectPerformance(next.id)
 }
 
 function emptyTrack(showId: string, title: string, duration?: string): Track {
