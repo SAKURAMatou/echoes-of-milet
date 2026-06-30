@@ -1,21 +1,58 @@
 <template>
-  <article class="overflow-hidden rounded-lg text-[#24323a]">
-    <header class="border-b border-[#c9ddea]/70 px-4 py-7 sm:px-7">
-      <p class="font-['Montserrat','sans-serif'] text-[12px] font-semibold uppercase tracking-[.18em] text-[#317f8d]">
-        Live Archive
-      </p>
-      <h1 class="milet-page-title-font mt-4 text-5xl leading-none text-[#143d63] sm:text-6xl md:text-7xl">
-        {{ routeLang === 'ja' ? 'Live Archive' : 'Live Archive' }}
-      </h1>
-      <p class="mt-4 max-w-3xl text-sm leading-7 text-[#5f7178]">
-        {{ routeLang === 'ja'
-          ? '公演ごとの日付、会場、setlist と関連コンテンツを整理します。'
-          : '整理演出的日期、场馆、setlist 与关联内容，把 live 的余韵留在同一个入口。' }}
-      </p>
+  <article
+    class="live-archive-page overflow-hidden rounded-lg bg-[linear-gradient(to_bottom_right,white,#ebf8ff,#bee3f8)] text-[#24323a] backdrop-blur-xl"
+  >
+    <header
+      class="live-archive-hero relative isolate overflow-hidden border-b border-[#c9ddea]/70 px-4 py-8 sm:px-7 md:py-9"
+    >
+      <div
+        class="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_76%_7%,rgba(186,230,253,0.64),transparent_30%),linear-gradient(135deg,rgba(255,255,255,0.94),rgba(240,249,255,0.5))]"
+      ></div>
+      <div class="live-archive-hero-photo pointer-events-none absolute inset-y-0 right-0 w-[58%]"></div>
+
+      <div class="relative grid gap-9 lg:grid-cols-[minmax(0,1fr)_minmax(18rem,28rem)] lg:items-end">
+        <div>
+          <p class="font-['Montserrat','sans-serif'] text-[12px] font-semibold uppercase tracking-[.18em] text-[#317f8d]">
+            CURRENT: Live Archive
+          </p>
+          <h1 class="milet-page-title-font mt-5 text-6xl leading-none text-[#143d63] md:text-7xl">
+            {{ routeLang === 'ja' ? 'Live Archive' : 'Live Archive' }}
+          </h1>
+          <p class="mt-5 max-w-xl text-sm font-medium leading-7 text-slate-600">
+            {{ routeLang === 'ja'
+              ? '公演ごとの日付、会場、setlist と関連コンテンツを整理します。'
+              : '整理演出的日期、场馆、setlist 与关联内容，把 live 的余韵留在同一个入口。' }}
+          </p>
+        </div>
+
+        <aside
+          class="live-archive-hero-rail relative mt-6 hidden min-h-[10rem] text-[#173e63] md:block lg:mt-0"
+          aria-hidden="true"
+        >
+          <div class="absolute right-0 top-4 flex w-72 items-center gap-4">
+            <span class="h-px flex-1 bg-[linear-gradient(90deg,rgba(184,148,68,0.14),rgba(184,148,68,0.72))]"></span>
+            <span class="grid size-2.5 rotate-45 place-items-center border border-[#b89444]/60 bg-white/82 shadow-[0_0_0_5px_rgba(255,255,255,0.38)]">
+              <span class="size-1 rounded-full bg-[#b89444]/70"></span>
+            </span>
+          </div>
+          <div class="absolute bottom-3 right-5 h-24 w-72 overflow-hidden opacity-65">
+            <span
+              v-for="line in 9"
+              :key="line"
+              class="live-archive-hero-signal absolute bottom-0 h-[18px] w-px origin-bottom bg-[#317f8d]/28"
+              :style="{
+                left: `${line * 10}%`,
+                transform: `scaleY(${0.4 + (line % 4) * 0.2})`,
+                animationDelay: `${line * 90}ms`,
+              }"
+            ></span>
+          </div>
+        </aside>
+      </div>
     </header>
 
-    <section class="border-b border-[#c9ddea]/70 bg-white/42 px-4 py-4 sm:px-7">
-      <div class="grid gap-3 lg:grid-cols-[minmax(0,1fr)_14rem_auto]">
+    <section class="border-b border-[#c9ddea]/70 bg-white/48 px-4 py-4 sm:px-7">
+      <div class="grid gap-3 rounded-lg border border-sky-100/80 bg-white/52 p-3 shadow-[0_18px_45px_-38px_rgba(15,23,42,0.54)] backdrop-blur lg:grid-cols-[minmax(0,1fr)_14rem_auto]">
         <label class="grid gap-1">
           <span class="text-xs font-semibold uppercase tracking-[0.14em] text-[#317f8d]">
             {{ routeLang === 'ja' ? 'Keyword' : '关键词' }}
@@ -46,7 +83,7 @@
 
         <button
           type="button"
-          class="mt-auto h-11 rounded-lg border border-[#317f8d]/40 bg-[#f0fdfa]/70 px-5 text-sm font-bold text-[#1d6564] transition hover:bg-[#ccfbf1]/70"
+          class="mt-auto h-11 rounded-lg border border-[#317f8d]/40 bg-[#317f8d] px-5 text-sm font-bold text-white shadow-[0_16px_28px_-22px_rgba(20,61,99,0.85)] transition hover:bg-[#246d7c]"
           @click="applyFilters"
         >
           {{ routeLang === 'ja' ? 'Search' : '搜索' }}
@@ -79,7 +116,7 @@
           v-for="item in items"
           :key="item.id"
           :to="{ name: 'miletLiveDetail', params: { lang: routeLang, slug: item.slug } }"
-          class="group grid overflow-hidden rounded-lg border border-[#c9ddea]/80 bg-white/76 shadow-[0_18px_54px_-44px_rgba(49,82,103,0.62)] transition hover:-translate-y-0.5 hover:border-[#8bc7de] hover:shadow-[0_26px_70px_-46px_rgba(49,82,103,0.72)]"
+          class="group grid overflow-hidden rounded-lg border border-[#c9ddea]/80 bg-white/78 shadow-[0_18px_54px_-44px_rgba(49,82,103,0.62)] backdrop-blur transition hover:-translate-y-0.5 hover:border-[#8bc7de] hover:bg-white/88 hover:shadow-[0_26px_70px_-46px_rgba(49,82,103,0.72)]"
         >
           <div class="relative aspect-[16/9] overflow-hidden bg-[#edf7fb]">
             <img
@@ -91,6 +128,9 @@
             <div v-else class="grid h-full place-items-center font-serif text-3xl text-[#317f8d]">
               Live Archive
             </div>
+            <div
+              class="pointer-events-none absolute inset-x-0 bottom-0 h-20 bg-[linear-gradient(0deg,rgba(3,19,34,0.4),transparent)]"
+            ></div>
             <span
               class="absolute left-3 top-3 rounded-full border border-white/70 bg-white/82 px-3 py-1 text-[11px] font-bold uppercase tracking-[0.12em] text-[#143d63] backdrop-blur"
             >
@@ -103,7 +143,7 @@
               <p class="text-xs font-semibold uppercase tracking-[0.16em] text-[#317f8d]">
                 {{ item.year || formatLiveDateRange(item).slice(0, 4) || 'LIVE' }}
               </p>
-              <h2 class="mt-1 font-serif text-3xl leading-tight text-[#143d63]">
+              <h2 class="mt-1 font-serif text-3xl leading-tight text-[#143d63] transition group-hover:text-[#317f8d]">
                 {{ item.title }}
               </h2>
             </div>
@@ -236,3 +276,64 @@ watch(routeLang, () => {
   void loadList(1)
 })
 </script>
+
+<style scoped>
+.live-archive-hero {
+  min-height: 18rem;
+}
+
+.live-archive-hero-photo {
+  background:
+    linear-gradient(
+      90deg,
+      rgba(255, 255, 255, 0.94),
+      rgba(240, 249, 255, 0.12) 34%,
+      rgba(255, 255, 255, 0.02)
+    ),
+    url('/background/live-archive-hero-bg.webp') center right / cover no-repeat;
+  opacity: 0.94;
+}
+
+.live-archive-hero::after {
+  content: '';
+  pointer-events: none;
+  position: absolute;
+  inset: auto 2rem 1.35rem 2rem;
+  height: 1px;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(184, 148, 68, 0.58),
+    rgba(184, 148, 68, 0.16),
+    transparent
+  );
+}
+
+.live-archive-hero-signal {
+  animation: live-archive-signal-pulse 1.9s ease-in-out infinite;
+}
+
+@keyframes live-archive-signal-pulse {
+  0%,
+  100% {
+    opacity: 0.3;
+  }
+
+  50% {
+    opacity: 0.76;
+  }
+}
+
+@media (max-width: 767px) {
+  .live-archive-hero {
+    min-height: 15rem;
+  }
+
+  .live-archive-hero-photo {
+    inset: 0;
+    width: auto;
+    background-position: 58% center;
+    opacity: 0.32;
+  }
+}
+</style>
