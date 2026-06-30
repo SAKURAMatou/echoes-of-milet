@@ -74,11 +74,29 @@
             {{ fact.label }}
           </dt>
           <dd class="mt-1 break-words text-lg leading-7">
-            {{ fact.value }}
+            <a
+              v-if="fact.href"
+              :href="fact.href"
+              target="_blank"
+              rel="noopener noreferrer"
+              class="underline decoration-[#d9b77c]/45 underline-offset-4 transition hover:text-[#9fd4ff] hover:decoration-[#9fd4ff]"
+            >
+              {{ fact.value }}
+            </a>
+            <template v-else>{{ fact.value }}</template>
           </dd>
         </div>
       </div>
     </dl>
+
+    <img
+      v-if="venueLineArtUrl"
+      :src="venueLineArtUrl"
+      alt=""
+      loading="lazy"
+      decoding="async"
+      class="mt-5 w-full rounded-md object-contain"
+    />
 
     <p v-if="notes" class="mt-5 border-t border-white/10 pt-4 text-sm leading-6 text-[#b8c8d5]">
       {{ notes }}
@@ -91,7 +109,9 @@ import { computed } from 'vue'
 
 import {
   formatLiveDate,
+  normalizeExternalUrl,
   performanceLabel,
+  resolveVenueLineArtUrl,
   selectedPerformanceNotes,
   type LiveLang,
   type LivePerformance,
@@ -117,10 +137,17 @@ const facts = computed(() => {
       label: 'Open / Start',
       value: [performance.openTime, performance.startTime].filter(Boolean).join(' / '),
     },
-    { icon: 'venue', label: 'Venue', value: performance.venueName || performance.venueAddress || '' },
+    {
+      icon: 'venue',
+      label: 'Venue',
+      value: performance.venueName || performance.venueAddress || '',
+      href: performance.venueName ? normalizeExternalUrl(performance.venueOfficialUrl) : '',
+    },
     { icon: 'city', label: 'City', value: [performance.city, performance.region].filter(Boolean).join(', ') },
   ].filter((fact) => fact.value)
 })
+
+const venueLineArtUrl = computed(() => resolveVenueLineArtUrl(props.performance))
 
 const notes = computed(() =>
   props.performance ? selectedPerformanceNotes(props.performance, props.lang) : '',

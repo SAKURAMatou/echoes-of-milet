@@ -95,6 +95,8 @@
           :segments="setlistSegments"
           :subtitle="setlistSubtitle"
           :lang="lang"
+          :setlist-state="setlistState"
+          :empty-message="setlistEmptyMessage"
           @select-track="handleTrackSelect"
         />
       </section>
@@ -147,6 +149,8 @@ import {
   formatLiveDateRange,
   formatLiveType,
   performanceLabel,
+  resolveLiveSetlistState,
+  resolveSetlistEmptyMessage,
   segmentLiveSetlist,
   type LiveEventDetailPayload,
   type LiveLang,
@@ -213,6 +217,8 @@ const setlistSegments = computed(() => segmentLiveSetlist(setlistItems.value))
 const setlistSubtitle = computed(() =>
   selectedPerformance.value ? performanceLabel(selectedPerformance.value) : '',
 )
+const setlistState = computed(() => resolveLiveSetlistState(props.payload))
+const setlistEmptyMessage = computed(() => resolveSetlistEmptyMessage(props.payload, props.lang))
 
 function syncInitialPerformance() {
   const initial = props.payload?.initialPerformanceId

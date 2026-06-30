@@ -7,6 +7,7 @@ export type LiveLang = 'zh' | 'ja'
 export type LiveEventType = 'one_man' | 'tour' | 'special_live' | 'festival' | string
 export type LiveSetlistSection = 'main' | 'encore' | 'double_encore' | string
 export type LiveSetlistOverrideOperation = 'add' | 'remove' | 'replace' | 'move' | 'note' | string
+export type LiveSetlistState = 'upcoming_hidden' | 'not_announced' | 'not_recorded' | 'published'
 
 export interface LiveImage {
   url?: string
@@ -60,6 +61,10 @@ export interface LivePerformance {
   region?: string
   venueName?: string
   venueAddress?: string
+  venueOfficialUrl?: string
+  venueLineArtImageUrl?: string
+  venueLineArtUrl?: string
+  venueLineArtImage?: LiveImage | string | null
   notesZh?: string
   notesJa?: string
   sortNo?: number
@@ -83,6 +88,8 @@ export interface LiveSetlist {
   eventId?: string | number
   title?: string
   notes?: string
+  setlistState?: LiveSetlistState
+  setlistEmptyMessage?: string
   items?: LiveSetlistItem[]
 }
 
@@ -140,6 +147,8 @@ export interface LiveEventDetailPayload {
   event: LiveEventDetail
   performances: LivePerformance[]
   eventSetlist?: LiveSetlist | null
+  setlistState?: LiveSetlistState
+  setlistEmptyMessage?: string
   setlistOverridesByPerformanceId?: Record<string, LiveSetlistOverride[]>
   relatedArticles?: LiveRelatedArticle[]
   relatedGalleries?: LiveRelatedGallery[]
@@ -369,6 +378,59 @@ export function resolveLiveImageUrl(image?: LiveImage | string | null) {
   if (raw.startsWith('/static/')) return `${getImginOrigin()}${raw}`
   if (raw.startsWith('/')) return raw
   return buildStaticAssetUrl(raw)
+}
+
+export function normalizeExternalUrl(value?: string | null) {
+  const url = String(value || '').trim()
+  return /^https?:\/\//i.test(url) ? url : ''
+}
+
+export function resolveVenueLineArtUrl(performance?: LivePerformance | null) {
+  if (!performance) return ''
+  const directUrl = performance.venueLineArtImageUrl || performance.venueLineArtUrl || ''
+  return resolveLiveImageUrl(directUrl || performance.venueLineArtImage || null)
+}
+
+export function resolveLiveSetlistState(payload?: LiveEventDetailPayload | null): LiveSetlistState {
+  const state = payload?.setlistState || payload?.eventSetlist?.setlistState
+  if (
+    state === 'upcoming_hidden' ||
+    state === 'not_announced' ||
+    state === 'not_recorded' ||
+    state === 'published'
+  ) {
+    return state
+  }
+
+  return (payload?.eventSetlist?.items || []).length > 0 ? 'published' : 'not_recorded'
+}
+
+export function defaultSetlistEmptyMessage(state: LiveSetlistState, lang: LiveLang) {
+  if (state === 'upcoming_hidden') {
+    return lang === 'ja'
+      ? '公演日まで setlist はまだ公開されていません。'
+      : '演出日期未到，setlist 暂未公开。'
+  }
+  if (state === 'not_announced') {
+    return lang === 'ja'
+      ? 'setlist 情報はまだ発表されていません。'
+      : '相关 setlist 信息尚未公布。'
+  }
+  if (state === 'not_recorded') {
+    return lang === 'ja'
+      ? 'setlist 資料はまだ整理中です。'
+      : 'setlist 资料暂未录入。'
+  }
+  return lang === 'ja' ? 'Setlist はまだありません。' : '暂无 setlist。'
+}
+
+export function resolveSetlistEmptyMessage(
+  payload: LiveEventDetailPayload | null | undefined,
+  lang: LiveLang,
+) {
+  const state = resolveLiveSetlistState(payload)
+  const message = payload?.setlistEmptyMessage || payload?.eventSetlist?.setlistEmptyMessage
+  return String(message || '').trim() || defaultSetlistEmptyMessage(state, lang)
 }
 
 function cloneSetlistItem(item: LiveSetlistItem): LiveSetlistItem {

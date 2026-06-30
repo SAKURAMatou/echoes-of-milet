@@ -9,12 +9,12 @@
         </h2>
         <p v-if="subtitle" class="mt-1 text-sm text-[#b8c8d5]">{{ subtitle }}</p>
       </div>
-      <p class="text-xs text-[#b8c8d5]">
+      <p v-if="isPublished" class="text-xs text-[#b8c8d5]">
         {{ lang === 'ja' ? '曲目をクリックして楽曲情報へ' : '点击曲目查看歌曲详情' }}
       </p>
     </div>
 
-    <div v-if="segments.length" class="mt-5 grid gap-6">
+    <div v-if="isPublished && segments.length" class="mt-5 grid gap-6">
       <div v-for="segment in segments" :key="segment.key">
         <div class="mb-3 flex items-center gap-3 text-[#d9b77c]">
           <span class="h-px flex-1 bg-[#d9b77c]/22"></span>
@@ -58,25 +58,38 @@
       </div>
     </div>
 
-    <p v-else class="mt-5 rounded border border-dashed border-white/16 p-6 text-center text-sm text-[#b8c8d5]">
-      {{ lang === 'ja' ? 'Setlist はまだありません。' : '暂无 setlist。' }}
-    </p>
+    <div v-else class="mt-5 rounded border border-dashed border-white/16 p-6 text-center">
+      <p class="text-sm leading-7 text-[#b8c8d5]">
+        {{ emptyMessage || defaultSetlistEmptyMessage(setlistState, lang) }}
+      </p>
+    </div>
   </section>
 </template>
 
 <script setup lang="ts">
+import { computed } from 'vue'
+
 import {
+  defaultSetlistEmptyMessage,
   sectionLabel,
   type LiveLang,
+  type LiveSetlistState,
   type LiveSetlistItem,
   type LiveSetlistSegment,
 } from '@/composables/liveArchive'
 
-defineProps<{
+const props = withDefaults(defineProps<{
   segments: LiveSetlistSegment[]
   subtitle?: string
   lang: LiveLang
-}>()
+  setlistState?: LiveSetlistState
+  emptyMessage?: string
+}>(), {
+  setlistState: 'published',
+  emptyMessage: '',
+})
+
+const isPublished = computed(() => props.setlistState === 'published')
 
 defineEmits<{
   'select-track': [item: LiveSetlistItem]

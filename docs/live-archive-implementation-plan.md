@@ -361,6 +361,8 @@ city
 region
 venueName
 venueAddress
+venueOfficialUrl
+venueLineArtImageId
 notesZh
 notesJa
 sortNo
@@ -399,7 +401,21 @@ setlist 建议采用“演出级默认配置 + 场次级差异调整”。
 id
 eventId
 title
+setlistState: upcoming_hidden | not_announced | not_recorded | published
+emptyMessageZh
+emptyMessageJa
 notes
+```
+
+`setlistState` 用于处理 setlist 未录入、演出未开始或信息未公开的情况，不等同于 event 的发布状态。第一阶段按 event 级维护状态，巡演所有场次共用同一 setlist 公开状态。
+
+建议枚举：
+
+```text
+upcoming_hidden
+not_announced
+not_recorded
+published
 ```
 
 setlist items：
@@ -452,6 +468,10 @@ notes
 - 公开端提供一个 SSR/CSR 共用的纯函数合成当前场次有效 setlist。
 - SSR 首屏使用同一个合成函数生成默认选中场次的 setlist，客户端切换场次时复用该函数。
 - 这样 20 场左右的巡演也只需要传输一份默认 setlist 和少量差异数据。
+- setlist 允许为空，但 API 需要返回明确的 `setlistState`，供公开端展示空状态。
+- 如果 `setlistState = published`，则必须至少存在一个有效曲目；否则不能发布为“已公开 setlist”。
+- 如果演出未开始且未公开 setlist，公开端文案优先提示“演出日期未到，setlist 暂未公开”。
+- 如果演出已结束但仍未录入，公开端文案提示“setlist 信息暂未公开”或使用管理端配置的空状态文案。
 
 合成顺序：
 
@@ -601,9 +621,10 @@ updatedAt
 - 必须设置主视觉图。
 - 至少存在一个场次。
 - 场次必须有日期、开场/开演时间、城市和场馆。
-- 必须存在演出级默认 setlist。
-- setlist 至少包含一个 `main` section 曲目。
-- 已关联曲目必须能映射到发布物曲目关联使用的 track 标识。
+- 场馆官网如填写，必须是合法 `http(s)` URL。
+- setlist 可以未公开或未录入，但必须有明确的 `setlistState`。
+- 当 setlist 状态为 `published` 时，才要求至少包含一个 `main` section 曲目。
+- 当 setlist 状态为 `published` 时，已关联曲目必须能映射到发布物曲目关联使用的 track 标识。
 - 显示配置未发布时允许发布演出，但公开端使用默认 blueprint。
 - 第一版显示配置发布时只校验 blueprint 和 themePreset 均在 catalog 中存在。
 - Phase 5 增加组件级配置后，再校验 componentKey。
@@ -764,11 +785,7 @@ GET /api/milet/live/preview/:previewId?token=...
 
 ### KV 数据设计
 
-KV binding 建议：
-
-```text
-LIVE_PREVIEW_KV
-```
+KV binding 使用现有 `miletkv`，不为 Live Archive 额外新增 KV binding。通过 key prefix 隔离不同用途。
 
 KV key：
 
@@ -916,6 +933,8 @@ event
 performances[]
 eventSetlist
 setlistOverridesByPerformanceId
+setlistState
+setlistEmptyMessage
 relatedArticles
 relatedGalleries
 displayConfig
@@ -953,6 +972,9 @@ POST /admin/live/cache/clear-list
 GET  /admin/live/events/:id/performances
 POST /admin/live/performances/save
 POST /admin/live/performances/delete
+POST /admin/live/events/:id/performances/imports
+GET  /admin/live/performance-imports/:importId/preview
+POST /admin/live/performance-imports/:importId/confirm
 
 GET  /admin/live/events/:id/setlist
 POST /admin/live/events/:id/setlist/save
@@ -1015,6 +1037,7 @@ Live Archive 管理
 ```text
 编辑信息
 场次
+导入场次
 Setlist
 关联内容
 显示效果
@@ -1077,11 +1100,15 @@ tour：
 地区
 场馆名称
 场馆地址
+场馆官网
+场馆线条图
 备注
 排序
 ```
 
 巡演场地信息不需要在演出主表里堆叠，全部进入 performance 层。
+
+巡演场次数量较多时，管理端应提供“导入场次”弹窗，支持单段 TSV 粘贴、导入预览和确认写入。导入流程参照圣地巡礼地点导入，不能粘贴后直接写库。
 
 ### Setlist 设置
 
@@ -1098,13 +1125,15 @@ setlist 设置使用多个弹窗入口，避免单个表单过重。
 默认 Setlist 弹窗：
 
 1. 维护演出级默认 setlist。
-2. 弹窗内按 section 分组显示曲目：
+2. 维护 setlist 状态：已公开、未公布、演出前隐藏、未录入。
+3. 当状态不是已公开时，允许不添加曲目，并可维护空状态文案。
+4. 弹窗内按 section 分组显示曲目：
    - Main
    - Encore
    - Double Encore
-3. 每个 section 内独立排序。
-4. 移动曲目时允许跨 section 调整。
-5. 添加曲目时打开“曲目选择弹窗”。
+5. 每个 section 内独立排序。
+6. 移动曲目时允许跨 section 调整。
+7. 添加曲目时打开“曲目选择弹窗”。
 
 曲目选择弹窗：
 
@@ -1116,14 +1145,15 @@ setlist 设置使用多个弹窗入口，避免单个表单过重。
 
 1. 选择具体场次。
 2. 基于默认 setlist 展示差异状态。
-3. 对该场次维护差异：
+3. 如果默认 setlist 尚未公开，提示先公开默认 setlist，第一版不允许配置场次差异。
+4. 对该场次维护差异：
    - 添加曲目。
    - 移除曲目。
    - 替换曲目。
    - 调整顺序。
    - 调整 section。
    - 添加备注。
-4. 支持复制其他场次的差异配置。
+5. 支持复制其他场次的差异配置。
 
 这样可以降低数据输入时表单的视觉复杂度，也避免一个弹窗同时承担默认 setlist、曲目搜索和场次覆盖三类任务。
 
@@ -1265,20 +1295,18 @@ live_performance_setlist_overrides.performance_id -> live_performances.id
 
 ## Worker 绑定
 
-草稿预览使用 KV 暂存，不新增 D1 preview 表。
+草稿预览和场次导入预览使用现有 `miletkv` 暂存，不新增 D1 preview/import 临时表，也不新增 Live Archive 专用 KV binding。
 
-`wrangler.jsonc` 需要新增 KV binding：
-
-```text
-LIVE_PREVIEW_KV
-```
-
-用途：
+`miletkv` 用途：
 
 - 保存 `live-preview:{previewId}`。
-- value 中包含草稿快照、tokenHash、expiresAt、createdBy。
+- 保存 `live-preview-index:{eventId}:{previewId}`，用于保存新草稿时主动删除旧 preview snapshot。
+- 保存 `live-performance-import:{importId}`。
+- preview value 中包含草稿快照、tokenHash、expiresAt、createdBy。
+- import value 中包含场次导入预览行、校验结果、eventId 和 createdBy。
 - 写入时设置 `expirationTtl`。
 - preview API 只读取 KV，不访问管理端 cookie。
+- 场次导入 key 只允许管理端 API 读取，不暴露给公开端。
 
 ## 公开端路由和导航
 
@@ -1335,6 +1363,7 @@ Worker 新增管理权限：
 { subject: 'live', action: 'delete' }
 { subject: 'live', action: 'publish' }
 { subject: 'live', action: 'archive' }
+{ subject: 'live', action: 'import' }
 ```
 
 管理端按钮通过现有 `PermissionButton` 和权限 composable 控制。
@@ -1345,6 +1374,7 @@ Worker 新增管理权限：
 - 不使用 `live:read`、`live:display:update` 这类字符串式权限。
 - 显示效果配置属于 live 更新能力，第一阶段使用 `live.update`。
 - 发布演出使用 `live.publish`，归档/下架使用 `live.archive`。
+- 场次批量导入使用 `live.import`，和现有巡礼导入权限风格保持一致。
 - 生成预览 token 需要 `live.view` 和 `live.update`，确保只有有权限维护演出的管理员可以查看草稿预览。
 
 ## 分阶段落地
@@ -1360,8 +1390,9 @@ Worker 新增管理权限：
 - 新增管理端 API。
 - 新增公开端列表和详情 API。
 - 新增 display config 表和基础读写 API，保证详情页第一版可以读取固定 blueprint / themePreset。
-- 新增 `LIVE_PREVIEW_KV` binding。
+- 复用现有 `miletkv` 暂存 preview snapshot 和场次导入预览，不新增 Live Archive 专用 KV binding。
 - 新增 preview token 生成 API 和公开端 preview 读取 API。
+- 新增场次导入解析、预览和确认 API。
 - 更新管理端与公开端代理白名单。
 
 ### Phase 2：管理端基础数据维护
@@ -1370,6 +1401,7 @@ Worker 新增管理权限：
 - 演出列表。
 - 添加/编辑演出弹窗。
 - 场次管理弹窗。
+- 场次导入弹窗。
 - setlist 管理弹窗。
 - 歌曲库搜索关联。
 - 关联文章/相册弹窗。
@@ -1409,9 +1441,12 @@ Worker 新增管理权限：
   - one man live Day 1 / Day 2 切换。
   - tour 站点切换。
   - setlist 曲目弹窗。
+  - setlist 未公开/未录入空状态。
   - 语言切换。
   - 返回列表。
   - 无关联内容时模块隐藏。
+  - 场馆官网外链和场馆线条图展示。
+  - 管理端场次导入预览和确认。
   - 管理端生成 preview token 后跨域打开公开端预览。
   - preview 过期、token 错误、发布后失效的提示。
 
@@ -1433,7 +1468,12 @@ Worker 新增管理权限：
    - performance 级差异调整
    - 参照发布物曲目关联选择 track
    - 点击打开歌曲详情弹窗
-5. 显示配置：
+   - 支持未公开 / 未录入空状态
+5. 场次：
+   - 单条维护
+   - 单段 TSV 粘贴导入预览和确认
+   - 场馆官网和场馆线条图
+6. 显示配置：
    - blueprint
    - themePreset
    - 草稿 / 发布状态
@@ -1470,3 +1510,242 @@ Worker 新增管理权限：
 13. setlist item 使用稳定 `itemKey`，场次差异通过 `baseItemKey` / `overrideItemKey` 定位。
 14. setlist 有效结果在公开端通过 SSR/CSR 共用纯函数合成，接口不返回所有场次的完整 setlist。
 15. setlist 管理拆分为默认 Setlist、场次差异、曲目选择多个弹窗，降低单个表单复杂度。
+16. setlist 允许未公开或未录入，公开端 setlist 模块展示明确空状态，不直接隐藏模块。
+17. 每个场次支持维护场馆官网和场馆线条图，公开端场馆名称可外链打开。
+18. 巡演场次支持导入预览和确认写入，导入临时数据通过短 TTL KV 暂存。
+
+## 追加内容：场馆、场次导入与 Setlist 空状态
+
+本章节记录基于最新巡演详情效果图和管理端录入流程追加的需求，后续实现时需要和基础模型一起落地。
+
+### 场馆官网
+
+每个场次需要支持维护场馆官网地址：
+
+```text
+live_performances.venue_official_url
+```
+
+管理端：
+
+- 在场次弹窗中增加“场馆官网”输入字段。
+- 字段可为空。
+- 保存时校验 URL 协议，只允许 `https://` 或 `http://`。
+- 如果 URL 不合法，应在场次弹窗内提示，不进入发布校验阶段才暴露问题。
+
+公开端：
+
+- 演出信息模块展示场馆名称。
+- 如果 `venue_official_url` 存在，服务端映射为公开端可用的 `venueOfficialUrl`，场馆名称渲染为外链。
+- 点击场馆名称在新页面打开，对应 `<a target="_blank" rel="noopener noreferrer">`。
+- 如果不存在官网地址，则保持普通文本。
+
+### 场馆线条图
+
+每个场次需要支持关联一张场馆线条图，用于演出信息展示模块的视觉补充。
+
+建议字段：
+
+```text
+live_performances.venue_line_art_image_id
+```
+
+说明：
+
+- 图片本身继续使用现有图片/文件资源体系，不为 live 单独实现上传存储。
+- 线条图关联在 performance 层维护，便于同一巡演不同场馆展示不同图。
+- 第一阶段不抽独立 `venues` 主表；如果后续大量复用同一场馆，再考虑升级为场馆库。
+- 同一场馆多次出现时，管理端可以通过复制场次或导入模板复用同一图片 ID。
+- 服务端负责把 `venue_line_art_image_id` 转换为公开端可直接展示的图片 URL；公开端不再用图片 ID 自行二次查询。
+
+公开端：
+
+- 在 `SelectedPerformanceSummary` / 演出信息模块中展示场馆线条图。
+- 线条图只展示图片本身，不额外展示 credit、说明文案或占位线框。
+- 如果当前选中场次没有线条图，直接隐藏图片元素。
+- SSR 返回的数据中应包含图片访问所需的 URL，避免公开端二次查询。
+
+### 场次导入
+
+巡演场次数量可能达到 20 场左右，管理端需要提供场次导入能力，降低逐条录入成本。导入方式固定为单段 TSV 粘贴，只导入场次数据，不导入 setlist、场馆库或其他分段数据。粘贴后先生成预览并完成校验，管理员确认后才追加写入。
+
+导入入口：
+
+- 演出详情管理页的“场次”区域增加“导入场次”按钮。
+- 导入能力只针对已有 event，不负责创建 live event。
+- 导入使用独立弹窗或抽屉，避免和单条场次编辑表单混在一起。
+- 确认导入只追加 `live_performances` 新记录，不更新、不删除、不覆盖已有场次。
+- 疑似重复的场次只标记为 `warning`，导入完成后交给管理员在场次列表中手动处理。
+
+模板建议包含：
+
+```text
+performanceNo
+label
+date
+openTime
+startTime
+city
+region
+venueName
+venueAddress
+venueOfficialUrl
+venueLineArtImageId
+notesZh
+notesJa
+sortNo
+```
+
+TSV 表头使用管理端字段名，写库时由 service 映射到 D1 的 snake_case 字段。
+
+字段规则：
+
+- `notesZh` / `notesJa` 可为空。
+- `venueLineArtImageId` 推荐填写，但允许为空；为空时标记 `warning`，不阻断导入。
+- 除备注和可选线条图以外，其他字段不能为空。
+- `date` 只接受 `YYYY-MM-DD`。
+- `openTime` / `startTime` 只接受 `HH:mm`。
+- `venueOfficialUrl` 如填写，只允许 `https://` 或 `http://`。
+- `venueLineArtImageId` 如填写，必须能映射到现有图片资源；服务端保存 ID，公开端数据由服务端转换为 URL。
+
+导入流程：
+
+```text
+粘贴单段 TSV
+  -> 前端逐行解析日期、时间、场馆官网和图片 ID
+  -> 前端校验必填字段、日期时间格式、URL 格式和图片 ID 格式
+  -> 服务端重复执行关键校验
+  -> 检查同一 event 下的日期、场馆、performanceNo 是否疑似重复
+  -> 生成导入预览
+  -> 标记可导入 / 需确认 / 失败
+  -> 如果存在 error，禁止整批导入并提示问题行
+  -> 如果只有 ready / warning，管理员确认后批量追加写入 live_performances
+  -> 清理 live detail cache 和 live list cache
+```
+
+导入结果状态：
+
+- `ready`：可直接导入。
+- `warning`：可导入但需要人工确认，例如疑似重复、缺少可选图片。
+- `error`：不可导入，例如日期格式错误、必填字段缺失、官网 URL 非法、图片 ID 格式错误。
+
+导入确认：
+
+- 只要预览中存在任意 `error`，确认按钮禁用，整批不写入。
+- `warning` 不阻断确认，但预览中需要突出显示对应行和原因。
+- 确认时服务端再次校验 import 记录状态，避免绕过前端直接确认错误数据。
+
+接口建议：
+
+```text
+POST /admin/live/events/:id/performances/imports
+GET  /admin/live/performance-imports/:importId/preview
+POST /admin/live/performance-imports/:importId/confirm
+```
+
+临时数据：
+
+- `POST /imports` 解析 TSV 粘贴内容后生成 `importId`，并把导入预览短期写入现有 `MILET_KV`（即现有 `milet_kv` 绑定）。
+- KV key 建议为 `live-performance-import:{importId}`。
+- TTL 建议 30-60 分钟，过期后管理员需要重新粘贴 TSV。
+- KV value 只保存解析后的行、校验结果、eventId、createdBy 和 createdAt，不保存原始粘贴文本。
+- `confirm` 时必须校验 import 记录的 eventId、createdBy 和权限，避免确认其他人的导入预览。
+
+权限：
+
+- 解析、预览和确认导入需要 `live.import`。
+- 导入确认写入仍属于 event 数据变更，service 层应复用场次保存的校验规则。
+
+### 迁移和测试环境字段更新
+
+live archive 尚未正式发布，新增字段不单独追加新 migration 文件，直接修改现有 live archive migration 中的表定义即可。实现时需要同步更新 ORM row 类型、列白名单、service 映射和公开端 DTO。
+
+正式 migration 表定义需要包含：
+
+```text
+live_performances.venue_official_url
+live_performances.venue_line_art_image_id
+live_setlists.setlist_state
+live_setlists.empty_message_zh
+live_setlists.empty_message_ja
+```
+
+已经执行过旧 migration 的测试环境，需要先检查列是否存在，再对缺失字段执行：
+
+```sql
+PRAGMA table_info(live_performances);
+
+ALTER TABLE live_performances ADD COLUMN venue_official_url TEXT;
+ALTER TABLE live_performances ADD COLUMN venue_line_art_image_id INTEGER;
+
+PRAGMA table_info(live_setlists);
+
+ALTER TABLE live_setlists ADD COLUMN setlist_state TEXT NOT NULL DEFAULT 'not_recorded'
+	CHECK (setlist_state IN ('upcoming_hidden', 'not_announced', 'not_recorded', 'published'));
+ALTER TABLE live_setlists ADD COLUMN empty_message_zh TEXT;
+ALTER TABLE live_setlists ADD COLUMN empty_message_ja TEXT;
+```
+
+### Setlist 空状态
+
+setlist 模块在公开端始终作为演出详情的一部分存在，但不要求每个演出在发布时都已经有 setlist 曲目。
+
+第一阶段 setlist 状态按 event 级维护。巡演通常在全部结束后才公开 setlist，不先做 performance 级 setlist 状态。
+
+需要覆盖的场景：
+
+```text
+演出未开始，setlist 未公布
+演出已结束，但资料暂未录入
+官方或资料来源未公开 setlist
+setlist 已配置并公开
+```
+
+管理端/服务端模型建议包含：
+
+```text
+setlistState: upcoming_hidden | not_announced | not_recorded | published
+setlistEmptyMessageZh
+setlistEmptyMessageJa
+```
+
+公开端详情接口建议返回：
+
+```text
+setlistState
+setlistEmptyMessage
+```
+
+存储和接口口径：
+
+- D1 字段建议使用 `live_setlists.setlist_state`、`live_setlists.empty_message_zh`、`live_setlists.empty_message_ja`。
+- 管理端编辑时可以读取和保存 zh / ja 两套空状态文案。
+- 公开端详情接口按 `lang` 返回当前语言可直接展示的 `setlistEmptyMessage`，与公开端现有数据获取方式保持一致。
+- 如果目标语言文案为空，按 `defaultLang` fallback；仍为空时使用对应 `setlistState` 的系统默认文案。
+
+公开端展示：
+
+- `published`：正常展示合成后的 setlist，并支持点击曲目打开歌曲详情弹窗。
+- `upcoming_hidden`：展示空状态，提示演出日期未到或 setlist 暂未公开。
+- `not_announced`：展示空状态，提示相关信息尚未公布。
+- `not_recorded`：展示空状态，提示资料暂未录入。
+- 空状态仍保留模块标题、选中场次信息和基础说明，不直接隐藏整个 setlist 模块。
+
+管理端：
+
+- 默认 Setlist 弹窗允许不添加曲目。
+- 需要提供 setlist 状态选择，而不是用“没有曲目”隐式表达原因。
+- 当状态选择为 `published` 时，才要求至少有一个 `main` section 曲目。
+- 当状态不是 `published` 时，场次差异弹窗可以禁用或提示“默认 setlist 尚未公开，暂不能设置场次差异”。
+- 后续补录 setlist 后，只需要把状态切换为 `published` 并保存曲目，不需要重新创建演出。
+
+### 管理端相关数据必填校验
+
+管理端校验按入口拆分，不把所有校验都推迟到发布阶段：
+
+- 演出基础信息弹窗保存前校验标题、类型、年份、日期范围、主视觉图等必填项。
+- 单条场次弹窗保存前校验日期、开场时间、开演时间、城市、场馆、排序、官网 URL 和图片 ID 格式。
+- 场次导入弹窗预览阶段校验 TSV 行数据；存在任意 `error` 时禁止整批确认导入。
+- 默认 Setlist 弹窗允许无曲目保存，但必须保存明确的 `setlistState`。
+- 当 `setlistState = published` 时，默认 Setlist 弹窗才要求至少存在一个 `main` section 曲目。
+- 发布校验只检查跨模块完整性和公开端必要数据，不替代各弹窗自身的保存前校验。

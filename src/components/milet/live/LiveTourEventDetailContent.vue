@@ -146,7 +146,18 @@
             <circle cx="12" cy="10" r="2.4" />
           </svg>
           <div class="min-w-0">
-            <p class="break-words text-lg text-[#f3eadf]">{{ selectedPerformance?.venueName || '-' }}</p>
+            <p class="break-words text-lg text-[#f3eadf]">
+              <a
+                v-if="selectedVenueOfficialUrl"
+                :href="selectedVenueOfficialUrl"
+                target="_blank"
+                rel="noopener noreferrer"
+                class="underline decoration-[#d9b77c]/45 underline-offset-4 transition hover:text-[#9fd4ff] hover:decoration-[#9fd4ff]"
+              >
+                {{ selectedPerformance?.venueName || '-' }}
+              </a>
+              <template v-else>{{ selectedPerformance?.venueName || '-' }}</template>
+            </p>
             <p class="mt-1 text-sm text-[#b8c8d5]">{{ selectedVenueLine }}</p>
           </div>
         </div>
@@ -164,6 +175,15 @@
           {{ selectedNote || (lang === 'ja' ? '選択した公演の setlist を表示中です。' : '正在展示选中场次的 setlist。') }}
         </p>
       </div>
+
+      <img
+        v-if="selectedVenueLineArtUrl"
+        :src="selectedVenueLineArtUrl"
+        alt=""
+        loading="lazy"
+        decoding="async"
+        class="mt-5 max-h-64 w-full rounded-md object-contain"
+      />
 
       <div class="mt-6 flex items-center gap-4 border-t border-[#d9b77c]/18 pt-4 text-sm font-semibold uppercase text-[#d9b77c]">
         <button
@@ -193,6 +213,8 @@
         :segments="setlistSegments"
         :subtitle="setlistSubtitle"
         :lang="lang"
+        :setlist-state="setlistState"
+        :empty-message="setlistEmptyMessage"
         @select-track="handleTrackSelect"
       />
 
@@ -242,7 +264,11 @@ import {
   formatLiveDate,
   formatLiveDateRange,
   formatLiveType,
+  normalizeExternalUrl,
   performanceLabel,
+  resolveLiveSetlistState,
+  resolveSetlistEmptyMessage,
+  resolveVenueLineArtUrl,
   segmentLiveSetlist,
   selectedPerformanceNotes,
   type LiveEventDetailPayload,
@@ -328,6 +354,8 @@ const setlistSegments = computed(() => segmentLiveSetlist(setlistItems.value))
 const setlistSubtitle = computed(() =>
   selectedPerformance.value ? performanceLabel(selectedPerformance.value) : '',
 )
+const setlistState = computed(() => resolveLiveSetlistState(props.payload))
+const setlistEmptyMessage = computed(() => resolveSetlistEmptyMessage(props.payload, props.lang))
 const selectedStopNumber = computed(() => String(selectedPerformanceIndex.value + 1).padStart(2, '0'))
 const selectedDateLine = computed(() => {
   const performance = selectedPerformance.value
@@ -339,6 +367,11 @@ const selectedVenueLine = computed(() => {
   if (!performance) return ''
   return [performance.city, performance.region].filter(Boolean).join(', ')
 })
+const selectedVenueOfficialUrl = computed(() => {
+  const performance = selectedPerformance.value
+  return performance?.venueName ? normalizeExternalUrl(performance.venueOfficialUrl) : ''
+})
+const selectedVenueLineArtUrl = computed(() => resolveVenueLineArtUrl(selectedPerformance.value))
 const selectedNote = computed(() =>
   selectedPerformance.value ? selectedPerformanceNotes(selectedPerformance.value, props.lang) : '',
 )
