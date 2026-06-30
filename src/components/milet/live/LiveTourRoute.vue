@@ -11,66 +11,98 @@
 
     <div
       v-if="performances.length"
-      class="grid gap-5 xl:grid-cols-[minmax(12rem,1fr)_minmax(22rem,34rem)_minmax(12rem,1fr)] xl:items-center"
+      class="grid gap-5"
     >
-      <ol class="grid gap-3 sm:grid-cols-2 xl:grid-cols-1">
-        <li v-for="item in leftStops" :key="item.performance.id" class="min-w-0">
-          <button
-            type="button"
-            class="group relative grid w-full min-w-0 grid-cols-[4rem_minmax(0,1fr)] items-center overflow-hidden border px-3 py-2.5 text-left transition"
-            :class="routeButtonClass(item.performance.id)"
-            style="clip-path: polygon(0 50%, 0.75rem 0, calc(100% - 1.25rem) 0, 100% 50%, calc(100% - 1.25rem) 100%, 0.75rem 100%)"
-            @click="$emit('select', item.performance.id)"
-          >
-            <span class="text-center font-['Montserrat','sans-serif'] text-2xl text-[#f4d397]">
-              {{ item.number }}
-            </span>
-            <span class="min-w-0 border-l border-[#d9b77c]/24 pl-3">
-              <span class="block truncate font-serif text-xl leading-tight text-[#f3eadf]">
-                {{ item.performance.city || performanceLabel(item.performance, item.index) }}
-              </span>
-              <span class="mt-1 block truncate text-xs text-[#d9b77c]">
-                {{ formatLiveDate(item.performance.date) || performanceLabel(item.performance, item.index) }}
-              </span>
-            </span>
-          </button>
-        </li>
-      </ol>
-
-      <div class="relative mx-auto w-full max-w-[34rem]">
-        <div
-          class="pointer-events-none absolute inset-x-10 top-1/2 h-px bg-gradient-to-r from-transparent via-[#d9b77c]/42 to-transparent"
-          aria-hidden="true"
-        ></div>
+      <div class="grid gap-4 xl:hidden">
         <LiveMainVisualPanel
           :event="event"
           class="relative z-10 aspect-[4/5] min-h-0 shadow-[0_44px_130px_-70px_rgba(125,211,252,0.85)]"
         />
+        <ol class="grid gap-3">
+          <li v-for="item in routeStops" :key="item.performance.id" class="min-w-0">
+            <button
+              type="button"
+              class="group relative grid w-full min-w-0 grid-cols-[4rem_minmax(0,1fr)] items-center overflow-hidden border px-3 py-2.5 text-left transition"
+              :class="routeButtonClass(item.performance.id)"
+              style="clip-path: polygon(0 50%, 0.75rem 0, calc(100% - 1.25rem) 0, 100% 50%, calc(100% - 1.25rem) 100%, 0.75rem 100%)"
+              @click="$emit('select', item.performance.id)"
+            >
+              <span class="text-center font-['Montserrat','sans-serif'] text-2xl text-[#f4d397]">
+                {{ item.number }}
+              </span>
+              <span class="min-w-0 border-l border-[#d9b77c]/24 pl-3">
+                <span class="block truncate font-serif text-xl leading-tight text-[#f3eadf]">
+                  {{ item.performance.city || performanceLabel(item.performance, item.index) }}
+                </span>
+                <span class="mt-1 block truncate text-xs text-[#d9b77c]">
+                  {{ formatLiveDate(item.performance.date) || performanceLabel(item.performance, item.index) }}
+                </span>
+              </span>
+            </button>
+          </li>
+        </ol>
       </div>
 
-      <ol class="grid gap-3 sm:grid-cols-2 xl:grid-cols-1">
-        <li v-for="item in rightStops" :key="item.performance.id" class="min-w-0">
-          <button
-            type="button"
-            class="group relative grid w-full min-w-0 grid-cols-[4rem_minmax(0,1fr)] items-center overflow-hidden border px-3 py-2.5 text-left transition"
-            :class="routeButtonClass(item.performance.id)"
-            style="clip-path: polygon(0 50%, 1.25rem 0, calc(100% - 0.75rem) 0, 100% 50%, calc(100% - 0.75rem) 100%, 1.25rem 100%)"
-            @click="$emit('select', item.performance.id)"
-          >
-            <span class="text-center font-['Montserrat','sans-serif'] text-2xl text-[#f4d397]">
-              {{ item.number }}
-            </span>
-            <span class="min-w-0 border-l border-[#d9b77c]/24 pl-3">
-              <span class="block truncate font-serif text-xl leading-tight text-[#f3eadf]">
-                {{ item.performance.city || performanceLabel(item.performance, item.index) }}
+      <div class="hidden gap-5 xl:grid xl:grid-cols-[minmax(12rem,1fr)_minmax(22rem,34rem)_minmax(12rem,1fr)] xl:items-center">
+        <ol class="grid gap-3">
+          <li v-for="item in leftStops" :key="item.performance.id" class="min-w-0">
+            <button
+              type="button"
+              class="group relative grid w-full min-w-0 grid-cols-[4rem_minmax(0,1fr)] items-center overflow-hidden border px-3 py-2.5 text-left transition"
+              :class="routeButtonClass(item.performance.id)"
+              style="clip-path: polygon(0 50%, 0.75rem 0, calc(100% - 1.25rem) 0, 100% 50%, calc(100% - 1.25rem) 100%, 0.75rem 100%)"
+              @click="$emit('select', item.performance.id)"
+            >
+              <span class="text-center font-['Montserrat','sans-serif'] text-2xl text-[#f4d397]">
+                {{ item.number }}
               </span>
-              <span class="mt-1 block truncate text-xs text-[#d9b77c]">
-                {{ formatLiveDate(item.performance.date) || performanceLabel(item.performance, item.index) }}
+              <span class="min-w-0 border-l border-[#d9b77c]/24 pl-3">
+                <span class="block truncate font-serif text-xl leading-tight text-[#f3eadf]">
+                  {{ item.performance.city || performanceLabel(item.performance, item.index) }}
+                </span>
+                <span class="mt-1 block truncate text-xs text-[#d9b77c]">
+                  {{ formatLiveDate(item.performance.date) || performanceLabel(item.performance, item.index) }}
+                </span>
               </span>
-            </span>
-          </button>
-        </li>
-      </ol>
+            </button>
+          </li>
+        </ol>
+
+        <div class="relative mx-auto w-full max-w-[34rem]">
+          <div
+            class="pointer-events-none absolute inset-x-10 top-1/2 h-px bg-gradient-to-r from-transparent via-[#d9b77c]/42 to-transparent"
+            aria-hidden="true"
+          ></div>
+          <LiveMainVisualPanel
+            :event="event"
+            class="relative z-10 aspect-[4/5] min-h-0 shadow-[0_44px_130px_-70px_rgba(125,211,252,0.85)]"
+          />
+        </div>
+
+        <ol class="grid gap-3">
+          <li v-for="item in rightStops" :key="item.performance.id" class="min-w-0">
+            <button
+              type="button"
+              class="group relative grid w-full min-w-0 grid-cols-[4rem_minmax(0,1fr)] items-center overflow-hidden border px-3 py-2.5 text-left transition"
+              :class="routeButtonClass(item.performance.id)"
+              style="clip-path: polygon(0 50%, 1.25rem 0, calc(100% - 0.75rem) 0, 100% 50%, calc(100% - 0.75rem) 100%, 1.25rem 100%)"
+              @click="$emit('select', item.performance.id)"
+            >
+              <span class="text-center font-['Montserrat','sans-serif'] text-2xl text-[#f4d397]">
+                {{ item.number }}
+              </span>
+              <span class="min-w-0 border-l border-[#d9b77c]/24 pl-3">
+                <span class="block truncate font-serif text-xl leading-tight text-[#f3eadf]">
+                  {{ item.performance.city || performanceLabel(item.performance, item.index) }}
+                </span>
+                <span class="mt-1 block truncate text-xs text-[#d9b77c]">
+                  {{ formatLiveDate(item.performance.date) || performanceLabel(item.performance, item.index) }}
+                </span>
+              </span>
+            </button>
+          </li>
+        </ol>
+      </div>
     </div>
 
     <p v-else class="rounded border border-dashed border-white/16 p-6 text-center text-sm text-[#b8c8d5]">
