@@ -118,7 +118,14 @@
     />
 
     <section class="rounded-lg border border-[#d9b77c]/45 bg-[#031322]/64 p-5 shadow-[0_32px_96px_-62px_rgba(244,211,151,0.82)] sm:p-6">
-      <div class="grid gap-5 lg:grid-cols-[8rem_minmax(0,1fr)_minmax(12rem,18rem)_minmax(9rem,12rem)_minmax(12rem,1fr)] lg:items-center">
+      <div
+        class="grid gap-5 lg:items-center"
+        :class="
+          selectedVenueLineArtUrl
+            ? 'lg:grid-cols-[8rem_minmax(0,1fr)_minmax(12rem,18rem)_minmax(9rem,12rem)_minmax(12rem,1fr)]'
+            : 'lg:grid-cols-[8rem_minmax(0,1fr)_minmax(12rem,18rem)_minmax(9rem,12rem)]'
+        "
+      >
         <div class="border-[#d9b77c]/30 lg:border-r">
           <p class="text-sm text-[#d9b77c]">{{ lang === 'ja' ? '選択公演' : '选中场次' }}</p>
           <p class="mt-2 font-['Montserrat','sans-serif'] text-6xl leading-none text-[#f4d397]">
@@ -171,19 +178,19 @@
             <dd class="mt-1 text-lg text-[#f3eadf]">{{ selectedPerformance?.startTime || '-' }}</dd>
           </div>
         </dl>
-        <p class="text-sm leading-6 text-[#d8e8f3]">
-          {{ selectedNote || (lang === 'ja' ? '選択した公演の setlist を表示中です。' : '正在展示选中场次的 setlist。') }}
-        </p>
+        <figure
+          v-if="selectedVenueLineArtUrl"
+          class="flex min-h-28 items-center justify-center border-[#d9b77c]/22 lg:border-l lg:pl-6"
+        >
+          <img
+            :src="selectedVenueLineArtUrl"
+            alt=""
+            loading="lazy"
+            decoding="async"
+            class="max-h-36 w-full rounded-md object-contain"
+          />
+        </figure>
       </div>
-
-      <img
-        v-if="selectedVenueLineArtUrl"
-        :src="selectedVenueLineArtUrl"
-        alt=""
-        loading="lazy"
-        decoding="async"
-        class="mt-5 max-h-64 w-full rounded-md object-contain"
-      />
 
       <div class="mt-6 flex items-center gap-4 border-t border-[#d9b77c]/18 pt-4 text-sm font-semibold uppercase text-[#d9b77c]">
         <button
@@ -270,7 +277,6 @@ import {
   resolveSetlistEmptyMessage,
   resolveVenueLineArtUrl,
   segmentLiveSetlist,
-  selectedPerformanceNotes,
   type LiveEventDetailPayload,
   type LiveLang,
   type LiveSetlistItem,
@@ -372,9 +378,6 @@ const selectedVenueOfficialUrl = computed(() => {
   return performance?.venueName ? normalizeExternalUrl(performance.venueOfficialUrl) : ''
 })
 const selectedVenueLineArtUrl = computed(() => resolveVenueLineArtUrl(selectedPerformance.value))
-const selectedNote = computed(() =>
-  selectedPerformance.value ? selectedPerformanceNotes(selectedPerformance.value, props.lang) : '',
-)
 
 function syncInitialPerformance() {
   const initial = props.payload.initialPerformanceId

@@ -95,7 +95,7 @@
       alt=""
       loading="lazy"
       decoding="async"
-      class="mt-5 w-full rounded-md object-contain"
+      class="mt-4 max-h-40 w-full rounded-md border border-[#d9b77c]/16 bg-white/[0.03] object-contain p-3"
     />
 
     <p v-if="notes" class="mt-5 border-t border-white/10 pt-4 text-sm leading-6 text-[#b8c8d5]">
