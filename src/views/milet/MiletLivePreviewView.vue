@@ -1,5 +1,5 @@
 <template>
-  <LiveDetailShell>
+  <LiveDetailShell :theme-preset="payload?.displayConfig?.themePreset">
     <div
       class="relative z-20 mx-auto max-w-7xl px-4 pt-4 sm:px-7"
       aria-live="polite"

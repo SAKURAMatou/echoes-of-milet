@@ -52,7 +52,7 @@
     </header>
 
     <section class="border-b border-[#c9ddea]/70 bg-white/48 px-4 py-4 sm:px-7">
-      <div class="grid gap-3 rounded-lg border border-sky-100/80 bg-white/52 p-3 shadow-[0_18px_45px_-38px_rgba(15,23,42,0.54)] backdrop-blur lg:grid-cols-[minmax(0,1fr)_14rem_auto]">
+      <div class="grid gap-3 rounded-lg border border-sky-100/80 bg-white/52 p-3 shadow-[0_18px_45px_-38px_rgba(15,23,42,0.54)] backdrop-blur lg:grid-cols-[minmax(0,1fr)_14rem_10rem_auto]">
         <label class="grid gap-1">
           <span class="text-xs font-semibold uppercase tracking-[0.14em] text-[#317f8d]">
             {{ routeLang === 'ja' ? 'Keyword' : '关键词' }}
@@ -79,6 +79,22 @@
               {{ option.label }}
             </option>
           </select>
+        </label>
+
+        <label class="grid gap-1">
+          <span class="text-xs font-semibold uppercase tracking-[0.14em] text-[#317f8d]">
+            {{ routeLang === 'ja' ? 'Year' : '年份' }}
+          </span>
+          <input
+            v-model.trim="selectedYear"
+            type="number"
+            inputmode="numeric"
+            min="2010"
+            :max="currentYear + 1"
+            class="h-11 rounded-lg border border-[#b7d6e2] bg-white/82 px-3 text-sm text-[#24323a] outline-none transition placeholder:text-slate-400 focus:border-[#317f8d] focus:ring-4 focus:ring-sky-100"
+            placeholder="ALL"
+            @keydown.enter="applyFilters"
+          />
         </label>
 
         <button
@@ -199,14 +215,21 @@ const appState = useAppState()
 const routeLang = computed(() => (String(route.params.lang) === 'ja' ? 'ja' : 'zh'))
 const lang = computed(() => normalizeLiveLang(routeLang.value))
 const selectedType = ref(String(route.query.type || 'all'))
+const selectedYear = ref(String(route.query.year || ''))
 const keywordDraft = ref(String(route.query.keyword || ''))
 const loading = ref(false)
 const error = ref('')
 const pageSize = 12
+const currentYear = new Date().getFullYear()
+const normalizedYear = computed(() => {
+  const value = selectedYear.value.trim()
+  return /^\d{4}$/.test(value) ? value : ''
+})
 const queryKey = computed(() =>
   liveEventListUrl({
     lang: lang.value,
     type: selectedType.value,
+    year: normalizedYear.value,
     keyword: keywordDraft.value,
     page: 1,
     pageSize,
@@ -224,6 +247,7 @@ async function loadList(page = 1, append = false) {
   const key = liveEventListUrl({
     lang: lang.value,
     type: selectedType.value,
+    year: normalizedYear.value,
     keyword: keywordDraft.value,
     page,
     pageSize,
@@ -240,6 +264,7 @@ async function loadList(page = 1, append = false) {
     const payload = await fetchLiveEventList({
       lang: lang.value,
       type: selectedType.value,
+      year: normalizedYear.value,
       keyword: keywordDraft.value,
       page,
       pageSize,

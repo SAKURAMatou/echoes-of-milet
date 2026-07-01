@@ -189,10 +189,11 @@ const selectedPerformance = computed(() => {
     null
   )
 })
-const isTour = computed(
-  () =>
-    event.value?.type === 'tour' ||
-    props.payload?.displayConfig?.blueprint === 'tour-serpentine-route',
+const selectedBlueprint = computed(() => props.payload?.displayConfig?.blueprint || '')
+const isTour = computed(() =>
+  selectedBlueprint.value
+    ? selectedBlueprint.value === 'tour-serpentine-route'
+    : event.value?.type === 'tour',
 )
 const venueSummary = computed(() => {
   return event.value?.venueSummary || selectedPerformance.value?.venueName || ''

@@ -1,5 +1,5 @@
 <template>
-  <LiveDetailShell>
+  <LiveDetailShell :theme-preset="payload?.displayConfig?.themePreset">
     <LiveEventDetailContent
       :payload="payload"
       :loading="loading"

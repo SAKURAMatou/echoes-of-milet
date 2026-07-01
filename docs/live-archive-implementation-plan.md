@@ -604,9 +604,11 @@ updatedAt
 
 第一版范围：
 
-- Phase 1-4 只支持 `blueprint + themePreset`。
-- 组件级启用/隐藏、组件顺序和局部参数放到 Phase 5。
-- 第一版页面组件组合由 blueprint 固定决定，降低管理端和 SSR 复杂度。
+- 第一阶段只支持 `blueprint + themePreset`。
+- `blueprint` 用于选择不同详情页面布局，当前支持 `one-man-magazine` 和 `tour-serpentine-route`。
+- `themePreset` 用于选择不同详情页主题，当前支持 `default`、`aurora-blue`、`velvet-rose`。
+- 组件级启用/隐藏、组件顺序和局部参数不进入当前落地范围，文档中标记为 Phase 5 deferred。
+- 页面组件组合由 blueprint 固定决定，降低管理端和 SSR 复杂度。
 
 显示效果配置需要区分草稿和发布状态：
 
@@ -627,7 +629,7 @@ updatedAt
 - 当 setlist 状态为 `published` 时，已关联曲目必须能映射到发布物曲目关联使用的 track 标识。
 - 显示配置未发布时允许发布演出，但公开端使用默认 blueprint。
 - 第一版显示配置发布时只校验 blueprint 和 themePreset 均在 catalog 中存在。
-- Phase 5 增加组件级配置后，再校验 componentKey。
+- Phase 5 deferred 的组件级配置暂不校验 componentKey。
 
 catalog 存放规则：
 
@@ -645,7 +647,7 @@ one-man-magazine
 tour-serpentine-route
 ```
 
-Phase 5 组件级配置示例：
+Phase 5 deferred 组件级配置示例，本轮不落地：
 
 ```text
 mainVisual.default
@@ -1200,7 +1202,7 @@ blueprint
 themePreset
 ```
 
-第一版只配置 `blueprint + themePreset`。组件启用状态、组件顺序和局部参数属于 Phase 5 增强能力。
+第一阶段只配置 `blueprint + themePreset`。组件启用状态、组件顺序和局部参数标记为 Phase 5 deferred，本轮不落地。
 
 管理端不直接渲染公开端组件。建议使用 component catalog：
 
@@ -1423,13 +1425,15 @@ Worker 新增管理权限：
 - 实现轻量关联文章和相册入口。
 - 实现最小可用公开端 preview 路由，读取 KV snapshot 渲染草稿。
 
-### Phase 5：显示效果配置增强
+### Phase 5：显示配置收口
 
-- 新增 component catalog。
-- 管理端显示效果配置页，用于替代早期固定配置。
-- 公开端 registry。
+- 管理端显示效果配置支持选择详情页面布局 `blueprint`。
+- 管理端显示效果配置支持选择主题 `themePreset`。
+- Worker 校验可用 blueprint 和 theme preset。
+- 公开端详情页按已发布 / 预览 display config 选择布局和主题。
 - 管理端 iframe / 新窗口预览体验、postMessage 白名单和错误提示优化。
-- 组件级配置变更后的 preview 交互增强。
+- Deferred：组件级启用/隐藏、组件顺序和局部参数不做。
+- Deferred：component catalog、公开端 registry 和组件级配置变更后的 preview 交互增强不做。
 
 ### Phase 6：验证和优化
 
@@ -1449,6 +1453,19 @@ Worker 新增管理权限：
   - 管理端场次导入预览和确认。
   - 管理端生成 preview token 后跨域打开公开端预览。
   - preview 过期、token 错误、发布后失效的提示。
+
+### 2026-07-01 验证记录
+
+| 项目 | 命令 / 检查 | 结果 | 备注 |
+| --- | --- | --- | --- |
+| Worker 单测 | `npm run test` | PASS | 10 个测试文件、123 个用例通过；包含 live setlist 8 个用例。首次沙箱运行因无法读取 `vitest.config.mts` 失败，非沙箱重跑通过。 |
+| Setlist 测试矩阵 | `test/live-setlist.spec.ts` | PASS | 覆盖默认排序、replace 保留基准位置、add/remove 重排、note、跨分区 move、孤儿 override 忽略、section 顺序校验。 |
+| 管理端类型检查 | `npm run type-check` | PASS | `vue-tsc --build` 通过。 |
+| 管理端构建 | `npm run build` | PASS | `type-check` + `vite build` 通过。 |
+| 公开端类型检查 | `npm run type-check` | PASS | `vue-tsc --noEmit -p tsconfig.json` 通过。 |
+| 公开端 SSR 构建 | `npm run build:ssr` | PASS | client build、server build、prerender 通过。 |
+| 公开端 SSR 本地 smoke | `npm run verify:ssr:local` + `GET /zh/milet/live` | PARTIAL | 构建和本地 SSR 服务启动成功，HTTP smoke 返回 200；随后数据请求访问生产 upstream 时因本地未设置 `MILET_SOURCE_GUARD_TOKEN` 被源站保护返回 403，数据源 smoke 需要带 token 的环境再复测。 |
+| Preview token 权限 | 代码确认 | PASS | 路由层保持 `live.update`；由于路由权限数组是 anyOf，handler 内额外确认 `live.view + live.update` 后才允许生成 token。 |
 
 ## MVP 范围建议
 
@@ -1478,6 +1495,7 @@ Worker 新增管理权限：
    - themePreset
    - 草稿 / 发布状态
    - 组件组合由 blueprint 固定决定
+   - 组件级启用/隐藏、排序和局部参数不做
 
 暂不做：
 
