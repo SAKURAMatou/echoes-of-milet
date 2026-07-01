@@ -18,7 +18,7 @@ import LiveDetailShell from '@/components/milet/live/LiveDetailShell.vue'
 import LiveEventDetailContent from '@/components/milet/live/LiveEventDetailContent.vue'
 import {
   fetchLiveEventDetail,
-  liveEventDetailUrl,
+  liveEventDetailCacheKey,
   normalizeLiveLang,
   type LiveEventDetailPayload,
 } from '@/composables/liveArchive'
@@ -29,7 +29,7 @@ const appState = useAppState()
 const routeLang = computed(() => (String(route.params.lang) === 'ja' ? 'ja' : 'zh'))
 const lang = computed(() => normalizeLiveLang(routeLang.value))
 const slug = computed(() => String(route.params.slug || '').trim())
-const detailKey = computed(() => liveEventDetailUrl(slug.value, lang.value))
+const detailKey = computed(() => liveEventDetailCacheKey(slug.value, lang.value))
 const payload = ref<LiveEventDetailPayload | null>(
   appState.miletLiveDetailData?.key === detailKey.value
     ? appState.miletLiveDetailData.payload

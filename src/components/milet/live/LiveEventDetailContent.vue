@@ -205,6 +205,7 @@ import {
   composeLiveSetlist,
   formatLiveDateRange,
   formatLiveType,
+  liveLangRequestConfig,
   performanceLabel,
   resolveLiveDisplayBlueprint,
   resolveLiveSetlistState,
@@ -315,7 +316,8 @@ function parseDurationSec(duration?: string) {
 async function loadTrackDetail(track: Track) {
   try {
     const detail = await axiosInstance.get<{ code?: number; data?: Partial<Track> }>(
-      `${apiRoutes.miletReleaseDetail}${track.showId}?lang=${props.lang === 'ja' ? 'ja' : 'zh'}`,
+      `${apiRoutes.miletReleaseDetail}${track.showId}`,
+      liveLangRequestConfig(props.lang),
     )
     const data = detail?.data || {}
     return {

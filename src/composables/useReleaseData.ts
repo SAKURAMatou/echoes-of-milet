@@ -2,6 +2,7 @@ import { ref, onMounted, onBeforeUnmount } from 'vue'
 
 import axiosInstance from '@/AxiosUtil'
 import { apiRoutes } from '@/config/api'
+import { liveLangRequestConfig } from '@/composables/liveArchive'
 
 import type { Work } from './releaseType'
 
@@ -29,8 +30,11 @@ export function useReleaseData(options: ReleaseDataOptions) {
 
     try {
       const lang = window.location.pathname.startsWith('/ja') ? 'ja' : 'zh'
-      const url = `${apiBaseUrl}${options.type}?page=${page}&pageSize=${pageSize}&lang=${lang}`
-      const response = await axiosInstance.get<{ data: Work[]; total: number }>(url)
+      const url = `${apiBaseUrl}${options.type}?page=${page}&pageSize=${pageSize}`
+      const response = await axiosInstance.get<{ data: Work[]; total: number }>(
+        url,
+        liveLangRequestConfig(lang),
+      )
       const newData = Array.isArray(response.data) ? response.data : []
 
       total.value = Number(response.total || 0)

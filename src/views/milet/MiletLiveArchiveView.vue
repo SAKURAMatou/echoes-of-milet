@@ -218,7 +218,7 @@ import {
   fetchLiveEventList,
   formatLiveDateRange,
   formatLiveType,
-  liveEventListUrl,
+  liveEventListCacheKey,
   liveTypeOptions,
   normalizeLiveLang,
   resolveLiveImageUrl,
@@ -242,7 +242,7 @@ const normalizedYear = computed(() => {
   return /^\d{4}$/.test(value) ? value : ''
 })
 const queryKey = computed(() =>
-  liveEventListUrl({
+  liveEventListCacheKey({
     lang: lang.value,
     type: selectedType.value,
     year: normalizedYear.value,
@@ -258,7 +258,7 @@ const items = computed(() => data.value?.items || [])
 const hasMore = computed(() => (data.value?.page || 1) < (data.value?.totalPages || 1))
 
 async function loadList(page = 1, append = false) {
-  const key = liveEventListUrl({
+  const key = liveEventListCacheKey({
     lang: lang.value,
     type: selectedType.value,
     year: normalizedYear.value,

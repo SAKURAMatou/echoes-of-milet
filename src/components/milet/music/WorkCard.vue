@@ -272,6 +272,7 @@
 import { computed, defineAsyncComponent, getCurrentInstance, ref, watch } from 'vue'
 import axiosInstance from '@/AxiosUtil'
 import { initImgUrl } from '@/composables/ImgUrlUtil'
+import { liveLangRequestConfig } from '@/composables/liveArchive'
 import { apiRoutes } from '@/config/api'
 import { WORK_TEXT } from '@/composables/lang/ReleaseMetaData'
 import RelatedArticleList from '@/components/milet/article/RelatedArticleList.vue'
@@ -399,7 +400,8 @@ function formatDuration(seconds: number) {
 async function openTrack(t: Track) {
   if (!t.lyric || !t.listenData) {
     const detail = await axiosInstance.get<{ data?: Partial<Track> }>(
-      `${apiRoutes.miletReleaseDetail}${t.showId}?lang=${currentLang.value === 'jp' ? 'ja' : 'zh'}`,
+      `${apiRoutes.miletReleaseDetail}${t.showId}`,
+      liveLangRequestConfig(currentLang.value === 'jp' ? 'ja' : 'zh'),
     )
     if (detail && Object.keys(detail).length > 0) {
       const d = detail.data || {}

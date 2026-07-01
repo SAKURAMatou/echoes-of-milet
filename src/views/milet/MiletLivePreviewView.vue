@@ -26,7 +26,7 @@ import LiveDetailShell from '@/components/milet/live/LiveDetailShell.vue'
 import LiveEventDetailContent from '@/components/milet/live/LiveEventDetailContent.vue'
 import {
   fetchLiveEventPreview,
-  livePreviewUrl,
+  livePreviewCacheKey,
   normalizeLiveLang,
   type LiveEventDetailPayload,
 } from '@/composables/liveArchive'
@@ -38,7 +38,7 @@ const routeLang = computed(() => (String(route.params.lang) === 'ja' ? 'ja' : 'z
 const lang = computed(() => normalizeLiveLang(routeLang.value))
 const previewId = computed(() => String(route.params.previewId || '').trim())
 const token = computed(() => String(route.query.token || '').trim())
-const previewKey = computed(() => livePreviewUrl(previewId.value, token.value, lang.value))
+const previewKey = computed(() => livePreviewCacheKey(previewId.value, token.value, lang.value))
 const payload = ref<LiveEventDetailPayload | null>(
   appState.miletLivePreviewData?.key === previewKey.value
     ? appState.miletLivePreviewData.payload

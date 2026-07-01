@@ -268,9 +268,16 @@ export function normalizeLiveLang(value: unknown): LiveLang {
   return value === 'ja' || value === 'jp' ? 'ja' : 'zh'
 }
 
+export function liveLangRequestConfig(lang: LiveLang) {
+  return {
+    headers: {
+      'X-Milet-Lang': normalizeLiveLang(lang),
+    },
+  }
+}
+
 export function liveEventListUrl(query: LiveEventListQuery) {
   return appendQuery(`${apiRoutes.miletLive}/events`, {
-    lang: query.lang,
     type: query.type,
     year: query.year,
     keyword: query.keyword?.trim(),
@@ -279,29 +286,40 @@ export function liveEventListUrl(query: LiveEventListQuery) {
   })
 }
 
-export function liveEventDetailUrl(slug: string, lang: LiveLang) {
-  return appendQuery(`${apiRoutes.miletLive}/events/${encodeURIComponent(slug)}`, { lang })
+export function liveEventListCacheKey(query: LiveEventListQuery) {
+  return `${normalizeLiveLang(query.lang)}:${liveEventListUrl(query)}`
 }
 
-export function livePreviewUrl(previewId: string, token: string, lang: LiveLang) {
+export function liveEventDetailUrl(slug: string) {
+  return `${apiRoutes.miletLive}/events/${encodeURIComponent(slug)}`
+}
+
+export function liveEventDetailCacheKey(slug: string, lang: LiveLang) {
+  return `${normalizeLiveLang(lang)}:${liveEventDetailUrl(slug)}`
+}
+
+export function livePreviewUrl(previewId: string, token: string) {
   return appendQuery(`${apiRoutes.miletLive}/preview/${encodeURIComponent(previewId)}`, {
     token,
-    lang,
   })
 }
 
+export function livePreviewCacheKey(previewId: string, token: string, lang: LiveLang) {
+  return `${normalizeLiveLang(lang)}:${livePreviewUrl(previewId, token)}`
+}
+
 export async function fetchLiveEventList(query: LiveEventListQuery) {
-  const response = await axiosInstance.get(liveEventListUrl(query))
+  const response = await axiosInstance.get(liveEventListUrl(query), liveLangRequestConfig(query.lang))
   return normalizeListResponse(response)
 }
 
 export async function fetchLiveEventDetail(slug: string, lang: LiveLang) {
-  const response = await axiosInstance.get(liveEventDetailUrl(slug, lang))
+  const response = await axiosInstance.get(liveEventDetailUrl(slug), liveLangRequestConfig(lang))
   return normalizeDetailPayload(response)
 }
 
 export async function fetchLiveEventPreview(previewId: string, token: string, lang: LiveLang) {
-  const response = await axiosInstance.get(livePreviewUrl(previewId, token, lang))
+  const response = await axiosInstance.get(livePreviewUrl(previewId, token), liveLangRequestConfig(lang))
   return normalizeDetailPayload(response)
 }
 
