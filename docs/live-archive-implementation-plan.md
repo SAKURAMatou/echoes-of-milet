@@ -607,6 +607,7 @@ updatedAt
 - 第一阶段只支持 `blueprint + themePreset`。
 - `blueprint` 用于选择不同详情页面布局，当前支持 `one-man-compact-related`、`one-man-visual-cards`、`tour-balanced-stops`、`tour-serpentine-route`。
 - `themePreset` 用于选择不同详情页主题，当前支持 `default`、`echo-blue`、`stairs-colors`。其中 `default` 是 Midnight Gold，`echo-blue` 使用网站整体天空蓝风格，`stairs-colors` 参考 stairs 2024 周边图的粉橙晚霞背景。
+- 管理端可选 `blueprint / themePreset` 不写死在页面中，统一从现有 `system_config` 功能读取。
 - 组件级启用/隐藏、组件顺序和局部参数不进入当前落地范围，文档中标记为 Phase 5 deferred。
 - 页面组件组合由 blueprint 固定决定，降低管理端和 SSR 复杂度。
 
@@ -628,17 +629,18 @@ updatedAt
 - 当 setlist 状态为 `published` 时，才要求至少包含一个 `main` section 曲目。
 - 当 setlist 状态为 `published` 时，已关联曲目必须能映射到发布物曲目关联使用的 track 标识。
 - 显示配置未发布时允许发布演出，但公开端使用默认 blueprint。
-- 第一版显示配置发布时只校验 blueprint 和 themePreset 均在 catalog 中存在。
+- 第一版显示配置发布时只校验 blueprint 和 themePreset 均在系统配置的可用项中存在，且 blueprint 与演出类型兼容。
 - Phase 5 deferred 的组件级配置暂不校验 componentKey。
 
-catalog 存放规则：
+可用项配置规则：
 
-- catalog 不能只存在于公开端源码组件 registry 中，否则 Worker 发布校验无法读取。
-- 第一阶段建议维护一个稳定 JSON catalog，作为公开端和 Worker 的共同契约。
-- 公开端用 catalog 驱动可选 blueprint、themePreset、componentKey 的展示。
-- Worker 用同一份 catalog 内容或同步后的静态常量做发布校验。
-- Vue 组件 registry 只负责把已经校验过的 `componentKey` 映射到组件实现。
-- catalog 的 key 必须稳定，组件文件路径可以变，key 不应随文件重构变化。
+- 系统配置新增两个 `code`：`live_detail_blueprints` 和 `live_detail_themes`。
+- 每个可选项使用一条 `system_config` 记录，`ckey` 是公开端识别的稳定 key，`order_no` 控制管理端下拉排序。
+- `cvalue` 使用 JSON。布局项包含 `label`、`description`、`group`、`supportedTypes`、`enabled`；主题项包含 `label`、`description`、`enabled`。
+- 管理端显示效果弹窗从 `system_config` 读取可选项，并按演出类型过滤布局：`tour` 只能选择 tour 布局，其他演出只能选择 one-man 布局。
+- Worker 保存、发布和预览 token 覆盖时读取同一份系统配置做校验；配置缺失时使用内置 fallback，避免测试库未初始化时阻断功能。
+- 公开端仍保留本地 registry / catalog 负责实际渲染实现。新增主题或布局时，公开端先实现渲染能力，再到管理端系统配置中添加或启用对应 `ckey`。
+- 稳定 key 不应随组件文件重构变化；系统配置只控制“可选择”，不承载 Vue 组件实现。
 
 `blueprint` 示例：
 
@@ -1216,6 +1218,18 @@ componentKey
 可配置参数
 ```
 
+`blueprint / themePreset` 的管理端下拉数据来自系统配置：
+
+```text
+code: live_detail_blueprints
+ckey: one-man-compact-related
+cvalue: {"label":"One Man Compact Related","group":"one-man","supportedTypes":["one_man","special_live","festival"],"enabled":true}
+
+code: live_detail_themes
+ckey: echo-blue
+cvalue: {"label":"Echo Blue","enabled":true}
+```
+
 真实预览通过公开端 preview 路由完成：
 
 ```text
@@ -1443,7 +1457,8 @@ Worker 新增管理权限：
 
 - 管理端显示效果配置支持选择详情页面布局 `blueprint`。
 - 管理端显示效果配置支持选择主题 `themePreset`。
-- Worker 校验可用 blueprint 和 theme preset。
+- 管理端详情布局和主题下拉从 `system_config` 的 `live_detail_blueprints / live_detail_themes` 读取。
+- Worker 从同一份系统配置校验可用 blueprint 和 theme preset。
 - 公开端详情页按已发布 / 预览 display config 选择布局和主题。
 - 管理端 iframe / 新窗口预览体验、postMessage 白名单和错误提示优化。
 - Deferred：组件级启用/隐藏、组件顺序和局部参数不做。

@@ -89,7 +89,7 @@
         <div class="relative min-h-[34rem] min-w-[58rem] overflow-hidden rounded-lg bg-[radial-gradient(circle_at_50%_50%,rgba(255,255,255,0.075),transparent_18rem)]">
           <svg class="pointer-events-none absolute inset-0 h-full w-full" viewBox="0 0 1000 560" preserveAspectRatio="none" aria-hidden="true">
             <path
-              d="M80 96 C 150 30 270 102 375 94 S 610 78 790 94 C 930 108 938 220 790 236 C 650 252 440 216 276 238 C 94 262 60 388 210 410 C 344 430 510 370 670 394 C 790 412 844 472 930 430"
+              :d="ROUTE_PATH_D"
               fill="none"
               stroke="var(--live-detail-route)"
               stroke-width="3"
@@ -97,7 +97,7 @@
               opacity="0.72"
             />
             <path
-              d="M80 96 C 150 30 270 102 375 94 S 610 78 790 94 C 930 108 938 220 790 236 C 650 252 440 216 276 238 C 94 262 60 388 210 410 C 344 430 510 370 670 394 C 790 412 844 472 930 430"
+              :d="ROUTE_PATH_D"
               fill="none"
               stroke="var(--live-detail-route)"
               stroke-width="11"
@@ -238,6 +238,31 @@ const props = defineProps<{
   routeLang: string
 }>()
 
+type RoutePoint = {
+  x: number
+  y: number
+}
+type RouteSample = RoutePoint & {
+  length: number
+}
+type RouteCurve = [RoutePoint, RoutePoint, RoutePoint, RoutePoint]
+
+const ROUTE_VIEWBOX_WIDTH = 1000
+const ROUTE_VIEWBOX_HEIGHT = 560
+const ROUTE_SAMPLE_STEPS = 36
+const ROUTE_PATH_D = 'M80 96 C 150 30 270 102 375 94 S 610 78 790 94 C 930 108 938 220 790 236 C 650 252 440 216 276 238 C 94 262 60 388 210 410 C 344 430 510 370 670 394 C 790 412 844 472 930 430'
+const ROUTE_CURVES: RouteCurve[] = [
+  [{ x: 80, y: 96 }, { x: 150, y: 30 }, { x: 270, y: 102 }, { x: 375, y: 94 }],
+  [{ x: 375, y: 94 }, { x: 480, y: 86 }, { x: 610, y: 78 }, { x: 790, y: 94 }],
+  [{ x: 790, y: 94 }, { x: 930, y: 108 }, { x: 938, y: 220 }, { x: 790, y: 236 }],
+  [{ x: 790, y: 236 }, { x: 650, y: 252 }, { x: 440, y: 216 }, { x: 276, y: 238 }],
+  [{ x: 276, y: 238 }, { x: 94, y: 262 }, { x: 60, y: 388 }, { x: 210, y: 410 }],
+  [{ x: 210, y: 410 }, { x: 344, y: 430 }, { x: 510, y: 370 }, { x: 670, y: 394 }],
+  [{ x: 670, y: 394 }, { x: 790, y: 412 }, { x: 844, y: 472 }, { x: 930, y: 430 }],
+]
+const ROUTE_SAMPLES = buildRouteSamples()
+const ROUTE_TOTAL_LENGTH = ROUTE_SAMPLES[ROUTE_SAMPLES.length - 1]?.length || 0
+
 const selectedPerformanceId = ref('')
 const selectedMonth = ref('all')
 const trackNotice = ref('')
@@ -301,16 +326,14 @@ const selectedStopCardStyle = computed(() => {
 
 const routeStops = computed(() =>
   performances.value.map((performance, index) => {
-    const row = Math.floor(index / 6)
-    const col = index % 6
-    const visualCol = row % 2 === 0 ? col : 5 - col
+    const position = routePositionForIndex(index, performances.value.length)
     return {
       performance,
       index,
       number: String(index + 1).padStart(2, '0'),
       month: monthKey(performance.date),
-      x: 9 + visualCol * 16.4,
-      y: 16 + row * 22,
+      x: position.x,
+      y: position.y,
     }
   }),
 )
@@ -373,6 +396,66 @@ function routeStopNodeClass(stop: { month: string; performance: LivePerformance 
   return isRouteStopDimmed(stop)
     ? 'opacity-35 saturate-50 hover:opacity-75'
     : 'opacity-100'
+}
+
+function routePositionForIndex(index: number, total: number) {
+  if (total <= 0) return { x: 0, y: 0 }
+  const progress = total === 1 ? 0.5 : index / (total - 1)
+  const point = pointAtRouteProgress(progress)
+  return {
+    x: (point.x / ROUTE_VIEWBOX_WIDTH) * 100,
+    y: (point.y / ROUTE_VIEWBOX_HEIGHT) * 100,
+  }
+}
+
+function buildRouteSamples() {
+  const samples: RouteSample[] = []
+  let length = 0
+  let previous = ROUTE_CURVES[0]?.[0] || { x: 0, y: 0 }
+  samples.push({ ...previous, length })
+  for (const curve of ROUTE_CURVES) {
+    for (let step = 1; step <= ROUTE_SAMPLE_STEPS; step += 1) {
+      const point = cubicPoint(curve, step / ROUTE_SAMPLE_STEPS)
+      length += distanceBetween(previous, point)
+      samples.push({ ...point, length })
+      previous = point
+    }
+  }
+  return samples
+}
+
+function pointAtRouteProgress(progress: number) {
+  if (ROUTE_SAMPLES.length === 0) return { x: 0, y: 0 }
+  const clamped = Math.min(1, Math.max(0, progress))
+  const targetLength = ROUTE_TOTAL_LENGTH * clamped
+  for (let index = 1; index < ROUTE_SAMPLES.length; index += 1) {
+    const current = ROUTE_SAMPLES[index]
+    if (current.length < targetLength) continue
+    const previous = ROUTE_SAMPLES[index - 1]
+    const segmentLength = current.length - previous.length
+    const ratio = segmentLength > 0 ? (targetLength - previous.length) / segmentLength : 0
+    return {
+      x: previous.x + (current.x - previous.x) * ratio,
+      y: previous.y + (current.y - previous.y) * ratio,
+    }
+  }
+  const last = ROUTE_SAMPLES[ROUTE_SAMPLES.length - 1]
+  return { x: last.x, y: last.y }
+}
+
+function cubicPoint(curve: RouteCurve, t: number) {
+  const [p0, p1, p2, p3] = curve
+  const inverse = 1 - t
+  const inverseSquared = inverse * inverse
+  const tSquared = t * t
+  return {
+    x: inverseSquared * inverse * p0.x + 3 * inverseSquared * t * p1.x + 3 * inverse * tSquared * p2.x + tSquared * t * p3.x,
+    y: inverseSquared * inverse * p0.y + 3 * inverseSquared * t * p1.y + 3 * inverse * tSquared * p2.y + tSquared * t * p3.y,
+  }
+}
+
+function distanceBetween(a: RoutePoint, b: RoutePoint) {
+  return Math.hypot(b.x - a.x, b.y - a.y)
 }
 
 function emptyTrack(showId: string, title: string, duration?: string): Track {
