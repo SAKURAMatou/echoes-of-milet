@@ -115,24 +115,29 @@
             >
               <button
                 type="button"
-                class="group -translate-x-1/2 -translate-y-1/2 text-center transition"
+                class="group relative grid size-11 -translate-x-1/2 -translate-y-1/2 place-items-center text-center transition"
                 :class="routeStopNodeClass(stop)"
                 :aria-label="`${stop.number} ${stop.performance.city || performanceLabel(stop.performance, stop.index)}`"
                 :aria-pressed="selectedPerformanceId === String(stop.performance.id)"
                 @click="selectPerformance(stop.performance.id)"
               >
                 <span
-                  class="mx-auto grid size-11 place-items-center rounded-full border font-['Montserrat','sans-serif'] text-sm font-semibold transition"
+                  class="grid size-11 place-items-center rounded-full border font-['Montserrat','sans-serif'] text-sm font-semibold transition"
                   :class="selectedPerformanceId === String(stop.performance.id)
                     ? 'border-[var(--live-detail-accent-strong)] bg-[var(--live-detail-accent-strong)] text-[#031322] shadow-[0_0_34px_var(--live-detail-glow)]'
                     : 'border-[var(--live-detail-accent-border)] bg-[var(--live-detail-surface-bg)] text-[var(--live-detail-title)] group-hover:border-[var(--live-detail-accent-strong)] group-hover:bg-white/10'"
                 >
                   {{ stop.number }}
                 </span>
-                <span class="mt-2 block min-w-24 font-serif text-lg leading-tight text-[var(--live-detail-title)]">
-                  {{ stop.performance.city || performanceLabel(stop.performance, stop.index) }}
+                <span
+                  class="pointer-events-none absolute left-1/2 flex w-32 -translate-x-1/2 flex-col items-center text-center transition"
+                  :class="routeStopInfoClass(stop)"
+                >
+                  <span class="block max-w-full truncate font-serif text-lg leading-tight text-[var(--live-detail-title)]">
+                    {{ stop.performance.city || performanceLabel(stop.performance, stop.index) }}
+                  </span>
+                  <span class="block text-sm leading-tight text-[var(--live-detail-muted)]">{{ shortDate(stop.performance.date) }}</span>
                 </span>
-                <span class="block text-sm text-[var(--live-detail-muted)]">{{ shortDate(stop.performance.date) }}</span>
               </button>
             </li>
           </ol>
@@ -393,9 +398,13 @@ function routeStopListClass(stop: { month: string; performance: LivePerformance 
 }
 
 function routeStopNodeClass(stop: { month: string; performance: LivePerformance }) {
-  return isRouteStopDimmed(stop)
-    ? 'opacity-35 saturate-50 hover:opacity-75'
-    : 'opacity-100'
+  if (isRouteStopDimmed(stop)) return 'z-0 opacity-35 saturate-50 hover:opacity-75'
+  if (selectedPerformanceId.value === String(stop.performance.id)) return 'z-20 opacity-100'
+  return 'z-10 opacity-100'
+}
+
+function routeStopInfoClass(stop: { index: number }) {
+  return (stop.index + 1) % 2 === 1 ? 'bottom-14' : 'top-14'
 }
 
 function routePositionForIndex(index: number, total: number) {
