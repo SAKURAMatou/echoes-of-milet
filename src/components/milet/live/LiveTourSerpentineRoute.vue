@@ -1,35 +1,52 @@
 <template>
   <article class="grid gap-7">
-    <section class="grid gap-8 pt-2 lg:grid-cols-[minmax(0,1fr)_minmax(16rem,22rem)_minmax(18rem,0.82fr)] lg:items-center">
+    <section
+      class="grid gap-8 pt-2 lg:grid-cols-[minmax(0,1fr)_minmax(16rem,22rem)_minmax(18rem,0.82fr)] lg:items-center"
+    >
       <div class="min-w-0">
-        <p class="font-['Montserrat','sans-serif'] text-xs font-semibold uppercase tracking-[0.18em] text-[var(--live-detail-accent)]">
+        <p
+          class="font-['Montserrat','sans-serif'] text-xs font-semibold uppercase tracking-[0.18em] text-[var(--live-detail-accent)]"
+        >
           {{ formatLiveType(event.type) }}
         </p>
-        <h1 class="mt-3 font-serif text-[clamp(3rem,7vw,5.6rem)] leading-[0.92] text-[var(--live-detail-title)]">
+        <h1
+          class="mt-3 font-serif text-[clamp(3rem,7vw,5.6rem)] leading-[0.92] text-[var(--live-detail-title)]"
+        >
           {{ event.title }}
         </h1>
-        <p class="mt-2 font-serif text-2xl text-[var(--live-detail-title-soft)]">{{ event.artist || 'milet' }}</p>
-        <div class="mt-5 flex flex-wrap gap-2 text-xs font-semibold text-[var(--live-detail-accent)]">
+        <p class="mt-2 font-serif text-2xl text-[var(--live-detail-title-soft)]">
+          {{ event.artist || 'milet' }}
+        </p>
+        <div
+          class="mt-5 flex flex-wrap gap-2 text-xs font-semibold text-[var(--live-detail-accent)]"
+        >
           <span class="rounded-full border border-[var(--live-detail-accent-border)] px-3 py-1">
             {{ formatLiveType(event.type) }}
           </span>
-          <span v-if="event.year" class="rounded-full border border-[var(--live-detail-accent-border)] px-3 py-1">
+          <span
+            v-if="event.year"
+            class="rounded-full border border-[var(--live-detail-accent-border)] px-3 py-1"
+          >
             {{ event.year }}
           </span>
           <span class="rounded-full border border-[var(--live-detail-accent-border)] px-3 py-1">
             {{ performances.length }} {{ lang === 'ja' ? 'Performances' : '场次' }}
           </span>
-          <span v-if="cityCount" class="rounded-full border border-[var(--live-detail-accent-border)] px-3 py-1">
+          <span
+            v-if="cityCount"
+            class="rounded-full border border-[var(--live-detail-accent-border)] px-3 py-1"
+          >
             {{ cityCount }} {{ lang === 'ja' ? 'Cities' : '城市' }}
           </span>
         </div>
-        <p class="mt-6 max-w-2xl whitespace-pre-line text-base leading-8 text-[var(--live-detail-text)]">
+        <p
+          class="mt-6 max-w-2xl whitespace-pre-line text-base leading-8 text-[var(--live-detail-text)]"
+        >
           {{ event.summary || fallbackSummary }}
         </p>
       </div>
 
       <LiveMainVisualPanel :event="event" class="mx-auto w-full max-w-sm" />
-
       <dl class="grid grid-cols-3 gap-0 overflow-hidden rounded-lg border border-[var(--live-detail-accent-border)] bg-[var(--live-detail-surface-bg)] lg:grid-cols-1">
         <div v-for="stat in tourStats" :key="stat.label" class="grid min-h-28 place-items-center border-[var(--live-detail-line)] px-4 py-4 text-center lg:border-t first:lg:border-t-0">
           <dt class="grid gap-2 text-xs font-semibold uppercase tracking-[0.12em] text-[var(--live-detail-muted)]">
@@ -60,13 +77,19 @@
 
     <section class="relative overflow-hidden rounded-lg border border-transparent py-2">
       <div class="mb-4 flex flex-wrap justify-end gap-2 text-sm">
-        <div class="inline-flex overflow-hidden rounded-md border border-[var(--live-detail-accent-border)]">
+        <div
+          class="inline-flex overflow-hidden rounded-md border border-[var(--live-detail-accent-border)]"
+        >
           <button
             v-for="month in monthTabs"
             :key="month.key"
             type="button"
             class="px-4 py-2 text-sm transition"
-            :class="selectedMonth === month.key ? 'bg-white/10 text-[var(--live-detail-accent-strong)]' : 'text-[var(--live-detail-muted)] hover:text-[var(--live-detail-title)]'"
+            :class="
+              selectedMonth === month.key
+                ? 'bg-white/10 text-[var(--live-detail-accent-strong)]'
+                : 'text-[var(--live-detail-muted)] hover:text-[var(--live-detail-title)]'
+            "
             :aria-pressed="selectedMonth === month.key"
             @click="selectMonth(month.key)"
           >
@@ -84,7 +107,9 @@
             :aria-pressed="selectedPerformanceId === String(stop.performance.id)"
             @click="selectPerformance(stop.performance.id)"
           >
-            <span class="grid size-12 place-items-center rounded-full border border-[var(--live-detail-accent-border)] font-['Montserrat','sans-serif'] text-sm font-semibold text-[var(--live-detail-accent-strong)] transition">
+            <span
+              class="grid size-12 place-items-center rounded-full border border-[var(--live-detail-accent-border)] font-['Montserrat','sans-serif'] text-sm font-semibold text-[var(--live-detail-accent-strong)] transition"
+            >
               {{ stop.number }}
             </span>
             <span class="min-w-0">
@@ -92,21 +117,34 @@
                 {{ stop.performance.city || performanceLabel(stop.performance, stop.index) }}
               </span>
               <span class="mt-1 block truncate text-sm text-[var(--live-detail-muted)]">
-                {{ shortDate(stop.performance.date) }} · {{ stop.performance.venueName || performanceLabel(stop.performance, stop.index) }}
+                {{ shortDate(stop.performance.date) }} ·
+                {{ stop.performance.venueName || performanceLabel(stop.performance, stop.index) }}
               </span>
             </span>
-            <span class="text-center text-xl text-[var(--live-detail-accent)]" aria-hidden="true">›</span>
+            <span class="text-center text-xl text-[var(--live-detail-accent)]" aria-hidden="true"
+              >›</span
+            >
           </button>
         </li>
       </ol>
 
-      <p v-else class="rounded border border-dashed border-white/16 p-6 text-center text-sm text-[var(--live-detail-muted)]">
+      <p
+        v-else
+        class="rounded border border-dashed border-white/16 p-6 text-center text-sm text-[var(--live-detail-muted)]"
+      >
         {{ lang === 'ja' ? 'この期間の公演はありません。' : '当前月份暂无场次。' }}
       </p>
 
       <div class="hidden overflow-x-auto pb-2 md:block">
-        <div class="relative min-h-[34rem] min-w-[58rem] overflow-hidden rounded-lg bg-[radial-gradient(circle_at_50%_50%,rgba(255,255,255,0.075),transparent_18rem)]">
-          <svg class="pointer-events-none absolute inset-0 h-full w-full" viewBox="0 0 1000 560" preserveAspectRatio="none" aria-hidden="true">
+        <div
+          class="relative min-h-[34rem] min-w-[58rem] overflow-hidden rounded-lg bg-[radial-gradient(circle_at_50%_50%,rgba(255,255,255,0.075),transparent_18rem)]"
+        >
+          <svg
+            class="pointer-events-none absolute inset-0 h-full w-full"
+            viewBox="0 0 1000 560"
+            preserveAspectRatio="none"
+            aria-hidden="true"
+          >
             <path
               :d="ROUTE_PATH_D"
               fill="none"
@@ -142,9 +180,11 @@
               >
                 <span
                   class="grid size-11 place-items-center rounded-full border font-['Montserrat','sans-serif'] text-sm font-semibold transition"
-                  :class="selectedPerformanceId === String(stop.performance.id)
-                    ? 'border-[var(--live-detail-accent-strong)] bg-[var(--live-detail-accent-strong)] text-[#031322] shadow-[0_0_34px_var(--live-detail-glow)]'
-                    : 'border-[var(--live-detail-accent-border)] bg-[var(--live-detail-surface-bg)] text-[var(--live-detail-title)] group-hover:border-[var(--live-detail-accent-strong)] group-hover:bg-white/10'"
+                  :class="
+                    selectedPerformanceId === String(stop.performance.id)
+                      ? 'border-[var(--live-detail-accent-strong)] bg-[var(--live-detail-accent-strong)] text-[#031322] shadow-[0_0_34px_var(--live-detail-glow)]'
+                      : 'border-[var(--live-detail-accent-border)] bg-[var(--live-detail-surface-bg)] text-[var(--live-detail-title)] group-hover:border-[var(--live-detail-accent-strong)] group-hover:bg-white/10'
+                  "
                 >
                   {{ stop.number }}
                 </span>
@@ -152,10 +192,14 @@
                   class="pointer-events-none absolute left-1/2 flex w-32 -translate-x-1/2 flex-col items-center text-center transition"
                   :class="routeStopInfoClass(stop)"
                 >
-                  <span class="block max-w-full truncate font-serif text-lg leading-tight text-[var(--live-detail-title)]">
+                  <span
+                    class="block max-w-full truncate font-serif text-lg leading-tight text-[var(--live-detail-title)]"
+                  >
                     {{ stop.performance.city || performanceLabel(stop.performance, stop.index) }}
                   </span>
-                  <span class="block text-sm leading-tight text-[var(--live-detail-muted)]">{{ shortDate(stop.performance.date) }}</span>
+                  <span class="block text-sm leading-tight text-[var(--live-detail-muted)]">{{
+                    shortDate(stop.performance.date)
+                  }}</span>
                 </span>
               </button>
             </li>
@@ -163,13 +207,20 @@
 
           <div
             v-if="selectedRouteStop"
-            class="absolute w-64 rounded-lg border border-[var(--live-detail-accent-border)] bg-[var(--live-detail-panel-bg)] p-4 shadow-[0_26px_70px_-42px_var(--live-detail-glow)] transition-[left,top,transform] duration-300"
+            class="absolute z-50 w-64 rounded-lg border border-[var(--live-detail-accent-border)] bg-[var(--live-detail-panel-bg)] p-4 shadow-[0_26px_70px_-42px_var(--live-detail-glow)] transition-[left,top,transform] duration-300"
             :style="selectedStopCardStyle"
           >
-            <p class="font-serif text-3xl text-[var(--live-detail-title)]">{{ selectedPerformance?.city || setlistSubtitle }}</p>
-            <p class="mt-1 text-sm text-[var(--live-detail-muted)]">{{ selectedPerformance?.venueName || '-' }}</p>
+            <p class="font-serif text-3xl text-[var(--live-detail-title)]">
+              {{ selectedPerformance?.city || setlistSubtitle }}
+            </p>
+            <p class="mt-1 text-sm text-[var(--live-detail-muted)]">
+              {{ selectedPerformance?.venueName || '-' }}
+            </p>
             <p class="mt-4 text-sm text-[var(--live-detail-text)]">{{ selectedDateLine }}</p>
-            <p class="mt-1 text-sm text-[var(--live-detail-text)]">OPEN {{ selectedPerformance?.openTime || '-' }} / START {{ selectedPerformance?.startTime || '-' }}</p>
+            <p class="mt-1 text-sm text-[var(--live-detail-text)]">
+              OPEN {{ selectedPerformance?.openTime || '-' }} / START
+              {{ selectedPerformance?.startTime || '-' }}
+            </p>
           </div>
         </div>
       </div>
@@ -184,11 +235,16 @@
           </svg>
           Selected Stop
         </p>
-        <h2 class="mt-4 font-serif text-4xl text-[var(--live-detail-title)]">{{ selectedPerformance?.city || setlistSubtitle }}</h2>
+        <h2 class="mt-4 font-serif text-4xl text-[var(--live-detail-title)]">
+          {{ selectedPerformance?.city || setlistSubtitle }}
+        </h2>
         <dl class="mt-5 grid gap-3 text-sm text-[var(--live-detail-text)]">
           <div>{{ selectedPerformance?.venueName || '-' }}</div>
           <div>{{ selectedDateLine }}</div>
-          <div>OPEN {{ selectedPerformance?.openTime || '-' }} / START {{ selectedPerformance?.startTime || '-' }}</div>
+          <div>
+            OPEN {{ selectedPerformance?.openTime || '-' }} / START
+            {{ selectedPerformance?.startTime || '-' }}
+          </div>
         </dl>
         <img
           v-if="selectedVenueLineArtUrl"
@@ -279,15 +335,51 @@ type RouteCurve = [RoutePoint, RoutePoint, RoutePoint, RoutePoint]
 const ROUTE_VIEWBOX_WIDTH = 1000
 const ROUTE_VIEWBOX_HEIGHT = 560
 const ROUTE_SAMPLE_STEPS = 36
-const ROUTE_PATH_D = 'M80 96 C 150 30 270 102 375 94 S 610 78 790 94 C 930 108 938 220 790 236 C 650 252 440 216 276 238 C 94 262 60 388 210 410 C 344 430 510 370 670 394 C 790 412 844 472 930 430'
+const ROUTE_PATH_D =
+  'M80 96 C 150 30 270 102 375 94 S 610 78 790 94 C 930 108 938 220 790 236 C 650 252 440 216 276 238 C 94 262 60 388 210 410 C 344 430 510 370 670 394 C 790 412 844 472 930 430'
 const ROUTE_CURVES: RouteCurve[] = [
-  [{ x: 80, y: 96 }, { x: 150, y: 30 }, { x: 270, y: 102 }, { x: 375, y: 94 }],
-  [{ x: 375, y: 94 }, { x: 480, y: 86 }, { x: 610, y: 78 }, { x: 790, y: 94 }],
-  [{ x: 790, y: 94 }, { x: 930, y: 108 }, { x: 938, y: 220 }, { x: 790, y: 236 }],
-  [{ x: 790, y: 236 }, { x: 650, y: 252 }, { x: 440, y: 216 }, { x: 276, y: 238 }],
-  [{ x: 276, y: 238 }, { x: 94, y: 262 }, { x: 60, y: 388 }, { x: 210, y: 410 }],
-  [{ x: 210, y: 410 }, { x: 344, y: 430 }, { x: 510, y: 370 }, { x: 670, y: 394 }],
-  [{ x: 670, y: 394 }, { x: 790, y: 412 }, { x: 844, y: 472 }, { x: 930, y: 430 }],
+  [
+    { x: 80, y: 96 },
+    { x: 150, y: 30 },
+    { x: 270, y: 102 },
+    { x: 375, y: 94 },
+  ],
+  [
+    { x: 375, y: 94 },
+    { x: 480, y: 86 },
+    { x: 610, y: 78 },
+    { x: 790, y: 94 },
+  ],
+  [
+    { x: 790, y: 94 },
+    { x: 930, y: 108 },
+    { x: 938, y: 220 },
+    { x: 790, y: 236 },
+  ],
+  [
+    { x: 790, y: 236 },
+    { x: 650, y: 252 },
+    { x: 440, y: 216 },
+    { x: 276, y: 238 },
+  ],
+  [
+    { x: 276, y: 238 },
+    { x: 94, y: 262 },
+    { x: 60, y: 388 },
+    { x: 210, y: 410 },
+  ],
+  [
+    { x: 210, y: 410 },
+    { x: 344, y: 430 },
+    { x: 510, y: 370 },
+    { x: 670, y: 394 },
+  ],
+  [
+    { x: 670, y: 394 },
+    { x: 790, y: 412 },
+    { x: 844, y: 472 },
+    { x: 930, y: 430 },
+  ],
 ]
 const ROUTE_SAMPLES = buildRouteSamples()
 const ROUTE_TOTAL_LENGTH = ROUTE_SAMPLES[ROUTE_SAMPLES.length - 1]?.length || 0
@@ -306,13 +398,16 @@ const performances = computed(() =>
     (a, b) => (Number(a.sortNo) || 0) - (Number(b.sortNo) || 0),
   ),
 )
-const selectedPerformance = computed(() =>
-  performances.value.find((item) => String(item.id) === selectedPerformanceId.value) ||
-  performances.value[0] ||
-  null,
+const selectedPerformance = computed(
+  () =>
+    performances.value.find((item) => String(item.id) === selectedPerformanceId.value) ||
+    performances.value[0] ||
+    null,
 )
 const cityCount = computed(
-  () => event.value.cityCount || new Set(performances.value.map((item) => item.city).filter(Boolean)).size,
+  () =>
+    event.value.cityCount ||
+    new Set(performances.value.map((item) => item.city).filter(Boolean)).size,
 )
 const fallbackSummary = computed(() =>
   props.lang === 'ja'
@@ -323,24 +418,33 @@ const tourStats = computed(() => [
   { icon: 'calendar', label: 'Period', value: formatLiveDateRange(event.value) || '-', sub: props.lang === 'ja' ? '巡演期間' : '巡演期间' },
   { icon: 'ticket', label: 'Shows', value: String(performances.value.length || event.value.performanceCount || 0), sub: 'Performances' },
   { icon: 'city', label: 'Cities', value: String(cityCount.value || 0), sub: props.lang === 'ja' ? '都市' : '城市' },
+
 ])
 const selectedOverrides = computed(() => {
   const key = selectedPerformance.value?.id
   if (key === undefined || key === null) return []
   return props.payload.setlistOverridesByPerformanceId?.[String(key)] || []
 })
-const setlistItems = computed(() => composeLiveSetlist(props.payload.eventSetlist, selectedOverrides.value))
+const setlistItems = computed(() =>
+  composeLiveSetlist(props.payload.eventSetlist, selectedOverrides.value),
+)
 const setlistSegments = computed(() => segmentLiveSetlist(setlistItems.value))
-const setlistSubtitle = computed(() => selectedPerformance.value ? performanceLabel(selectedPerformance.value) : '')
+const setlistSubtitle = computed(() =>
+  selectedPerformance.value ? performanceLabel(selectedPerformance.value) : '',
+)
 const setlistState = computed(() => resolveLiveSetlistState(props.payload))
 const setlistEmptyMessage = computed(() => resolveSetlistEmptyMessage(props.payload, props.lang))
 const selectedDateLine = computed(() =>
   selectedPerformance.value
-    ? [formatLiveDate(selectedPerformance.value.date), performanceLabel(selectedPerformance.value)].filter(Boolean).join(' / ')
+    ? [formatLiveDate(selectedPerformance.value.date), performanceLabel(selectedPerformance.value)]
+        .filter(Boolean)
+        .join(' / ')
     : '',
 )
 const selectedVenueLineArtUrl = computed(() => resolveVenueLineArtUrl(selectedPerformance.value))
-const selectedRouteStop = computed(() => routeStops.value.find((stop) => String(stop.performance.id) === selectedPerformanceId.value))
+const selectedRouteStop = computed(() =>
+  routeStops.value.find((stop) => String(stop.performance.id) === selectedPerformanceId.value),
+)
 const selectedStopCardStyle = computed(() => {
   const stop = selectedRouteStop.value
   if (!stop) return {}
@@ -368,11 +472,10 @@ const routeStops = computed(() =>
 )
 const visibleRouteStops = computed(() => routeStops.value)
 const monthTabs = computed(() => {
-  const months = Array.from(new Set(performances.value.map((item) => monthKey(item.date)).filter(Boolean)))
-  return [
-    { key: 'all', label: 'All' },
-    ...months.map((key) => ({ key, label: monthLabel(key) })),
-  ]
+  const months = Array.from(
+    new Set(performances.value.map((item) => monthKey(item.date)).filter(Boolean)),
+  )
+  return [{ key: 'all', label: 'All' }, ...months.map((key) => ({ key, label: monthLabel(key) }))]
 })
 
 function monthKey(date?: string) {
@@ -382,7 +485,9 @@ function monthKey(date?: string) {
 function monthLabel(key: string) {
   if (key === 'all') return 'All'
   const month = Number(key.slice(5, 7))
-  return Number.isFinite(month) && month > 0 ? new Intl.DateTimeFormat('en', { month: 'short' }).format(new Date(2024, month - 1, 1)) : key
+  return Number.isFinite(month) && month > 0
+    ? new Intl.DateTimeFormat('en', { month: 'short' }).format(new Date(2024, month - 1, 1))
+    : key
 }
 
 function shortDate(date?: string) {
@@ -406,9 +511,11 @@ function selectMonth(key: string) {
 }
 
 function isRouteStopDimmed(stop: { month: string; performance: LivePerformance }) {
-  return selectedMonth.value !== 'all' &&
+  return (
+    selectedMonth.value !== 'all' &&
     stop.month !== selectedMonth.value &&
     String(stop.performance.id) !== selectedPerformanceId.value
+  )
 }
 
 function routeStopListClass(stop: { month: string; performance: LivePerformance }) {
@@ -482,8 +589,16 @@ function cubicPoint(curve: RouteCurve, t: number) {
   const inverseSquared = inverse * inverse
   const tSquared = t * t
   return {
-    x: inverseSquared * inverse * p0.x + 3 * inverseSquared * t * p1.x + 3 * inverse * tSquared * p2.x + tSquared * t * p3.x,
-    y: inverseSquared * inverse * p0.y + 3 * inverseSquared * t * p1.y + 3 * inverse * tSquared * p2.y + tSquared * t * p3.y,
+    x:
+      inverseSquared * inverse * p0.x +
+      3 * inverseSquared * t * p1.x +
+      3 * inverse * tSquared * p2.x +
+      tSquared * t * p3.x,
+    y:
+      inverseSquared * inverse * p0.y +
+      3 * inverseSquared * t * p1.y +
+      3 * inverse * tSquared * p2.y +
+      tSquared * t * p3.y,
   }
 }
 
@@ -538,7 +653,9 @@ async function loadTrackDetail(track: Track) {
 async function handleTrackSelect(item: LiveSetlistItem) {
   const showId = resolveLiveTrackShowId(item)
   if (showId) {
-    trackModalTrack.value = await loadTrackDetail(emptyTrack(showId, item.displayTitle, item.duration))
+    trackModalTrack.value = await loadTrackDetail(
+      emptyTrack(showId, item.displayTitle, item.duration),
+    )
     trackModalMounted.value = true
     trackModalOpen.value = true
     return
