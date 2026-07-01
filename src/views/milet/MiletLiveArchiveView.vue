@@ -8,20 +8,28 @@
       <div
         class="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_76%_7%,rgba(186,230,253,0.64),transparent_30%),linear-gradient(135deg,rgba(255,255,255,0.94),rgba(240,249,255,0.5))]"
       ></div>
-      <div class="live-archive-hero-photo pointer-events-none absolute inset-y-0 right-0 w-[58%]"></div>
+      <div
+        class="live-archive-hero-photo pointer-events-none absolute inset-y-0 right-0 w-[58%]"
+      ></div>
 
-      <div class="relative grid gap-9 lg:grid-cols-[minmax(0,1fr)_minmax(18rem,28rem)] lg:items-end">
+      <div
+        class="relative grid gap-9 lg:grid-cols-[minmax(0,1fr)_minmax(18rem,28rem)] lg:items-end"
+      >
         <div>
-          <p class="font-['Montserrat','sans-serif'] text-[12px] font-semibold uppercase tracking-[.18em] text-[#317f8d]">
+          <p
+            class="font-['Montserrat','sans-serif'] text-[12px] font-semibold uppercase tracking-[.18em] text-[#317f8d]"
+          >
             CURRENT: Live Archive
           </p>
           <h1 class="milet-page-title-font mt-5 text-6xl leading-none text-[#143d63] md:text-7xl">
             {{ routeLang === 'ja' ? 'Live Archive' : 'Live Archive' }}
           </h1>
           <p class="mt-5 max-w-xl text-sm font-medium leading-7 text-slate-600">
-            {{ routeLang === 'ja'
-              ? '公演ごとの日付、会場、setlist と関連コンテンツを整理します。'
-              : '整理演出的日期、场馆、setlist 与关联内容，把 live 的余韵留在同一个入口。' }}
+            {{
+              routeLang === 'ja'
+                ? '公演ごとの日付、会場、setlist と関連コンテンツを整理します。'
+                : '整理演出的日期、场馆、setlist 与关联内容，把 live 的余韵留在同一个入口。'
+            }}
           </p>
         </div>
 
@@ -30,8 +38,12 @@
           aria-hidden="true"
         >
           <div class="absolute right-0 top-4 flex w-72 items-center gap-4">
-            <span class="h-px flex-1 bg-[linear-gradient(90deg,rgba(184,148,68,0.14),rgba(184,148,68,0.72))]"></span>
-            <span class="grid size-2.5 rotate-45 place-items-center border border-[#b89444]/60 bg-white/82 shadow-[0_0_0_5px_rgba(255,255,255,0.38)]">
+            <span
+              class="h-px flex-1 bg-[linear-gradient(90deg,rgba(184,148,68,0.14),rgba(184,148,68,0.72))]"
+            ></span>
+            <span
+              class="grid size-2.5 rotate-45 place-items-center border border-[#b89444]/60 bg-white/82 shadow-[0_0_0_5px_rgba(255,255,255,0.38)]"
+            >
               <span class="size-1 rounded-full bg-[#b89444]/70"></span>
             </span>
           </div>
@@ -52,7 +64,9 @@
     </header>
 
     <section class="border-b border-[#c9ddea]/70 bg-white/48 px-4 py-4 sm:px-7">
-      <div class="grid gap-3 rounded-lg border border-sky-100/80 bg-white/52 p-3 shadow-[0_18px_45px_-38px_rgba(15,23,42,0.54)] backdrop-blur lg:grid-cols-[minmax(0,1fr)_14rem_10rem_auto]">
+      <div
+        class="grid gap-3 rounded-lg border border-sky-100/80 bg-white/52 p-3 shadow-[0_18px_45px_-38px_rgba(15,23,42,0.54)] backdrop-blur lg:grid-cols-[minmax(0,1fr)_14rem_10rem_auto]"
+      >
         <label class="grid gap-1">
           <span class="text-xs font-semibold uppercase tracking-[0.14em] text-[#317f8d]">
             {{ routeLang === 'ja' ? 'Keyword' : '关键词' }}
@@ -89,7 +103,7 @@
             v-model.trim="selectedYear"
             type="number"
             inputmode="numeric"
-            min="2010"
+            min="2019"
             :max="currentYear + 1"
             class="h-11 rounded-lg border border-[#b7d6e2] bg-white/82 px-3 text-sm text-[#24323a] outline-none transition placeholder:text-slate-400 focus:border-[#317f8d] focus:ring-4 focus:ring-sky-100"
             placeholder="ALL"
@@ -159,7 +173,9 @@
               <p class="text-xs font-semibold uppercase tracking-[0.16em] text-[#317f8d]">
                 {{ item.year || formatLiveDateRange(item).slice(0, 4) || 'LIVE' }}
               </p>
-              <h2 class="mt-1 font-serif text-3xl leading-tight text-[#143d63] transition group-hover:text-[#317f8d]">
+              <h2
+                class="mt-1 font-serif text-3xl leading-tight text-[#143d63] transition group-hover:text-[#317f8d]"
+              >
                 {{ item.title }}
               </h2>
             </div>
@@ -236,9 +252,7 @@ const queryKey = computed(() =>
   }),
 )
 const data = ref<LiveEventListResponse | null>(
-  appState.miletLiveListData?.key === queryKey.value
-    ? appState.miletLiveListData.payload
-    : null,
+  appState.miletLiveListData?.key === queryKey.value ? appState.miletLiveListData.payload : null,
 )
 const items = computed(() => data.value?.items || [])
 const hasMore = computed(() => (data.value?.page || 1) < (data.value?.totalPages || 1))
@@ -269,7 +283,10 @@ async function loadList(page = 1, append = false) {
       page,
       pageSize,
     })
-    data.value = append && data.value ? { ...payload, items: [...data.value.items, ...payload.items] } : payload
+    data.value =
+      append && data.value
+        ? { ...payload, items: [...data.value.items, ...payload.items] }
+        : payload
     if (!append) {
       appState.miletLiveListData = { key, payload }
     }
