@@ -8,9 +8,10 @@ export type LiveDetailBlueprintId =
   | 'tour-balanced-stops'
   | 'tour-serpentine-route'
 
-export type LiveDetailThemePreset = 'default' | 'echo-blue'
+export type LiveDetailThemePreset = 'default' | 'echo-blue' | 'stairs-colors'
 
 export type LiveDetailThemeTokens = {
+  colorScheme: 'dark' | 'light'
   shell: string
   headerBg: string
   headerBorder: string
@@ -77,6 +78,7 @@ export const liveDetailThemes: Record<LiveDetailThemePreset, {
     label: 'Midnight Gold',
     description: '深海夜色、舞台金色和细腻蓝光，作为 Live Archive 默认主题。',
     tokens: {
+      colorScheme: 'dark',
       shell: '#020b15',
       headerBg: 'rgba(2, 11, 21, 0.9)',
       headerBorder: 'rgba(214, 179, 106, 0.28)',
@@ -100,27 +102,54 @@ export const liveDetailThemes: Record<LiveDetailThemePreset, {
   },
   'echo-blue': {
     label: 'Echo Blue',
-    description: '沿用当前网站的清透蓝色调，配合柔和金色强调和更冷静的舞台光感。',
+    description: '沿用当前网站的天空蓝和白色玻璃感，适合更轻盈、清透的 Live Archive 详情页。',
     tokens: {
-      shell: '#051629',
-      headerBg: 'rgba(5, 22, 41, 0.92)',
-      headerBorder: 'rgba(125, 211, 252, 0.28)',
+      colorScheme: 'light',
+      shell: '#f0f9ff',
+      headerBg: 'rgba(255, 255, 255, 0.86)',
+      headerBorder: 'rgba(14, 165, 233, 0.28)',
       pageBg:
-        'radial-gradient(circle at 46% 7%, rgba(14, 165, 233, 0.28), transparent 34rem), radial-gradient(circle at 9% 38%, rgba(191, 219, 254, 0.14), transparent 24rem), radial-gradient(circle at 86% 46%, rgba(214, 179, 106, 0.12), transparent 24rem), linear-gradient(180deg, #051629 0%, #08263d 48%, #061321 100%)',
-      title: '#f8fafc',
-      titleSoft: '#e0f2fe',
-      text: '#ddecff',
-      muted: '#b4c8da',
-      subtle: '#86a2b8',
-      accent: '#7dd3fc',
-      accentStrong: '#bae6fd',
-      accentBorder: 'rgba(125, 211, 252, 0.46)',
-      panelBg: 'rgba(7, 35, 56, 0.86)',
-      surfaceBg: 'rgba(6, 24, 43, 0.58)',
-      linkHover: '#f4d397',
-      line: 'rgba(125, 211, 252, 0.3)',
-      glow: 'rgba(125, 211, 252, 0.78)',
-      route: '#f4d397',
+        'radial-gradient(circle at 12% 10%, rgba(186, 230, 253, 0.9), transparent 28rem), radial-gradient(circle at 88% 18%, rgba(224, 242, 254, 0.88), transparent 30rem), radial-gradient(circle at 50% 82%, rgba(14, 165, 233, 0.12), transparent 28rem), linear-gradient(135deg, #ffffff 0%, #f0f9ff 44%, #e0f2fe 100%)',
+      title: '#143d63',
+      titleSoft: '#317f8d',
+      text: '#24323a',
+      muted: '#546e7a',
+      subtle: '#7c98a8',
+      accent: '#0284c7',
+      accentStrong: '#0ea5e9',
+      accentBorder: 'rgba(14, 165, 233, 0.34)',
+      panelBg: 'rgba(255, 255, 255, 0.84)',
+      surfaceBg: 'rgba(240, 249, 255, 0.72)',
+      linkHover: '#0369a1',
+      line: 'rgba(49, 127, 141, 0.24)',
+      glow: 'rgba(125, 211, 252, 0.46)',
+      route: '#0ea5e9',
+    },
+  },
+  'stairs-colors': {
+    label: 'stairs colors',
+    description: '参考 stairs 2024 官方周边图的粉橙晚霞和奶油纸感，适合更柔和的纪念册式页面。',
+    tokens: {
+      colorScheme: 'light',
+      shell: '#fff0e8',
+      headerBg: 'rgba(255, 242, 232, 0.88)',
+      headerBorder: 'rgba(224, 112, 112, 0.36)',
+      pageBg:
+        'radial-gradient(circle at 14% 4%, rgba(229, 96, 132, 0.38), transparent 26rem), radial-gradient(circle at 88% 10%, rgba(245, 158, 11, 0.34), transparent 28rem), radial-gradient(circle at 20% 92%, rgba(160, 96, 144, 0.24), transparent 24rem), linear-gradient(145deg, #fff4ea 0%, #ffe2df 48%, #f7c8b8 100%)',
+      title: '#3f2531',
+      titleSoft: '#7d365e',
+      text: '#463238',
+      muted: '#765961',
+      subtle: '#9b777d',
+      accent: '#df6475',
+      accentStrong: '#f59e0b',
+      accentBorder: 'rgba(224, 112, 112, 0.42)',
+      panelBg: 'rgba(255, 248, 242, 0.86)',
+      surfaceBg: 'rgba(255, 237, 228, 0.72)',
+      linkHover: '#b83280',
+      line: 'rgba(224, 112, 112, 0.3)',
+      glow: 'rgba(240, 144, 96, 0.56)',
+      route: '#df6475',
     },
   },
 }
@@ -146,7 +175,8 @@ export function normalizeLiveDetailBlueprint(
 }
 
 export function normalizeLiveDetailTheme(themePreset?: string | null): LiveDetailThemePreset {
-  return themePreset === 'echo-blue' ? 'echo-blue' : 'default'
+  if (themePreset === 'echo-blue' || themePreset === 'stairs-colors') return themePreset
+  return 'default'
 }
 
 export function liveDetailBlueprintGroup(blueprint: LiveDetailBlueprintId): LiveDetailBlueprintGroup {

@@ -605,8 +605,8 @@ updatedAt
 第一版范围：
 
 - 第一阶段只支持 `blueprint + themePreset`。
-- `blueprint` 用于选择不同详情页面布局，当前支持 `one-man-magazine` 和 `tour-serpentine-route`。
-- `themePreset` 用于选择不同详情页主题，当前支持 `default`、`aurora-blue`、`velvet-rose`。
+- `blueprint` 用于选择不同详情页面布局，当前支持 `one-man-compact-related`、`one-man-visual-cards`、`tour-balanced-stops`、`tour-serpentine-route`。
+- `themePreset` 用于选择不同详情页主题，当前支持 `default`、`echo-blue`、`stairs-colors`。其中 `default` 是 Midnight Gold，`echo-blue` 使用网站整体天空蓝风格，`stairs-colors` 参考 stairs 2024 周边图的粉橙晚霞背景。
 - 组件级启用/隐藏、组件顺序和局部参数不进入当前落地范围，文档中标记为 Phase 5 deferred。
 - 页面组件组合由 blueprint 固定决定，降低管理端和 SSR 复杂度。
 

@@ -27,9 +27,9 @@
           </div>
 
           <div class="flex shrink-0 items-center gap-3 font-['Montserrat','sans-serif'] text-xs font-semibold uppercase tracking-[0.16em] text-[var(--live-detail-accent)]">
-            <RouterLink :to="zhRoute" class="transition hover:text-white">ZH</RouterLink>
+            <RouterLink :to="zhRoute" class="transition hover:text-[var(--live-detail-link-hover)]">ZH</RouterLink>
             <span class="opacity-50">/</span>
-            <RouterLink :to="jaRoute" class="transition hover:text-white">JA</RouterLink>
+            <RouterLink :to="jaRoute" class="transition hover:text-[var(--live-detail-link-hover)]">JA</RouterLink>
           </div>
         </div>
 
@@ -77,6 +77,7 @@ const normalizedThemePreset = computed(() => normalizeLiveDetailTheme(props.them
 const theme = computed(() => liveDetailThemes[normalizedThemePreset.value].tokens)
 const themeClass = computed(() => `live-detail-shell--${normalizedThemePreset.value}`)
 const themeStyle = computed<Record<string, string>>(() => ({
+  colorScheme: theme.value.colorScheme,
   backgroundColor: theme.value.shell,
   '--live-detail-page-bg': theme.value.pageBg,
   '--live-detail-title': theme.value.title,
@@ -119,10 +120,6 @@ const jaRoute = computed(() => ({
 </script>
 
 <style scoped>
-.live-detail-shell {
-  color-scheme: dark;
-}
-
 .live-detail-shell :deep([class*="text-[#f3eadf]"]),
 .live-detail-shell :deep([class*="text-[#f5eadc]"]) {
   color: var(--live-detail-title) !important;
@@ -157,6 +154,12 @@ const jaRoute = computed(() => ({
 }
 
 .live-detail-shell :deep([class*="border-[#86bde6]"]) {
+  border-color: var(--live-detail-line) !important;
+}
+
+.live-detail-shell :deep([class*="border-white/10"]),
+.live-detail-shell :deep([class*="border-white/16"]),
+.live-detail-shell :deep([class*="border-white/[0.08]"]) {
   border-color: var(--live-detail-line) !important;
 }
 
