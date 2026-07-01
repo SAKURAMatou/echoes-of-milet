@@ -32,7 +32,26 @@
 
       <dl class="grid grid-cols-3 gap-0 overflow-hidden rounded-lg border border-[var(--live-detail-accent-border)] bg-[var(--live-detail-surface-bg)] lg:grid-cols-1">
         <div v-for="stat in tourStats" :key="stat.label" class="grid min-h-28 place-items-center border-[var(--live-detail-line)] px-4 py-4 text-center lg:border-t first:lg:border-t-0">
-          <dt class="text-xs font-semibold uppercase tracking-[0.12em] text-[var(--live-detail-muted)]">{{ stat.label }}</dt>
+          <dt class="grid gap-2 text-xs font-semibold uppercase tracking-[0.12em] text-[var(--live-detail-muted)]">
+            <span class="mx-auto grid size-9 place-items-center text-[var(--live-detail-accent)]" aria-hidden="true">
+              <svg class="size-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+                <path v-if="stat.icon === 'calendar'" d="M8 2v4" />
+                <path v-if="stat.icon === 'calendar'" d="M16 2v4" />
+                <rect v-if="stat.icon === 'calendar'" width="18" height="18" x="3" y="4" rx="2" />
+                <path v-if="stat.icon === 'calendar'" d="M3 10h18" />
+                <path v-if="stat.icon === 'ticket'" d="M4 7a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v2a3 3 0 0 0 0 6v2a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-2a3 3 0 0 0 0-6V7Z" />
+                <path v-if="stat.icon === 'ticket'" d="M9 8h.01" />
+                <path v-if="stat.icon === 'ticket'" d="M9 12h.01" />
+                <path v-if="stat.icon === 'ticket'" d="M9 16h.01" />
+                <path v-if="stat.icon === 'city'" d="M4 21h16" />
+                <path v-if="stat.icon === 'city'" d="M6 21V8l5-4 5 4v13" />
+                <path v-if="stat.icon === 'city'" d="M9 21v-6h4v6" />
+                <path v-if="stat.icon === 'city'" d="M8.5 10h.01" />
+                <path v-if="stat.icon === 'city'" d="M13.5 10h.01" />
+              </svg>
+            </span>
+            <span>{{ stat.label }}</span>
+          </dt>
           <dd class="mt-2 font-serif text-2xl leading-tight text-[var(--live-detail-title)]">{{ stat.value }}</dd>
           <p v-if="stat.sub" class="mt-1 text-xs text-[var(--live-detail-muted)]">{{ stat.sub }}</p>
         </div>
@@ -158,7 +177,11 @@
 
     <section class="grid gap-5 lg:grid-cols-[minmax(17rem,23rem)_minmax(0,1fr)]">
       <aside class="overflow-hidden rounded-lg border border-[var(--live-detail-accent-border)] bg-[var(--live-detail-panel-bg)] p-5">
-        <p class="font-['Montserrat','sans-serif'] text-xs font-semibold uppercase tracking-[0.14em] text-[var(--live-detail-accent)]">
+        <p class="inline-flex items-center gap-2 font-['Montserrat','sans-serif'] text-xs font-semibold uppercase tracking-[0.14em] text-[var(--live-detail-accent)]">
+          <svg class="size-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M12 21s7-4.4 7-11a7 7 0 1 0-14 0c0 6.6 7 11 7 11Z" />
+            <circle cx="12" cy="10" r="2.4" />
+          </svg>
           Selected Stop
         </p>
         <h2 class="mt-4 font-serif text-4xl text-[var(--live-detail-title)]">{{ selectedPerformance?.city || setlistSubtitle }}</h2>
@@ -225,6 +248,7 @@ import {
   performanceLabel,
   resolveLiveSetlistState,
   resolveSetlistEmptyMessage,
+  resolveLiveTrackShowId,
   resolveVenueLineArtUrl,
   segmentLiveSetlist,
   type LiveEventDetailPayload,
@@ -296,9 +320,9 @@ const fallbackSummary = computed(() =>
     : '记录这轮巡演的日程、场地、曲目与相关内容。',
 )
 const tourStats = computed(() => [
-  { label: 'Period', value: formatLiveDateRange(event.value) || '-', sub: props.lang === 'ja' ? '巡演期間' : '巡演期间' },
-  { label: 'Shows', value: String(performances.value.length || event.value.performanceCount || 0), sub: 'Performances' },
-  { label: 'Cities', value: String(cityCount.value || 0), sub: props.lang === 'ja' ? '都市' : '城市' },
+  { icon: 'calendar', label: 'Period', value: formatLiveDateRange(event.value) || '-', sub: props.lang === 'ja' ? '巡演期間' : '巡演期间' },
+  { icon: 'ticket', label: 'Shows', value: String(performances.value.length || event.value.performanceCount || 0), sub: 'Performances' },
+  { icon: 'city', label: 'Cities', value: String(cityCount.value || 0), sub: props.lang === 'ja' ? '都市' : '城市' },
 ])
 const selectedOverrides = computed(() => {
   const key = selectedPerformance.value?.id
@@ -494,7 +518,7 @@ function parseDurationSec(duration?: string) {
 async function loadTrackDetail(track: Track) {
   try {
     const detail = await axiosInstance.get<{ code?: number; data?: Partial<Track> }>(
-      apiRoutes.miletReleaseDetail + track.showId,
+      `${apiRoutes.miletReleaseDetail}${track.showId}?lang=${props.lang === 'ja' ? 'ja' : 'zh'}`,
     )
     const data = detail?.data || {}
     return {
@@ -512,7 +536,7 @@ async function loadTrackDetail(track: Track) {
 }
 
 async function handleTrackSelect(item: LiveSetlistItem) {
-  const showId = String(item.songTrackId || item.songWorkId || '').trim()
+  const showId = resolveLiveTrackShowId(item)
   if (showId) {
     trackModalTrack.value = await loadTrackDetail(emptyTrack(showId, item.displayTitle, item.duration))
     trackModalMounted.value = true

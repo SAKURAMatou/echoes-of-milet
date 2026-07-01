@@ -1,16 +1,19 @@
 <template>
   <teleport to="body">
     <transition name="track-modal" appear>
-      <div v-if="open && track" class="fixed inset-0 z-[999]">
+      <div v-if="open && track" class="fixed inset-0 z-50">
         <div
-          class="modal-backdrop absolute inset-0 bg-slate-950/76 backdrop-blur-[10px]"
+          class="modal-backdrop absolute inset-0 bg-slate-950/78 backdrop-blur-[8px]"
           @click="closeAll"
         ></div>
 
         <div class="absolute inset-0 modal-scroll">
           <div class="flex min-h-full items-start justify-center p-3 md:items-center md:p-6">
             <div
-              class="modal-panel relative flex h-[calc(100dvh-24px)] w-full max-w-6xl flex-col overflow-hidden rounded-[18px] border border-white/10 bg-[linear-gradient(180deg,#fcfdff_0%,#f8fafc_58%,#f1f5f9_100%)] shadow-[0_50px_130px_-40px_rgba(15,23,42,0.72)] md:h-[calc(100dvh-48px)]"
+              class="modal-panel relative flex h-[calc(100dvh-24px)] w-full max-w-6xl flex-col overflow-hidden rounded-lg border border-sky-100/80 bg-[linear-gradient(180deg,#fcfdff_0%,#f8fbff_58%,#f1f6fb_100%)] shadow-[0_44px_120px_-42px_rgba(15,23,42,0.74)] ring-1 ring-white/80 md:h-[calc(100dvh-48px)]"
+              role="dialog"
+              aria-modal="true"
+              :aria-label="title || modalText.detailLabel"
             >
               <div
                 class="pointer-events-none absolute inset-x-0 top-0 h-36 bg-[radial-gradient(circle_at_top_left,rgba(56,189,248,0.16),transparent_52%),radial-gradient(circle_at_top_right,rgba(244,114,182,0.16),transparent_46%)]"
@@ -19,31 +22,41 @@
               <div
                 class="relative flex items-center justify-between border-b border-slate-200/80 px-4 py-3.5 md:px-6 md:py-4"
               >
-                <div class="min-w-0">
-                  <div
-                    class="truncate text-lg font-semibold tracking-[0.01em] text-slate-950 md:text-[24px]"
-                  >
-                    {{ title }}
-                  </div>
-                  <div
-                    class="mt-1 flex flex-wrap items-center gap-1.5 text-[11px] font-medium tracking-[0.08em] text-slate-500 md:text-xs"
-                  >
-                    <span>{{ modalText.detailLabel }}</span>
-                    <span class="text-slate-300">/</span>
-                    <span>{{ track.singer || '-' }}</span>
+                <div class="flex min-w-0 items-start gap-3">
+                  <span class="mt-1 grid size-8 shrink-0 place-items-center rounded-md border border-sky-200/80 bg-sky-50 text-sky-700" aria-hidden="true">
+                    <svg class="size-[18px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                      <path d="M9 18V5l10-2v13" />
+                      <circle cx="6" cy="18" r="3" />
+                      <circle cx="16" cy="16" r="3" />
+                      <path d="M9 9l10-2" />
+                    </svg>
+                  </span>
+                  <div class="min-w-0">
+                    <div
+                      class="truncate text-lg font-semibold tracking-[0.01em] text-slate-950 md:text-[24px]"
+                    >
+                      {{ title }}
+                    </div>
+                    <div
+                      class="mt-1 flex flex-wrap items-center gap-1.5 text-[11px] font-medium tracking-[0.08em] text-slate-500 md:text-xs"
+                    >
+                      <span>{{ modalText.detailLabel }}</span>
+                      <span class="text-slate-300">/</span>
+                      <span>{{ track.singer || '-' }}</span>
+                    </div>
                   </div>
                 </div>
 
                 <div class="flex items-center gap-2.5">
                   <button
-                    class="inline-flex items-center rounded-xl border border-slate-200 bg-white/90 px-3.5 py-2 text-sm font-semibold text-slate-700 shadow-sm transition hover:border-sky-200 hover:bg-sky-50 hover:text-sky-700 disabled:cursor-not-allowed disabled:border-slate-200 disabled:bg-slate-100 disabled:text-slate-400 lg:hidden"
+                    class="inline-flex items-center rounded-md border border-slate-200 bg-white/90 px-3.5 py-2 text-sm font-semibold text-slate-700 shadow-sm transition hover:border-sky-200 hover:bg-sky-50 hover:text-sky-700 disabled:cursor-not-allowed disabled:border-slate-200 disabled:bg-slate-100 disabled:text-slate-400 lg:hidden"
                     :disabled="listenLoading || !hasListenData"
                     @click="openListenDrawer"
                   >
                     {{ listenLoading ? modalText.loading : modalText.listenButton }}
                   </button>
                   <button
-                    class="flex h-9 w-9 items-center justify-center rounded-xl border border-slate-200 bg-white/90 text-slate-500 transition hover:bg-slate-100 hover:text-slate-900 md:h-10 md:w-10"
+                    class="flex h-9 w-9 items-center justify-center rounded-md border border-slate-200 bg-white/90 text-slate-500 transition hover:bg-slate-100 hover:text-slate-900 md:h-10 md:w-10"
                     @click="closeAll"
                     aria-label="Close"
                   >
@@ -74,7 +87,7 @@
                       class="space-y-4 lg:flex lg:h-full lg:min-h-0 lg:flex-col lg:overflow-hidden"
                     >
                       <div
-                        class="rounded-[16px] border border-slate-200/80 bg-white/86 p-4 shadow-[0_24px_60px_-42px_rgba(15,23,42,0.45)] backdrop-blur-sm"
+                        class="rounded-lg border border-slate-200/80 bg-white/88 p-4 shadow-[0_24px_60px_-44px_rgba(15,23,42,0.45)] backdrop-blur-sm"
                       >
                         <div class="flex flex-wrap items-start justify-between gap-3">
                           <div class="min-w-0">
@@ -109,7 +122,7 @@
 
                         <div class="mt-4 grid gap-2.5 sm:grid-cols-2 xl:grid-cols-3">
                           <div
-                            class="rounded-[14px] border border-slate-200/80 bg-slate-50/80 px-3.5 py-2.5"
+                            class="rounded-md border border-slate-200/80 bg-slate-50/80 px-3.5 py-2.5"
                           >
                             <div
                               class="text-[10px] font-semibold uppercase tracking-[0.16em] text-slate-400"
@@ -123,7 +136,7 @@
                             </div>
                           </div>
                           <div
-                            class="rounded-[14px] border border-slate-200/80 bg-slate-50/80 px-3.5 py-2.5"
+                            class="rounded-md border border-slate-200/80 bg-slate-50/80 px-3.5 py-2.5"
                           >
                             <div
                               class="text-[10px] font-semibold uppercase tracking-[0.16em] text-slate-400"
@@ -137,7 +150,7 @@
                             </div>
                           </div>
                           <div
-                            class="rounded-[14px] border border-slate-200/80 bg-slate-50/80 px-3.5 py-2.5"
+                            class="rounded-md border border-slate-200/80 bg-slate-50/80 px-3.5 py-2.5"
                           >
                             <div
                               class="text-[10px] font-semibold uppercase tracking-[0.16em] text-slate-400"
@@ -152,7 +165,7 @@
                           </div>
                           <div
                             v-if="track.arrangers"
-                            class="rounded-[14px] border border-slate-200/80 bg-slate-50/80 px-3.5 py-2.5"
+                            class="rounded-md border border-slate-200/80 bg-slate-50/80 px-3.5 py-2.5"
                           >
                             <div
                               class="text-[10px] font-semibold uppercase tracking-[0.16em] text-slate-400"
@@ -166,7 +179,7 @@
                             </div>
                           </div>
                           <div
-                            class="rounded-[14px] border border-slate-200/80 bg-slate-50/80 px-3.5 py-2.5"
+                            class="rounded-md border border-slate-200/80 bg-slate-50/80 px-3.5 py-2.5"
                           >
                             <div
                               class="text-[10px] font-semibold uppercase tracking-[0.16em] text-slate-400"
@@ -191,7 +204,7 @@
                       />
 
                       <div
-                        class="rounded-[16px] border border-slate-200/80 bg-white/88 p-4 shadow-[0_28px_72px_-48px_rgba(15,23,42,0.5)] lg:flex lg:min-h-0 lg:flex-1 lg:flex-col"
+                        class="rounded-lg border border-slate-200/80 bg-white/90 p-4 shadow-[0_28px_72px_-50px_rgba(15,23,42,0.5)] lg:flex lg:min-h-0 lg:flex-1 lg:flex-col"
                       >
                         <div class="mb-3 flex items-center justify-between gap-3">
                           <div class="text-sm font-semibold tracking-[0.12em] text-slate-700">
@@ -214,7 +227,7 @@
 
                     <aside class="hidden lg:min-h-0 lg:h-full lg:block">
                       <div
-                        class="rounded-[16px] border border-slate-200/80 bg-[linear-gradient(180deg,rgba(255,255,255,0.86),rgba(241,245,249,0.9))] p-5 shadow-[0_24px_60px_-44px_rgba(15,23,42,0.38)] lg:flex lg:h-full lg:min-h-0 lg:flex-col"
+                        class="rounded-lg border border-slate-200/80 bg-[linear-gradient(180deg,rgba(255,255,255,0.88),rgba(241,247,252,0.92))] p-5 shadow-[0_24px_60px_-46px_rgba(15,23,42,0.38)] lg:flex lg:h-full lg:min-h-0 lg:flex-col"
                       >
                         <div
                           class="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-400"
@@ -234,7 +247,7 @@
 
                         <div
                           v-if="currentListenItems.length === 0"
-                          class="mt-5 rounded-[16px] border border-dashed border-slate-200 bg-white/70 p-6 text-center text-sm text-slate-500"
+                          class="mt-5 rounded-lg border border-dashed border-slate-200 bg-white/70 p-6 text-center text-sm text-slate-500"
                         >
                           {{ modalText.noData }}
                         </div>
@@ -246,7 +259,7 @@
                           <div
                             v-for="item in currentListenItems"
                             :key="`inline-${item.platformCode}-${item.url}`"
-                            class="group relative overflow-hidden rounded-[16px] border border-slate-200/80 bg-white/95 p-4 shadow-[0_18px_45px_-28px_rgba(15,23,42,0.35)] ring-1 ring-white/80 transition hover:-translate-y-0.5 hover:border-sky-200 hover:bg-white hover:shadow-[0_24px_52px_-26px_rgba(14,165,233,0.28)] focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-sky-100 lg:mx-auto lg:w-full lg:max-w-[340px]"
+                            class="group relative overflow-hidden rounded-lg border border-slate-200/80 bg-white/95 p-4 shadow-[0_18px_45px_-28px_rgba(15,23,42,0.35)] ring-1 ring-white/80 transition hover:-translate-y-0.5 hover:border-sky-200 hover:bg-white hover:shadow-[0_24px_52px_-26px_rgba(14,165,233,0.28)] focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-sky-100 lg:mx-auto lg:w-full lg:max-w-[340px]"
                             role="link"
                             tabindex="0"
                             @click="openTrackListenLink(item.url)"
@@ -289,7 +302,7 @@
                                 :href="item.url"
                                 target="_blank"
                                 rel="noreferrer"
-                                class="inline-flex w-full items-center justify-center gap-1 rounded-xl border border-sky-200 bg-sky-50 px-3.5 py-2 text-xs font-semibold tracking-[0.01em] text-sky-700 transition hover:border-sky-300 hover:bg-sky-100 hover:text-sky-800 active:translate-y-[1px]"
+                                class="inline-flex w-full items-center justify-center gap-1 rounded-md border border-sky-200 bg-sky-50 px-3.5 py-2 text-xs font-semibold tracking-[0.01em] text-sky-700 transition hover:border-sky-300 hover:bg-sky-100 hover:text-sky-800 active:translate-y-[1px]"
                                 @click.stop
                               >
                                 {{ modalText.listenAction }}
@@ -325,7 +338,7 @@
                     <div class="flex h-full flex-col">
                       <div class="border-b border-white/10 px-5 py-5">
                         <div
-                          class="mb-4 rounded-[16px] border border-white/10 bg-white/6 p-4 backdrop-blur-sm"
+                          class="mb-4 rounded-lg border border-white/10 bg-white/6 p-4 backdrop-blur-sm"
                         >
                           <div
                             class="truncate text-base font-semibold tracking-[0.01em] text-white"
@@ -346,7 +359,7 @@
                             </div>
                           </div>
                           <button
-                            class="flex h-10 w-10 items-center justify-center rounded-xl border border-white/10 bg-white/5 text-white/70 transition hover:bg-white/10 hover:text-white"
+                            class="flex h-10 w-10 items-center justify-center rounded-md border border-white/10 bg-white/5 text-white/70 transition hover:bg-white/10 hover:text-white"
                             @click="listenDrawerOpen = false"
                             aria-label="Close"
                           >
@@ -371,7 +384,7 @@
                       <div class="panel-scroll min-h-0 flex-1 overflow-y-auto px-5 py-4">
                         <div
                           v-if="currentListenItems.length === 0"
-                          class="rounded-[16px] border border-dashed border-white/15 bg-white/5 p-6 text-center text-sm text-white/65"
+                          class="rounded-lg border border-dashed border-white/15 bg-white/5 p-6 text-center text-sm text-white/65"
                         >
                           {{ modalText.noData }}
                         </div>
@@ -380,7 +393,7 @@
                           <div
                             v-for="item in currentListenItems"
                             :key="`${item.platformCode}-${item.url}`"
-                            class="group relative overflow-hidden rounded-[16px] border border-slate-200/80 bg-white/95 p-4 shadow-[0_18px_45px_-28px_rgba(15,23,42,0.35)] ring-1 ring-white/80 transition hover:-translate-y-0.5 hover:border-sky-200 hover:bg-white hover:shadow-[0_24px_52px_-26px_rgba(14,165,233,0.28)] focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-sky-100"
+                            class="group relative overflow-hidden rounded-lg border border-slate-200/80 bg-white/95 p-4 shadow-[0_18px_45px_-28px_rgba(15,23,42,0.35)] ring-1 ring-white/80 transition hover:-translate-y-0.5 hover:border-sky-200 hover:bg-white hover:shadow-[0_24px_52px_-26px_rgba(14,165,233,0.28)] focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-sky-100"
                             role="link"
                             tabindex="0"
                             @click="openTrackListenLink(item.url)"
@@ -423,7 +436,7 @@
                                 :href="item.url"
                                 target="_blank"
                                 rel="noreferrer"
-                                class="inline-flex w-full items-center justify-center gap-1 rounded-xl border border-sky-200 bg-sky-50 px-3.5 py-2 text-xs font-semibold tracking-[0.01em] text-sky-700 transition hover:border-sky-300 hover:bg-sky-100 hover:text-sky-800 active:translate-y-[1px]"
+                                class="inline-flex w-full items-center justify-center gap-1 rounded-md border border-sky-200 bg-sky-50 px-3.5 py-2 text-xs font-semibold tracking-[0.01em] text-sky-700 transition hover:border-sky-300 hover:bg-sky-100 hover:text-sky-800 active:translate-y-[1px]"
                                 @click.stop
                               >
                                 {{ modalText.listenAction }}

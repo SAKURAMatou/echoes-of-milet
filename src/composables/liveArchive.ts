@@ -75,6 +75,7 @@ export interface LiveSetlistItem {
   itemKey: string
   sortNo: number
   section: LiveSetlistSection
+  trackId?: string | number | null
   songWorkId?: string | number | null
   songTrackId?: string | number | null
   displayTitle: string
@@ -101,6 +102,7 @@ export interface LiveSetlistOverride {
   overrideItemKey?: string | null
   sortNo?: number | null
   section?: LiveSetlistSection | null
+  trackId?: string | number | null
   songWorkId?: string | number | null
   songTrackId?: string | number | null
   displayTitle?: string | null
@@ -441,6 +443,23 @@ export function resolveSetlistEmptyMessage(
   return String(message || '').trim() || defaultSetlistEmptyMessage(state, lang)
 }
 
+function normalizeTrackIdentifier(value: string | number | null | undefined) {
+  return String(value ?? '').trim()
+}
+
+export function resolveLiveTrackShowId(item?: Pick<LiveSetlistItem, 'trackId' | 'songWorkId' | 'songTrackId'> | null) {
+  if (!item) return ''
+  const explicitTrackId = normalizeTrackIdentifier(item.trackId)
+  if (/^work_\d+-track_\d+$/.test(explicitTrackId)) return explicitTrackId
+  const workId = normalizeTrackIdentifier(item.songWorkId)
+  const trackId = normalizeTrackIdentifier(item.songTrackId || explicitTrackId)
+  return workId && trackId ? `work_${workId}-track_${trackId}` : ''
+}
+
+export function hasLiveTrackDetail(item?: Pick<LiveSetlistItem, 'trackId' | 'songWorkId' | 'songTrackId'> | null) {
+  return Boolean(resolveLiveTrackShowId(item))
+}
+
 function cloneSetlistItem(item: LiveSetlistItem): LiveSetlistItem {
   return {
     ...item,
@@ -452,6 +471,7 @@ function cloneSetlistItem(item: LiveSetlistItem): LiveSetlistItem {
 function applyReplacement(item: LiveSetlistItem, override: LiveSetlistOverride): LiveSetlistItem {
   return {
     ...item,
+    trackId: override.trackId ?? item.trackId,
     songWorkId: override.songWorkId ?? item.songWorkId,
     songTrackId: override.songTrackId ?? item.songTrackId,
     displayTitle: override.displayTitle || item.displayTitle,
@@ -535,6 +555,7 @@ export function composeLiveSetlist(
       itemKey,
       sortNo: Number(override.sortNo) || 0,
       section: override.section || 'main',
+      trackId: override.trackId,
       songWorkId: override.songWorkId,
       songTrackId: override.songTrackId,
       displayTitle: override.displayTitle || '',

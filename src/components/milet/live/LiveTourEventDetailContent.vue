@@ -59,7 +59,7 @@
                   <path d="M3 10h18" />
                 </svg>
                 <svg
-                  v-else-if="stat.icon === 'star'"
+                  v-else-if="stat.icon === 'ticket'"
                   class="size-7"
                   viewBox="0 0 24 24"
                   fill="none"
@@ -68,12 +68,13 @@
                   stroke-linecap="round"
                   stroke-linejoin="round"
                 >
-                  <path
-                    d="m12 2 3.1 6.3 6.9 1-5 4.9 1.2 6.8-6.2-3.2L5.8 21 7 14.2 2 9.3l6.9-1L12 2Z"
-                  />
+                  <path d="M4 7a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v2a3 3 0 0 0 0 6v2a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-2a3 3 0 0 0 0-6V7Z" />
+                  <path d="M9 8h.01" />
+                  <path d="M9 12h.01" />
+                  <path d="M9 16h.01" />
                 </svg>
                 <svg
-                  v-else-if="stat.icon === 'pin'"
+                  v-else-if="stat.icon === 'city'"
                   class="size-7"
                   viewBox="0 0 24 24"
                   fill="none"
@@ -82,8 +83,11 @@
                   stroke-linecap="round"
                   stroke-linejoin="round"
                 >
-                  <path d="M12 21s7-4.4 7-11a7 7 0 1 0-14 0c0 6.6 7 11 7 11Z" />
-                  <circle cx="12" cy="10" r="2.4" />
+                  <path d="M4 21h16" />
+                  <path d="M6 21V8l5-4 5 4v13" />
+                  <path d="M9 21v-6h4v6" />
+                  <path d="M8.5 10h.01" />
+                  <path d="M13.5 10h.01" />
                 </svg>
                 <svg
                   v-else
@@ -95,12 +99,12 @@
                   stroke-linecap="round"
                   stroke-linejoin="round"
                 >
-                  <path d="M16 21v-2a4 4 0 0 0-8 0v2" />
-                  <circle cx="12" cy="7" r="4" />
-                  <path d="M22 21v-2a4 4 0 0 0-3-3.87" />
-                  <path d="M16 3.13a4 4 0 0 1 0 7.75" />
-                  <path d="M2 21v-2a4 4 0 0 1 3-3.87" />
-                  <path d="M8 3.13a4 4 0 0 0 0 7.75" />
+                  <path d="M6 19V5" />
+                  <path d="M18 19V5" />
+                  <path d="M6 7h12" />
+                  <path d="M6 17h12" />
+                  <path d="M10 5v14" />
+                  <path d="M14 5v14" />
                 </svg>
               </span>
               <span class="text-xs text-[#d9b77c]/78">{{ stat.label }}</span>
@@ -135,7 +139,13 @@
         "
       >
         <div class="border-[#d9b77c]/30 lg:border-r">
-          <p class="text-sm text-[#d9b77c]">{{ lang === 'ja' ? '選択公演' : '选中场次' }}</p>
+          <p class="inline-flex items-center gap-2 text-sm text-[#d9b77c]">
+            <svg class="size-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M12 21s7-4.4 7-11a7 7 0 1 0-14 0c0 6.6 7 11 7 11Z" />
+              <circle cx="12" cy="10" r="2.4" />
+            </svg>
+            {{ lang === 'ja' ? '選択公演' : '选中场次' }}
+          </p>
           <p class="mt-2 font-['Montserrat','sans-serif'] text-6xl leading-none text-[#f4d397]">
             {{ selectedStopNumber }}
           </p>
@@ -289,6 +299,7 @@ import {
   performanceLabel,
   resolveLiveSetlistState,
   resolveSetlistEmptyMessage,
+  resolveLiveTrackShowId,
   resolveVenueLineArtUrl,
   segmentLiveSetlist,
   type LiveEventDetailPayload,
@@ -351,17 +362,17 @@ const tourStats = computed(() => [
     value: dateRange.value || '-',
   },
   {
-    icon: 'star',
+    icon: 'ticket',
     label: props.lang === 'ja' ? 'Performances' : '场次',
     value: String(performances.value.length || event.value.performanceCount || 0),
   },
   {
-    icon: 'pin',
+    icon: 'city',
     label: props.lang === 'ja' ? 'Cities' : '城市',
     value: String(cityCount.value || 0),
   },
   {
-    icon: 'people',
+    icon: 'route',
     label: props.lang === 'ja' ? 'Tour' : '类型',
     value: formatLiveType(event.value.type),
   },
@@ -446,7 +457,7 @@ function parseDurationSec(duration?: string) {
 async function loadTrackDetail(track: Track) {
   try {
     const detail = await axiosInstance.get<{ code?: number; data?: Partial<Track> }>(
-      apiRoutes.miletReleaseDetail + track.showId,
+      `${apiRoutes.miletReleaseDetail}${track.showId}?lang=${props.lang === 'ja' ? 'ja' : 'zh'}`,
     )
     const data = detail?.data || {}
     return {
@@ -464,7 +475,7 @@ async function loadTrackDetail(track: Track) {
 }
 
 async function handleTrackSelect(item: LiveSetlistItem) {
-  const showId = String(item.songTrackId || item.songWorkId || '').trim()
+  const showId = resolveLiveTrackShowId(item)
   if (showId) {
     trackModalTrack.value = await loadTrackDetail(
       emptyTrack(showId, item.displayTitle, item.duration),

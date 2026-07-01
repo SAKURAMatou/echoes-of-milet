@@ -71,7 +71,13 @@
 
     <section id="live-performances" class="grid gap-5 lg:grid-cols-[minmax(16rem,22rem)_minmax(0,1fr)]">
       <aside class="rounded-lg border border-[var(--live-detail-accent-border)] bg-[var(--live-detail-panel-bg)] p-4">
-        <h2 class="font-serif text-2xl text-[var(--live-detail-title)]">
+        <h2 class="inline-flex items-center gap-2 font-serif text-2xl text-[var(--live-detail-title)]">
+          <svg class="size-5 shrink-0 text-[var(--live-detail-accent)]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M4 7a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v2a3 3 0 0 0 0 6v2a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-2a3 3 0 0 0 0-6V7Z" />
+            <path d="M9 8h.01" />
+            <path d="M9 12h.01" />
+            <path d="M9 16h.01" />
+          </svg>
           {{ lang === 'ja' ? '公演選択' : '场次选择' }}
         </h2>
         <div class="mt-4 grid gap-3">
@@ -102,7 +108,11 @@
 
       <section class="relative overflow-hidden rounded-lg border border-[var(--live-detail-accent-border)] bg-[var(--live-detail-panel-bg)] p-5 sm:p-6">
         <div class="relative z-10 max-w-2xl">
-          <p class="text-xs font-semibold uppercase tracking-[0.14em] text-[var(--live-detail-accent)]">
+          <p class="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.14em] text-[var(--live-detail-accent)]">
+            <svg class="size-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M12 21s7-4.4 7-11a7 7 0 1 0-14 0c0 6.6 7 11 7 11Z" />
+              <circle cx="12" cy="10" r="2.4" />
+            </svg>
             {{ lang === 'ja' ? '選択中' : '当前场次' }}
           </p>
           <h2 class="mt-3 font-serif text-4xl leading-tight text-[var(--live-detail-title)]">

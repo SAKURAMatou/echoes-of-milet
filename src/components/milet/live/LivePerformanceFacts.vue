@@ -3,8 +3,13 @@
     class="rounded-lg border border-[#d9b77c]/28 bg-[#061827]/78 p-5 shadow-[0_28px_90px_-64px_rgba(3,19,34,0.95)]"
   >
     <h2
-      class="font-['Montserrat','sans-serif'] text-sm font-semibold uppercase tracking-[0.18em] text-[#d9b77c]"
+      class="inline-flex items-center gap-2 font-['Montserrat','sans-serif'] text-sm font-semibold uppercase tracking-[0.18em] text-[#d9b77c]"
     >
+      <svg class="size-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="M4 20h16" />
+        <path d="M6 20V9l6-4 6 4v11" />
+        <path d="M9 20v-6h6v6" />
+      </svg>
       Performance
     </h2>
 

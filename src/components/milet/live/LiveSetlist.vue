@@ -4,7 +4,13 @@
   >
     <div class="flex flex-wrap items-start justify-between gap-3 border-b border-white/10 pb-4">
       <div>
-        <h2 class="font-['Montserrat','sans-serif'] text-sm font-semibold uppercase tracking-[0.18em] text-[#d9b77c]">
+        <h2 class="inline-flex items-center gap-2 font-['Montserrat','sans-serif'] text-sm font-semibold uppercase tracking-[0.18em] text-[#d9b77c]">
+          <svg class="size-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M9 18V5l10-2v13" />
+            <circle cx="6" cy="18" r="3" />
+            <circle cx="16" cy="16" r="3" />
+            <path d="M9 9l10-2" />
+          </svg>
           Setlist
         </h2>
         <p v-if="subtitle" class="mt-1 text-sm text-[#b8c8d5]">{{ subtitle }}</p>
@@ -36,7 +42,7 @@
             <button
               type="button"
               class="min-w-0 text-left text-[#f3eadf] transition enabled:hover:text-[#9fd4ff] disabled:cursor-default"
-              :disabled="!item.songTrackId && !item.songWorkId"
+              :disabled="!hasLiveTrackDetail(item)"
               @click="$emit('select-track', item)"
             >
               <span class="truncate">{{ item.displayTitle }}</span>
@@ -71,6 +77,7 @@ import { computed } from 'vue'
 
 import {
   defaultSetlistEmptyMessage,
+  hasLiveTrackDetail,
   sectionLabel,
   type LiveLang,
   type LiveSetlistState,

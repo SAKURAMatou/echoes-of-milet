@@ -91,17 +91,48 @@
           </p>
           <p class="mt-6 font-serif text-2xl leading-tight text-[#f3eadf]">{{ event.title }}</p>
           <dl class="mt-6 grid gap-4 text-sm">
-            <div v-if="formatLiveDateRange(event)">
-              <dt class="text-[#d9b77c]/70">Period</dt>
-              <dd class="mt-1">{{ formatLiveDateRange(event) }}</dd>
+            <div v-if="formatLiveDateRange(event)" class="grid grid-cols-[2rem_minmax(0,1fr)] gap-3">
+              <span class="grid size-8 place-items-center text-[#d9b77c]" aria-hidden="true">
+                <svg class="size-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M8 2v4" />
+                  <path d="M16 2v4" />
+                  <rect width="18" height="18" x="3" y="4" rx="2" />
+                  <path d="M3 10h18" />
+                </svg>
+              </span>
+              <div>
+                <dt class="text-[#d9b77c]/70">Period</dt>
+                <dd class="mt-1">{{ formatLiveDateRange(event) }}</dd>
+              </div>
             </div>
-            <div>
-              <dt class="text-[#d9b77c]/70">Performances</dt>
-              <dd class="mt-1">{{ performances.length }}</dd>
+            <div class="grid grid-cols-[2rem_minmax(0,1fr)] gap-3">
+              <span class="grid size-8 place-items-center text-[#d9b77c]" aria-hidden="true">
+                <svg class="size-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M4 7a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v2a3 3 0 0 0 0 6v2a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-2a3 3 0 0 0 0-6V7Z" />
+                  <path d="M9 8h.01" />
+                  <path d="M9 12h.01" />
+                  <path d="M9 16h.01" />
+                </svg>
+              </span>
+              <div>
+                <dt class="text-[#d9b77c]/70">Performances</dt>
+                <dd class="mt-1">{{ performances.length }}</dd>
+              </div>
             </div>
-            <div v-if="cityCount">
-              <dt class="text-[#d9b77c]/70">Cities</dt>
-              <dd class="mt-1">{{ cityCount }}</dd>
+            <div v-if="cityCount" class="grid grid-cols-[2rem_minmax(0,1fr)] gap-3">
+              <span class="grid size-8 place-items-center text-[#d9b77c]" aria-hidden="true">
+                <svg class="size-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M4 21h16" />
+                  <path d="M6 21V8l5-4 5 4v13" />
+                  <path d="M9 21v-6h4v6" />
+                  <path d="M8.5 10h.01" />
+                  <path d="M13.5 10h.01" />
+                </svg>
+              </span>
+              <div>
+                <dt class="text-[#d9b77c]/70">Cities</dt>
+                <dd class="mt-1">{{ cityCount }}</dd>
+              </div>
             </div>
           </dl>
         </aside>
@@ -177,6 +208,7 @@ import {
   performanceLabel,
   resolveLiveSetlistState,
   resolveSetlistEmptyMessage,
+  resolveLiveTrackShowId,
   segmentLiveSetlist,
   type LiveEventDetailPayload,
   type LiveLang,
@@ -282,7 +314,7 @@ function parseDurationSec(duration?: string) {
 async function loadTrackDetail(track: Track) {
   try {
     const detail = await axiosInstance.get<{ code?: number; data?: Partial<Track> }>(
-      apiRoutes.miletReleaseDetail + track.showId,
+      `${apiRoutes.miletReleaseDetail}${track.showId}?lang=${props.lang === 'ja' ? 'ja' : 'zh'}`,
     )
     const data = detail?.data || {}
     return {
@@ -300,7 +332,7 @@ async function loadTrackDetail(track: Track) {
 }
 
 async function handleTrackSelect(item: LiveSetlistItem) {
-  const showId = String(item.songTrackId || item.songWorkId || '').trim()
+  const showId = resolveLiveTrackShowId(item)
   if (showId) {
     trackModalTrack.value = await loadTrackDetail(emptyTrack(showId, item.displayTitle, item.duration))
     trackModalMounted.value = true
