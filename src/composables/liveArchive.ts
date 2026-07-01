@@ -29,6 +29,8 @@ export interface LiveEventListItem {
   id: string | number
   slug: string
   type: LiveEventType
+  displayBlueprint?: LiveDisplayBlueprint | null
+  displayThemePreset?: string | null
   title: string
   year?: number | string
   dateStart?: string
@@ -149,6 +151,8 @@ export type LiveDisplayBlueprint =
 
 export interface LiveDisplayConfig {
   blueprint?: LiveDisplayBlueprint
+  layout?: LiveDisplayBlueprint
+  detailLayout?: LiveDisplayBlueprint
   themePreset?: string
   status?: string
 }
@@ -458,6 +462,18 @@ export function resolveLiveTrackShowId(item?: Pick<LiveSetlistItem, 'trackId' | 
 
 export function hasLiveTrackDetail(item?: Pick<LiveSetlistItem, 'trackId' | 'songWorkId' | 'songTrackId'> | null) {
   return Boolean(resolveLiveTrackShowId(item))
+}
+
+export function resolveLiveDisplayBlueprint(payload?: LiveEventDetailPayload | null) {
+  const payloadRecord = payload as unknown as Record<string, unknown> | null | undefined
+  const candidates = [
+    payload?.displayConfig?.blueprint,
+    payload?.displayConfig?.detailLayout,
+    payload?.displayConfig?.layout,
+    payload?.event?.displayBlueprint,
+    payloadRecord?.displayBlueprint,
+  ]
+  return candidates.find((item) => typeof item === 'string' && item.trim()) as LiveDisplayBlueprint | undefined
 }
 
 function cloneSetlistItem(item: LiveSetlistItem): LiveSetlistItem {

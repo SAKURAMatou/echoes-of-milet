@@ -25,15 +25,15 @@
       </div>
     </div>
 
-    <LiveTourEventDetailContent
-      v-else-if="payload && selectedBlueprint === 'tour-balanced-stops'"
+    <LiveTourSerpentineRoute
+      v-else-if="payload && selectedBlueprint === 'tour-serpentine-route'"
       :payload="payload"
       :lang="lang"
       :route-lang="routeLang"
     />
 
-    <LiveTourSerpentineRoute
-      v-else-if="payload && selectedBlueprint === 'tour-serpentine-route'"
+    <LiveTourEventDetailContent
+      v-else-if="payload && selectedBlueprint === 'tour-balanced-stops'"
       :payload="payload"
       :lang="lang"
       :route-lang="routeLang"
@@ -206,6 +206,7 @@ import {
   formatLiveDateRange,
   formatLiveType,
   performanceLabel,
+  resolveLiveDisplayBlueprint,
   resolveLiveSetlistState,
   resolveSetlistEmptyMessage,
   resolveLiveTrackShowId,
@@ -249,7 +250,7 @@ const selectedPerformance = computed(() => {
   )
 })
 const selectedBlueprint = computed(() =>
-  normalizeLiveDetailBlueprint(props.payload?.displayConfig?.blueprint, event.value?.type),
+  normalizeLiveDetailBlueprint(resolveLiveDisplayBlueprint(props.payload), event.value?.type),
 )
 const venueSummary = computed(() => {
   return event.value?.venueSummary || selectedPerformance.value?.venueName || ''
