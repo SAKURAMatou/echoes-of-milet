@@ -137,8 +137,16 @@ export interface LiveRelatedGallery {
   url?: string
 }
 
+export type LiveDisplayBlueprint =
+  | 'one-man-compact-related'
+  | 'one-man-visual-cards'
+  | 'tour-balanced-stops'
+  | 'tour-serpentine-route'
+  | 'one-man-magazine'
+  | (string & {})
+
 export interface LiveDisplayConfig {
-  blueprint?: 'one-man-magazine' | 'tour-serpentine-route' | string
+  blueprint?: LiveDisplayBlueprint
   themePreset?: string
   status?: string
 }

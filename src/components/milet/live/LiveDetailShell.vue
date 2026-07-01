@@ -60,6 +60,8 @@
 import { computed } from 'vue'
 import { RouterLink, useRoute } from 'vue-router'
 
+import { liveDetailThemes, normalizeLiveDetailTheme } from '@/config/liveDisplay'
+
 const props = withDefaults(
   defineProps<{
     themePreset?: string | null
@@ -71,70 +73,8 @@ const props = withDefaults(
 const route = useRoute()
 const routeLang = computed(() => (String(route.params.lang) === 'ja' ? 'ja' : 'zh'))
 
-const liveDetailThemes = {
-  default: {
-    shell: '#031322',
-    headerBg: 'rgba(3, 19, 34, 0.88)',
-    headerBorder: 'rgba(217, 183, 124, 0.18)',
-    pageBg:
-      'radial-gradient(circle at 50% 5%, rgba(87,140,176,0.35), transparent 34rem), radial-gradient(circle at 8% 38%, rgba(217,183,124,0.18), transparent 22rem), linear-gradient(180deg, #031322 0%, #061827 46%, #03111e 100%)',
-    title: '#f3eadf',
-    titleSoft: '#f5eadc',
-    text: '#d8e8f3',
-    muted: '#b8c8d5',
-    subtle: '#91a9ba',
-    accent: '#d9b77c',
-    accentBorder: 'rgba(217, 183, 124, 0.42)',
-    panelBg: 'rgba(6, 24, 39, 0.78)',
-    surfaceBg: 'rgba(3, 19, 34, 0.42)',
-    linkHover: '#9fd4ff',
-  },
-  'aurora-blue': {
-    shell: '#02161d',
-    headerBg: 'rgba(2, 22, 29, 0.9)',
-    headerBorder: 'rgba(94, 234, 212, 0.2)',
-    pageBg:
-      'radial-gradient(circle at 50% 5%, rgba(56,189,248,0.34), transparent 34rem), radial-gradient(circle at 8% 38%, rgba(94,234,212,0.2), transparent 22rem), linear-gradient(180deg, #02161d 0%, #063040 48%, #02131d 100%)',
-    title: '#ecfeff',
-    titleSoft: '#cffafe',
-    text: '#d7f7fb',
-    muted: '#a8dce5',
-    subtle: '#7db5c2',
-    accent: '#5eead4',
-    accentBorder: 'rgba(94, 234, 212, 0.42)',
-    panelBg: 'rgba(5, 41, 54, 0.78)',
-    surfaceBg: 'rgba(2, 22, 29, 0.44)',
-    linkHover: '#bae6fd',
-  },
-  'velvet-rose': {
-    shell: '#1a0f1d',
-    headerBg: 'rgba(26, 15, 29, 0.9)',
-    headerBorder: 'rgba(251, 191, 36, 0.22)',
-    pageBg:
-      'radial-gradient(circle at 50% 5%, rgba(190,24,93,0.28), transparent 34rem), radial-gradient(circle at 8% 38%, rgba(251,191,36,0.2), transparent 22rem), linear-gradient(180deg, #1a0f1d 0%, #2a1627 48%, #140c18 100%)',
-    title: '#fff1f2',
-    titleSoft: '#ffe4e6',
-    text: '#fee2e2',
-    muted: '#f0b8c7',
-    subtle: '#cf8da1',
-    accent: '#f6c56f',
-    accentBorder: 'rgba(246, 197, 111, 0.42)',
-    panelBg: 'rgba(46, 22, 39, 0.78)',
-    surfaceBg: 'rgba(26, 15, 29, 0.44)',
-    linkHover: '#fecdd3',
-  },
-} as const
-type LiveDetailThemePreset = keyof typeof liveDetailThemes
-
-function isThemePreset(value: string): value is LiveDetailThemePreset {
-  return Object.prototype.hasOwnProperty.call(liveDetailThemes, value)
-}
-
-const normalizedThemePreset = computed<LiveDetailThemePreset>(() => {
-  const value = String(props.themePreset || 'default')
-  return isThemePreset(value) ? value : 'default'
-})
-const theme = computed(() => liveDetailThemes[normalizedThemePreset.value])
+const normalizedThemePreset = computed(() => normalizeLiveDetailTheme(props.themePreset))
+const theme = computed(() => liveDetailThemes[normalizedThemePreset.value].tokens)
 const themeClass = computed(() => `live-detail-shell--${normalizedThemePreset.value}`)
 const themeStyle = computed<Record<string, string>>(() => ({
   backgroundColor: theme.value.shell,
@@ -145,10 +85,14 @@ const themeStyle = computed<Record<string, string>>(() => ({
   '--live-detail-muted': theme.value.muted,
   '--live-detail-subtle': theme.value.subtle,
   '--live-detail-accent': theme.value.accent,
+  '--live-detail-accent-strong': theme.value.accentStrong,
   '--live-detail-accent-border': theme.value.accentBorder,
   '--live-detail-panel-bg': theme.value.panelBg,
   '--live-detail-surface-bg': theme.value.surfaceBg,
   '--live-detail-link-hover': theme.value.linkHover,
+  '--live-detail-line': theme.value.line,
+  '--live-detail-glow': theme.value.glow,
+  '--live-detail-route': theme.value.route,
 }))
 const headerStyle = computed<Record<string, string>>(() => ({
   backgroundColor: theme.value.headerBg,
@@ -175,6 +119,10 @@ const jaRoute = computed(() => ({
 </script>
 
 <style scoped>
+.live-detail-shell {
+  color-scheme: dark;
+}
+
 .live-detail-shell :deep([class*="text-[#f3eadf]"]),
 .live-detail-shell :deep([class*="text-[#f5eadc]"]) {
   color: var(--live-detail-title) !important;
@@ -196,8 +144,20 @@ const jaRoute = computed(() => ({
   color: var(--live-detail-accent) !important;
 }
 
+.live-detail-shell :deep([class*="text-[#f4d397]"]) {
+  color: var(--live-detail-accent-strong) !important;
+}
+
+.live-detail-shell :deep([class*="text-[#9fd4ff]"]) {
+  color: var(--live-detail-link-hover) !important;
+}
+
 .live-detail-shell :deep([class*="border-[#d9b77c]"]) {
   border-color: var(--live-detail-accent-border) !important;
+}
+
+.live-detail-shell :deep([class*="border-[#86bde6]"]) {
+  border-color: var(--live-detail-line) !important;
 }
 
 .live-detail-shell :deep([class*="bg-[#061827]"]) {
@@ -205,6 +165,12 @@ const jaRoute = computed(() => ({
 }
 
 .live-detail-shell :deep([class*="bg-[#031322]"]) {
+  background-color: var(--live-detail-surface-bg) !important;
+}
+
+.live-detail-shell :deep([class*="bg-[#041827]"]),
+.live-detail-shell :deep([class*="bg-[#061a2a]"]),
+.live-detail-shell :deep([class*="bg-[#09243a]"]) {
   background-color: var(--live-detail-surface-bg) !important;
 }
 

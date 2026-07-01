@@ -26,10 +26,34 @@
     </div>
 
     <LiveTourEventDetailContent
-      v-else-if="payload && isTour"
+      v-else-if="payload && selectedBlueprint === 'tour-balanced-stops'"
       :payload="payload"
       :lang="lang"
       :route-lang="routeLang"
+    />
+
+    <LiveTourSerpentineRoute
+      v-else-if="payload && selectedBlueprint === 'tour-serpentine-route'"
+      :payload="payload"
+      :lang="lang"
+      :route-lang="routeLang"
+    />
+
+    <LiveOneManVisualCards
+      v-else-if="payload && selectedBlueprint === 'one-man-visual-cards'"
+      :payload="payload"
+      :event="payload.event"
+      :performances="performances"
+      :selected-performance-id="selectedPerformanceId"
+      :selected-performance="selectedPerformance"
+      :setlist-segments="setlistSegments"
+      :setlist-subtitle="setlistSubtitle"
+      :setlist-state="setlistState"
+      :setlist-empty-message="setlistEmptyMessage"
+      :lang="lang"
+      :route-lang="routeLang"
+      @select-performance="selectPerformance"
+      @select-track="handleTrackSelect"
     />
 
     <article v-else-if="payload" class="grid gap-6">
@@ -108,20 +132,6 @@
         :route-lang="routeLang"
       />
 
-      <p
-        v-if="trackNotice"
-        class="fixed bottom-5 left-1/2 z-50 w-[min(calc(100%-2rem),28rem)] -translate-x-1/2 rounded-lg border border-[#d9b77c]/36 bg-[#061827]/95 px-4 py-3 text-center text-sm text-[#f3eadf] shadow-2xl backdrop-blur"
-      >
-        {{ trackNotice }}
-      </p>
-
-      <TrackModal
-        v-if="trackModalMounted"
-        :open="trackModalOpen"
-        :track="trackModalTrack"
-        @close="closeTrackModal"
-      />
-
       <RouterLink
         :to="{ name: 'miletLiveArchive', params: { lang: routeLang } }"
         class="mx-auto mb-4 mt-3 inline-flex items-center gap-3 text-sm font-semibold text-[#b8c8d5] transition hover:text-[#f3eadf]"
@@ -130,6 +140,20 @@
         <span>{{ lang === 'ja' ? 'Back to Live Archive' : '返回 Live Archive 列表' }}</span>
       </RouterLink>
     </article>
+
+    <p
+      v-if="trackNotice"
+      class="fixed bottom-5 left-1/2 z-50 w-[min(calc(100%-2rem),28rem)] -translate-x-1/2 rounded-lg border border-[var(--live-detail-accent-border)] bg-[var(--live-detail-panel-bg)] px-4 py-3 text-center text-sm text-[var(--live-detail-title)] shadow-2xl backdrop-blur"
+    >
+      {{ trackNotice }}
+    </p>
+
+    <TrackModal
+      v-if="trackModalMounted"
+      :open="trackModalOpen"
+      :track="trackModalTrack"
+      @close="closeTrackModal"
+    />
   </div>
 </template>
 
@@ -139,11 +163,13 @@ import { RouterLink } from 'vue-router'
 
 import axiosInstance from '@/AxiosUtil'
 import LiveMainVisualPanel from '@/components/milet/live/LiveMainVisualPanel.vue'
+import LiveOneManVisualCards from '@/components/milet/live/LiveOneManVisualCards.vue'
 import LivePerformanceFacts from '@/components/milet/live/LivePerformanceFacts.vue'
 import LivePerformanceTabs from '@/components/milet/live/LivePerformanceTabs.vue'
 import LiveRelatedLinks from '@/components/milet/live/LiveRelatedLinks.vue'
 import LiveSetlist from '@/components/milet/live/LiveSetlist.vue'
 import LiveTourEventDetailContent from '@/components/milet/live/LiveTourEventDetailContent.vue'
+import LiveTourSerpentineRoute from '@/components/milet/live/LiveTourSerpentineRoute.vue'
 import {
   composeLiveSetlist,
   formatLiveDateRange,
@@ -158,6 +184,7 @@ import {
 } from '@/composables/liveArchive'
 import type { Track } from '@/composables/releaseType'
 import { apiRoutes } from '@/config/api'
+import { normalizeLiveDetailBlueprint } from '@/config/liveDisplay'
 
 const TrackModal = defineAsyncComponent(() => import('@/components/milet/music/TrackModal.vue'))
 
@@ -189,11 +216,8 @@ const selectedPerformance = computed(() => {
     null
   )
 })
-const selectedBlueprint = computed(() => props.payload?.displayConfig?.blueprint || '')
-const isTour = computed(() =>
-  selectedBlueprint.value
-    ? selectedBlueprint.value === 'tour-serpentine-route'
-    : event.value?.type === 'tour',
+const selectedBlueprint = computed(() =>
+  normalizeLiveDetailBlueprint(props.payload?.displayConfig?.blueprint, event.value?.type),
 )
 const venueSummary = computed(() => {
   return event.value?.venueSummary || selectedPerformance.value?.venueName || ''
