@@ -41,12 +41,6 @@
 
     <section class="relative overflow-hidden rounded-lg border border-transparent py-2">
       <div class="mb-4 flex flex-wrap justify-end gap-2 text-sm">
-        <button type="button" class="rounded-md border border-[var(--live-detail-accent-border)] px-4 py-2 text-[var(--live-detail-title)] transition hover:bg-white/5" @click="selectNearest">
-          {{ lang === 'ja' ? '近い公演へ' : 'Jump to nearest' }}
-        </button>
-        <button type="button" class="rounded-md border border-[var(--live-detail-accent-border)] px-4 py-2 text-[var(--live-detail-title)] transition hover:bg-white/5" @click="selectFinal">
-          Final
-        </button>
         <div class="inline-flex overflow-hidden rounded-md border border-[var(--live-detail-accent-border)]">
           <button
             v-for="month in monthTabs"
@@ -67,13 +61,11 @@
           <button
             type="button"
             class="grid min-h-20 w-full grid-cols-[3.75rem_minmax(0,1fr)_2rem] items-center gap-3 rounded-md border p-3 text-left transition"
-            :class="selectedPerformanceId === String(stop.performance.id)
-              ? 'border-[var(--live-detail-accent-strong)] bg-white/[0.08] shadow-[0_0_28px_-16px_var(--live-detail-glow)]'
-              : 'border-white/10 bg-[var(--live-detail-surface-bg)] hover:border-[var(--live-detail-accent-border)] hover:bg-white/[0.04]'"
+            :class="routeStopListClass(stop)"
             :aria-pressed="selectedPerformanceId === String(stop.performance.id)"
             @click="selectPerformance(stop.performance.id)"
           >
-            <span class="grid size-12 place-items-center rounded-full border border-[var(--live-detail-accent-border)] font-['Montserrat','sans-serif'] text-sm font-semibold text-[var(--live-detail-accent-strong)]">
+            <span class="grid size-12 place-items-center rounded-full border border-[var(--live-detail-accent-border)] font-['Montserrat','sans-serif'] text-sm font-semibold text-[var(--live-detail-accent-strong)] transition">
               {{ stop.number }}
             </span>
             <span class="min-w-0">
@@ -124,6 +116,7 @@
               <button
                 type="button"
                 class="group -translate-x-1/2 -translate-y-1/2 text-center transition"
+                :class="routeStopNodeClass(stop)"
                 :aria-label="`${stop.number} ${stop.performance.city || performanceLabel(stop.performance, stop.index)}`"
                 :aria-pressed="selectedPerformanceId === String(stop.performance.id)"
                 @click="selectPerformance(stop.performance.id)"
@@ -146,7 +139,8 @@
 
           <div
             v-if="selectedRouteStop"
-            class="absolute left-[32%] top-[45%] w-64 rounded-lg border border-[var(--live-detail-accent-border)] bg-[var(--live-detail-panel-bg)] p-4 shadow-[0_26px_70px_-42px_var(--live-detail-glow)]"
+            class="absolute w-64 rounded-lg border border-[var(--live-detail-accent-border)] bg-[var(--live-detail-panel-bg)] p-4 shadow-[0_26px_70px_-42px_var(--live-detail-glow)] transition-[left,top,transform] duration-300"
+            :style="selectedStopCardStyle"
           >
             <p class="font-serif text-3xl text-[var(--live-detail-title)]">{{ selectedPerformance?.city || setlistSubtitle }}</p>
             <p class="mt-1 text-sm text-[var(--live-detail-muted)]">{{ selectedPerformance?.venueName || '-' }}</p>
@@ -263,10 +257,6 @@ const selectedPerformance = computed(() =>
   performances.value[0] ||
   null,
 )
-const selectedPerformanceIndex = computed(() => {
-  const index = performances.value.findIndex((item) => String(item.id) === selectedPerformanceId.value)
-  return index >= 0 ? index : 0
-})
 const cityCount = computed(
   () => event.value.cityCount || new Set(performances.value.map((item) => item.city).filter(Boolean)).size,
 )
@@ -297,6 +287,17 @@ const selectedDateLine = computed(() =>
 )
 const selectedVenueLineArtUrl = computed(() => resolveVenueLineArtUrl(selectedPerformance.value))
 const selectedRouteStop = computed(() => routeStops.value.find((stop) => String(stop.performance.id) === selectedPerformanceId.value))
+const selectedStopCardStyle = computed(() => {
+  const stop = selectedRouteStop.value
+  if (!stop) return {}
+  const translateX = stop.x > 72 ? 'calc(-100% - 1rem)' : stop.x < 22 ? '1rem' : '-50%'
+  const translateY = stop.y > 60 ? 'calc(-100% - 3.25rem)' : '3.25rem'
+  return {
+    left: `${stop.x}%`,
+    top: `${stop.y}%`,
+    transform: `translate(${translateX}, ${translateY})`,
+  }
+})
 
 const routeStops = computed(() =>
   performances.value.map((performance, index) => {
@@ -313,11 +314,7 @@ const routeStops = computed(() =>
     }
   }),
 )
-const visibleRouteStops = computed(() =>
-  selectedMonth.value === 'all'
-    ? routeStops.value
-    : routeStops.value.filter((stop) => stop.month === selectedMonth.value),
-)
+const visibleRouteStops = computed(() => routeStops.value)
 const monthTabs = computed(() => {
   const months = Array.from(new Set(performances.value.map((item) => monthKey(item.date)).filter(Boolean)))
   return [
@@ -345,7 +342,7 @@ function syncInitialPerformance() {
   const initial = props.payload.initialPerformanceId
   const fallback = performances.value[0]?.id
   selectedPerformanceId.value = String(initial ?? fallback ?? '')
-  selectedMonth.value = selectedPerformance.value ? monthKey(selectedPerformance.value.date) || 'all' : 'all'
+  selectedMonth.value = 'all'
 }
 
 function selectPerformance(id: string | number) {
@@ -354,32 +351,28 @@ function selectPerformance(id: string | number) {
 
 function selectMonth(key: string) {
   selectedMonth.value = key
-  if (key === 'all' || selectedRouteStop.value?.month === key) return
-
-  const performance = performances.value.find((item) => String(item.id) === selectedPerformanceId.value)
-  if (performance && monthKey(performance.date) === key) return
-
-  const firstStop = routeStops.value.find((stop) => stop.month === key)
-  if (firstStop) {
-    selectedPerformanceId.value = String(firstStop.performance.id)
-  }
 }
 
-function selectNearest() {
-  const today = new Date().toISOString().slice(0, 10)
-  const next = performances.value.find((item) => String(item.date || '') >= today) || performances.value[performances.value.length - 1]
-  if (next) {
-    selectedPerformanceId.value = String(next.id)
-    selectedMonth.value = monthKey(next.date) || 'all'
-  }
+function isRouteStopDimmed(stop: { month: string; performance: LivePerformance }) {
+  return selectedMonth.value !== 'all' &&
+    stop.month !== selectedMonth.value &&
+    String(stop.performance.id) !== selectedPerformanceId.value
 }
 
-function selectFinal() {
-  const final = performances.value[performances.value.length - 1]
-  if (final) {
-    selectedPerformanceId.value = String(final.id)
-    selectedMonth.value = monthKey(final.date) || 'all'
+function routeStopListClass(stop: { month: string; performance: LivePerformance }) {
+  if (selectedPerformanceId.value === String(stop.performance.id)) {
+    return 'border-[var(--live-detail-accent-strong)] bg-white/[0.08] shadow-[0_0_28px_-16px_var(--live-detail-glow)]'
   }
+  if (isRouteStopDimmed(stop)) {
+    return 'border-white/[0.08] bg-[var(--live-detail-surface-bg)] opacity-45 hover:opacity-75'
+  }
+  return 'border-white/10 bg-[var(--live-detail-surface-bg)] hover:border-[var(--live-detail-accent-border)] hover:bg-white/[0.04]'
+}
+
+function routeStopNodeClass(stop: { month: string; performance: LivePerformance }) {
+  return isRouteStopDimmed(stop)
+    ? 'opacity-35 saturate-50 hover:opacity-75'
+    : 'opacity-100'
 }
 
 function emptyTrack(showId: string, title: string, duration?: string): Track {

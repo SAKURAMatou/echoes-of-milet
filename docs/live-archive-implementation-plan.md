@@ -764,9 +764,10 @@ POST /admin/live/cache/clear-list
 
 ```text
 管理端已登录用户
-  -> POST /admin/live/events/:id/preview-token
+  -> 在显示效果配置弹窗中选择 blueprint / themePreset
+  -> POST /admin/live/events/:id/preview-token，body 可携带本次预览的 displayConfig
   -> Worker 校验 live.view / live.update 权限
-  -> Worker 聚合当前草稿数据并写入 KV
+  -> Worker 聚合当前草稿数据，将 body.displayConfig 覆盖到本次 snapshot，并写入 KV
   -> 返回 previewId、previewToken、previewUrl、expiresAt
   -> 管理端 iframe 或新窗口打开公开端 previewUrl
   -> 公开端 SSR 请求 /api/milet/live/preview/:previewId?token=...
@@ -988,7 +989,7 @@ GET  /admin/live/events/:id/display
 POST /admin/live/events/:id/display/save
 POST /admin/live/events/:id/display/publish
 
-POST /admin/live/events/:id/preview-token
+POST /admin/live/events/:id/preview-token   # body 可选 displayConfig，用于当前弹窗选择的即时预览
 ```
 
 管理端新增 API 后需要更新：
@@ -1221,7 +1222,20 @@ componentKey
 /:lang/milet/live-preview/:previewId?token=...
 ```
 
-管理端保存显示配置草稿后，调用 `POST /admin/live/events/:id/preview-token` 生成短期 token，再在 iframe 或新窗口中打开公开端 preview。
+预览入口放在显示效果配置弹窗内，不再作为 live 列表行内独立按钮。管理人在弹窗中选择 `blueprint + themePreset` 后，点击“生成预览”，管理端将当前表单中的显示配置随 `POST /admin/live/events/:id/preview-token` 一起传给 Worker。Worker 只把这份显示配置覆盖到本次 preview snapshot，不直接保存 draft；管理人确认效果后再点击“保存配置”持久化。
+
+preview-token body 示例：
+
+```json
+{
+  "lang": "zh",
+  "displayConfig": {
+    "blueprint": "tour-serpentine-route",
+    "themePreset": "echo-blue",
+    "status": "draft"
+  }
+}
+```
 
 ## 数据库建议
 
