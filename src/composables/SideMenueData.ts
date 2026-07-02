@@ -39,14 +39,7 @@ export function getMenu(now = new Date()): MenuItem[] {
       ],
       shown: true,
     },
-    {
-      key: 'live-archive',
-      label: 'LIVE ARCHIVE',
-      sub: '- Live records',
-      color: 'sky',
-      routerName: 'miletLiveArchive',
-      shown: true,
-    },
+
     {
       key: 'timeline',
       label: 'TIMELINE',
@@ -55,14 +48,7 @@ export function getMenu(now = new Date()): MenuItem[] {
       routerName: 'miletTimeLine',
       shown: true,
     },
-    {
-      key: 'news',
-      label: 'NEWS',
-      sub: '- Curated news links',
-      color: 'green',
-      routerName: 'miletNews',
-      shown: true,
-    },
+
     {
       key: 'release',
       label: 'DISCOGRAPHY',
@@ -76,12 +62,21 @@ export function getMenu(now = new Date()): MenuItem[] {
       ],
       shown: true,
     },
+
     {
-      key: 'echo-room',
-      label: 'ECHO ROOM',
-      sub: '- Interactive challenge',
+      key: 'live-archive',
+      label: 'LIVE ARCHIVE',
+      sub: '- Live records',
       color: 'sky',
-      routerName: 'miletSongGuess',
+      routerName: 'miletLiveArchive',
+      shown: true,
+    },
+    {
+      key: 'news',
+      label: 'NEWS',
+      sub: '- Curated news links',
+      color: 'green',
+      routerName: 'miletNews',
       shown: true,
     },
     {
@@ -96,6 +91,15 @@ export function getMenu(now = new Date()): MenuItem[] {
       ],
       shown: true,
     },
+    {
+      key: 'echo-room',
+      label: 'ECHO ROOM',
+      sub: '- Interactive challenge',
+      color: 'sky',
+      routerName: 'miletSongGuess',
+      shown: true,
+    },
+
     {
       key: 'gallery',
       label: 'GALLERY',
