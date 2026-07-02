@@ -457,10 +457,10 @@ notes
 - `section` 是 setlist 的结构字段，用于区分正篇、encore、double encore，不只作为备注。
 - 公开端按 `section` 分组展示；没有 encore 时不显示空分组。
 - 排序先按 `section` 顺序，再按 `sortNo`。
-- `songTrackId` 是公开端打开歌曲详情弹窗的优先依据。
-- `songWorkId` 可作为辅助字段，用于查询 work 信息或兼容现有歌曲详情数据结构。
-- 曲目选择参照发布物曲目关联的现有做法，复用相同的歌曲库搜索、track 选择和数据标识。
-- 公开端需要的歌曲弹窗入参应由 API 直接返回，避免前端在 live 模块中重新拼接 track 标识。
+- `songWorkId` 和 `songTrackId` 是公开端打开歌曲详情弹窗所需的完整标识，管理端保存 setlist 和场次 override 时需要同时保存。
+- 曲目选择参照发布物曲目关联的现有做法，复用相同的歌曲库搜索和 track 选择。
+- 管理端歌曲搜索接口需要返回纯数字 `work_id` 和 `track_id`，不要返回 `trackId_123` 这类仅用于旧表单的临时展示标识。
+- 公开端需要的歌曲弹窗入参应由 API 直接返回，避免前端在 live 模块中根据不完整 ID 猜测或拼接 track 标识。
 - 如果歌曲库中没有，可以临时保存 `displayTitle`。
 - 公开端点击曲目时，只有存在可映射到现有歌曲详情弹窗的数据，才打开弹窗。
 - 具体场次只维护差异项，例如追加 encore、替换某首歌、调整顺序、补充备注。
@@ -723,15 +723,15 @@ componentKey -> Vue component
 
 动态 SEO 链路：
 
-- `RouteMeta.seoKey` 需要增加 `liveEventDetail`。
+- `RouteMeta.seoKey` 使用当前代码中的 `liveEvent`。
 - SSR 初始状态需要增加 `miletLiveDetailData`，保存 live 详情页首屏数据。
 - `LiveDetailView` 或对应 composable 在 `onServerPrefetch` 中拉取 live detail，并写入 AppState 的 `miletLiveDetailData`。
 - `src/server/render.ts` 保持现有模式：`renderToString` 后读取 AppState，再交给 SEO 生成逻辑。
 - `src/server/seo.ts` 的 `renderSeoTags` 读取 `miletLiveDetailData`：
-  - title 优先使用 `live_event_i18n.seoTitle`。
-  - description 优先使用 `live_event_i18n.seoDescription`。
+  - title 使用演出标题。
+  - description 使用演出简介。
   - OG image 使用演出主视觉图。
-  - 缺失 SEO 字段时 fallback 到演出标题和简介。
+- 管理端已经提供多语言 `seoTitle / seoDescription` 输入，但当前保存时自动以标题和简介补齐，和 event 展示数据保持一致；第一阶段公开端 SEO 不再单独读取这两个字段，后续如果需要独立 SEO 文案，再调整为优先读取 `seoTitle / seoDescription`。
 - 客户端 hydrate 后不得重新计算出不同的 title/OG 数据，避免 SSR head 与客户端状态不一致。
 
 缓存 key 建议：
@@ -767,14 +767,25 @@ POST /admin/live/cache/clear-list
 ```text
 管理端已登录用户
   -> 在显示效果配置弹窗中选择 blueprint / themePreset
-  -> POST /admin/live/events/:id/preview-token，body 可携带本次预览的 displayConfig
+  -> 管理端从 system_config 读取公开端域名 public_site_origin / echoes-of-milet
+  -> POST /admin/live/events/:id/preview-token，body 可携带本次预览的 displayConfig 和 publicBaseUrl
   -> Worker 校验 live.view / live.update 权限
   -> Worker 聚合当前草稿数据，将 body.displayConfig 覆盖到本次 snapshot，并写入 KV
   -> 返回 previewId、previewToken、previewUrl、expiresAt
-  -> 管理端 iframe 或新窗口打开公开端 previewUrl
+  -> 管理端使用 previewUrl 与公开端域名构建完整 URL
+  -> 新标签页打开完整公开端 preview URL
   -> 公开端 SSR 请求 /api/milet/live/preview/:previewId?token=...
   -> Worker 校验 KV 中 token 后返回草稿快照
 ```
+
+说明：
+
+- 第一阶段不使用 iframe 嵌入预览，避免跨域 iframe、postMessage、高度自适应和 CSP frame-ancestors 配置复杂度。
+- `system_config` 建议新增：
+  - `code = public_site_origin`
+  - `ckey = echoes-of-milet`
+  - `cvalue = {"origin":"https://miles-dml.org"}`
+- 管理端打开预览时统一使用新标签页。preview token 仍保持短期有效、一次性读取、noindex 和 no-store。
 
 公开端预览 URL：
 
@@ -840,7 +851,7 @@ token 规则：
 - API 请求时对 query token 做 hash 后常量时间比较。
 - token 绑定 `previewId`、`eventId`、`draftRevision`、`lang`、`createdBy` 和过期时间。
 - Worker 成功读取预览后，应将 KV 中 `consumedAt` 写入或删除该 key，使同一 token 不能重复使用。
-- 如 iframe 刷新需要多次读取，管理端应重新生成 preview token。
+- 如果刷新预览页或需要再次查看，管理端应重新生成 preview token。
 
 ### 安全响应头
 
@@ -852,16 +863,10 @@ X-Robots-Tag: noindex, nofollow
 Referrer-Policy: no-referrer
 ```
 
-iframe 预览时，只允许管理端域名嵌入 preview 页面：
-
-```text
-Content-Security-Policy: frame-ancestors <管理端域名>
-```
-
 注意：
 
-- 只对 preview 路由设置 frame-ancestors，不要放开整个公开端。
-- 如果管理端使用 iframe 和公开端通信，只允许白名单 origin 的 `postMessage`。
+- 预览使用新标签页打开，不需要为公开端放开 iframe 嵌入。
+- 不使用 postMessage 联动，降低跨域维护成本。
 
 ### 失效规则
 
@@ -902,6 +907,8 @@ keyword=...
 page=1
 pageSize=12
 ```
+
+`keyword` 第一阶段覆盖演出标题、简介、slug、场次城市、地区、场馆名称和场馆地址。由于列表接口本身已经聚合 performances 用于 `cityCount / venueSummary`，扩展城市和场馆搜索不需要新增 API。
 
 列表接口分页返回：
 
@@ -1236,13 +1243,14 @@ cvalue: {"label":"Echo Blue","enabled":true}
 /:lang/milet/live-preview/:previewId?token=...
 ```
 
-预览入口放在显示效果配置弹窗内，不再作为 live 列表行内独立按钮。管理人在弹窗中选择 `blueprint + themePreset` 后，点击“生成预览”，管理端将当前表单中的显示配置随 `POST /admin/live/events/:id/preview-token` 一起传给 Worker。Worker 只把这份显示配置覆盖到本次 preview snapshot，不直接保存 draft；管理人确认效果后再点击“保存配置”持久化。
+预览入口放在显示效果配置弹窗内，不再作为 live 列表行内独立按钮。管理人在弹窗中选择 `blueprint + themePreset` 后，点击“生成预览”，管理端将当前表单中的显示配置随 `POST /admin/live/events/:id/preview-token` 一起传给 Worker。Worker 只把这份显示配置覆盖到本次 preview snapshot，不直接保存 draft；管理端根据系统配置中的公开端域名拼出完整 preview URL，并用新标签页打开。管理人确认效果后再点击“保存配置”持久化。
 
 preview-token body 示例：
 
 ```json
 {
   "lang": "zh",
+  "publicBaseUrl": "https://miles-dml.org",
   "displayConfig": {
     "blueprint": "tour-serpentine-route",
     "themePreset": "echo-blue",
@@ -1377,7 +1385,7 @@ api-proxy.config.json
 
 ```text
 renderMode: ssr
-seoKey: liveEventDetail
+seoKey: liveEvent
 ```
 
 详情页第一阶段统一 SSR，不做 SSG。进行中巡演数据可能变化，应依赖短缓存和管理端更新后的缓存失效保证内容及时性。
@@ -1402,7 +1410,8 @@ Worker 新增管理权限：
 
 - 权限命名保持和现有 Worker / Admin 权限系统一致。
 - 不使用 `live:read`、`live:display:update` 这类字符串式权限。
-- 显示效果配置属于 live 更新能力，第一阶段使用 `live.update`。
+- 保存显示效果草稿属于 live 更新能力，使用 `live.update`。
+- 发布显示效果配置属于发布能力，使用 `live.publish`。
 - 发布演出使用 `live.publish`，归档/下架使用 `live.archive`。
 - 场次批量导入使用 `live.import`，和现有巡礼导入权限风格保持一致。
 - 生成预览 token 需要 `live.view` 和 `live.update`，确保只有有权限维护演出的管理员可以查看草稿预览。
@@ -1458,9 +1467,10 @@ Worker 新增管理权限：
 - 管理端显示效果配置支持选择详情页面布局 `blueprint`。
 - 管理端显示效果配置支持选择主题 `themePreset`。
 - 管理端详情布局和主题下拉从 `system_config` 的 `live_detail_blueprints / live_detail_themes` 读取。
+- 管理端预览打开地址从 `system_config` 的 `public_site_origin / echoes-of-milet` 读取公开端域名。
 - Worker 从同一份系统配置校验可用 blueprint 和 theme preset。
 - 公开端详情页按已发布 / 预览 display config 选择布局和主题。
-- 管理端 iframe / 新窗口预览体验、postMessage 白名单和错误提示优化。
+- 管理端使用新标签页打开预览链接，不做 iframe 嵌入和 postMessage 联动。
 - Deferred：组件级启用/隐藏、组件顺序和局部参数不做。
 - Deferred：component catalog、公开端 registry 和组件级配置变更后的 preview 交互增强不做。
 
