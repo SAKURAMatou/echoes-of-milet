@@ -30,6 +30,12 @@ export type LiveDetailThemeTokens = {
   line: string
   glow: string
   route: string
+  venueLineArtBg: string
+  venueLineArtBorder: string
+  venueLineArtFilter: string
+  venueLineArtOpacity: string
+  venueLineArtShadow: string
+  venueLineArtBlendMode: string
 }
 
 export const liveDetailBlueprints: Array<{
@@ -98,6 +104,14 @@ export const liveDetailThemes: Record<LiveDetailThemePreset, {
       line: 'rgba(214, 179, 106, 0.3)',
       glow: 'rgba(245, 213, 154, 0.82)',
       route: '#9fd4ff',
+      venueLineArtBg:
+        'linear-gradient(135deg, rgba(255, 248, 232, 0.075), rgba(159, 212, 255, 0.035))',
+      venueLineArtBorder: 'rgba(245, 213, 154, 0.2)',
+      venueLineArtFilter:
+        'brightness(0) saturate(100%) invert(89%) sepia(24%) saturate(642%) hue-rotate(351deg) brightness(104%) contrast(93%) drop-shadow(0 0 14px rgba(245, 213, 154, 0.28))',
+      venueLineArtOpacity: '0.9',
+      venueLineArtShadow: 'inset 0 0 0 1px rgba(255,255,255,0.035), 0 18px 50px -38px rgba(245, 213, 154, 0.86)',
+      venueLineArtBlendMode: 'screen',
     },
   },
   'echo-blue': {
@@ -124,6 +138,14 @@ export const liveDetailThemes: Record<LiveDetailThemePreset, {
       line: 'rgba(49, 127, 141, 0.24)',
       glow: 'rgba(125, 211, 252, 0.46)',
       route: '#0ea5e9',
+      venueLineArtBg:
+        'linear-gradient(135deg, rgba(255,255,255,0.7), rgba(224,242,254,0.52))',
+      venueLineArtBorder: 'rgba(14, 165, 233, 0.24)',
+      venueLineArtFilter:
+        'brightness(0) saturate(100%) invert(33%) sepia(42%) saturate(1098%) hue-rotate(158deg) brightness(92%) contrast(92%) drop-shadow(0 12px 18px rgba(14, 116, 144, 0.16))',
+      venueLineArtOpacity: '0.78',
+      venueLineArtShadow: 'inset 0 1px 0 rgba(255,255,255,0.72), 0 18px 42px -34px rgba(14, 116, 144, 0.46)',
+      venueLineArtBlendMode: 'multiply',
     },
   },
   'stairs-colors': {
@@ -150,6 +172,14 @@ export const liveDetailThemes: Record<LiveDetailThemePreset, {
       line: 'rgba(224, 112, 112, 0.3)',
       glow: 'rgba(240, 144, 96, 0.56)',
       route: '#df6475',
+      venueLineArtBg:
+        'linear-gradient(135deg, rgba(255,248,242,0.78), rgba(255,225,214,0.48))',
+      venueLineArtBorder: 'rgba(224, 112, 112, 0.28)',
+      venueLineArtFilter:
+        'brightness(0) saturate(100%) invert(35%) sepia(30%) saturate(1040%) hue-rotate(298deg) brightness(93%) contrast(90%) drop-shadow(0 12px 18px rgba(223, 100, 117, 0.18))',
+      venueLineArtOpacity: '0.82',
+      venueLineArtShadow: 'inset 0 1px 0 rgba(255,255,255,0.72), 0 18px 46px -34px rgba(160, 96, 144, 0.48)',
+      venueLineArtBlendMode: 'multiply',
     },
   },
 }

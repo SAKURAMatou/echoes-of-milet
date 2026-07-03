@@ -143,14 +143,18 @@
             </div>
           </dl>
         </div>
-        <img
+        <figure
           v-if="selectedVenueLineArtUrl"
-          :src="buildStaticAssetUrl(selectedVenueLineArtUrl)"
-          alt=""
-          loading="lazy"
-          decoding="async"
-          class="relative z-10 mt-7 max-h-64 w-full rounded-md border border-white/10 bg-white/[0.03] object-contain p-4 lg:absolute lg:bottom-6 lg:right-6 lg:mt-0 lg:max-h-72 lg:w-[46%] lg:border-0 lg:bg-transparent lg:p-0"
-        />
+          class="live-venue-line-art-frame relative z-10 mt-7 p-4 lg:absolute lg:bottom-6 lg:right-6 lg:mt-0 lg:w-[46%]"
+        >
+          <img
+            :src="buildStaticAssetUrl(selectedVenueLineArtUrl)"
+            alt=""
+            loading="lazy"
+            decoding="async"
+            class="live-venue-line-art-img max-h-64 lg:max-h-72"
+          />
+        </figure>
       </section>
     </section>
 

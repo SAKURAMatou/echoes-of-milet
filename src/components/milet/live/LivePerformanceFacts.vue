@@ -97,14 +97,15 @@
       </div>
     </dl>
 
-    <img
-      v-if="venueLineArtUrl"
-      :src="buildStaticAssetUrl(venueLineArtUrl)"
-      alt=""
-      loading="lazy"
-      decoding="async"
-      class="mt-4 max-h-40 w-full rounded-md border border-[#d9b77c]/16 bg-white/[0.03] object-contain p-3"
-    />
+    <figure v-if="venueLineArtUrl" class="live-venue-line-art-frame mt-4 p-3">
+      <img
+        :src="buildStaticAssetUrl(venueLineArtUrl)"
+        alt=""
+        loading="lazy"
+        decoding="async"
+        class="live-venue-line-art-img max-h-40"
+      />
+    </figure>
 
     <p v-if="notes" class="mt-5 border-t border-white/10 pt-4 text-sm leading-6 text-[#b8c8d5]">
       {{ notes }}

@@ -287,14 +287,15 @@
             {{ selectedPerformance?.startTime || '-' }}
           </div>
         </dl>
-        <img
-          v-if="selectedVenueLineArtUrl"
-          :src="buildStaticAssetUrl(selectedVenueLineArtUrl)"
-          alt=""
-          loading="lazy"
-          decoding="async"
-          class="mt-6 max-h-64 w-full object-contain opacity-90"
-        />
+        <figure v-if="selectedVenueLineArtUrl" class="live-venue-line-art-frame mt-6 p-3">
+          <img
+            :src="buildStaticAssetUrl(selectedVenueLineArtUrl)"
+            alt=""
+            loading="lazy"
+            decoding="async"
+            class="live-venue-line-art-img max-h-64"
+          />
+        </figure>
       </aside>
 
       <LiveSetlist

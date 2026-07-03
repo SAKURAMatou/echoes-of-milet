@@ -200,14 +200,14 @@
         </dl>
         <figure
           v-if="selectedVenueLineArtUrl"
-          class="flex min-h-28 items-center justify-center border-[#d9b77c]/22 lg:border-l lg:pl-6"
+          class="live-venue-line-art-frame flex min-h-28 items-center justify-center p-3 lg:ml-2"
         >
           <img
             :src="buildStaticAssetUrl(selectedVenueLineArtUrl)"
             alt=""
             loading="lazy"
             decoding="async"
-            class="max-h-36 w-full rounded-md object-contain"
+            class="live-venue-line-art-img max-h-36"
           />
         </figure>
       </div>

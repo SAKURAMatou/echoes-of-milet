@@ -94,6 +94,12 @@ const themeStyle = computed<Record<string, string>>(() => ({
   '--live-detail-line': theme.value.line,
   '--live-detail-glow': theme.value.glow,
   '--live-detail-route': theme.value.route,
+  '--live-detail-venue-line-art-bg': theme.value.venueLineArtBg,
+  '--live-detail-venue-line-art-border': theme.value.venueLineArtBorder,
+  '--live-detail-venue-line-art-filter': theme.value.venueLineArtFilter,
+  '--live-detail-venue-line-art-opacity': theme.value.venueLineArtOpacity,
+  '--live-detail-venue-line-art-shadow': theme.value.venueLineArtShadow,
+  '--live-detail-venue-line-art-blend-mode': theme.value.venueLineArtBlendMode,
 }))
 const headerStyle = computed<Record<string, string>>(() => ({
   backgroundColor: theme.value.headerBg,
@@ -179,5 +185,46 @@ const jaRoute = computed(() => ({
 
 .live-detail-shell :deep([class*="hover:text-[#9fd4ff]"]:hover) {
   color: var(--live-detail-link-hover) !important;
+}
+
+.live-detail-shell :deep(.live-venue-line-art-frame) {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  border: 1px solid var(--live-detail-venue-line-art-border);
+  border-radius: 0.75rem;
+  background: var(--live-detail-venue-line-art-bg);
+  box-shadow: var(--live-detail-venue-line-art-shadow);
+}
+
+.live-detail-shell :deep(.live-venue-line-art-frame)::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background:
+    radial-gradient(circle at 18% 12%, color-mix(in srgb, var(--live-detail-accent-strong) 18%, transparent), transparent 36%),
+    linear-gradient(135deg, color-mix(in srgb, var(--live-detail-title) 8%, transparent), transparent 44%);
+  opacity: 0.72;
+}
+
+.live-detail-shell :deep(.live-venue-line-art-img) {
+  display: block;
+  width: 100%;
+  max-width: 100%;
+  object-fit: contain;
+  opacity: var(--live-detail-venue-line-art-opacity);
+  filter: var(--live-detail-venue-line-art-filter);
+  mix-blend-mode: var(--live-detail-venue-line-art-blend-mode);
+}
+
+.live-detail-shell :deep(.live-venue-line-art-frame--bare) {
+  border-color: transparent;
+  background: transparent;
+  box-shadow: none;
+}
+
+.live-detail-shell :deep(.live-venue-line-art-frame--bare)::before {
+  display: none;
 }
 </style>

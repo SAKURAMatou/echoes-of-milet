@@ -1599,7 +1599,7 @@ live_performances.venue_official_url
 
 ### 场馆线条图
 
-每个场次需要支持关联一张场馆线条图，用于演出信息展示模块的视觉补充。
+每个场次需要支持关联一张场馆线条图，用于演出信息展示模块的视觉补充。线条图只关联一张图片，但公开端不直接使用图片自带颜色，而是把图片作为 alpha mask 使用，由当前详情页主题决定线条颜色，从而兼容深色和浅色背景。
 
 建议字段：
 
@@ -1615,12 +1615,69 @@ live_performances.venue_line_art_image_id
 - 同一场馆多次出现时，管理端可以通过复制场次或导入模板复用同一图片 ID。
 - 服务端负责把 `venue_line_art_image_id` 转换为公开端可直接展示的图片 URL；公开端不再用图片 ID 自行二次查询。
 
+素材规范：
+
+- 图片必须是透明背景 PNG。
+- 图片内容只表达“线条形状与透明度”，不依赖 RGB 颜色表达最终视觉。
+- 推荐 RGB 使用黑色或中性深色，alpha 表达线条强弱和层次。
+- 不允许包含大面积实色填充、背景、阴影、发光、渐变、文字、水印或场馆说明。
+- 线条图应保留场馆最有识别度的建筑轮廓、入口、立面结构和台阶等元素。
+- 宽度建议不小于 1200px，横向构图优先，便于在详情页信息模块内裁切和缩放。
+- 管理端图片选择处需要提示“请上传 mask 友好的透明线稿图”，避免上传带背景的普通插画或照片。
+
 公开端：
 
 - 在 `SelectedPerformanceSummary` / 演出信息模块中展示场馆线条图。
-- 线条图只展示图片本身，不额外展示 credit、说明文案或占位线框。
+- 线条图使用 CSS mask 渲染，不直接用 `<img>` 的原始颜色作为最终显示效果。
+- 线条图只展示建筑线稿，不额外展示 credit、说明文案或占位线框。
 - 如果当前选中场次没有线条图，直接隐藏图片元素。
 - SSR 返回的数据中应包含图片访问所需的 URL，避免公开端二次查询。
+
+CSS 建议：
+
+```css
+.venue-line-art {
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  background: var(--live-venue-line-art-color);
+  opacity: var(--live-venue-line-art-opacity, 0.72);
+  mask-image: var(--live-venue-line-art-url);
+  mask-repeat: no-repeat;
+  mask-position: center;
+  mask-size: contain;
+  -webkit-mask-image: var(--live-venue-line-art-url);
+  -webkit-mask-repeat: no-repeat;
+  -webkit-mask-position: center;
+  -webkit-mask-size: contain;
+}
+
+.live-detail-theme-dark {
+  --live-venue-line-art-color: rgba(220, 235, 255, 0.86);
+  --live-venue-line-art-opacity: 0.78;
+}
+
+.live-detail-theme-light {
+  --live-venue-line-art-color: rgba(31, 55, 82, 0.82);
+  --live-venue-line-art-opacity: 0.76;
+}
+```
+
+Vue 绑定建议：
+
+```vue
+<div
+  v-if="selectedPerformance.venueLineArtUrl"
+  class="venue-line-art"
+  :style="{ '--live-venue-line-art-url': `url(${selectedPerformance.venueLineArtUrl})` }"
+  aria-hidden="true"
+/>
+```
+
+兼容策略：
+
+- 第一版优先使用 mask 渲染，保证同一张图片能在深色和浅色背景下通过主题变量换色。
+- 如果少数浏览器不支持 mask，可降级为 `<img>` 透明图展示；此时素材本身的 RGB 应保持中性深色，保证浅色背景下仍可读。
+- 不建议用 `filter: invert()` 作为主要方案，因为复杂线稿的半透明细线和结构面反色后容易变脏。
 
 ### 场次导入
 
