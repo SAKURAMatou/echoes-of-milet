@@ -182,14 +182,23 @@
             <p v-if="item.summary" class="line-clamp-2 text-sm leading-6 text-[#5f7178]">
               {{ item.summary }}
             </p>
-            <div class="flex flex-wrap gap-2 text-xs text-[#546e7a]">
-              <span v-if="formatLiveDateRange(item)" class="rounded-full bg-sky-50 px-2.5 py-1">
+            <div class="flex flex-wrap items-center gap-2 text-xs text-[#546e7a]">
+              <span
+                v-if="formatLiveDateRange(item)"
+                class="inline-flex h-8 max-w-full items-center rounded-full bg-sky-50 px-3 leading-none"
+              >
                 {{ formatLiveDateRange(item) }}
               </span>
-              <span v-if="item.venueSummary" class="rounded-full bg-teal-50 px-2.5 py-1">
-                {{ item.venueSummary }}
+              <span
+                v-if="item.venueSummary"
+                class="inline-flex h-8 min-w-0 max-w-full items-center rounded-full bg-teal-50 px-3 leading-none"
+              >
+                <span class="truncate">{{ item.venueSummary }}</span>
               </span>
-              <span v-if="item.performanceCount" class="rounded-full bg-violet-50 px-2.5 py-1">
+              <span
+                v-if="item.performanceCount"
+                class="inline-flex h-8 max-w-full items-center rounded-full bg-violet-50 px-3 leading-none"
+              >
                 {{ item.performanceCount }} shows
               </span>
             </div>
