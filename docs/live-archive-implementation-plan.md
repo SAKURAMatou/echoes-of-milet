@@ -1617,13 +1617,52 @@ live_performances.venue_line_art_image_id
 
 素材规范：
 
-- 图片必须是透明背景 PNG。
+- 图片必须是透明背景图片，第一版推荐统一输出为透明 `WebP`；如工具链暂时不便处理 WebP，可先生成透明 PNG 再转换。
 - 图片内容只表达“线条形状与透明度”，不依赖 RGB 颜色表达最终视觉。
 - 推荐 RGB 使用黑色或中性深色，alpha 表达线条强弱和层次。
 - 不允许包含大面积实色填充、背景、阴影、发光、渐变、文字、水印或场馆说明。
 - 线条图应保留场馆最有识别度的建筑轮廓、入口、立面结构和台阶等元素。
 - 宽度建议不小于 1200px，横向构图优先，便于在详情页信息模块内裁切和缩放。
 - 管理端图片选择处需要提示“请上传 mask 友好的透明线稿图”，避免上传带背景的普通插画或照片。
+
+根据场馆链接生成素材的工作流：
+
+1. 先通过场馆官网、官方设施页或可信公开资料确认建筑识别点。
+2. 提取 3-6 个建筑特征，例如屋顶轮廓、塔楼、入口雨棚、玻璃幕墙、立面格栅、台阶、圆形大厅等。
+3. 使用统一提示词生成“可抠背景的线稿源图”。
+4. 对源图进行后处理：去除纯色背景和白色填充面，只保留线条 alpha。
+5. 保存为透明 WebP，作为正式 `venueLineArtImageId` 对应素材。
+6. 生成后用浅色背景和深色背景各检查一次，确认作为 `mask-image` 换色后仍清楚。
+
+生成提示词模板：
+
+```text
+Use case: background-extraction
+Asset type: venue architectural line-art mask asset for a live archive detail page
+Primary request: Create a mask-friendly architectural line drawing of {venueName}, {city}, {prefecture}, Japan.
+Reference traits to capture: {从官网或公开资料提取的建筑识别点，例如 broad low civic hall, glass entrance lobby, curved roof, tower volume, vertical fins, wide plaza steps}.
+Style/medium: precise architectural technical line art, single-color dark navy strokes only, no filled surfaces, no solid silhouettes, sparse hatching only for facade depth.
+Composition/framing: landscape 16:9, front three-quarter view, building centered with generous padding, clean venue profile usable as CSS mask.
+Color palette: dark navy/black linework only; no green in the subject.
+Text: no text, no signage, no labels, no watermark.
+Transparent prep: Draw on a perfectly flat solid #00ff00 chroma-key background. Uniform #00ff00 only, no shadows, no gradients, no texture, no floor plane. Crisp separated edges.
+```
+
+提示词填写规则：
+
+- `{venueName}` 使用正式场馆名称；如果场馆位于复合设施内，应写明“大ホール所在设施”，例如 `Aichi Prefectural Art Theater Large Hall inside Aichi Arts Center`。
+- `Reference traits to capture` 不写泛泛的“beautiful hall”，而写可被线稿表达的建筑特征。
+- 场馆官网中出现的 logo、招牌、文字、人物、车辆、树木、临时布景都不进入线稿。
+- 如果模型没有生成绿底，而是生成白底，只要线条足够清晰，也可以在后处理阶段直接从白底抽取深色线条。
+- 输出尺寸保持横向 16:9，同一批素材尽量保持一致尺寸，例如 `1672 x 941`。
+
+后处理规则：
+
+- 正式素材只保留 alpha mask 信息，RGB 不承担主题色含义。
+- 纯绿色背景、白色建筑填充面和大块阴影都应被移除。
+- 线条 alpha 建议保留半透明层次，避免全部变成实心粗线；当前实践中 alpha 范围约 `0-220`。
+- 文件命名建议包含年份、场次编号和场馆 slug，例如 `venue-lineart-2024-03-act-city-hamamatsu.webp`。
+- 同一场馆对应多个场次时只生成一张素材，在不同 performance 中复用同一个图片资源。
 
 公开端：
 

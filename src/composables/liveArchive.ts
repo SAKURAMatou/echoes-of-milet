@@ -530,32 +530,78 @@ function compareLiveSetlistItemsForDisplay(a: LiveSetlistItem, b: LiveSetlistIte
   return String(a.itemKey).localeCompare(String(b.itemKey))
 }
 
-function renumberLiveSetlistItems(items: LiveSetlistItem[]) {
-  return [...items].sort(compareLiveSetlistItemsForDisplay).map((item, index) => ({
+function renumberLiveSetlistItemsInCurrentOrder(items: LiveSetlistItem[]) {
+  return items.map((item, index) => ({
     ...item,
     sortNo: index + 1,
   }))
+}
+
+function insertLiveSetlistAddedItem(items: LiveSetlistItem[], override: LiveSetlistOverride) {
+  const anchorIndex = override.baseItemKey
+    ? items.findIndex((item) => item.itemKey === override.baseItemKey)
+    : -1
+  const anchor = anchorIndex >= 0 ? items[anchorIndex] : null
+  const section = override.section || anchor?.section || 'main'
+  const itemKey = override.overrideItemKey || `override-${override.id || override.displayTitle}`
+  if (!itemKey) return
+  const addedItem: LiveSetlistItem = {
+    itemKey,
+    sortNo: Number(override.sortNo) || 0,
+    section,
+    trackId: override.trackId,
+    songWorkId: override.songWorkId,
+    songTrackId: override.songTrackId,
+    displayTitle: override.displayTitle || '',
+    notes: override.notes || undefined,
+    duration: override.duration || undefined,
+    changed: true,
+  }
+  if (anchorIndex >= 0) {
+    items.splice(anchorIndex, 0, addedItem)
+    return
+  }
+
+  const sectionRank = liveSetlistSectionRank(section)
+  const insertIndex = items.findIndex((item) => {
+    const currentSectionRank = liveSetlistSectionRank(item.section)
+    return (
+      currentSectionRank > sectionRank ||
+      (currentSectionRank === sectionRank && (Number(item.sortNo) || 0) >= addedItem.sortNo)
+    )
+  })
+  if (insertIndex >= 0) items.splice(insertIndex, 0, addedItem)
+  else items.push(addedItem)
 }
 
 export function composeLiveSetlist(
   eventSetlist?: LiveSetlist | null,
   overrides: LiveSetlistOverride[] = [],
 ) {
-  let items = (eventSetlist?.items || []).map(cloneSetlistItem)
+  let items = (eventSetlist?.items || [])
+    .map(cloneSetlistItem)
+    .sort(compareLiveSetlistItemsForDisplay)
+  const orderedOverrides = [...overrides].sort(
+    (a, b) =>
+      (Number(a.sortNo) || 0) - (Number(b.sortNo) || 0) ||
+      String(a.baseItemKey || a.overrideItemKey || '').localeCompare(
+        String(b.baseItemKey || b.overrideItemKey || ''),
+      ),
+  )
 
-  for (const override of overrides.filter((item) => item.operation === 'remove')) {
+  for (const override of orderedOverrides.filter((item) => item.operation === 'remove')) {
     if (!override.baseItemKey) continue
     items = items.filter((item) => item.itemKey !== override.baseItemKey)
   }
 
-  for (const override of overrides.filter((item) => item.operation === 'replace')) {
+  for (const override of orderedOverrides.filter((item) => item.operation === 'replace')) {
     if (!override.baseItemKey) continue
     items = items.map((item) =>
       item.itemKey === override.baseItemKey ? applyReplacement(item, override) : item,
     )
   }
 
-  for (const override of overrides.filter((item) => item.operation === 'move')) {
+  for (const override of orderedOverrides.filter((item) => item.operation === 'move')) {
     if (!override.baseItemKey) continue
     items = items.map((item) =>
       item.itemKey === override.baseItemKey
@@ -568,8 +614,9 @@ export function composeLiveSetlist(
         : item,
     )
   }
+  items = items.sort(compareLiveSetlistItemsForDisplay)
 
-  for (const override of overrides.filter((item) => item.operation === 'note')) {
+  for (const override of orderedOverrides.filter((item) => item.operation === 'note')) {
     if (!override.baseItemKey) continue
     items = items.map((item) =>
       item.itemKey === override.baseItemKey
@@ -582,24 +629,11 @@ export function composeLiveSetlist(
     )
   }
 
-  for (const override of overrides.filter((item) => item.operation === 'add')) {
-    const itemKey = override.overrideItemKey || `override-${override.id || override.displayTitle}`
-    if (!itemKey) continue
-    items.push({
-      itemKey,
-      sortNo: Number(override.sortNo) || 0,
-      section: override.section || 'main',
-      trackId: override.trackId,
-      songWorkId: override.songWorkId,
-      songTrackId: override.songTrackId,
-      displayTitle: override.displayTitle || '',
-      notes: override.notes || undefined,
-      duration: override.duration || undefined,
-      changed: true,
-    })
+  for (const override of orderedOverrides.filter((item) => item.operation === 'add')) {
+    insertLiveSetlistAddedItem(items, override)
   }
 
-  return renumberLiveSetlistItems(items.filter((item) => item.displayTitle))
+  return renumberLiveSetlistItemsInCurrentOrder(items.filter((item) => item.displayTitle))
 }
 
 export function segmentLiveSetlist(items: LiveSetlistItem[]): LiveSetlistSegment[] {
