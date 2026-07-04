@@ -69,7 +69,7 @@ export function getMenu(now = new Date()): MenuItem[] {
       sub: '- Live records',
       color: 'sky',
       routerName: 'miletLiveArchive',
-      shown: true,
+      shown: false,
     },
     {
       key: 'news',
