@@ -143,6 +143,12 @@
             </div>
           </dl>
         </div>
+        <p
+          v-if="selectedPerformanceNotesText"
+          class="relative z-10 mt-6 max-w-2xl whitespace-pre-line rounded-md border border-[var(--live-detail-accent-border)] bg-black/10 px-4 py-3 text-sm leading-6 text-[var(--live-detail-text)]"
+        >
+          {{ selectedPerformanceNotesText }}
+        </p>
         <figure
           v-if="selectedVenueLineArtUrl"
           class="live-venue-line-art-frame relative z-10 mt-7 p-4 lg:absolute lg:bottom-6 lg:right-6 lg:mt-0 lg:w-[46%]"
@@ -190,6 +196,7 @@ import {
   normalizeExternalUrl,
   performanceLabel,
   resolveVenueLineArtUrl,
+  selectedPerformanceNotes,
   type LiveEventDetail,
   type LiveEventDetailPayload,
   type LiveLang,
@@ -238,6 +245,9 @@ const selectedVenueOfficialUrl = computed(() =>
   props.selectedPerformance?.venueName ? normalizeExternalUrl(props.selectedPerformance.venueOfficialUrl) : '',
 )
 const selectedVenueLineArtUrl = computed(() => resolveVenueLineArtUrl(props.selectedPerformance))
+const selectedPerformanceNotesText = computed(() =>
+  props.selectedPerformance ? selectedPerformanceNotes(props.selectedPerformance, props.lang) : '',
+)
 
 const heroFacts = computed(() => [
   {
