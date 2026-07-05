@@ -54,6 +54,7 @@ export interface LiveEventDetail extends LiveEventListItem {
 export interface LivePerformance {
   id: string | number
   eventId?: string | number
+  venueId?: string | number | null
   performanceNo?: number
   label?: string
   date?: string

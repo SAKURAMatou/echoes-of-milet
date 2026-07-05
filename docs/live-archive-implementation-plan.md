@@ -981,6 +981,10 @@ POST /admin/live/events/:id/archive
 POST /admin/live/events/:id/cache/clear
 POST /admin/live/cache/clear-list
 
+GET  /admin/live/venues
+POST /admin/live/venues/save
+POST /admin/live/venues/delete
+
 GET  /admin/live/events/:id/performances
 POST /admin/live/performances/save
 POST /admin/live/performances/delete
@@ -1266,6 +1270,7 @@ preview-token body 示例：
 ```text
 live_events
 live_event_i18n
+live_venues
 live_performances
 live_setlists
 live_setlist_items
@@ -1324,6 +1329,7 @@ setlist 表关系：
 
 ```text
 live_event_i18n.event_id -> live_events.id
+live_performances.venue_id -> live_venues.id
 live_setlists.event_id -> live_events.id
 live_setlist_items.setlist_id -> live_setlists.id
 live_performance_setlist_overrides.performance_id -> live_performances.id
@@ -1575,20 +1581,63 @@ Worker 新增管理权限：
 
 本章节记录基于最新巡演详情效果图和管理端录入流程追加的需求，后续实现时需要和基础模型一起落地。
 
-### 场馆官网
+### 场馆主数据
 
-每个场次需要支持维护场馆官网地址：
+新增独立场馆主数据，用于减少同一场馆在多个场次中重复维护官网和线稿图。
+
+核心模型：
 
 ```text
+live_venues
+  id
+  name
+  address
+  official_url
+  line_art_image_id
+  deleted_flag
+  deleted_at
+  created_at
+  updated_at
+  updated_by
+
+live_performances.venue_id -> live_venues.id
+```
+
+管理端：
+
+- Live Archive 页面 header 中新增“场馆管理”入口。
+- 场馆管理弹窗负责新增、编辑、软删除场馆，维护名称、地址、官网和线稿图。
+- 场次管理弹窗不再直接编辑场馆名称、地址、官网和线稿图，改为选择已有场馆。
+- 保存场次时，服务端根据 `venueId` 读取场馆主数据，并同步写入 performance 的 `venue_name / venue_address / venue_official_url / venue_line_art_image_id` 快照字段。
+- 场馆被场次引用时不允许直接删除，避免已选场次回显和后续同步失效。
+
+公开端搜索兼容：
+
+- 公开端列表搜索第一阶段继续使用 `live_performances` 上的快照字段覆盖城市、地区、场馆名称和场馆地址。
+- 场馆主数据更新不会自动重写历史 performance 快照；管理员需要重新保存对应场次，或后续增加批量同步能力。
+- 这样可以避免公开端搜索依赖跨表 join，也避免编辑场馆时无意影响已经校准过的旧场次展示。
+
+场次导入兼容：
+
+- TSV 导入仍只追加 `live_performances`，继续使用 `venueName / venueAddress / venueOfficialUrl / venueLineArtImageId` 字段写入快照。
+- 导入流程暂不自动匹配或创建 `live_venues`，重复和不一致情况导入后由管理员手工处理。
+- 如后续需要提升批量录入效率，可以再增加“按场馆名称匹配主数据”的导入预览 warning。
+
+### 场馆官网
+
+每个场次需要支持展示场馆官网地址。手工维护时官网从 `live_venues.official_url` 选择并同步到 performance 快照：
+
+```text
+live_venues.official_url
 live_performances.venue_official_url
 ```
 
 管理端：
 
-- 在场次弹窗中增加“场馆官网”输入字段。
+- 在场馆管理弹窗中维护“场馆官网”。
 - 字段可为空。
-- 保存时校验 URL 协议，只允许 `https://` 或 `http://`。
-- 如果 URL 不合法，应在场次弹窗内提示，不进入发布校验阶段才暴露问题。
+- 保存场馆时校验 URL 协议，只允许 `https://` 或 `http://`。
+- 场次弹窗选择场馆后只展示快照预览，不直接编辑官网。
 
 公开端：
 
@@ -1599,21 +1648,22 @@ live_performances.venue_official_url
 
 ### 场馆线条图
 
-每个场次需要支持关联一张场馆线条图，用于演出信息展示模块的视觉补充。线条图只关联一张图片，但公开端不直接使用图片自带颜色，而是把图片作为 alpha mask 使用，由当前详情页主题决定线条颜色，从而兼容深色和浅色背景。
+每个场馆需要支持关联一张场馆线条图，用于演出信息展示模块的视觉补充。线条图只关联一张图片，但公开端不直接使用图片自带颜色，而是把图片作为 alpha mask 使用，由当前详情页主题决定线条颜色，从而兼容深色和浅色背景。
 
 建议字段：
 
 ```text
+live_venues.line_art_image_id
 live_performances.venue_line_art_image_id
 ```
 
 说明：
 
 - 图片本身继续使用现有图片/文件资源体系，不为 live 单独实现上传存储。
-- 线条图关联在 performance 层维护，便于同一巡演不同场馆展示不同图。
-- 第一阶段不抽独立 `venues` 主表；如果后续大量复用同一场馆，再考虑升级为场馆库。
-- 同一场馆多次出现时，管理端可以通过复制场次或导入模板复用同一图片 ID。
-- 服务端负责把 `venue_line_art_image_id` 转换为公开端可直接展示的图片 URL；公开端不再用图片 ID 自行二次查询。
+- 线条图优先在 `live_venues` 上维护。
+- performance 仍保留 `venue_line_art_image_id` 快照，便于公开端无需 join 即可展示与搜索。
+- 同一场馆多次出现时，管理端选择同一场馆即可复用同一图片资源。
+- 服务端负责把 performance 快照中的 `venue_line_art_image_id` 转换为公开端可直接展示的图片 URL；公开端不再用图片 ID 自行二次查询。
 
 素材规范：
 
@@ -1816,6 +1866,8 @@ live archive 尚未正式发布，新增字段不单独追加新 migration 文�
 正式 migration 表定义需要包含：
 
 ```text
+live_venues
+live_performances.venue_id
 live_performances.venue_official_url
 live_performances.venue_line_art_image_id
 live_setlists.setlist_state
@@ -1826,8 +1878,26 @@ live_setlists.empty_message_ja
 已经执行过旧 migration 的测试环境，需要先检查列是否存在，再对缺失字段执行：
 
 ```sql
+CREATE TABLE IF NOT EXISTS live_venues (
+	id INTEGER PRIMARY KEY AUTOINCREMENT,
+	name TEXT NOT NULL,
+	address TEXT,
+	official_url TEXT,
+	line_art_image_id INTEGER,
+	deleted_flag INTEGER NOT NULL DEFAULT 0,
+	deleted_at TEXT,
+	created_at TEXT NOT NULL,
+	updated_at TEXT NOT NULL,
+	updated_by TEXT,
+	FOREIGN KEY (line_art_image_id) REFERENCES img_info(id)
+);
+
+CREATE INDEX IF NOT EXISTS idx_live_venues_active
+	ON live_venues(deleted_flag, name, id);
+
 PRAGMA table_info(live_performances);
 
+ALTER TABLE live_performances ADD COLUMN venue_id INTEGER REFERENCES live_venues(id);
 ALTER TABLE live_performances ADD COLUMN venue_official_url TEXT;
 ALTER TABLE live_performances ADD COLUMN venue_line_art_image_id INTEGER;
 

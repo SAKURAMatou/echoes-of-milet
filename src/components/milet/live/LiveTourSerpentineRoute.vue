@@ -287,6 +287,12 @@
             {{ selectedPerformance?.startTime || '-' }}
           </div>
         </dl>
+        <p
+          v-if="selectedPerformanceNotesText"
+          class="mt-5 whitespace-pre-line rounded-md border border-[var(--live-detail-accent-border)] bg-white/[0.04] px-4 py-3 text-sm leading-6 text-[var(--live-detail-text)]"
+        >
+          {{ selectedPerformanceNotesText }}
+        </p>
         <figure v-if="selectedVenueLineArtUrl" class="live-venue-line-art-frame mt-6 p-3">
           <img
             :src="buildStaticAssetUrl(selectedVenueLineArtUrl)"
@@ -349,6 +355,7 @@ import {
   resolveSetlistEmptyMessage,
   resolveLiveTrackShowId,
   resolveVenueLineArtUrl,
+  selectedPerformanceNotes,
   segmentLiveSetlist,
   type LiveEventDetailPayload,
   type LiveLang,
@@ -499,6 +506,9 @@ const selectedDateLine = computed(() =>
     : '',
 )
 const selectedVenueLineArtUrl = computed(() => resolveVenueLineArtUrl(selectedPerformance.value))
+const selectedPerformanceNotesText = computed(() =>
+  selectedPerformance.value ? selectedPerformanceNotes(selectedPerformance.value, props.lang) : '',
+)
 const selectedRouteStop = computed(() =>
   routeStops.value.find((stop) => String(stop.performance.id) === selectedPerformanceId.value),
 )

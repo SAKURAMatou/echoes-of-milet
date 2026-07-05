@@ -97,6 +97,10 @@
       </div>
     </dl>
 
+    <p v-if="notes" class="mt-5 border-t border-white/10 pt-4 text-sm leading-6 text-[#b8c8d5]">
+      {{ notes }}
+    </p>
+
     <figure v-if="venueLineArtUrl" class="live-venue-line-art-frame mt-4 p-3">
       <img
         :src="buildStaticAssetUrl(venueLineArtUrl)"
@@ -106,10 +110,6 @@
         class="live-venue-line-art-img max-h-40"
       />
     </figure>
-
-    <p v-if="notes" class="mt-5 border-t border-white/10 pt-4 text-sm leading-6 text-[#b8c8d5]">
-      {{ notes }}
-    </p>
   </section>
 </template>
 

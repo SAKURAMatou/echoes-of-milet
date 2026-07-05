@@ -198,6 +198,12 @@
             <dd class="mt-1 text-lg text-[#f3eadf]">{{ selectedPerformance?.startTime || '-' }}</dd>
           </div>
         </dl>
+        <p
+          v-if="selectedPerformanceNotesText"
+          class="whitespace-pre-line rounded-md border border-[#d9b77c]/22 bg-[#061827]/42 px-4 py-3 text-sm leading-6 text-[#d8e8f3] lg:col-span-2"
+        >
+          {{ selectedPerformanceNotesText }}
+        </p>
         <figure
           v-if="selectedVenueLineArtUrl"
           class="live-venue-line-art-frame flex min-h-28 items-center justify-center p-3 lg:ml-2"
@@ -302,6 +308,7 @@ import {
   resolveSetlistEmptyMessage,
   resolveLiveTrackShowId,
   resolveVenueLineArtUrl,
+  selectedPerformanceNotes,
   segmentLiveSetlist,
   type LiveEventDetailPayload,
   type LiveLang,
@@ -412,6 +419,9 @@ const selectedVenueOfficialUrl = computed(() => {
   return performance?.venueName ? normalizeExternalUrl(performance.venueOfficialUrl) : ''
 })
 const selectedVenueLineArtUrl = computed(() => resolveVenueLineArtUrl(selectedPerformance.value))
+const selectedPerformanceNotesText = computed(() =>
+  selectedPerformance.value ? selectedPerformanceNotes(selectedPerformance.value, props.lang) : '',
+)
 
 function syncInitialPerformance() {
   const initial = props.payload.initialPerformanceId
