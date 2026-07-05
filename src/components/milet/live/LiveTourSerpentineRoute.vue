@@ -223,7 +223,7 @@
                   <span
                     class="block max-w-full truncate font-serif text-lg leading-tight text-[var(--live-detail-title)]"
                   >
-                    {{ stop.performance.city || performanceLabel(stop.performance, stop.index) }}
+                    {{ performanceLabel(stop.performance, stop.index) || stop.performance.city }}
                   </span>
                   <span class="block text-sm leading-tight text-[var(--live-detail-muted)]">{{
                     shortDate(stop.performance.date)
