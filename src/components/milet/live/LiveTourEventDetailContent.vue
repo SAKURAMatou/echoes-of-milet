@@ -184,6 +184,9 @@
               <template v-else>{{ selectedPerformance?.venueName || '-' }}</template>
             </p>
             <p class="mt-1 text-sm text-[#b8c8d5]">{{ selectedVenueLine }}</p>
+            <p v-if="selectedVenueCapacity" class="mt-1 text-xs uppercase tracking-[0.08em] text-[#d9b77c]/78">
+              {{ selectedVenueCapacity }}
+            </p>
           </div>
         </div>
         <dl
@@ -301,6 +304,7 @@ import {
   formatLiveDate,
   formatLiveDateRange,
   formatLiveType,
+  formatVenueSeatCapacity,
   liveLangRequestConfig,
   normalizeExternalUrl,
   performanceLabel,
@@ -421,6 +425,9 @@ const selectedVenueOfficialUrl = computed(() => {
 const selectedVenueLineArtUrl = computed(() => resolveVenueLineArtUrl(selectedPerformance.value))
 const selectedPerformanceNotesText = computed(() =>
   selectedPerformance.value ? selectedPerformanceNotes(selectedPerformance.value, props.lang) : '',
+)
+const selectedVenueCapacity = computed(() =>
+  formatVenueSeatCapacity(selectedPerformance.value, props.lang),
 )
 
 function syncInitialPerformance() {

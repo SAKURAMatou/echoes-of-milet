@@ -244,6 +244,9 @@
             <p class="mt-1 text-sm text-[var(--live-detail-muted)]">
               {{ selectedPerformance?.venueName || '-' }}
             </p>
+            <p v-if="selectedVenueCapacity" class="mt-1 text-xs uppercase tracking-[0.08em] text-[var(--live-detail-accent)]">
+              {{ selectedVenueCapacity }}
+            </p>
             <p class="mt-4 text-sm text-[var(--live-detail-text)]">{{ selectedDateLine }}</p>
             <p class="mt-1 text-sm text-[var(--live-detail-text)]">
               OPEN {{ selectedPerformance?.openTime || '-' }} / START
@@ -281,6 +284,7 @@
         </h2>
         <dl class="mt-5 grid gap-3 text-sm text-[var(--live-detail-text)]">
           <div>{{ selectedPerformance?.venueName || '-' }}</div>
+          <div v-if="selectedVenueCapacity">{{ selectedVenueCapacity }}</div>
           <div>{{ selectedDateLine }}</div>
           <div>
             OPEN {{ selectedPerformance?.openTime || '-' }} / START
@@ -349,6 +353,7 @@ import {
   formatLiveDate,
   formatLiveDateRange,
   formatLiveType,
+  formatVenueSeatCapacity,
   liveLangRequestConfig,
   performanceLabel,
   resolveLiveSetlistState,
@@ -508,6 +513,9 @@ const selectedDateLine = computed(() =>
 const selectedVenueLineArtUrl = computed(() => resolveVenueLineArtUrl(selectedPerformance.value))
 const selectedPerformanceNotesText = computed(() =>
   selectedPerformance.value ? selectedPerformanceNotes(selectedPerformance.value, props.lang) : '',
+)
+const selectedVenueCapacity = computed(() =>
+  formatVenueSeatCapacity(selectedPerformance.value, props.lang),
 )
 const selectedRouteStop = computed(() =>
   routeStops.value.find((stop) => String(stop.performance.id) === selectedPerformanceId.value),

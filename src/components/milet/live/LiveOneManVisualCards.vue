@@ -119,7 +119,7 @@
             {{ selectedPerformance ? performanceLabel(selectedPerformance) : '-' }}
           </h2>
           <p class="mt-2 text-lg text-[var(--live-detail-text)]">{{ selectedDateLine }}</p>
-          <dl class="mt-6 grid gap-4 sm:grid-cols-4">
+          <dl class="mt-6 grid gap-4 sm:grid-cols-5">
             <div>
               <dt class="text-xs uppercase text-[var(--live-detail-accent)]">Open</dt>
               <dd class="mt-1 text-xl text-[var(--live-detail-title)]">{{ selectedPerformance?.openTime || '-' }}</dd>
@@ -140,6 +140,10 @@
                 </a>
                 <template v-else>{{ selectedPerformance?.venueName || '-' }}</template>
               </dd>
+            </div>
+            <div v-if="selectedVenueCapacity">
+              <dt class="text-xs uppercase text-[var(--live-detail-accent)]">Capacity</dt>
+              <dd class="mt-1 text-xl text-[var(--live-detail-title)]">{{ selectedVenueCapacity }}</dd>
             </div>
           </dl>
         </div>
@@ -193,6 +197,7 @@ import {
   formatLiveDate,
   formatLiveDateRange,
   formatLiveType,
+  formatVenueSeatCapacity,
   normalizeExternalUrl,
   performanceLabel,
   resolveVenueLineArtUrl,
@@ -248,6 +253,9 @@ const selectedVenueLineArtUrl = computed(() => resolveVenueLineArtUrl(props.sele
 const selectedPerformanceNotesText = computed(() =>
   props.selectedPerformance ? selectedPerformanceNotes(props.selectedPerformance, props.lang) : '',
 )
+const selectedVenueCapacity = computed(() =>
+  formatVenueSeatCapacity(props.selectedPerformance, props.lang),
+)
 
 const heroFacts = computed(() => [
   {
@@ -264,7 +272,7 @@ const heroFacts = computed(() => [
     icon: 'venue',
     label: props.lang === 'ja' ? '会場' : '场馆',
     value: props.selectedPerformance?.venueName || props.event.venueSummary || '-',
-    sub: selectedVenueLine.value,
+    sub: [selectedVenueLine.value, selectedVenueCapacity.value].filter(Boolean).join(' · '),
   },
   {
     icon: 'ticket',

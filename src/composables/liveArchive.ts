@@ -65,6 +65,10 @@ export interface LivePerformance {
   venueName?: string
   venueAddress?: string
   venueOfficialUrl?: string
+  venueCountry?: string
+  venueCity?: string
+  venueRegion?: string
+  venueSeatCapacity?: number | string | null
   venueLineArtImageUrl?: string
   venueLineArtUrl?: string
   venueLineArtImage?: LiveImage | string | null
@@ -666,4 +670,11 @@ export function performanceLabel(performance: LivePerformance, index = 0) {
 
 export function selectedPerformanceNotes(performance: LivePerformance, lang: LiveLang) {
   return lang === 'ja' ? performance.notesJa || performance.notesZh : performance.notesZh || performance.notesJa
+}
+
+export function formatVenueSeatCapacity(performance?: LivePerformance | null, lang: LiveLang = 'zh') {
+  const capacity = Number(performance?.venueSeatCapacity)
+  if (!Number.isFinite(capacity) || capacity <= 0) return ''
+  const formatted = new Intl.NumberFormat(lang === 'ja' ? 'ja-JP' : 'zh-CN').format(capacity)
+  return lang === 'ja' ? `${formatted} seats` : `${formatted} 席`
 }

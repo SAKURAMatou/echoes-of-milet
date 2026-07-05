@@ -118,6 +118,7 @@ import { computed } from 'vue'
 
 import {
   formatLiveDate,
+  formatVenueSeatCapacity,
   normalizeExternalUrl,
   performanceLabel,
   resolveVenueLineArtUrl,
@@ -160,6 +161,11 @@ const facts = computed(() => {
       icon: 'city',
       label: 'City',
       value: [performance.city, performance.region].filter(Boolean).join(', '),
+    },
+    {
+      icon: 'venue',
+      label: 'Capacity',
+      value: formatVenueSeatCapacity(performance, props.lang),
     },
   ].filter((fact) => fact.value)
 })
