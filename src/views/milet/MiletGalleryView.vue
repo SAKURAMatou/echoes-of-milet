@@ -68,6 +68,11 @@
                     class="text-xs bg-pink-100 text-pink-700 px-3 py-1 rounded-full font-semibold whitespace-nowrap"
                     >📌 {{ pageText.toptip }}</span
                   >
+                  <span
+                    v-if="isRecentlyUpdated(album.updatedAt)"
+                    class="text-xs bg-sky-100 text-sky-700 px-3 py-1 rounded-full font-semibold whitespace-nowrap"
+                    >{{ pageText.recentlyUpdated }}</span
+                  >
                 </div>
                 <div class="flex items-center text-sm text-gray-100 drop-shadow-md">
                   <svg class="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
@@ -131,13 +136,20 @@
                 <h3 class="text-lg font-bold text-white line-clamp-2 mb-1 drop-shadow-md">
                   {{ getAlbumTitle(album.description) }}
                 </h3>
-                <div class="flex items-center text-sm text-gray-100 drop-shadow-md">
-                  <svg class="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
-                    <path
-                      d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z"
-                    />
-                  </svg>
-                  {{ album.imgCount }}
+                <div class="flex shrink-0 items-center gap-2">
+                  <span
+                    v-if="isRecentlyUpdated(album.updatedAt)"
+                    class="text-xs bg-sky-100 text-sky-700 px-3 py-1 rounded-full font-semibold whitespace-nowrap"
+                    >{{ pageText.recentlyUpdated }}</span
+                  >
+                  <div class="flex items-center text-sm text-gray-100 drop-shadow-md">
+                    <svg class="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                      <path
+                        d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z"
+                      />
+                    </svg>
+                    {{ album.imgCount }}
+                  </div>
                 </div>
               </div>
             </div>
@@ -215,6 +227,7 @@ const pageText = computed(() => {
   const lang = global.$lang?.lang ? global.$lang.lang : 'zh'
   return MILET_GALLERY_TEXT[lang]
 })
+const RECENT_UPDATE_WINDOW_MS = 7 * 24 * 60 * 60 * 1000
 
 // 数据相关
 const topAlbumList = ref([])
@@ -307,6 +320,14 @@ const getAlbumDescription = (descriptions) => {
 
   const desc = descriptions.find((d) => d.lang === targetLang)
   return desc?.description || descriptions[0]?.description || 'No description'
+}
+
+const isRecentlyUpdated = (updatedAt) => {
+  if (!updatedAt) return false
+  const updatedTime = new Date(updatedAt).getTime()
+  if (!Number.isFinite(updatedTime)) return false
+  const diff = Date.now() - updatedTime
+  return diff >= 0 && diff <= RECENT_UPDATE_WINDOW_MS
 }
 
 /**

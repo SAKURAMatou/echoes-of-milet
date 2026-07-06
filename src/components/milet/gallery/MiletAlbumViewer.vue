@@ -12,11 +12,11 @@
       </div>
     </div>
 
-    <div class="grid grid-cols-1 gap-6 md:grid-cols-2" :class="embedded ? 'mb-2' : 'mb-4'">
+    <div class="milet-album-masonry" :class="embedded ? 'mb-2' : 'mb-4'">
       <div
         v-for="(img, index) in imgList"
         :key="`${img.link}-${index}`"
-        class="image-wrapper mx-auto w-full max-w-lg rounded-xl"
+        class="image-wrapper mx-auto mb-6 w-full max-w-lg break-inside-avoid rounded-xl"
         :class="embedded ? 'p-2 sm:p-3' : 'p-6'"
       >
         <a
@@ -239,3 +239,16 @@ onUnmounted(() => {
   if (rootRef.value) Fancybox.unbind(rootRef.value, fancyboxSelector.value)
 })
 </script>
+
+<style scoped>
+.milet-album-masonry {
+  column-count: 1;
+  column-gap: 1.5rem;
+}
+
+@media (min-width: 768px) {
+  .milet-album-masonry {
+    column-count: 2;
+  }
+}
+</style>
