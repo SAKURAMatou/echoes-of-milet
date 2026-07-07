@@ -12,49 +12,56 @@
       </div>
     </div>
 
-    <div class="milet-album-masonry" :class="embedded ? 'mb-2' : 'mb-4'">
+    <div class="grid grid-cols-1 gap-6 md:grid-cols-2" :class="embedded ? 'mb-2' : 'mb-4'">
       <div
-        v-for="(img, index) in imgList"
-        :key="`${img.link}-${index}`"
-        class="image-wrapper mx-auto mb-6 w-full max-w-lg break-inside-avoid rounded-xl"
-        :class="embedded ? 'p-2 sm:p-3' : 'p-6'"
+        v-for="(column, columnIndex) in imageColumns"
+        :key="`album-column-${columnIndex}`"
+        class="flex min-w-0 flex-col"
+        :class="embedded ? 'gap-2 sm:gap-3' : 'gap-6'"
       >
-        <a
-          :data-fancybox="fancyboxGroup"
-          :href="img.link"
-          :data-width="img.w || img.weight"
-          :data-height="img.h || img.height"
-          class="image-item group relative block overflow-hidden rounded-lg"
-          :data-caption="img.comment || `Image ${index + 1}`"
-          :data-download-src="img.link"
+        <div
+          v-for="img in column"
+          :key="`${img.link}-${img.originalIndex}`"
+          class="image-wrapper mx-auto w-full max-w-lg rounded-xl"
+          :class="embedded ? 'p-2 sm:p-3' : 'p-6'"
         >
-          <img
-            v-lazy="img.prelink || img.link"
-            :alt="img.comment || `Image ${index + 1}`"
-            class="block w-full rounded-lg object-contain shadow-[0_24px_70px_-48px_rgba(15,23,42,0.7)]"
-            loading="lazy"
-            decoding="async"
-          />
-          <span
-            class="absolute inset-x-0 bottom-0 flex translate-y-0 items-center justify-center bg-black/50 transition-transform duration-300 ease-out md:translate-y-full md:group-hover:translate-y-0"
+          <a
+            :href="img.link"
+            :data-width="img.w || img.weight"
+            :data-height="img.h || img.height"
+            class="image-item group relative block overflow-hidden rounded-lg"
+            :data-caption="img.comment || `Image ${img.originalIndex + 1}`"
+            :data-download-src="img.link"
+            @click="openLightbox($event, img.originalIndex)"
           >
-            <button
-              type="button"
-              class="flex h-12 w-full cursor-pointer items-center justify-center text-sm font-medium text-white"
-              title="download"
-              @click="downloadImage($event, img.link)"
+            <img
+              v-lazy="img.prelink || img.link"
+              :alt="img.comment || `Image ${img.originalIndex + 1}`"
+              class="block w-full rounded-lg object-contain shadow-[0_24px_70px_-48px_rgba(15,23,42,0.7)]"
+              loading="lazy"
+              decoding="async"
+            />
+            <span
+              class="absolute inset-x-0 bottom-0 flex translate-y-0 items-center justify-center bg-black/50 transition-transform duration-300 ease-out md:translate-y-full md:group-hover:translate-y-0"
             >
-              <svg class="mr-2 h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="2"
-                  d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2M7 10l5 5 5-5M12 15V3"
-                />
-              </svg>
-            </button>
-          </span>
-        </a>
+              <button
+                type="button"
+                class="flex h-12 w-full cursor-pointer items-center justify-center text-sm font-medium text-white"
+                title="download"
+                @click="downloadImage($event, img.link)"
+              >
+                <svg class="mr-2 h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2M7 10l5 5 5-5M12 15V3"
+                  />
+                </svg>
+              </button>
+            </span>
+          </a>
+        </div>
       </div>
     </div>
 
@@ -91,6 +98,10 @@ type GalleryImage = {
   comment?: string
 }
 
+type IndexedGalleryImage = GalleryImage & {
+  originalIndex: number
+}
+
 const props = withDefaults(
   defineProps<{
     galleryId: string
@@ -116,10 +127,42 @@ const totalPages = ref(1)
 const isLastPage = ref(true)
 const loading = ref(false)
 const error = ref('')
-const instanceId = `album-${Math.random().toString(36).slice(2)}`
-const fancyboxGroup = computed(() => `album-gallery-${props.galleryId}-${instanceId}`)
-const fancyboxSelector = computed(() => `[data-fancybox="${fancyboxGroup.value}"]`)
+const useSplitColumns = ref(false)
 const pageText = computed(() => MILET_PIC_TEXT[props.lang === 'ja' ? 'jp' : props.lang])
+const imageColumns = computed<IndexedGalleryImage[][]>(() => {
+  const indexedImages = imgList.value.map((img, originalIndex) => ({ ...img, originalIndex }))
+  if (!useSplitColumns.value) return [indexedImages]
+
+  return indexedImages.reduce<IndexedGalleryImage[][]>(
+    (columns, img, index) => {
+      columns[index % 2].push(img)
+      return columns
+    },
+    [[], []],
+  )
+})
+
+let columnMediaQuery: MediaQueryList | null = null
+
+function updateColumnMode() {
+  useSplitColumns.value = Boolean(columnMediaQuery?.matches)
+}
+
+function handleColumnMediaQueryChange() {
+  updateColumnMode()
+}
+
+function setupColumnMediaQuery() {
+  if (typeof window === 'undefined') return
+  columnMediaQuery = window.matchMedia('(min-width: 768px)')
+  updateColumnMode()
+  columnMediaQuery.addEventListener?.('change', handleColumnMediaQueryChange)
+}
+
+function cleanupColumnMediaQuery() {
+  columnMediaQuery?.removeEventListener?.('change', handleColumnMediaQueryChange)
+  columnMediaQuery = null
+}
 
 async function loadPage() {
   if (!props.galleryId) {
@@ -146,7 +189,6 @@ async function loadPage() {
     }
     isLastPage.value = currentPage.value >= totalPages.value
     await nextTick()
-    setupLightbox()
     setupObserver()
   } catch (err) {
     error.value = err instanceof Error ? err.message : 'Album load failed.'
@@ -155,11 +197,10 @@ async function loadPage() {
   }
 }
 
-function setupLightbox() {
-  if (!rootRef.value) return
-  Fancybox.unbind(rootRef.value, fancyboxSelector.value)
-  Fancybox.bind(rootRef.value, fancyboxSelector.value, {
-    Hash: false,
+function lightboxOptions(startIndex: number) {
+  return {
+    startIndex,
+    Hash: false as const,
     Carousel: {
       Toolbar: {
         display: {
@@ -175,7 +216,21 @@ function setupLightbox() {
         downloadBtn?.setAttribute('download', '')
       },
     },
-  })
+  }
+}
+
+function openLightbox(event: MouseEvent, startIndex: number) {
+  event.preventDefault()
+  const slides = imgList.value.map((img, index) => ({
+    src: img.link,
+    thumbSrc: img.prelink || img.link,
+    alt: img.comment || `Image ${index + 1}`,
+    caption: img.comment || `Image ${index + 1}`,
+    width: img.w || img.weight,
+    height: img.h || img.height,
+    downloadSrc: img.link,
+  }))
+  Fancybox.show(slides, lightboxOptions(startIndex))
 }
 
 function setupObserver() {
@@ -227,7 +282,10 @@ function resetAndLoad() {
   loadPage()
 }
 
-onMounted(resetAndLoad)
+onMounted(() => {
+  setupColumnMediaQuery()
+  resetAndLoad()
+})
 
 watch(
   () => props.galleryId,
@@ -236,19 +294,7 @@ watch(
 
 onUnmounted(() => {
   observer.value?.disconnect()
-  if (rootRef.value) Fancybox.unbind(rootRef.value, fancyboxSelector.value)
+  cleanupColumnMediaQuery()
+  Fancybox.close(false)
 })
 </script>
-
-<style scoped>
-.milet-album-masonry {
-  column-count: 1;
-  column-gap: 1.5rem;
-}
-
-@media (min-width: 768px) {
-  .milet-album-masonry {
-    column-count: 2;
-  }
-}
-</style>
