@@ -24,12 +24,19 @@
           data-page-scroll-container
           class="min-w-0 flex-1 scroll-pt-6 overflow-x-clip md:min-h-0 md:scroll-pt-12 md:overflow-x-hidden md:overflow-y-auto"
         >
-          <div class="mx-auto flex w-full max-w-[1500px] justify-start md:pl-6 lg:pl-10 xl:pl-14">
+          <div
+            class="mx-auto flex w-full max-w-[1500px] justify-start"
+            :class="
+              route.meta.widePage
+                ? 'md:pl-4 md:pr-8 lg:pl-6 lg:pr-12 xl:pl-8 xl:pr-16 2xl:pl-10 2xl:pr-24'
+                : 'md:pl-6 lg:pl-10 xl:pl-14'
+            "
+          >
             <main
               class="w-full max-w-full rounded-lg border border-white/60 bg-white/60 shadow-[0_24px_90px_-46px_rgba(31,41,55,0.8)] backdrop-blur-xl"
               :class="
                 route.meta.widePage
-                  ? 'md:max-w-[calc(100vw-340px)] lg:max-w-[calc(100vw-390px)] xl:max-w-[1180px] 2xl:max-w-[1280px]'
+                  ? 'md:max-w-[calc(100vw-380px)] lg:max-w-[calc(100vw-460px)] xl:max-w-[1120px] 2xl:max-w-[1200px]'
                   : 'md:max-w-[700px] lg:max-w-[760px] xl:max-w-[820px] 2xl:max-w-[900px]'
               "
             >
