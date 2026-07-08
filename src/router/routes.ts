@@ -78,7 +78,7 @@ export const routes: RouteRecordRaw[] = [
           {
             path: 'galleryList',
             name: 'miletPicAlbum',
-            meta: { renderMode: 'csr' },
+            meta: { renderMode: getConfiguredRenderMode('/milet/galleryList') },
             component: () => import('@/views/milet/MiletGalleryView.vue'),
           },
           {

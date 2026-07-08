@@ -19,6 +19,7 @@ export interface AppState {
   miletLiveListData: CachedPayload<LiveEventListResponse> | null
   miletLiveDetailData: CachedPayload<LiveEventDetailPayload> | null
   miletLivePreviewData: CachedPayload<LiveEventDetailPayload> | null
+  miletGalleryListData: CachedPayload<Record<string, any>> | null
 }
 
 export const AppStateKey: InjectionKey<AppState> = Symbol('app-state')
@@ -33,6 +34,7 @@ export function createInitialState(initialState?: Partial<AppState>): AppState {
     miletLiveListData: initialState?.miletLiveListData ?? null,
     miletLiveDetailData: initialState?.miletLiveDetailData ?? null,
     miletLivePreviewData: initialState?.miletLivePreviewData ?? null,
+    miletGalleryListData: initialState?.miletGalleryListData ?? null,
   }
 }
 

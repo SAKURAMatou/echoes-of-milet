@@ -211,17 +211,32 @@
 </template>
 
 <script setup>
-import { computed, ref, onMounted, onUnmounted, nextTick, getCurrentInstance } from 'vue'
+import {
+  computed,
+  ref,
+  onMounted,
+  onUnmounted,
+  nextTick,
+  getCurrentInstance,
+  onServerPrefetch,
+} from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import axiosInstance from '@/AxiosUtil'
 import { withLangParam } from '@/composables/useLangRoute'
 import { apiRoutes, buildStaticAssetUrl } from '@/config/api'
 import { MILET_GALLERY_TEXT } from '@/composables/lang/miletGallery'
+import { useAppState } from '@/composables/useAppState'
 
 const router = useRouter()
 const route = useRoute()
 const { appContext } = getCurrentInstance()
 const global = appContext.config.globalProperties
+const appState = useAppState()
+const GALLERY_LIST_CACHE_KEY = 'milet-gallery-list:v1'
+const cachedGalleryList =
+  appState.miletGalleryListData?.key === GALLERY_LIST_CACHE_KEY
+    ? appState.miletGalleryListData.payload
+    : null
 
 const pageText = computed(() => {
   const lang = global.$lang?.lang ? global.$lang.lang : 'zh'
@@ -230,13 +245,15 @@ const pageText = computed(() => {
 const RECENT_UPDATE_WINDOW_MS = 7 * 24 * 60 * 60 * 1000
 
 // 数据相关
-const topAlbumList = ref([])
-const normalAlbumList = ref([])
-const loading = ref(true)
+const topAlbumList = ref(cachedGalleryList?.topAlbums || [])
+const normalAlbumList = ref(cachedGalleryList?.normalAlbums || [])
+const loading = ref(!cachedGalleryList)
 const isLoadingMore = ref(false)
 const currentPage = ref(1)
-const totalPages = ref(1)
-const isLastPage = ref(false)
+const totalPages = ref(cachedGalleryList?.maxPage || 1)
+const isLastPage = ref(
+  cachedGalleryList ? currentPage.value >= (cachedGalleryList.maxPage || 1) : false,
+)
 const observerTarget = ref(null)
 const galleryObserver = ref(null)
 
@@ -272,6 +289,10 @@ const loadAlbums = async (istop, page) => {
  */
 const initLoad = async () => {
   loading.value = true
+  currentPage.value = 1
+  topAlbumList.value = []
+  normalAlbumList.value = []
+
   try {
     // 加载置顶相册
     await loadAlbums(1, 1)
@@ -279,12 +300,22 @@ const initLoad = async () => {
     const maxPage = await loadAlbums(0, 1)
     totalPages.value = maxPage
     isLastPage.value = currentPage.value >= maxPage
+    appState.miletGalleryListData = {
+      key: GALLERY_LIST_CACHE_KEY,
+      payload: {
+        topAlbums: topAlbumList.value,
+        normalAlbums: normalAlbumList.value,
+        maxPage,
+      },
+    }
   } catch (error) {
     console.error('初始化加载失败:', error)
   } finally {
     loading.value = false
-    await nextTick()
-    setupIntersectionObserver()
+    if (!import.meta.env.SSR) {
+      await nextTick()
+      setupIntersectionObserver()
+    }
   }
 }
 
@@ -346,6 +377,8 @@ const goToGallery = (galleryId) => {
  * 设置 IntersectionObserver 监听无限滚动
  */
 const setupIntersectionObserver = () => {
+  if (typeof IntersectionObserver === 'undefined') return
+
   if (galleryObserver.value) {
     galleryObserver.value.disconnect()
     galleryObserver.value = null
@@ -402,8 +435,16 @@ const delayLoadMore = throttle(() => {
     })
 }, 1500)
 
-onMounted(() => {
+onServerPrefetch(initLoad)
+
+onMounted(async () => {
   document.title = 'milet photo albums'
+  if (cachedGalleryList) {
+    await nextTick()
+    setupIntersectionObserver()
+    return
+  }
+
   initLoad()
 })
 

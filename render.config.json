@@ -5,6 +5,7 @@
     "/milet": "ssr",
     "/milet/about": "ssg",
     "/milet/anniversary": "ssr",
+    "/milet/galleryList": "ssr",
     "/milet/live": "ssr",
     "/milet/pilgrimage": "ssr"
   }
