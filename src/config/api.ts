@@ -31,3 +31,21 @@ export function buildStaticAssetUrl(assetPath: string, baseType = 'milet') {
   const baseRoute = baseType === 'milet' ? staticRoutes.miletImage : staticRoutes.blogImage
   return `${getImginOrigin()}${baseRoute}${assetPath}`
 }
+
+export function buildStaticAssetPreviewUrl(assetPath: string, baseType = 'milet') {
+  const rawUrl = buildStaticAssetUrl(assetPath, baseType)
+  if (!rawUrl) return ''
+
+  const imageRoute = baseType === 'milet' ? staticRoutes.miletImage : staticRoutes.blogImage
+  const previewRoute =
+    baseType === 'milet' ? staticRoutes.miletImagePreview : staticRoutes.blogImagePreview
+
+  try {
+    const url = new URL(rawUrl)
+    if (!url.pathname.startsWith(imageRoute)) return rawUrl
+    url.pathname = `${previewRoute}${url.pathname.slice(imageRoute.length)}`
+    return url.toString()
+  } catch {
+    return rawUrl
+  }
+}

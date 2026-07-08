@@ -26,7 +26,7 @@
           :class="embedded ? 'p-2 sm:p-3' : 'p-6'"
         >
           <a
-            :href="img.link"
+            :href="img.previewLink || img.link"
             :data-width="img.w || img.weight"
             :data-height="img.h || img.height"
             class="image-item group relative block overflow-hidden rounded-lg"
@@ -79,7 +79,7 @@
 <script setup lang="ts">
 import { computed, nextTick, onMounted, onUnmounted, ref, watch } from 'vue'
 import axiosInstance from '@/AxiosUtil'
-import { apiRoutes, buildStaticAssetUrl } from '@/config/api'
+import { apiRoutes, buildStaticAssetPreviewUrl, buildStaticAssetUrl } from '@/config/api'
 import { MILET_PIC_TEXT } from '@/composables/lang/miletPic'
 import { Fancybox } from '@fancyapps/ui'
 import '@fancyapps/ui/dist/fancybox/fancybox.css'
@@ -88,6 +88,7 @@ type GalleryLang = 'zh' | 'ja' | 'jp'
 
 type GalleryImage = {
   link: string
+  previewLink?: string
   prelink: string
   url_original?: string
   url_webp?: string
@@ -183,6 +184,7 @@ async function loadPage() {
         ...resImgList.map((img) => ({
           ...img,
           link: buildStaticAssetUrl(img.url_original || img.link),
+          previewLink: buildStaticAssetPreviewUrl(img.url_original || img.link),
           prelink: buildStaticAssetUrl(img.url_webp || img.prelink || img.link),
         })),
       )
