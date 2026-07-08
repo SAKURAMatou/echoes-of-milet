@@ -106,7 +106,7 @@ const releaseLink = computed(() => withLangParam({ name: 'miletRelease' }, curre
 const aboutLink = computed(() => withLangParam({ name: 'aboutMe' }, currentLang.value))
 const pilgrimageLink = computed(() => withLangParam({ name: 'miletPilgrimage' }, currentLang.value))
 const timelineLink = computed(() => withLangParam({ name: 'miletTimeLine' }, currentLang.value))
-const newsCollectionLink = computed(() => withLangParam({ name: 'miletNews' }, currentLang.value))
+const liveArchiveLink = computed(() => withLangParam({ name: 'miletLiveArchive' }, currentLang.value))
 
 const copy = computed(() => ({
   zh: {
@@ -137,10 +137,10 @@ const copy = computed(() => ({
       //   // to: galleryLink.value,
       // },
       {
-        label: 'NEWS-COLLECTION',
-        title: '访谈收藏',
-        description: '收集杂志、访谈，记录那些藏在话语里的情绪与想法。',
-        to: newsCollectionLink.value,
+        label: 'LIVE ARCHIVE',
+        title: 'Live Archive',
+        description: '整理 live 日期、会场、setlist 与相关内容，保留每一次现场的余韵。',
+        to: liveArchiveLink.value,
       },
       {
         label: 'PILGRIMAGE',
@@ -178,11 +178,10 @@ const copy = computed(() => ({
       //   // to: galleryLink.value,
       // },
       {
-        label: 'NEWS-COLLECTION',
-        title: 'インタビュー記録',
-        description:
-          '雑誌やインタビュー、公開コメントを集めながら、言葉の奥に残る想いや空気も記録しています。',
-        to: newsCollectionLink.value,
+        label: 'LIVE ARCHIVE',
+        title: 'ライブアーカイブ',
+        description: '公演日、会場、setlist、関連コンテンツをまとめています。',
+        to: liveArchiveLink.value,
       },
       {
         label: 'PILGRIMAGE',
