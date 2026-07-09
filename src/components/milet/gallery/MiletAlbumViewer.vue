@@ -80,6 +80,7 @@
 import { computed, nextTick, onMounted, onUnmounted, ref, watch } from 'vue'
 import axiosInstance from '@/AxiosUtil'
 import { apiRoutes, buildStaticAssetPreviewUrl, buildStaticAssetUrl } from '@/config/api'
+import { withDownloadParam } from '@/composables/downloadUrl'
 import { MILET_PIC_TEXT } from '@/composables/lang/miletPic'
 import { Fancybox } from '@fancyapps/ui'
 import '@fancyapps/ui/dist/fancybox/fancybox.css'
@@ -267,7 +268,7 @@ function downloadImage(event: MouseEvent, src: string) {
   event.stopPropagation()
   event.preventDefault()
   const a = document.createElement('a')
-  a.href = `${src}?download=true`
+  a.href = withDownloadParam(src)
   a.download = ''
   document.body.appendChild(a)
   a.click()

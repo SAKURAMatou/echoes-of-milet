@@ -262,6 +262,7 @@
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import FormattedPlainText from '@/components/FormattedPlainText.vue'
 import RelatedArticleList from '@/components/milet/article/RelatedArticleList.vue'
+import { withDownloadParam } from '@/composables/downloadUrl'
 import type {
   PilgrimageLang,
   PilgrimagePageText,
@@ -346,7 +347,7 @@ function downloadPhoto(event: MouseEvent, downloadUrl: string) {
   if (typeof document === 'undefined' || !downloadUrl) return
 
   const link = document.createElement('a')
-  link.href = `${downloadUrl}?download=true`
+  link.href = withDownloadParam(downloadUrl)
   link.download = ''
   document.body.appendChild(link)
   link.click()

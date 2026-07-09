@@ -33,6 +33,8 @@
 </template>
 
 <script setup>
+import { withDownloadParam } from '@/composables/downloadUrl'
+
 const props = defineProps({
   src: String,
   alt: {
@@ -48,7 +50,7 @@ function downloadEvent(e) {
   e.preventDefault() //阻止外层a标签的跳转
 
   const a = document.createElement('a')
-  a.href = props.downloadSrc + '?download=true'
+  a.href = withDownloadParam(props.downloadSrc || '')
   a.download = ''
   document.body.appendChild(a)
   a.click()

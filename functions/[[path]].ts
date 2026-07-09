@@ -29,6 +29,37 @@ const allowedOtherPaths = new Set(
 )
 const pagesRuntimeConfig = apiProxyConfig.origins.production
 const upstreamOrigin = pagesRuntimeConfig.backend
+const proxyRequestHeaderAllowList = [
+  'accept',
+  'accept-language',
+  'content-type',
+  'if-none-match',
+  'if-modified-since',
+  'range',
+  'x-milet-lang',
+  'x-milet-route-lang',
+]
+const hopByHopResponseHeaders = [
+  'content-encoding',
+  'content-length',
+  'transfer-encoding',
+  'connection',
+  'set-cookie',
+]
+const htmlContentSecurityPolicy = [
+  "default-src 'self'",
+  "base-uri 'self'",
+  "form-action 'self'",
+  "frame-ancestors 'self'",
+  "script-src 'self' 'unsafe-inline' https://platform.twitter.com https://www.instagram.com https://cdn.syndication.twimg.com",
+  "style-src 'self' 'unsafe-inline'",
+  "img-src 'self' data: https:",
+  "font-src 'self' data:",
+  "connect-src 'self' https://api.miles-dml.org https://platform.twitter.com https://syndication.twitter.com https://cdn.syndication.twimg.com https://www.instagram.com",
+  "frame-src https://platform.twitter.com https://syndication.twitter.com https://www.instagram.com",
+  "media-src 'self' https://api.miles-dml.org",
+  "object-src 'none'",
+].join('; ')
 
 function normalizeUrl(url = '/') {
   const [pathname] = url.split('?')
@@ -157,9 +188,13 @@ function getRequestOrigin(request: Request) {
 
 function buildProxyHeaders(request: Request, env?: PagesFunctionEnv | null) {
   const requestOrigin = getRequestOrigin(request)
-  const headers = new Headers(request.headers)
-  headers.set('origin', requestOrigin || headers.get('origin'))
-  headers.set('referer', headers.get('referer') || `${requestOrigin}/`)
+  const headers = new Headers()
+  for (const name of proxyRequestHeaderAllowList) {
+    const value = request.headers.get(name)
+    if (value) headers.set(name, value)
+  }
+  headers.set('origin', requestOrigin)
+  headers.set('referer', `${requestOrigin}/`)
   headers.set('accept-encoding', 'identity')
   headers.set('x-forwarded-host', new URL(request.url).host)
   headers.set('x-forwarded-proto', new URL(request.url).protocol.replace(':', ''))
@@ -173,15 +208,37 @@ function buildProxyHeaders(request: Request, env?: PagesFunctionEnv | null) {
 
 function stripProxyResponseHeaders(headers: Headers) {
   const cloned = new Headers(headers)
-  const hopByHopHeaders = ['content-encoding', 'content-length', 'transfer-encoding', 'connection']
-  hopByHopHeaders.forEach((name) => cloned.delete(name))
+  hopByHopResponseHeaders.forEach((name) => cloned.delete(name))
+  applyBaseSecurityHeaders(cloned)
   return cloned
+}
+
+function applyBaseSecurityHeaders(headers: Headers) {
+  headers.set('x-content-type-options', 'nosniff')
+  headers.set('referrer-policy', headers.get('referrer-policy') || 'strict-origin-when-cross-origin')
+  headers.set('permissions-policy', 'camera=(), microphone=(), geolocation=()')
+  headers.set('x-frame-options', headers.get('x-frame-options') || 'SAMEORIGIN')
+}
+
+function withSecurityHeaders(response: Response, html = false) {
+  const headers = new Headers(response.headers)
+  applyBaseSecurityHeaders(headers)
+  if (html) {
+    headers.set('content-security-policy', htmlContentSecurityPolicy)
+  }
+  return new Response(response.body, {
+    status: response.status,
+    statusText: response.statusText,
+    headers,
+  })
 }
 
 function buildHtmlResponseHeaders(pathname: string) {
   const headers = new Headers({
     'content-type': 'text/html; charset=utf-8',
   })
+  applyBaseSecurityHeaders(headers)
+  headers.set('content-security-policy', htmlContentSecurityPolicy)
 
   if (pathname.includes('/milet/live-preview/')) {
     headers.set('cache-control', 'no-store')
@@ -204,15 +261,38 @@ function isAllowedApiPath(pathname: string) {
   return allowedApiPrefixes.some((prefix) => isPathUnder(pathname, prefix))
 }
 
+function forbiddenResponse(message = 'Forbidden') {
+  const headers = new Headers({
+    'content-type': 'text/plain; charset=utf-8',
+  })
+  applyBaseSecurityHeaders(headers)
+  return new Response(message, {
+    status: 403,
+    headers,
+  })
+}
+
+function isCrossSiteWriteBlocked(request: Request) {
+  if (['GET', 'HEAD', 'OPTIONS'].includes(request.method)) return false
+  if (request.headers.get('sec-fetch-site') === 'cross-site') return true
+
+  const origin = request.headers.get('origin')
+  if (!origin) return false
+
+  try {
+    return new URL(origin).origin !== new URL(request.url).origin
+  } catch {
+    return true
+  }
+}
+
 async function proxyApiRequest(request: Request, env: PagesFunctionEnv) {
   const url = new URL(request.url)
   if (!isAllowedApiPath(url.pathname)) {
-    return new Response('Forbidden', {
-      status: 403,
-      headers: {
-        'content-type': 'text/plain; charset=utf-8',
-      },
-    })
+    return forbiddenResponse()
+  }
+  if (isCrossSiteWriteBlocked(request)) {
+    return forbiddenResponse('Cross-site write requests are not allowed')
   }
   const targetUrl = new URL(url.pathname + url.search, upstreamOrigin)
 
@@ -230,12 +310,10 @@ async function proxyApiRequest(request: Request, env: PagesFunctionEnv) {
 async function proxyOtherRequest(request: Request, env: PagesFunctionEnv) {
   const url = new URL(request.url)
   if (!allowedOtherPaths.has(url.pathname)) {
-    return new Response('Forbidden', {
-      status: 403,
-      headers: {
-        'content-type': 'text/plain; charset=utf-8',
-      },
-    })
+    return forbiddenResponse()
+  }
+  if (isCrossSiteWriteBlocked(request)) {
+    return forbiddenResponse('Cross-site write requests are not allowed')
   }
   const uri = apiProxyConfig.otherRquests[url.pathname.replace('/other/', '')]
   if (!uri) {
@@ -302,11 +380,13 @@ function createStaticAssetRequest(request: Request, pathname: string) {
 }
 
 function createRedirectResponse(target: string, status: number) {
+  const headers = new Headers({
+    location: target,
+  })
+  applyBaseSecurityHeaders(headers)
   return new Response(null, {
     status,
-    headers: {
-      location: target,
-    },
+    headers,
   })
 }
 
@@ -322,16 +402,16 @@ export const onRequest = async (context: FunctionContext) => {
     const pathname = normalizeUrl(url.pathname)
 
     if (baiduVerificationPaths.has(pathname)) {
-      return new Response(baiduVerificationContent, {
+      return withSecurityHeaders(new Response(baiduVerificationContent, {
         status: 200,
         headers: {
           'content-type': 'text/plain; charset=utf-8',
         },
-      })
+      }))
     }
 
     if (isAssetRequest(pathname)) {
-      return env.ASSETS.fetch(createStaticAssetRequest(request, pathname))
+      return withSecurityHeaders(await env.ASSETS.fetch(createStaticAssetRequest(request, pathname)))
     }
 
     if (pathname === '/') {
@@ -361,7 +441,7 @@ export const onRequest = async (context: FunctionContext) => {
         createStaticAssetRequest(request, pathname),
       )
       if (staticAssetResponse.ok) {
-        return staticAssetResponse
+        return withSecurityHeaders(staticAssetResponse, true)
       }
     }
 
@@ -383,13 +463,11 @@ export const onRequest = async (context: FunctionContext) => {
       error: errorText,
     })
 
-    const isPreviewHost = new URL(request.url).hostname.endsWith('.pages.dev')
-
-    return new Response(isPreviewHost ? errorText : 'Internal Server Error', {
+    return withSecurityHeaders(new Response('Internal Server Error', {
       status: 500,
       headers: {
         'content-type': 'text/plain; charset=utf-8',
       },
-    })
+    }))
   }
 }
