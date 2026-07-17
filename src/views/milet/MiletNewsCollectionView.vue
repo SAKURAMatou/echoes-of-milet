@@ -303,6 +303,7 @@ type PublicNewsResponse = {
 type PublicNewsTopic = {
   topic: string
   count: number
+  sortOrder?: number
 }
 
 type PublicNewsTopicsResponse = {
@@ -454,7 +455,13 @@ async function loadNewsTopics() {
     if (response.success === false) {
       throw new Error(response.message || 'Failed to load news topics')
     }
-    topicTags.value = Array.isArray(response.items) ? response.items : []
+    topicTags.value = Array.isArray(response.items)
+      ? [...response.items].sort(
+          (a, b) =>
+            Number(a.sortOrder ?? Number.MAX_SAFE_INTEGER) -
+              Number(b.sortOrder ?? Number.MAX_SAFE_INTEGER) || a.topic.localeCompare(b.topic),
+        )
+      : []
     await nextTick()
     updateTopicRailHint()
   } catch (error) {
