@@ -6,7 +6,7 @@ import { buildShortLinkTarget, shortLinks } from '@/config/shortLinks'
 declare module 'vue-router' {
   interface RouteMeta {
     renderMode?: 'ssg' | 'ssr' | 'csr'
-    seoKey?: 'home' | 'milet' | 'about' | 'anniversary' | 'pilgrimage' | 'article' | 'liveArchive' | 'liveEvent'
+    seoKey?: 'home' | 'milet' | 'about' | 'anniversary' | 'pilgrimage' | 'gallery' | 'article' | 'liveArchive' | 'liveEvent'
     widePage?: boolean
   }
 }
@@ -78,7 +78,7 @@ export const routes: RouteRecordRaw[] = [
           {
             path: 'galleryList',
             name: 'miletPicAlbum',
-            meta: { renderMode: getConfiguredRenderMode('/milet/galleryList') },
+            meta: { renderMode: getConfiguredRenderMode('/milet/galleryList'), seoKey: 'gallery' },
             component: () => import('@/views/milet/MiletGalleryView.vue'),
           },
           {

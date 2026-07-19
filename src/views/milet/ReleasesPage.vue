@@ -134,8 +134,88 @@
       </div>
     </section>
 
+    <section
+      class="mx-4 rounded-xl border border-sky-100/90 bg-white/82 p-4 shadow-[0_18px_50px_-38px_rgba(15,61,99,0.5)] backdrop-blur sm:mx-6 md:mx-8 md:p-5"
+      :aria-label="pageText.filters.title"
+    >
+      <div class="flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <p class="text-sm font-semibold text-[#143d63]">{{ pageText.filters.title }}</p>
+          <p class="mt-1 text-xs leading-5 text-slate-500">{{ pageText.filters.hint }}</p>
+        </div>
+        <p class="text-xs font-medium tabular-nums text-[#317f8d]" aria-live="polite">
+          {{ pageText.filters.resultsPrefix }} {{ visibleReleaseTotal }}
+          {{ pageText.filters.resultsSuffix }}
+        </p>
+      </div>
+
+      <div class="mt-4 grid gap-3 lg:grid-cols-[10rem_minmax(13rem,1fr)_auto]">
+        <div class="lg:col-span-3">
+          <span class="mb-1.5 block text-xs font-medium text-slate-600">{{ pageText.filters.type }}</span>
+          <div class="grid grid-cols-2 gap-1.5 sm:grid-cols-4" role="group" :aria-label="pageText.filters.type">
+            <button
+              v-for="option in releaseTypeOptions"
+              :key="option.value"
+              type="button"
+              class="min-h-10 rounded-md border px-3 py-2 text-sm font-semibold transition"
+              :class="
+                releaseTypeFilter === option.value
+                  ? 'border-[#317f8d] bg-[#317f8d] text-white'
+                  : 'border-slate-200 bg-white/80 text-slate-600 hover:border-sky-200 hover:bg-sky-50'
+              "
+              @click="releaseTypeFilter = option.value"
+            >
+              {{ option.label }}
+            </button>
+          </div>
+        </div>
+
+        <label class="block">
+          <span class="mb-1.5 block text-xs font-medium text-slate-600">{{ pageText.filters.year }}</span>
+          <select
+            v-model="yearFilter"
+            class="h-10 w-full rounded-md border border-slate-200 bg-white/90 px-3 text-sm text-slate-700 outline-none transition focus:border-[#317f8d] focus:ring-2 focus:ring-sky-100"
+          >
+            <option value="">{{ pageText.filters.allYears }}</option>
+            <option v-for="year in yearOptions" :key="year" :value="year">{{ year }}</option>
+          </select>
+        </label>
+
+        <label class="block">
+          <span class="mb-1.5 block text-xs font-medium text-slate-600">{{ pageText.filters.name }}</span>
+          <input
+            v-model="keywordInput"
+            type="search"
+            class="h-10 w-full rounded-md border border-slate-200 bg-white/90 px-3 text-sm text-slate-700 outline-none transition placeholder:text-slate-400 focus:border-[#317f8d] focus:ring-2 focus:ring-sky-100"
+            :placeholder="pageText.filters.namePlaceholder"
+            @keyup.enter="applyReleaseFilters"
+          />
+        </label>
+
+        <div class="flex items-end gap-2">
+          <button
+            type="button"
+            class="h-10 rounded-md bg-[#143d63] px-4 text-sm font-semibold text-white transition hover:bg-[#1b527f] disabled:cursor-wait disabled:opacity-60"
+            :disabled="filtersApplying"
+            @click="applyReleaseFilters"
+          >
+            {{ filtersApplying ? pageText.filters.applying : pageText.filters.apply }}
+          </button>
+          <button
+            v-if="hasActiveFilters"
+            type="button"
+            class="h-10 rounded-md border border-slate-200 bg-white px-3 text-sm font-semibold text-slate-600 transition hover:bg-slate-50"
+            @click="clearReleaseFilters"
+          >
+            {{ pageText.filters.clear }}
+          </button>
+        </div>
+      </div>
+    </section>
+
     <div class="space-y-10 px-4 pb-8 pt-5 sm:px-6 md:px-8">
       <ReleaseSection
+        v-if="isSectionVisible('album')"
         section-id="chapter-albums"
         section-key="album"
         :title="pageText.title.album"
@@ -151,6 +231,7 @@
       />
 
       <ReleaseSection
+        v-if="isSectionVisible('ep')"
         section-id="chapter-ep-single"
         section-key="ep"
         :title="pageText.title.ep"
@@ -166,6 +247,7 @@
       />
 
       <ReleaseSection
+        v-if="isSectionVisible('live')"
         section-id="chapter-live"
         section-key="live"
         :title="pageText.title.live"
@@ -210,6 +292,66 @@ const epsSingles = computed(() => epsSinglesData.data.value)
 const lives = computed(() => livesData.data.value)
 const drawerOpen = ref(false)
 const viewMode = ref<'list' | 'shelf'>('list')
+type ReleaseTypeFilter = 'all' | 'album' | 'ep' | 'live'
+const releaseTypeFilter = ref<ReleaseTypeFilter>('all')
+const yearFilter = ref('')
+const keywordInput = ref('')
+const appliedYear = ref('')
+const appliedKeyword = ref('')
+const calendarYears = ref<string[]>([])
+
+const releaseTypeOptions = computed<Array<{ value: ReleaseTypeFilter; label: string }>>(() => [
+  { value: 'all', label: pageText.value.filters.allTypes },
+  { value: 'album', label: pageText.value.title.album },
+  { value: 'ep', label: pageText.value.title.ep },
+  { value: 'live', label: pageText.value.title.live },
+])
+
+const yearOptions = computed(() => {
+  const years = new Set<string>(calendarYears.value)
+  ;[...albums.value, ...epsSingles.value, ...lives.value].forEach((work) => {
+    const year = work.releaseDate?.slice(0, 4)
+    if (/^\d{4}$/.test(year)) years.add(year)
+  })
+  return [...years].sort((a, b) => Number(b) - Number(a))
+})
+
+const filtersApplying = computed(
+  () => albumsData.loading.value || epsSinglesData.loading.value || livesData.loading.value,
+)
+const hasActiveFilters = computed(
+  () => Boolean(appliedYear.value || appliedKeyword.value || releaseTypeFilter.value !== 'all'),
+)
+const visibleReleaseTotal = computed(() => {
+  if (releaseTypeFilter.value === 'album') return albumsData.total.value
+  if (releaseTypeFilter.value === 'ep') return epsSinglesData.total.value
+  if (releaseTypeFilter.value === 'live') return livesData.total.value
+  return albumsData.total.value + epsSinglesData.total.value + livesData.total.value
+})
+
+function isSectionVisible(section: Exclude<ReleaseTypeFilter, 'all'>) {
+  return releaseTypeFilter.value === 'all' || releaseTypeFilter.value === section
+}
+
+async function applyReleaseFilters() {
+  appliedYear.value = yearFilter.value
+  appliedKeyword.value = keywordInput.value.trim()
+  const filters = { year: appliedYear.value, keyword: appliedKeyword.value }
+  await Promise.all([
+    albumsData.refresh(filters),
+    epsSinglesData.refresh(filters),
+    livesData.refresh(filters),
+  ])
+}
+
+async function clearReleaseFilters() {
+  releaseTypeFilter.value = 'all'
+  yearFilter.value = ''
+  keywordInput.value = ''
+  appliedYear.value = ''
+  appliedKeyword.value = ''
+  await applyReleaseFilters()
+}
 
 function chapterCovers(works: typeof albums.value) {
   return works.slice(0, 4).map((work) => ({
@@ -266,9 +408,19 @@ const chapters = computed(() => [
     anchorId: 'chapter-live',
     covers: chapterCovers(lives.value),
   },
-])
+].filter((chapter) => {
+  if (releaseTypeFilter.value === 'all') return true
+  if (releaseTypeFilter.value === 'album') return chapter.key === 'ALBUMS'
+  if (releaseTypeFilter.value === 'ep') return chapter.key === 'EP_SINGLE'
+  return chapter.key === 'LIVE'
+}))
 
 onMounted(() => {
+  const currentYear = new Date().getFullYear()
+  calendarYears.value = Array.from(
+    { length: Math.max(0, currentYear - 2018 + 1) },
+    (_, index) => String(currentYear - index),
+  )
   document.title = pageText.value.metaTitle
 })
 </script>

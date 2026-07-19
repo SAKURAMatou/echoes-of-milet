@@ -11,6 +11,11 @@ export interface ReleaseDataOptions {
   elementId: string
 }
 
+export interface ReleaseQueryFilters {
+  year?: string
+  keyword?: string
+}
+
 export function useReleaseData(options: ReleaseDataOptions) {
   const data = ref<Work[]>([])
   const loading = ref(false)
@@ -20,21 +25,33 @@ export function useReleaseData(options: ReleaseDataOptions) {
   const total = ref(0)
   const isInitialized = ref(false)
   let observer: IntersectionObserver | null = null
+  let activeFilters: ReleaseQueryFilters = {}
+  let requestSequence = 0
 
   const apiBaseUrl = apiRoutes.miletRelease
   const pageSize = 5
 
   const fetchData = async (page: number) => {
+    const sequence = ++requestSequence
     loading.value = true
     error.value = null
 
     try {
       const lang = window.location.pathname.startsWith('/ja') ? 'ja' : 'zh'
-      const url = `${apiBaseUrl}${options.type}?page=${page}&pageSize=${pageSize}`
+      const url = `${apiBaseUrl}${options.type}`
       const response = await axiosInstance.get<{ data: Work[]; total: number }>(
         url,
-        liveLangRequestConfig(lang),
+        {
+          ...liveLangRequestConfig(lang),
+          params: {
+            page,
+            pageSize,
+            year: activeFilters.year || undefined,
+            keyword: activeFilters.keyword || undefined,
+          },
+        },
       )
+      if (sequence !== requestSequence) return
       const newData = Array.isArray(response.data) ? response.data : []
 
       total.value = Number(response.total || 0)
@@ -42,11 +59,12 @@ export function useReleaseData(options: ReleaseDataOptions) {
       data.value = [...data.value, ...newData]
       currentPage.value = page
     } catch (err) {
+      if (sequence !== requestSequence) return
       error.value = err instanceof Error ? err.message : 'Failed to fetch data'
       console.error(`Failed to fetch release data for type ${options.type}:`, err)
       hasMore.value = false
     } finally {
-      loading.value = false
+      if (sequence === requestSequence) loading.value = false
     }
   }
 
@@ -58,6 +76,20 @@ export function useReleaseData(options: ReleaseDataOptions) {
   const retry = async () => {
     if (loading.value) return
     await fetchData(data.value.length > 0 ? currentPage.value + 1 : 1)
+  }
+
+  const refresh = async (filters: ReleaseQueryFilters = {}) => {
+    activeFilters = {
+      year: filters.year?.trim() || undefined,
+      keyword: filters.keyword?.trim() || undefined,
+    }
+    data.value = []
+    currentPage.value = 1
+    total.value = 0
+    hasMore.value = true
+    error.value = null
+    isInitialized.value = true
+    await fetchData(1)
   }
 
   const setupObserver = () => {
@@ -101,5 +133,6 @@ export function useReleaseData(options: ReleaseDataOptions) {
     total,
     loadMore,
     retry,
+    refresh,
   }
 }

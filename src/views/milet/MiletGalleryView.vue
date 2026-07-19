@@ -1,23 +1,23 @@
 <template>
   <div class="w-full px-4 py-6">
-    <!-- 提示信息 -->
-    <div
-      class="max-w-3xl mx-auto bg-yellow-50 border-l-4 border-yellow-400 text-yellow-800 p-6 rounded-xl shadow-md relative mb-8"
-      id="tips"
+    <section
+      class="relative mx-auto mb-10 max-w-3xl overflow-hidden rounded-2xl border border-white/80 bg-white/80 px-6 py-8 shadow-[0_24px_70px_-50px_rgba(15,61,99,0.55)] backdrop-blur sm:px-9 sm:py-10"
     >
-      <div class="flex items-center mb-3">
-        <svg
-          class="w-6 h-6 flex-shrink-0 mr-2 text-yellow-500"
-          fill="currentColor"
-          viewBox="0 0 20 20"
-        >
-          <path d="M9 12h2V8H9v4zm0 4h2v-2H9v2zm1-14a9 9 0 100 18 9 9 0 000-18z" />
-        </svg>
-        <h2 class="text-lg font-bold flex-1">
-          {{ pageText.tip }}
-        </h2>
+      <div
+        class="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_85%_0%,rgba(186,230,253,0.5),transparent_34%),linear-gradient(135deg,rgba(255,255,255,0.88),rgba(240,249,255,0.5))]"
+      ></div>
+      <div class="relative">
+        <p class="text-[0.68rem] font-semibold tracking-[0.2em] text-[#317f8d]">
+          {{ pageText.pageKicker }}
+        </p>
+        <h1 class="milet-page-title-font mt-4 text-4xl leading-tight text-[#143d63] sm:text-5xl">
+          {{ pageText.pageTitle }}
+        </h1>
+        <p class="mt-5 max-w-2xl text-sm leading-7 text-slate-600 sm:text-[0.95rem]">
+          {{ pageText.description }}
+        </p>
       </div>
-    </div>
+    </section>
 
     <!-- 置顶相册列表 -->
     <div
@@ -207,6 +207,68 @@
     >
       <p class="text-gray-500 text-lg">暂无相册数据</p>
     </div>
+
+    <Teleport to="body">
+      <Transition name="gallery-notice">
+        <div
+          v-if="noticeOpen"
+          class="fixed inset-0 z-[90] flex items-center justify-center bg-slate-950/45 px-4 py-8 backdrop-blur-sm"
+          @click.self="closeNotice"
+        >
+          <section
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="gallery-notice-title"
+            aria-describedby="gallery-notice-description"
+            class="relative w-full max-w-lg overflow-hidden rounded-2xl border border-white/70 bg-white shadow-[0_28px_90px_-28px_rgba(15,23,42,0.55)]"
+          >
+            <div
+              class="pointer-events-none absolute inset-x-0 top-0 h-28 bg-[radial-gradient(circle_at_85%_0%,rgba(186,230,253,0.7),transparent_55%),linear-gradient(90deg,rgba(240,249,255,0.9),rgba(255,255,255,0))]"
+            ></div>
+            <button
+              type="button"
+              class="absolute right-4 top-4 z-10 flex h-9 w-9 items-center justify-center rounded-full border border-slate-200/80 bg-white/80 text-lg text-slate-500 transition hover:border-sky-200 hover:bg-sky-50 hover:text-[#143d63]"
+              :aria-label="pageText.noticeCloseAria"
+              @click="closeNotice"
+            >
+              ×
+            </button>
+
+            <div class="relative px-6 pb-6 pt-8 sm:px-8 sm:pb-8">
+              <div
+                class="flex h-11 w-11 items-center justify-center rounded-full bg-sky-100 text-xl text-[#317f8d]"
+                aria-hidden="true"
+              >
+                i
+              </div>
+              <p class="mt-5 text-[0.68rem] font-semibold tracking-[0.18em] text-[#317f8d]">
+                ECHOES OF MILET
+              </p>
+              <h2 id="gallery-notice-title" class="mt-2 text-xl font-semibold text-[#143d63]">
+                {{ pageText.noticeTitle }}
+              </h2>
+              <p
+                id="gallery-notice-description"
+                class="mt-4 text-sm leading-7 text-slate-600"
+              >
+                {{ pageText.tip }}
+              </p>
+              <p class="mt-4 text-xs leading-5 text-slate-400">
+                {{ pageText.noticeRepeat }}
+              </p>
+              <button
+                type="button"
+                autofocus
+                class="mt-6 min-h-11 w-full rounded-lg bg-[#143d63] px-5 py-3 text-sm font-semibold text-white transition hover:bg-[#1b527f] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#317f8d] focus-visible:ring-offset-2"
+                @click="closeNotice"
+              >
+                {{ pageText.noticeClose }}
+              </button>
+            </div>
+          </section>
+        </div>
+      </Transition>
+    </Teleport>
   </div>
 </template>
 
@@ -243,6 +305,11 @@ const pageText = computed(() => {
   return MILET_GALLERY_TEXT[lang]
 })
 const RECENT_UPDATE_WINDOW_MS = 7 * 24 * 60 * 60 * 1000
+const GALLERY_NOTICE_DISMISSED_AT_KEY = 'milet-gallery-notice:dismissed-at:v1'
+const GALLERY_NOTICE_REPEAT_MS = 7 * 24 * 60 * 60 * 1000
+const noticeOpen = ref(false)
+let noticeTimer = null
+let previousBodyOverflow = ''
 
 // 数据相关
 const topAlbumList = ref(cachedGalleryList?.topAlbums || [])
@@ -256,6 +323,53 @@ const isLastPage = ref(
 )
 const observerTarget = ref(null)
 const galleryObserver = ref(null)
+
+const clearNoticeTimer = () => {
+  if (noticeTimer === null) return
+  window.clearTimeout(noticeTimer)
+  noticeTimer = null
+}
+
+const openNotice = () => {
+  noticeTimer = null
+  previousBodyOverflow = document.body.style.overflow
+  document.body.style.overflow = 'hidden'
+  noticeOpen.value = true
+}
+
+const scheduleNotice = (delay) => {
+  clearNoticeTimer()
+  noticeTimer = window.setTimeout(openNotice, Math.max(0, delay))
+}
+
+const scheduleNoticeFromStorage = () => {
+  try {
+    const dismissedAt = Number(window.localStorage.getItem(GALLERY_NOTICE_DISMISSED_AT_KEY))
+    if (Number.isFinite(dismissedAt) && dismissedAt > 0) {
+      scheduleNotice(Math.max(0, GALLERY_NOTICE_REPEAT_MS - (Date.now() - dismissedAt)))
+      return
+    }
+  } catch {
+    // localStorage 不可用时仍显示本次提醒。
+  }
+  scheduleNotice(350)
+}
+
+const closeNotice = () => {
+  noticeOpen.value = false
+  document.body.style.overflow = previousBodyOverflow
+  const dismissedAt = Date.now()
+  try {
+    window.localStorage.setItem(GALLERY_NOTICE_DISMISSED_AT_KEY, String(dismissedAt))
+  } catch {
+    // 无法持久化时仅影响下次展示时间，不阻断关闭操作。
+  }
+  scheduleNotice(GALLERY_NOTICE_REPEAT_MS)
+}
+
+const handleNoticeKeydown = (event) => {
+  if (event.key === 'Escape' && noticeOpen.value) closeNotice()
+}
 
 /**
  * 获取相册列表数据
@@ -438,7 +552,9 @@ const delayLoadMore = throttle(() => {
 onServerPrefetch(initLoad)
 
 onMounted(async () => {
-  document.title = 'milet photo albums'
+  document.title = pageText.value.metaTitle
+  window.addEventListener('keydown', handleNoticeKeydown)
+  scheduleNoticeFromStorage()
   if (cachedGalleryList) {
     await nextTick()
     setupIntersectionObserver()
@@ -449,6 +565,9 @@ onMounted(async () => {
 })
 
 onUnmounted(() => {
+  clearNoticeTimer()
+  window.removeEventListener('keydown', handleNoticeKeydown)
+  if (noticeOpen.value) document.body.style.overflow = previousBodyOverflow
   if (galleryObserver.value) {
     galleryObserver.value.disconnect()
   }
@@ -466,5 +585,29 @@ onUnmounted(() => {
   line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
+}
+
+.gallery-notice-enter-active,
+.gallery-notice-leave-active {
+  transition: opacity 0.2s ease;
+}
+
+.gallery-notice-enter-active section,
+.gallery-notice-leave-active section {
+  transition:
+    opacity 0.2s ease,
+    transform 0.2s ease;
+}
+
+.gallery-notice-enter-from,
+.gallery-notice-leave-to,
+.gallery-notice-enter-from section,
+.gallery-notice-leave-to section {
+  opacity: 0;
+}
+
+.gallery-notice-enter-from section,
+.gallery-notice-leave-to section {
+  transform: translateY(10px) scale(0.985);
 }
 </style>
