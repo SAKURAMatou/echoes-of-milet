@@ -208,7 +208,7 @@
       <p class="text-gray-500 text-lg">暂无相册数据</p>
     </div>
 
-    <Teleport to="body">
+    <Teleport v-if="clientMounted" to="body">
       <Transition name="gallery-notice">
         <div
           v-if="noticeOpen"
@@ -220,7 +220,7 @@
             aria-modal="true"
             aria-labelledby="gallery-notice-title"
             aria-describedby="gallery-notice-description"
-            class="relative w-full max-w-lg overflow-hidden rounded-2xl border border-white/70 bg-white shadow-[0_28px_90px_-28px_rgba(15,23,42,0.55)]"
+            class="relative w-full max-w-lg overflow-hidden rounded-2xl border border-white/80 bg-white/75 shadow-[0_28px_90px_-28px_rgba(15,23,42,0.55)] ring-1 ring-white/35 backdrop-blur-2xl"
           >
             <div
               class="pointer-events-none absolute inset-x-0 top-0 h-28 bg-[radial-gradient(circle_at_85%_0%,rgba(186,230,253,0.7),transparent_55%),linear-gradient(90deg,rgba(240,249,255,0.9),rgba(255,255,255,0))]"
@@ -307,6 +307,7 @@ const pageText = computed(() => {
 const RECENT_UPDATE_WINDOW_MS = 7 * 24 * 60 * 60 * 1000
 const GALLERY_NOTICE_DISMISSED_AT_KEY = 'milet-gallery-notice:dismissed-at:v1'
 const GALLERY_NOTICE_REPEAT_MS = 7 * 24 * 60 * 60 * 1000
+const clientMounted = ref(false)
 const noticeOpen = ref(false)
 let noticeTimer = null
 let previousBodyOverflow = ''
@@ -552,6 +553,7 @@ const delayLoadMore = throttle(() => {
 onServerPrefetch(initLoad)
 
 onMounted(async () => {
+  clientMounted.value = true
   document.title = pageText.value.metaTitle
   window.addEventListener('keydown', handleNoticeKeydown)
   scheduleNoticeFromStorage()

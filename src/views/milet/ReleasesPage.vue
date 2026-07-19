@@ -294,11 +294,13 @@ const drawerOpen = ref(false)
 const viewMode = ref<'list' | 'shelf'>('list')
 type ReleaseTypeFilter = 'all' | 'album' | 'ep' | 'live'
 const releaseTypeFilter = ref<ReleaseTypeFilter>('all')
+const appliedReleaseTypeFilter = ref<ReleaseTypeFilter>('all')
 const yearFilter = ref('')
 const keywordInput = ref('')
 const appliedYear = ref('')
 const appliedKeyword = ref('')
 const calendarYears = ref<string[]>([])
+const filtersApplying = ref(false)
 
 const releaseTypeOptions = computed<Array<{ value: ReleaseTypeFilter; label: string }>>(() => [
   { value: 'all', label: pageText.value.filters.allTypes },
@@ -316,32 +318,56 @@ const yearOptions = computed(() => {
   return [...years].sort((a, b) => Number(b) - Number(a))
 })
 
-const filtersApplying = computed(
-  () => albumsData.loading.value || epsSinglesData.loading.value || livesData.loading.value,
-)
 const hasActiveFilters = computed(
-  () => Boolean(appliedYear.value || appliedKeyword.value || releaseTypeFilter.value !== 'all'),
+  () =>
+    Boolean(
+      appliedYear.value ||
+        appliedKeyword.value ||
+        appliedReleaseTypeFilter.value !== 'all',
+    ),
 )
 const visibleReleaseTotal = computed(() => {
-  if (releaseTypeFilter.value === 'album') return albumsData.total.value
-  if (releaseTypeFilter.value === 'ep') return epsSinglesData.total.value
-  if (releaseTypeFilter.value === 'live') return livesData.total.value
+  if (appliedReleaseTypeFilter.value === 'album') return albumsData.total.value
+  if (appliedReleaseTypeFilter.value === 'ep') return epsSinglesData.total.value
+  if (appliedReleaseTypeFilter.value === 'live') return livesData.total.value
   return albumsData.total.value + epsSinglesData.total.value + livesData.total.value
 })
 
 function isSectionVisible(section: Exclude<ReleaseTypeFilter, 'all'>) {
-  return releaseTypeFilter.value === 'all' || releaseTypeFilter.value === section
+  return appliedReleaseTypeFilter.value === 'all' || appliedReleaseTypeFilter.value === section
 }
 
 async function applyReleaseFilters() {
+  if (filtersApplying.value) return
+
+  filtersApplying.value = true
+  appliedReleaseTypeFilter.value = releaseTypeFilter.value
   appliedYear.value = yearFilter.value
   appliedKeyword.value = keywordInput.value.trim()
   const filters = { year: appliedYear.value, keyword: appliedKeyword.value }
-  await Promise.all([
-    albumsData.refresh(filters),
-    epsSinglesData.refresh(filters),
-    livesData.refresh(filters),
-  ])
+
+  try {
+    if (appliedReleaseTypeFilter.value === 'album') {
+      await albumsData.refresh(filters)
+      return
+    }
+    if (appliedReleaseTypeFilter.value === 'ep') {
+      await epsSinglesData.refresh(filters)
+      return
+    }
+    if (appliedReleaseTypeFilter.value === 'live') {
+      await livesData.refresh(filters)
+      return
+    }
+
+    await Promise.all([
+      albumsData.refresh(filters),
+      epsSinglesData.refresh(filters),
+      livesData.refresh(filters),
+    ])
+  } finally {
+    filtersApplying.value = false
+  }
 }
 
 async function clearReleaseFilters() {
@@ -409,9 +435,9 @@ const chapters = computed(() => [
     covers: chapterCovers(lives.value),
   },
 ].filter((chapter) => {
-  if (releaseTypeFilter.value === 'all') return true
-  if (releaseTypeFilter.value === 'album') return chapter.key === 'ALBUMS'
-  if (releaseTypeFilter.value === 'ep') return chapter.key === 'EP_SINGLE'
+  if (appliedReleaseTypeFilter.value === 'all') return true
+  if (appliedReleaseTypeFilter.value === 'album') return chapter.key === 'ALBUMS'
+  if (appliedReleaseTypeFilter.value === 'ep') return chapter.key === 'EP_SINGLE'
   return chapter.key === 'LIVE'
 }))
 

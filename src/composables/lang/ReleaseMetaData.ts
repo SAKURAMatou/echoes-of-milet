@@ -30,8 +30,8 @@ export const RELEASE_PAGE_TEXT = {
       all: 'all discographies',
     },
     filters: {
-      title: 'ディスコグラフィーを絞り込む',
-      hint: '種類・発売年・タイトルから作品を探せます。',
+      title: 'ディスコグラフィーを検索',
+      hint: '種類・発売年・タイトルを条件に、すべての作品から検索します。',
       type: '種類',
       allTypes: 'すべて',
       year: '発売年',
@@ -95,8 +95,8 @@ export const RELEASE_PAGE_TEXT = {
       all: '全部发布物',
     },
     filters: {
-      title: '筛选发布物',
-      hint: '可按发布物类型、发行年份或名称快速查找。',
+      title: '搜索发布物',
+      hint: '按发布物类型、发行年份或名称，从全部发布物中搜索。',
       type: '发布物类型',
       allTypes: '全部类型',
       year: '发行年份',
