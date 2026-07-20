@@ -110,6 +110,7 @@ import { useRoute } from 'vue-router'
 import LanguageSelect from '@/components/LanguageSelect.vue'
 import type { MenuItem } from '@/composables/SideMenueData'
 import { colorMap, getMenu } from '@/composables/SideMenueData'
+import { scrollToPageAnchor } from '@/composables/usePageAnchorScroll'
 import { withLangParam } from '@/composables/useLangRoute'
 
 const BOTTOM_WIDE_STATIONERY_PATH = `
@@ -194,61 +195,9 @@ function onSubmenuClick(event: MouseEvent, href?: string) {
   event.preventDefault()
   emit('closeMenuItem')
 
-  const targetId = decodeURIComponent(href.slice(1))
-  const target = document.getElementById(targetId)
-
-  if (!target) {
-    return
-  }
-
   window.setTimeout(() => {
-    scrollToAnchorTarget(target, href)
+    scrollToPageAnchor(href)
   }, 0)
-}
-
-function getScrollablePageContainer() {
-  const scrollContainer = document.querySelector<HTMLElement>('[data-page-scroll-container]')
-
-  if (!scrollContainer) {
-    return null
-  }
-
-  const style = window.getComputedStyle(scrollContainer)
-  const canScroll = scrollContainer.scrollHeight - scrollContainer.clientHeight > 1
-  const hasScrollOverflow = style.overflowY === 'auto' || style.overflowY === 'scroll'
-
-  return canScroll && hasScrollOverflow ? scrollContainer : null
-}
-
-function scrollToAnchorTarget(target: HTMLElement, href: string) {
-  const scrollMarginTop = Number.parseFloat(window.getComputedStyle(target).scrollMarginTop) || 0
-  const scrollContainer = getScrollablePageContainer()
-
-  if (scrollContainer) {
-    const containerTop = scrollContainer.getBoundingClientRect().top
-    const targetTop = target.getBoundingClientRect().top
-    const nextTop = targetTop - containerTop + scrollContainer.scrollTop - scrollMarginTop
-
-    scrollContainer.scrollTo({
-      top: Math.max(0, nextTop),
-      left: 0,
-      behavior: 'smooth',
-    })
-  } else {
-    const headerHeight = document.querySelector('header')?.getBoundingClientRect().height || 0
-    const fallbackOffset = Math.max(scrollMarginTop, headerHeight + 12)
-    const nextTop = target.getBoundingClientRect().top + window.scrollY - fallbackOffset
-
-    window.scrollTo({
-      top: Math.max(0, nextTop),
-      left: 0,
-      behavior: 'smooth',
-    })
-  }
-
-  if (window.location.hash !== href) {
-    window.history.pushState(null, '', `${window.location.pathname}${window.location.search}${href}`)
-  }
 }
 </script>
 <style scoped>

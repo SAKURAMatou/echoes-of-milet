@@ -2,12 +2,12 @@
   <div
     ref="menuWrapperLang"
     class="relative font-['Montserrat','sans-serif']"
-    :class="isMenuVariant ? 'w-full' : 'inline-flex'"
+    :class="isMenuVariant ? 'w-full' : 'inline-flex md:fixed md:right-4 md:top-4 md:z-50'"
   >
     <button
       id="lang-toggle"
       type="button"
-      class="group flex items-center justify-between gap-2 rounded-full border border-white/70 bg-white/85 text-slate-700 shadow-[0_12px_32px_-20px_rgba(15,23,42,0.9),inset_0_1px_0_rgba(255,255,255,0.9)] backdrop-blur-xl transition duration-200 hover:-translate-y-0.5 hover:border-sky-200 hover:bg-white focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-sky-200/70 md:fixed md:right-4 md:top-4 md:z-50"
+      class="group flex items-center justify-between gap-2 rounded-full border border-white/70 bg-white/85 text-slate-700 shadow-[0_12px_32px_-20px_rgba(15,23,42,0.9),inset_0_1px_0_rgba(255,255,255,0.9)] backdrop-blur-xl transition duration-200 hover:-translate-y-0.5 hover:border-sky-200 hover:bg-white focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-sky-200/70"
       :class="isMenuVariant ? 'h-11 w-full px-4' : 'h-11 px-3.5 md:w-[132px]'"
       title="切换语言"
       aria-haspopup="listbox"
@@ -51,7 +51,7 @@
         :class="
           isMenuVariant
             ? 'left-0 top-full w-full'
-            : 'right-0 top-full w-44 md:fixed md:right-4 md:top-16'
+            : 'right-0 top-full w-44'
         "
         role="listbox"
         aria-label="Language"

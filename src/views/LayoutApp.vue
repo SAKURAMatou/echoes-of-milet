@@ -1,5 +1,8 @@
 <template>
-  <div class="min-h-screen w-full max-w-[100vw] overflow-x-clip md:h-screen md:overflow-hidden">
+  <div
+    data-page-layout-root
+    class="min-h-screen w-full max-w-[100vw] overflow-x-clip md:h-dvh md:min-h-0 md:overflow-hidden"
+  >
     <Header
       :showHanbor="true"
       ref="headerRef"
@@ -14,7 +17,7 @@
     <div class="relative w-full max-w-[100vw] overflow-x-clip md:h-full md:overflow-x-hidden">
       <!-- 整体容器：页面居中布局 -->
       <div
-        class="flex w-full max-w-full overflow-x-clip pt-16 md:h-full md:box-border md:pt-12 md:overflow-x-hidden md:gap-6 lg:gap-8 xl:gap-10"
+        class="flex w-full max-w-full overflow-x-clip pt-16 md:h-full md:box-border md:pt-[4.5rem] md:overflow-x-hidden md:gap-6 lg:gap-8 xl:gap-10"
       >
         <!-- 左侧菜单栏 -->
         <SideMenuLeft :menuOpen="menuOpen" @closeMenu="menuClick" />

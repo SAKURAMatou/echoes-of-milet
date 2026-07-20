@@ -33,7 +33,7 @@
           :key="chapter.key"
           :href="`#${chapter.anchorId}`"
           class="relative grid w-full grid-cols-[1.45rem_minmax(0,1fr)_auto] items-center gap-3 py-0.5 text-left"
-          @click="emit('close')"
+          @click="onChapterAnchorClick($event, chapter.anchorId)"
         >
           <span
             class="relative z-[1] flex h-[0.78rem] w-[0.78rem] justify-self-center rounded-full border border-[#317f8d] bg-white/90"
@@ -56,6 +56,7 @@
 <script setup lang="ts">
 import { getCurrentInstance, computed } from 'vue'
 import { RELEASE_PAGE_TEXT } from '@/composables/lang/ReleaseMetaData'
+import { scrollToPageAnchor } from '@/composables/usePageAnchorScroll'
 
 const { appContext } = getCurrentInstance()!
 const global = appContext.config.globalProperties
@@ -77,6 +78,15 @@ defineProps<{ open: boolean; chapters: Chapter[] }>()
 const emit = defineEmits<{
   (e: 'close'): void
 }>()
+
+function onChapterAnchorClick(event: MouseEvent, anchorId: string) {
+  event.preventDefault()
+  emit('close')
+
+  window.setTimeout(() => {
+    scrollToPageAnchor(anchorId)
+  }, 0)
+}
 </script>
 
 <style scoped>

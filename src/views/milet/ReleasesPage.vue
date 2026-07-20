@@ -113,6 +113,7 @@
               :key="chapter.key"
               :href="`#${chapter.anchorId}`"
               class="relative grid w-full grid-cols-[1.45rem_minmax(0,1fr)_auto] items-center gap-3 rounded-[0.35rem] py-0.5 pl-px text-left transition hover:translate-x-0.5 hover:text-[#317f8d]"
+              @click="onChapterAnchorClick($event, chapter.anchorId)"
             >
               <span
                 class="relative z-[1] flex h-[0.78rem] w-[0.78rem] justify-self-center rounded-full border border-[#317f8d] bg-white/85"
@@ -276,6 +277,7 @@ import { computed, getCurrentInstance, onMounted, ref } from 'vue'
 import { useReleaseData } from '@/composables/useReleaseData'
 import { RELEASE_PAGE_TEXT } from '@/composables/lang/ReleaseMetaData'
 import { initImgUrl } from '@/composables/ImgUrlUtil'
+import { scrollToPageAnchor } from '@/composables/usePageAnchorScroll'
 
 const { appContext } = getCurrentInstance()!
 const global = appContext.config.globalProperties
@@ -301,6 +303,11 @@ const appliedYear = ref('')
 const appliedKeyword = ref('')
 const calendarYears = ref<string[]>([])
 const filtersApplying = ref(false)
+
+function onChapterAnchorClick(event: MouseEvent, anchorId: string) {
+  event.preventDefault()
+  scrollToPageAnchor(anchorId)
+}
 
 const releaseTypeOptions = computed<Array<{ value: ReleaseTypeFilter; label: string }>>(() => [
   { value: 'all', label: pageText.value.filters.allTypes },

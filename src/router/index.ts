@@ -1,20 +1,7 @@
 import { createMemoryHistory, createRouter, createWebHistory } from 'vue-router'
 
+import { resetPageScrollContainer, scrollToPageAnchor } from '@/composables/usePageAnchorScroll'
 import { routes } from './routes'
-
-function resetPageScrollContainer() {
-  if (import.meta.env.SSR) {
-    return
-  }
-
-  requestAnimationFrame(() => {
-    document.querySelector<HTMLElement>('[data-page-scroll-container]')?.scrollTo({
-      top: 0,
-      left: 0,
-      behavior: 'auto',
-    })
-  })
-}
 
 export function createAppRouter(isServer = import.meta.env.SSR) {
   return createRouter({
@@ -28,13 +15,17 @@ export function createAppRouter(isServer = import.meta.env.SSR) {
       }
 
       if (to.hash) {
-        return {
-          el: to.hash,
-          top: 88,
+        if (!isServer) {
+          requestAnimationFrame(() => {
+            scrollToPageAnchor(to.hash, { behavior: 'auto', history: 'none' })
+          })
         }
+        return false
       }
 
-      resetPageScrollContainer()
+      if (!isServer) {
+        requestAnimationFrame(resetPageScrollContainer)
+      }
       return {
         top: 0,
         left: 0,
