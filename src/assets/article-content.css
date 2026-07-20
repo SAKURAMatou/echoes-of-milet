@@ -504,8 +504,14 @@
   text-underline-offset: 0.2em;
 }
 
-.article-content :deep([id]) {
-  scroll-margin-top: 6rem;
+.article-content [id] {
+  scroll-margin-top: 7.5rem;
+}
+
+@media (min-width: 1180px) {
+  .article-content [id] {
+    scroll-margin-top: 5rem;
+  }
 }
 
 .article-content :deep(img) {

@@ -31,6 +31,7 @@
 
 <script setup lang="ts">
 import type { ArticleTocItem } from '@/composables/articleType'
+import { scrollToPageAnchor } from '@/composables/usePageAnchorScroll'
 
 withDefaults(
   defineProps<{
@@ -46,18 +47,7 @@ withDefaults(
 
 function handleClick(event: MouseEvent, item: ArticleTocItem) {
   event.preventDefault()
-
-  if (import.meta.env.SSR) return
-
-  const target = document.getElementById(item.id)
-
-  if (!target) return
-
-  target.scrollIntoView({
-    behavior: 'smooth',
-    block: 'start',
-  })
-  window.history.replaceState(null, '', `${window.location.pathname}${window.location.search}#${item.id}`)
+  scrollToPageAnchor(item.id, { history: 'replace' })
 }
 
 function tocLinkLevelClass(level: number) {

@@ -123,6 +123,7 @@
             ref="articleContentRef"
             class="article-content"
             v-html="article.html"
+            @click="handleArticleContentClick"
           ></div>
           <div
             v-else
@@ -161,6 +162,7 @@ import { useAppState } from '@/composables/useAppState'
 import { useArticleAlbumEmbeds } from '@/composables/useArticleAlbumEmbeds'
 import { useArticleImageEnhancements } from '@/composables/useArticleImageEnhancements'
 import type { PublicArticleDetail } from '@/composables/articleType'
+import { scrollToPageAnchor } from '@/composables/usePageAnchorScroll'
 
 import '../../assets/article-content.css'
 import '../../assets/mixed-media.css'
@@ -202,6 +204,12 @@ async function setupArticleEnhancements() {
   await nextTick()
   await albumEmbeds.mount(articleContentRef.value, routeLang.value)
   await imageEnhancements.enhance(articleContentRef.value, articleEnhancementKey())
+
+  if (route.hash) {
+    window.requestAnimationFrame(() => {
+      scrollToPageAnchor(route.hash, { behavior: 'auto', history: 'none' })
+    })
+  }
 }
 
 function cleanupArticleEnhancements() {
@@ -254,6 +262,19 @@ function handleMobileTocClick(event: MouseEvent) {
   if (target instanceof HTMLElement && target.closest('a')) {
     mobileTocOpen.value = false
   }
+}
+
+function handleArticleContentClick(event: MouseEvent) {
+  const eventTarget = event.target
+  if (!(eventTarget instanceof Element)) return
+
+  const anchor = eventTarget.closest<HTMLAnchorElement>('a[href^="#"]')
+  const href = anchor?.getAttribute('href')
+
+  if (!anchor || !href || href === '#' || !articleContentRef.value?.contains(anchor)) return
+
+  event.preventDefault()
+  scrollToPageAnchor(href)
 }
 
 function handleMobileTocOutsidePointer(event: PointerEvent) {
