@@ -1,6 +1,6 @@
 <template>
   <article
-    class="live-archive-page overflow-hidden rounded-lg bg-[linear-gradient(to_bottom_right,white,#ebf8ff,#bee3f8)] text-[#24323a] backdrop-blur-xl"
+    class="live-archive-page overflow-hidden rounded-lg bg-[linear-gradient(to_bottom_right,white,#ebf8ff,#bee3f8)] text-[#24323a]"
   >
     <header
       class="live-archive-hero relative isolate overflow-hidden border-b border-[#c9ddea]/70 px-4 py-8 sm:px-7 md:py-9"

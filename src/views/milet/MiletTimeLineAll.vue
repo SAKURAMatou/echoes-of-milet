@@ -1,7 +1,7 @@
 <template>
   <section
     ref="wrapEl"
-    class="relative mx-auto min-h-[calc(100svh-5rem)] overflow-hidden rounded-lg bg-[linear-gradient(to_bottom_right,white,#ebf8ff,#bee3f8)] px-4 py-8 text-[#1e2a35] backdrop-blur-xl sm:px-6 md:px-8 md:py-9"
+    class="relative mx-auto min-h-[calc(100svh-5rem)] overflow-hidden rounded-lg bg-[linear-gradient(to_bottom_right,white,#ebf8ff,#bee3f8)] px-4 py-8 text-[#1e2a35] sm:px-6 md:px-8 md:py-9"
   >
     <header
       class="timeline-hero relative isolate -mx-4 -mt-8 mb-8 overflow-hidden rounded-t-lg px-4 py-8 sm:-mx-6 sm:px-6 md:-mx-8 md:px-8 md:py-9"

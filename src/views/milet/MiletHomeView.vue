@@ -1,6 +1,6 @@
 <template>
   <article
-    class="milet-home min-h-screen w-full max-w-full overflow-x-hidden rounded-lg text-[#202632]"
+    class="milet-home min-h-screen w-full max-w-full overflow-x-clip rounded-lg text-[#202632]"
   >
     <MiletHomeHero
       :current-year="currentYear"
@@ -18,30 +18,30 @@
         :items="highlights"
         @select-music="openHighlightTrack"
       />
-      <LazyHomeSection section-id="echo-room" :min-height="240">
+      <LazyHomeSection section-id="echo-room" :min-height="240" eager>
         <MiletHomeEchoRoom :section-id="null" />
       </LazyHomeSection>
-      <LazyHomeSection section-id="timeline" :min-height="620">
+      <LazyHomeSection section-id="timeline" :min-height="620" eager>
         <MiletHomeTimelinePreview
           :title="sectionTitles.timeline"
           :timeline="timeline"
           :section-id="null"
         />
       </LazyHomeSection>
-      <LazyHomeSection section-id="gallery" :min-height="820">
+      <LazyHomeSection section-id="gallery" :min-height="820" eager>
         <MiletHomeGallery
           :title="sectionTitles.gallery"
           :gallery="gallery"
           :section-id="null"
         />
       </LazyHomeSection>
-      <LazyHomeSection section-id="links" :min-height="960">
+      <LazyHomeSection section-id="links" :min-height="960" eager>
         <MiletHomeOfficialLinks :official="official" :section-id="null" />
       </LazyHomeSection>
-      <LazyHomeSection section-id="entry" :min-height="260">
+      <LazyHomeSection section-id="entry" :min-height="260" eager>
         <MiletHomeEntryGrid :entries="entries" :section-id="null" />
       </LazyHomeSection>
-      <LazyHomeSection section-id="cta" :min-height="220">
+      <LazyHomeSection section-id="cta" :min-height="220" eager>
         <MiletHomeCta
           :title="cta.title"
           :button-label="cta.buttonLabel"
@@ -85,6 +85,7 @@ import {
 } from '@/composables/miletHomeV2'
 import type { Track, Work } from '@/composables/releaseType'
 import { useAppState } from '@/composables/useAppState'
+import { scrollToPageAnchor } from '@/composables/usePageAnchorScroll'
 import { apiRoutes } from '@/config/api'
 
 const appState = useAppState()
@@ -180,7 +181,7 @@ const entries = computed(() => entryViewItems(homeV2.value, currentLang.value, r
 const cta = computed(() => ctaView(currentLang.value, routeLang.value))
 
 function scrollToHighlight() {
-  document.getElementById('highlight')?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+  scrollToPageAnchor('#highlight', { behavior: 'smooth', history: 'none' })
 }
 
 function emptyTrack(showId: string, title: string): Track {

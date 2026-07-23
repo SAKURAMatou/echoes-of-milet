@@ -1,5 +1,5 @@
 <template>
-  <section :id="sectionId || undefined" class="mt-16 scroll-mt-24">
+  <section ref="root" :id="sectionId || undefined" class="mt-16 scroll-mt-24">
     <div class="flex flex-wrap gap-x-4 gap-y-2 items-baseline">
       <div class="section-kicker">official</div>
       <h2 class="font-serif text-3xl text-[#26313a]">{{ official.title }}</h2>
@@ -81,6 +81,8 @@
               <img
                 :src="site.image"
                 :alt="site.imageAlt"
+                loading="lazy"
+                decoding="async"
                 class="h-full w-full object-cover transition duration-500 group-hover:scale-[1.04]"
               />
             </div>
@@ -97,7 +99,7 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, ref, watch } from 'vue'
+import { onBeforeUnmount, onMounted, ref, watch } from 'vue'
 
 import instagramIcon from '@/assets/nav-instagram-4.png'
 import twitterIcon from '@/assets/nav-twitter-4.png'
@@ -116,24 +118,61 @@ const props = withDefaults(
 
 const instagramContainer = ref<HTMLElement | null>(null)
 const twitterContainer = ref<HTMLElement | null>(null)
+const root = ref<HTMLElement | null>(null)
+let embedObserver: IntersectionObserver | null = null
+let embedsInitialized = false
 
-async function initializeEmbeds() {
+async function renderEmbeds() {
   await Promise.all([
     loadInstagramEmbed(instagramContainer.value, props.official.insPost),
     loadTwitterEmbed(twitterContainer.value, props.official.twitterPost),
   ])
 }
 
+function initializeEmbeds() {
+  if (embedsInitialized) return
+
+  embedsInitialized = true
+  embedObserver?.disconnect()
+  embedObserver = null
+  void renderEmbeds()
+}
+
 onMounted(() => {
-  initializeEmbeds()
+  if (!('IntersectionObserver' in window)) {
+    initializeEmbeds()
+    return
+  }
+
+  embedObserver = new IntersectionObserver(
+    ([entry]) => {
+      if (entry?.isIntersecting) {
+        initializeEmbeds()
+      }
+    },
+    {
+      rootMargin: '600px 0px',
+    },
+  )
+
+  if (root.value) {
+    embedObserver.observe(root.value)
+  }
 })
 
 watch(
   () => [props.official.insPost, props.official.twitterPost],
   () => {
-    initializeEmbeds()
+    if (embedsInitialized) {
+      void renderEmbeds()
+    }
   },
 )
+
+onBeforeUnmount(() => {
+  embedObserver?.disconnect()
+  embedObserver = null
+})
 </script>
 
 <style scoped>

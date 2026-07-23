@@ -25,7 +25,7 @@
         <!-- 右侧内容区域：占据剩余区域，保证滚动条在页面最右侧 -->
         <div
           data-page-scroll-container
-          class="min-w-0 flex-1 scroll-pt-6 overflow-x-clip md:min-h-0 md:scroll-pt-12 md:overflow-x-hidden md:overflow-y-auto"
+          class="min-w-0 flex-1 scroll-pt-6 overflow-x-clip overscroll-y-contain [scrollbar-gutter:stable] md:min-h-0 md:scroll-pt-12 md:overflow-x-hidden md:overflow-y-auto"
         >
           <div
             class="mx-auto flex w-full max-w-[1500px] justify-start"
@@ -36,7 +36,7 @@
             "
           >
             <main
-              class="w-full max-w-full rounded-lg border border-white/60 bg-white/60 shadow-[18px_24px_70px_-52px_rgba(31,41,55,0.55)] backdrop-blur-xl"
+              class="w-full max-w-full rounded-lg border border-white/70 bg-white/78 shadow-[18px_24px_70px_-52px_rgba(31,41,55,0.55)]"
               :class="
                 route.meta.widePage
                   ? 'md:max-w-[calc(100vw-380px)] lg:max-w-[calc(100vw-460px)] xl:max-w-[1120px] 2xl:max-w-[1200px]'

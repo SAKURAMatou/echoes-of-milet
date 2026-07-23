@@ -14,6 +14,8 @@
           <img
             :src="item.image"
             :alt="item.imageAlt"
+            loading="lazy"
+            decoding="async"
             class="h-full w-full object-cover transition duration-500 group-hover:scale-[1.04]"
           />
           <div

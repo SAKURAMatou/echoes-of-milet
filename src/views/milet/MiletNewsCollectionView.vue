@@ -1,6 +1,6 @@
 <template>
   <section
-    class="news-collection mx-auto min-h-[calc(100svh-5rem)] w-full max-w-5xl rounded-lg bg-[linear-gradient(to_bottom_right,white,#ebf8ff,#bee3f8)] px-4 py-8 backdrop-blur-xl sm:px-6 sm:py-10"
+    class="news-collection mx-auto min-h-[calc(100svh-5rem)] w-full max-w-5xl rounded-lg bg-[linear-gradient(to_bottom_right,white,#ebf8ff,#bee3f8)] px-4 py-8 sm:px-6 sm:py-10"
   >
     <header
       class="news-hero relative isolate -mx-4 -mt-8 mb-8 overflow-hidden rounded-t-lg px-4 py-8 sm:-mx-6 sm:-mt-10 sm:px-6 sm:py-10"

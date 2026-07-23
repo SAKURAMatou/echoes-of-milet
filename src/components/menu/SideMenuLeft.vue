@@ -1,7 +1,7 @@
 <template>
   <aside class="max-md:hidden w-[310px] pl-5 lg:pl-6 h-full overflow-hidden">
     <div
-      class="relative h-full overflow-hidden rounded-xl border border-white/40 bg-[linear-gradient(to_bottom_right,white,#ebf8ff,#bee3f8)] backdrop-blur-xl"
+      class="relative h-full overflow-hidden rounded-xl border border-white/40 bg-[linear-gradient(to_bottom_right,white,#ebf8ff,#bee3f8)]"
     >
       <div
         ref="desktopScrollRef"
@@ -48,7 +48,7 @@
       @click.stop
     >
       <div
-        class="relative h-full overflow-hidden border-r border-white/30 bg-[linear-gradient(to_bottom_right,white,#ebf8ff,#bee3f8)] backdrop-blur-xl"
+        class="relative h-full overflow-hidden border-r border-white/30 bg-[linear-gradient(to_bottom_right,white,#ebf8ff,#bee3f8)]"
       >
         <div
           ref="mobileScrollRef"

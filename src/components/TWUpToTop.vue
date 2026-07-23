@@ -30,6 +30,7 @@ const isClientReady = ref(false)
 
 let scrollElement = null
 let mediaQuery = null
+let scrollFrame = 0
 
 function isWindowScrollTarget(target) {
   return !target || target === window
@@ -66,7 +67,7 @@ function bindScrollTarget() {
   const nextScrollElement = findScrollElement()
 
   if (scrollElement === nextScrollElement) {
-    handleScroll()
+    updateScrollState()
     return
   }
 
@@ -80,7 +81,7 @@ function bindScrollTarget() {
     scrollElement.addEventListener('scroll', handleScroll, { passive: true })
   }
 
-  handleScroll()
+  updateScrollState()
 }
 
 function scrollToTop() {
@@ -100,7 +101,7 @@ function scrollToTop() {
   })
 }
 
-function handleScroll() {
+function updateScrollState() {
   const target = scrollElement || findScrollElement()
   const scrollTop = getScrollTop(target)
   const scrollableDistance = getScrollableDistance(target)
@@ -108,6 +109,15 @@ function handleScroll() {
 
   isShow.value = scrollTop > 100
   opacityValue.value = ratio
+}
+
+function handleScroll() {
+  if (scrollFrame) return
+
+  scrollFrame = window.requestAnimationFrame(() => {
+    scrollFrame = 0
+    updateScrollState()
+  })
 }
 
 onMounted(async () => {
@@ -120,6 +130,11 @@ onMounted(async () => {
 })
 
 onUnmounted(() => {
+  if (scrollFrame) {
+    window.cancelAnimationFrame(scrollFrame)
+    scrollFrame = 0
+  }
+
   if (scrollElement) {
     scrollElement.removeEventListener('scroll', handleScroll)
   }
