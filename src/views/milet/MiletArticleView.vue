@@ -149,7 +149,16 @@
 </template>
 
 <script setup lang="ts">
-import { computed, getCurrentInstance, nextTick, onBeforeUnmount, onMounted, onServerPrefetch, ref, watch } from 'vue'
+import {
+  computed,
+  getCurrentInstance,
+  nextTick,
+  onBeforeUnmount,
+  onMounted,
+  onServerPrefetch,
+  ref,
+  watch,
+} from 'vue'
 import { useRoute } from 'vue-router'
 import axiosInstance from '@/AxiosUtil'
 import Header from '@/components/TWHeader.vue'
@@ -162,12 +171,13 @@ import { useAppState } from '@/composables/useAppState'
 import { useArticleAlbumEmbeds } from '@/composables/useArticleAlbumEmbeds'
 import { useArticleImageEnhancements } from '@/composables/useArticleImageEnhancements'
 import type { PublicArticleDetail } from '@/composables/articleType'
-import { scrollToPageAnchor } from '@/composables/usePageAnchorScroll'
+import { usePageAnchorScroll } from '@/composables/usePageAnchorScroll'
 
 import '../../assets/article-content.css'
 import '../../assets/mixed-media.css'
 
 const route = useRoute()
+const { scrollToPageAnchor } = usePageAnchorScroll()
 const state = useAppState()
 const { appContext } = getCurrentInstance()!
 const global = appContext.config.globalProperties
@@ -204,12 +214,6 @@ async function setupArticleEnhancements() {
   await nextTick()
   await albumEmbeds.mount(articleContentRef.value, routeLang.value)
   await imageEnhancements.enhance(articleContentRef.value, articleEnhancementKey())
-
-  if (route.hash) {
-    window.requestAnimationFrame(() => {
-      scrollToPageAnchor(route.hash, { behavior: 'auto', history: 'none' })
-    })
-  }
 }
 
 function cleanupArticleEnhancements() {

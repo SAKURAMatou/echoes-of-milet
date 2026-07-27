@@ -152,8 +152,14 @@
 
       <div class="mt-4 grid gap-3 lg:grid-cols-[10rem_minmax(13rem,1fr)_auto]">
         <div class="lg:col-span-3">
-          <span class="mb-1.5 block text-xs font-medium text-slate-600">{{ pageText.filters.type }}</span>
-          <div class="grid grid-cols-2 gap-1.5 sm:grid-cols-4" role="group" :aria-label="pageText.filters.type">
+          <span class="mb-1.5 block text-xs font-medium text-slate-600">{{
+            pageText.filters.type
+          }}</span>
+          <div
+            class="grid grid-cols-2 gap-1.5 sm:grid-cols-4"
+            role="group"
+            :aria-label="pageText.filters.type"
+          >
             <button
               v-for="option in releaseTypeOptions"
               :key="option.value"
@@ -172,7 +178,9 @@
         </div>
 
         <label class="block">
-          <span class="mb-1.5 block text-xs font-medium text-slate-600">{{ pageText.filters.year }}</span>
+          <span class="mb-1.5 block text-xs font-medium text-slate-600">{{
+            pageText.filters.year
+          }}</span>
           <select
             v-model="yearFilter"
             class="h-10 w-full rounded-md border border-slate-200 bg-white/90 px-3 text-sm text-slate-700 outline-none transition focus:border-[#317f8d] focus:ring-2 focus:ring-sky-100"
@@ -183,7 +191,9 @@
         </label>
 
         <label class="block">
-          <span class="mb-1.5 block text-xs font-medium text-slate-600">{{ pageText.filters.name }}</span>
+          <span class="mb-1.5 block text-xs font-medium text-slate-600">{{
+            pageText.filters.name
+          }}</span>
           <input
             v-model="keywordInput"
             type="search"
@@ -277,10 +287,11 @@ import { computed, getCurrentInstance, onMounted, ref } from 'vue'
 import { useReleaseData } from '@/composables/useReleaseData'
 import { RELEASE_PAGE_TEXT } from '@/composables/lang/ReleaseMetaData'
 import { initImgUrl } from '@/composables/ImgUrlUtil'
-import { scrollToPageAnchor } from '@/composables/usePageAnchorScroll'
+import { usePageAnchorScroll } from '@/composables/usePageAnchorScroll'
 
 const { appContext } = getCurrentInstance()!
 const global = appContext.config.globalProperties
+const { scrollToPageAnchor } = usePageAnchorScroll()
 
 const currentLang = computed(() => (global.$lang?.lang === 'jp' ? 'jp' : 'zh'))
 const pageText = computed(() => RELEASE_PAGE_TEXT[currentLang.value])
@@ -325,13 +336,8 @@ const yearOptions = computed(() => {
   return [...years].sort((a, b) => Number(b) - Number(a))
 })
 
-const hasActiveFilters = computed(
-  () =>
-    Boolean(
-      appliedYear.value ||
-        appliedKeyword.value ||
-        appliedReleaseTypeFilter.value !== 'all',
-    ),
+const hasActiveFilters = computed(() =>
+  Boolean(appliedYear.value || appliedKeyword.value || appliedReleaseTypeFilter.value !== 'all'),
 )
 const visibleReleaseTotal = computed(() => {
   if (appliedReleaseTypeFilter.value === 'album') return albumsData.total.value
@@ -407,52 +413,53 @@ function chapterSubtitle(loaded: number, total: number) {
   return count === '--' ? pageText.value.chapter.all : `${count} ${pageText.value.chapter.releases}`
 }
 
-const chapters = computed(() => [
-  {
-    key: 'ALBUMS',
-    title: pageText.value.title.album,
-    subtitle: chapterSubtitle(albums.value.length, albumsData.total.value),
-    loaded: albums.value.length,
-    total: albumsData.total.value || albums.value.length,
-    countLabel: countLabel(albums.value.length, albumsData.total.value),
-    works: albums.value,
-    anchorId: 'chapter-albums',
-    covers: chapterCovers(albums.value),
-  },
-  {
-    key: 'EP_SINGLE',
-    title: pageText.value.title.ep,
-    subtitle: chapterSubtitle(epsSingles.value.length, epsSinglesData.total.value),
-    loaded: epsSingles.value.length,
-    total: epsSinglesData.total.value || epsSingles.value.length,
-    countLabel: countLabel(epsSingles.value.length, epsSinglesData.total.value),
-    works: epsSingles.value,
-    anchorId: 'chapter-ep-single',
-    covers: chapterCovers(epsSingles.value),
-  },
-  {
-    key: 'LIVE',
-    title: pageText.value.title.live,
-    subtitle: chapterSubtitle(lives.value.length, livesData.total.value),
-    loaded: lives.value.length,
-    total: livesData.total.value || lives.value.length,
-    countLabel: countLabel(lives.value.length, livesData.total.value),
-    works: lives.value,
-    anchorId: 'chapter-live',
-    covers: chapterCovers(lives.value),
-  },
-].filter((chapter) => {
-  if (appliedReleaseTypeFilter.value === 'all') return true
-  if (appliedReleaseTypeFilter.value === 'album') return chapter.key === 'ALBUMS'
-  if (appliedReleaseTypeFilter.value === 'ep') return chapter.key === 'EP_SINGLE'
-  return chapter.key === 'LIVE'
-}))
+const chapters = computed(() =>
+  [
+    {
+      key: 'ALBUMS',
+      title: pageText.value.title.album,
+      subtitle: chapterSubtitle(albums.value.length, albumsData.total.value),
+      loaded: albums.value.length,
+      total: albumsData.total.value || albums.value.length,
+      countLabel: countLabel(albums.value.length, albumsData.total.value),
+      works: albums.value,
+      anchorId: 'chapter-albums',
+      covers: chapterCovers(albums.value),
+    },
+    {
+      key: 'EP_SINGLE',
+      title: pageText.value.title.ep,
+      subtitle: chapterSubtitle(epsSingles.value.length, epsSinglesData.total.value),
+      loaded: epsSingles.value.length,
+      total: epsSinglesData.total.value || epsSingles.value.length,
+      countLabel: countLabel(epsSingles.value.length, epsSinglesData.total.value),
+      works: epsSingles.value,
+      anchorId: 'chapter-ep-single',
+      covers: chapterCovers(epsSingles.value),
+    },
+    {
+      key: 'LIVE',
+      title: pageText.value.title.live,
+      subtitle: chapterSubtitle(lives.value.length, livesData.total.value),
+      loaded: lives.value.length,
+      total: livesData.total.value || lives.value.length,
+      countLabel: countLabel(lives.value.length, livesData.total.value),
+      works: lives.value,
+      anchorId: 'chapter-live',
+      covers: chapterCovers(lives.value),
+    },
+  ].filter((chapter) => {
+    if (appliedReleaseTypeFilter.value === 'all') return true
+    if (appliedReleaseTypeFilter.value === 'album') return chapter.key === 'ALBUMS'
+    if (appliedReleaseTypeFilter.value === 'ep') return chapter.key === 'EP_SINGLE'
+    return chapter.key === 'LIVE'
+  }),
+)
 
 onMounted(() => {
   const currentYear = new Date().getFullYear()
-  calendarYears.value = Array.from(
-    { length: Math.max(0, currentYear - 2018 + 1) },
-    (_, index) => String(currentYear - index),
+  calendarYears.value = Array.from({ length: Math.max(0, currentYear - 2018 + 1) }, (_, index) =>
+    String(currentYear - index),
   )
   document.title = pageText.value.metaTitle
 })

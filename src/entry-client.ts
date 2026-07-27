@@ -1,4 +1,5 @@
 import { createApp } from './app'
+import { acquireBrowserScrollHistoryLease } from './composables/page-scroll'
 
 declare global {
   interface Window {
@@ -13,11 +14,35 @@ const shouldHydrate = Array.from(appRoot?.childNodes || []).some((node) => {
   return Boolean(node.textContent?.trim())
 })
 
-const { app, router } = createApp({
-  initialState: window.__INITIAL_STATE__,
-  hydrate: shouldHydrate,
-})
+const historyLease = acquireBrowserScrollHistoryLease()
+let application: ReturnType<typeof createApp> | null = null
+let tornDown = false
 
-router.isReady().then(() => {
-  app.mount(appRoot || '#app')
-})
+function teardown() {
+  if (tornDown) return
+  tornDown = true
+  application?.app.unmount()
+  application?.scrollCoordinator.dispose()
+  historyLease.release()
+}
+
+async function bootstrap() {
+  try {
+    application = createApp({
+      initialState: window.__INITIAL_STATE__,
+      hydrate: shouldHydrate,
+      browserHistoryManager: historyLease.manager,
+    })
+    await application.router.isReady()
+    application.app.mount(appRoot || '#app')
+  } catch (error) {
+    teardown()
+    throw error
+  }
+}
+
+void bootstrap()
+
+if (import.meta.hot) {
+  import.meta.hot.dispose(teardown)
+}

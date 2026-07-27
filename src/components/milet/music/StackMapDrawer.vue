@@ -56,10 +56,11 @@
 <script setup lang="ts">
 import { getCurrentInstance, computed } from 'vue'
 import { RELEASE_PAGE_TEXT } from '@/composables/lang/ReleaseMetaData'
-import { scrollToPageAnchor } from '@/composables/usePageAnchorScroll'
+import { usePageAnchorScroll } from '@/composables/usePageAnchorScroll'
 
 const { appContext } = getCurrentInstance()!
 const global = appContext.config.globalProperties
+const { scrollToPageAnchor } = usePageAnchorScroll()
 
 const pageText = computed(() => {
   const lang = global.$lang?.lang === 'jp' ? 'jp' : 'zh'

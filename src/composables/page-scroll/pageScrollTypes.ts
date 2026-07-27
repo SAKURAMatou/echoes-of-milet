@@ -51,6 +51,27 @@ export interface PageScrollAnchorOptions extends PageScrollToOptions {
   offset?: number
 }
 
+export type PageScrollPolicy = 'top' | 'restore' | 'preserve' | 'manual'
+
+export type ScrollNavigationIntent =
+  | { kind: 'top' }
+  | { kind: 'restore' }
+  | { kind: 'preserve' }
+  | { kind: 'anchor'; anchor: string; behavior?: ScrollBehavior }
+  | { kind: 'manual' }
+
+export interface PageScrollRestorer {
+  capture(): ScrollSnapshot
+  prepare?(snapshot: ScrollSnapshot, signal: AbortSignal): Promise<void>
+  restore(snapshot: ScrollSnapshot): boolean
+}
+
+export interface BeginScrollNavigationOptions {
+  fromEntryKey: string | null
+  isHistoryNavigation: boolean
+  redirected?: boolean
+}
+
 export interface PageScrollCoordinator {
   readonly state: DeepReadonly<PageScrollState>
   readonly pageScrollLocked: Readonly<Ref<boolean>>
@@ -62,8 +83,18 @@ export interface PageScrollCoordinator {
   restoreSnapshot(snapshot: ScrollSnapshot, options?: PageScrollToOptions): void
   registerElementTarget(element: HTMLElement): () => void
   registerContentMetricsElement(element: HTMLElement): () => void
+  registerPageScrollRestorer(restorer: PageScrollRestorer): () => void
   invalidateMetrics(): void
   lockPageScroll(owner?: string): () => void
   subscribeScrollFrame(callback: (frame: PageScrollFrame) => void): () => void
+  markScrollContentPending(owner?: string): () => void
+  beginNavigation(options: BeginScrollNavigationOptions): number
+  submitNavigationIntent(generationId: number, intent: ScrollNavigationIntent): void
+  confirmNavigation(generationId: number, toEntryKey: string): void
+  abortNavigation(generationId: number): void
+  closeNavigationRegistrationWindow(generationId: number): void
+  notifyAppMounted(): void
+  setNextNavigationIntent(intent: ScrollNavigationIntent): void
+  consumeNextNavigationIntent(): ScrollNavigationIntent | null
   dispose(): void
 }

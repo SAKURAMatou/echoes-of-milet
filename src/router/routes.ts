@@ -6,8 +6,18 @@ import { buildShortLinkTarget, shortLinks } from '@/config/shortLinks'
 declare module 'vue-router' {
   interface RouteMeta {
     renderMode?: 'ssg' | 'ssr' | 'csr'
-    seoKey?: 'home' | 'milet' | 'about' | 'anniversary' | 'pilgrimage' | 'gallery' | 'article' | 'liveArchive' | 'liveEvent'
+    seoKey?:
+      | 'home'
+      | 'milet'
+      | 'about'
+      | 'anniversary'
+      | 'pilgrimage'
+      | 'gallery'
+      | 'article'
+      | 'liveArchive'
+      | 'liveEvent'
     widePage?: boolean
+    scrollPolicy?: 'top' | 'restore' | 'preserve' | 'manual'
   }
 }
 
@@ -23,19 +33,29 @@ export const routes: RouteRecordRaw[] = [
       {
         path: '',
         name: 'home',
-        meta: { renderMode: getConfiguredRenderMode('/'), seoKey: 'home' },
+        meta: {
+          renderMode: getConfiguredRenderMode('/'),
+          seoKey: 'home',
+          scrollPolicy: 'restore',
+        },
         component: () => import('@/views/MiletSiteHome.vue'),
       },
       {
         path: ':shortLink',
         redirect: (to) =>
-          buildShortLinkTarget(`/${to.params.lang}/${to.params.shortLink}`, String(to.params.lang) === 'ja' ? 'ja' : 'zh') ||
-          { name: 'home', params: { lang: to.params.lang } },
+          buildShortLinkTarget(
+            `/${to.params.lang}/${to.params.shortLink}`,
+            String(to.params.lang) === 'ja' ? 'ja' : 'zh',
+          ) || { name: 'home', params: { lang: to.params.lang } },
       },
       {
         path: 'milet/anniversary/:year(\\d{4})?',
         name: 'miletAnniversary',
-        meta: { renderMode: getConfiguredRenderMode('/milet/anniversary'), seoKey: 'anniversary' },
+        meta: {
+          renderMode: getConfiguredRenderMode('/milet/anniversary'),
+          seoKey: 'anniversary',
+          scrollPolicy: 'manual',
+        },
         component: () => import('@/views/milet/MiletAnniversaryView.vue'),
       },
       {
@@ -66,19 +86,29 @@ export const routes: RouteRecordRaw[] = [
             meta: {
               renderMode: getConfiguredRenderMode('/milet'),
               seoKey: 'milet',
+              scrollPolicy: 'restore',
             },
             component: () => import('@/views/milet/MiletHomeView.vue'),
           },
           {
             path: 'live',
             name: 'miletLiveArchive',
-            meta: { renderMode: getConfiguredRenderMode('/milet/live'), seoKey: 'liveArchive', widePage: true },
+            meta: {
+              renderMode: getConfiguredRenderMode('/milet/live'),
+              seoKey: 'liveArchive',
+              widePage: true,
+              scrollPolicy: 'restore',
+            },
             component: () => import('@/views/milet/MiletLiveArchiveView.vue'),
           },
           {
             path: 'galleryList',
             name: 'miletPicAlbum',
-            meta: { renderMode: getConfiguredRenderMode('/milet/galleryList'), seoKey: 'gallery' },
+            meta: {
+              renderMode: getConfiguredRenderMode('/milet/galleryList'),
+              seoKey: 'gallery',
+              scrollPolicy: 'restore',
+            },
             component: () => import('@/views/milet/MiletGalleryView.vue'),
           },
           {
@@ -90,19 +120,19 @@ export const routes: RouteRecordRaw[] = [
           {
             path: 'timeline',
             name: 'miletTimeLine',
-            meta: { renderMode: 'csr' },
+            meta: { renderMode: 'csr', scrollPolicy: 'restore' },
             component: () => import('@/views/milet/MiletTimeLineAll.vue'),
           },
           {
             path: 'news',
             name: 'miletNews',
-            meta: { renderMode: 'csr' },
+            meta: { renderMode: 'csr', scrollPolicy: 'restore' },
             component: () => import('@/views/milet/MiletNewsCollectionView.vue'),
           },
           {
             path: 'release',
             name: 'miletRelease',
-            meta: { renderMode: 'csr', widePage: true },
+            meta: { renderMode: 'csr', widePage: true, scrollPolicy: 'restore' },
             component: () => import('@/views/milet/ReleasesPage.vue'),
           },
           {
@@ -126,13 +156,22 @@ export const routes: RouteRecordRaw[] = [
           {
             path: 'pilgrimage',
             name: 'miletPilgrimage',
-            meta: { renderMode: getConfiguredRenderMode('/milet/pilgrimage'), seoKey: 'pilgrimage', widePage: true },
+            meta: {
+              renderMode: getConfiguredRenderMode('/milet/pilgrimage'),
+              seoKey: 'pilgrimage',
+              widePage: true,
+              scrollPolicy: 'manual',
+            },
             component: () => import('@/views/milet/MiletPilgrimageView.vue'),
           },
           {
             path: 'about',
             name: 'aboutMe',
-            meta: { renderMode: getConfiguredRenderMode('/milet/about'), seoKey: 'about' },
+            meta: {
+              renderMode: getConfiguredRenderMode('/milet/about'),
+              seoKey: 'about',
+              scrollPolicy: 'restore',
+            },
             component: () => import('@/views/AboutMeView.vue'),
           },
           {

@@ -110,7 +110,7 @@ import { useRoute } from 'vue-router'
 import LanguageSelect from '@/components/LanguageSelect.vue'
 import type { MenuItem } from '@/composables/SideMenueData'
 import { colorMap, getMenu } from '@/composables/SideMenueData'
-import { scrollToPageAnchor } from '@/composables/usePageAnchorScroll'
+import { usePageAnchorScroll } from '@/composables/usePageAnchorScroll'
 import { withLangParam } from '@/composables/useLangRoute'
 
 const BOTTOM_WIDE_STATIONERY_PATH = `
@@ -161,6 +161,7 @@ function getBorderColor(color: MenuItem['color']) {
 const getColor = (c: MenuItem['color']) => colorMap[c]
 
 const route = useRoute()
+const { scrollToPageAnchor } = usePageAnchorScroll()
 const menu = computed(() => getMenu())
 
 function isActiveRoute(item: MenuItem) {

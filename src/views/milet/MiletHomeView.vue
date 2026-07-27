@@ -29,11 +29,7 @@
         />
       </LazyHomeSection>
       <LazyHomeSection section-id="gallery" :min-height="820" eager>
-        <MiletHomeGallery
-          :title="sectionTitles.gallery"
-          :gallery="gallery"
-          :section-id="null"
-        />
+        <MiletHomeGallery :title="sectionTitles.gallery" :gallery="gallery" :section-id="null" />
       </LazyHomeSection>
       <LazyHomeSection section-id="links" :min-height="960" eager>
         <MiletHomeOfficialLinks :official="official" :section-id="null" />
@@ -85,12 +81,13 @@ import {
 } from '@/composables/miletHomeV2'
 import type { Track, Work } from '@/composables/releaseType'
 import { useAppState } from '@/composables/useAppState'
-import { scrollToPageAnchor } from '@/composables/usePageAnchorScroll'
+import { usePageAnchorScroll } from '@/composables/usePageAnchorScroll'
 import { apiRoutes } from '@/config/api'
 
 const appState = useAppState()
 const route = useRoute()
 const router = useRouter()
+const { scrollToPageAnchor } = usePageAnchorScroll()
 const MiletHomeCta = defineAsyncComponent(() => import('@/components/milet/home/MiletHomeCta.vue'))
 const MiletHomeEchoRoom = defineAsyncComponent(
   () => import('@/components/milet/home/MiletHomeEchoRoom.vue'),

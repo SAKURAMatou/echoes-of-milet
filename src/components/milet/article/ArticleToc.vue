@@ -31,7 +31,7 @@
 
 <script setup lang="ts">
 import type { ArticleTocItem } from '@/composables/articleType'
-import { scrollToPageAnchor } from '@/composables/usePageAnchorScroll'
+import { usePageAnchorScroll } from '@/composables/usePageAnchorScroll'
 
 withDefaults(
   defineProps<{
@@ -44,6 +44,8 @@ withDefaults(
     variant: 'side',
   },
 )
+
+const { scrollToPageAnchor } = usePageAnchorScroll()
 
 function handleClick(event: MouseEvent, item: ArticleTocItem) {
   event.preventDefault()

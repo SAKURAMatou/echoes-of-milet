@@ -5,7 +5,11 @@ import VueLazyLoad from 'vue3-lazyload'
 
 import App from './App.vue'
 import loadingImg from './assets/loading.gif'
-import { createPageScrollCoordinator, PageScrollCoordinatorKey } from './composables/page-scroll'
+import {
+  type BrowserScrollHistoryManager,
+  createPageScrollCoordinator,
+  PageScrollCoordinatorKey,
+} from './composables/page-scroll'
 import { AppStateKey, createInitialState, type AppState } from './composables/useAppState'
 import { createLangPlugin } from './plugins/LangPlugin'
 import { createAppRouter } from './router'
@@ -15,13 +19,18 @@ interface CreateAppOptions {
   requestHeaders?: Record<string, string | string[] | undefined>
   currentPath?: string
   hydrate?: boolean
+  browserHistoryManager?: BrowserScrollHistoryManager
 }
 
 export function createApp(options: CreateAppOptions = {}) {
   const shouldHydrate = import.meta.env.SSR || options.hydrate !== false
   const app = shouldHydrate ? createSSRApp(App) : createClientApp(App)
   const scrollCoordinator = createPageScrollCoordinator()
-  const router = createAppRouter(import.meta.env.SSR, scrollCoordinator)
+  const router = createAppRouter(
+    import.meta.env.SSR,
+    scrollCoordinator,
+    options.browserHistoryManager,
+  )
   const state = reactive(createInitialState(options.initialState))
 
   app.provide(AppStateKey, state)
