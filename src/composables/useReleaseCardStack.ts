@@ -49,6 +49,8 @@ export function useReleaseCardStack(options: UseReleaseCardStackOptions) {
   let unsubscribeScrollFrame: (() => void) | null = null
   let observerPaused = false
   let mounted = false
+  let blockNextTerminalIdentity = false
+  let blockedTerminalWorkId: string | null = null
 
   function sentinels() {
     return Array.from(
@@ -149,7 +151,13 @@ export function useReleaseCardStack(options: UseReleaseCardStackOptions) {
       pageScroll.state.targetKind === 'window'
         ? document.querySelector('header')?.getBoundingClientRect().height || 0
         : 0
-    chapterTop.value = globalHeaderHeight + CHAPTER_TOP_GAP
+    const mobileToolbarHeight =
+      pageScroll.state.targetKind === 'window'
+        ? document
+            .querySelector<HTMLElement>('[data-release-mobile-toolbar]')
+            ?.getBoundingClientRect().height || 0
+        : 0
+    chapterTop.value = globalHeaderHeight + mobileToolbarHeight + CHAPTER_TOP_GAP
     foldOffset.value = chapterTop.value + chapterHeader.getBoundingClientRect().height + FOLD_GAP
     maxVisibleSpines.value = calculateMaxVisibleSpines(pageScroll.state.viewportHeight)
 
@@ -192,6 +200,12 @@ export function useReleaseCardStack(options: UseReleaseCardStackOptions) {
       PAGINATION_ACTION_MIN_HEIGHT -
       TERMINAL_GAP
     const passedReadLine = sentinel.getBoundingClientRect().top <= readLine
+
+    if (blockedTerminalWorkId === terminalId) {
+      pinnedTerminalWorkId.value = null
+      if (!passedReadLine) blockedTerminalWorkId = null
+      return
+    }
 
     if (direction === 'up' && !passedReadLine) {
       pinnedTerminalWorkId.value = null
@@ -280,6 +294,7 @@ export function useReleaseCardStack(options: UseReleaseCardStackOptions) {
 
   function clearPinnedTerminal() {
     pinnedTerminalWorkId.value = null
+    blockNextTerminalIdentity = true
   }
 
   function setNoAnimation(value: boolean) {
@@ -314,8 +329,14 @@ export function useReleaseCardStack(options: UseReleaseCardStackOptions) {
     refreshMetrics()
     resync()
   })
-  watch(options.terminalWorkId, () => {
+  watch(options.terminalWorkId, (terminalId) => {
     pinnedTerminalWorkId.value = null
+    if (blockNextTerminalIdentity) {
+      blockedTerminalWorkId = terminalId
+      blockNextTerminalIdentity = false
+    } else if (blockedTerminalWorkId !== terminalId) {
+      blockedTerminalWorkId = null
+    }
     void rebuild()
   })
   watch(options.loading, updatePhase)

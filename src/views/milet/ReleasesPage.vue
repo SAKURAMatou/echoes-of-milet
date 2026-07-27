@@ -5,6 +5,7 @@
     :data-page-scroll-target="pageScroll.state.targetKind"
   >
     <div
+      data-release-mobile-toolbar
       class="sticky top-16 z-30 grid grid-cols-3 gap-1.5 border-b border-slate-200/80 bg-white/80 p-2 backdrop-blur-[14px] md:hidden"
     >
       <button
