@@ -1,9 +1,13 @@
 import { createMemoryHistory, createRouter, createWebHistory } from 'vue-router'
 
 import { resetPageScrollContainer, scrollToPageAnchor } from '@/composables/usePageAnchorScroll'
+import type { PageScrollCoordinator } from '@/composables/page-scroll'
 import { routes } from './routes'
 
-export function createAppRouter(isServer = import.meta.env.SSR) {
+export function createAppRouter(
+  isServer = import.meta.env.SSR,
+  _scrollCoordinator?: PageScrollCoordinator,
+) {
   return createRouter({
     history: isServer
       ? createMemoryHistory(import.meta.env.BASE_URL)
@@ -33,5 +37,3 @@ export function createAppRouter(isServer = import.meta.env.SSR) {
     },
   })
 }
-
-export default createAppRouter()

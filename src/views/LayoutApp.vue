@@ -24,6 +24,7 @@
 
         <!-- 右侧内容区域：占据剩余区域，保证滚动条在页面最右侧 -->
         <div
+          ref="scrollContainerRef"
           data-page-scroll-container
           class="min-w-0 flex-1 scroll-pt-6 overflow-x-clip overscroll-y-contain [scrollbar-gutter:stable] md:min-h-0 md:scroll-pt-12 md:overflow-x-hidden md:overflow-y-auto"
         >
@@ -36,6 +37,7 @@
             "
           >
             <main
+              ref="contentMetricsRef"
               class="w-full max-w-full rounded-lg border border-white/70 bg-white/78 shadow-[18px_24px_70px_-52px_rgba(31,41,55,0.55)]"
               :class="
                 route.meta.widePage
@@ -62,12 +64,34 @@ import SideMenuLeft from '@/components/menu/SideMenuLeft.vue'
 
 import LanguageSelect from '@/components/LanguageSelect.vue'
 
-import { ref } from 'vue'
+import { nextTick, onBeforeUnmount, onMounted, ref } from 'vue'
 import { useRoute } from 'vue-router'
+import { usePageScroll } from '@/composables/page-scroll'
 
 const menuOpen = ref(false)
 const headerRef = ref(null)
 const route = useRoute()
+const scrollContainerRef = ref<HTMLElement | null>(null)
+const contentMetricsRef = ref<HTMLElement | null>(null)
+const pageScroll = usePageScroll()
+
+let unregisterScrollContainer: (() => void) | null = null
+let unregisterContentMetrics: (() => void) | null = null
+
+onMounted(async () => {
+  await nextTick()
+  if (scrollContainerRef.value) {
+    unregisterScrollContainer = pageScroll.registerElementTarget(scrollContainerRef.value)
+  }
+  if (contentMetricsRef.value) {
+    unregisterContentMetrics = pageScroll.registerContentMetricsElement(contentMetricsRef.value)
+  }
+})
+
+onBeforeUnmount(() => {
+  unregisterContentMetrics?.()
+  unregisterScrollContainer?.()
+})
 
 const menuClick = () => {
   menuOpen.value = false
