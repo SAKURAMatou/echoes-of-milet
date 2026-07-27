@@ -273,8 +273,23 @@ export function useReleaseCardStack(options: UseReleaseCardStackOptions) {
     sentinels().forEach((sentinel) => cardObserver?.observe(sentinel))
   }
 
+  function resetDisabledState() {
+    cardObserver?.disconnect()
+    cardObserver = null
+    geometricPassedIndex = -1
+    passedWorkIds.value = []
+    pinnedTerminalWorkId.value = null
+    terminalPinEligible.value = false
+    phase.value = 'idle'
+    noAnimation.value = true
+  }
+
   async function rebuild() {
     await nextTick()
+    if (!options.enabled.value) {
+      resetDisabledState()
+      return
+    }
     refreshMetrics()
     rebuildObserver()
     noAnimation.value = true

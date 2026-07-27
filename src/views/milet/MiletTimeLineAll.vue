@@ -118,12 +118,14 @@
         <ul class="relative space-y-10 md:space-y-12">
           <li
             v-for="(it, i) in items"
-            :key="`${it.event_date}-${it.timeline_title}-${i}`"
+            :key="timelineItemKey(it, i)"
             :ref="(el) => setItemRef(el, i)"
             :data-page-scroll-anchor="timelineAnchorId(it, i)"
             class="relative"
             :class="[
-              visibleSet.has(i) ? 'translate-y-0 opacity-100' : 'translate-y-4 opacity-0',
+              visibleSet.has(timelineItemKey(it, i))
+                ? 'translate-y-0 opacity-100'
+                : 'translate-y-4 opacity-0',
               'transition-all duration-500 ease-[cubic-bezier(0.2,0.8,0.2,1)]',
             ]"
           >
@@ -300,7 +302,7 @@ function setItemRef(el: any, idx: number) {
   itemEls.delete(idx)
 }
 
-const visibleSet = reactive(new Set<number>())
+const visibleSet = reactive(new Set<string>())
 let io: IntersectionObserver | null = null
 
 const activeIndex = ref(0)
@@ -410,6 +412,26 @@ function timelineAnchorId(item: TimeLineResItem, index: number) {
   return `timeline-${item.timeline_id ?? `${item.event_date}-${index}`}`
 }
 
+function timelineItemKey(item: TimeLineResItem, index: number) {
+  return timelineAnchorId(item, index)
+}
+
+function observeRenderedItems() {
+  if (!io) return
+  io.disconnect()
+  const { viewportTop, viewportBottom } = getScrollMetrics()
+
+  for (const [index, element] of Array.from(itemEls.entries())) {
+    const item = items.value[index]
+    if (!item) continue
+    const bounds = element.getBoundingClientRect()
+    if (bounds.bottom >= viewportTop && bounds.top <= viewportBottom) {
+      visibleSet.add(timelineItemKey(item, index))
+    }
+    io.observe(element)
+  }
+}
+
 function cardWrapClass(i: number) {
   if (i % 2 === 0) {
     return 'md:col-start-1 md:justify-self-end'
@@ -470,7 +492,8 @@ onMounted(async () => {
 
         for (const [idx, el] of Array.from(itemEls.entries()) as Array<[number, HTMLElement]>) {
           if (el === e.target) {
-            visibleSet.add(idx)
+            const item = items.value[idx]
+            if (item) visibleSet.add(timelineItemKey(item, idx))
             io?.unobserve(el)
             break
           }
@@ -480,7 +503,7 @@ onMounted(async () => {
     { threshold: 0.15 },
   )
 
-  for (const el of Array.from(itemEls.values())) io.observe(el)
+  observeRenderedItems()
 
   updateActiveAndProgress()
   unsubscribeScrollFrame = pageScroll.subscribeScrollFrame(scheduleUpdate)
@@ -569,6 +592,7 @@ const items = computed<TimeLineResItem[]>(() => {
 
 watch(items, async () => {
   await nextTick()
+  observeRenderedItems()
   pageScroll.invalidateMetrics()
   scheduleUpdate()
 })

@@ -249,8 +249,16 @@ async function loadNextPage() {
   paginationController = new AbortController()
   const controller = paginationController
   const transactionId = createTransactionId()
-  const anchorOffset =
-    (paginationActionRef.value?.getBoundingClientRect().top || 0) - pageScroll.state.viewportTop
+  const previousTerminalWorkId = terminalWorkId.value
+  const previousTerminalElement = previousTerminalWorkId
+    ? sectionRef.value?.querySelector<HTMLElement>(
+        `[data-release-card][data-release-id="${CSS.escape(previousTerminalWorkId)}"]`,
+      )
+    : null
+  const anchorCoordinate = previousTerminalElement
+    ? previousTerminalElement.getBoundingClientRect().bottom
+    : paginationActionRef.value?.getBoundingClientRect().top || pageScroll.state.viewportTop
+  const anchorOffset = anchorCoordinate - pageScroll.state.viewportTop
   let anchorCompensationAllowed = true
 
   const cancelCompensation = () => {
@@ -296,9 +304,17 @@ async function loadNextPage() {
     await nextTick()
     await waitForFrame()
     pageScroll.invalidateMetrics()
-    if (anchorCompensationAllowed && paginationActionRef.value) {
+    const restoredTerminalElement = previousTerminalWorkId
+      ? sectionRef.value?.querySelector<HTMLElement>(
+          `[data-release-card][data-release-id="${CSS.escape(previousTerminalWorkId)}"]`,
+        )
+      : null
+    const currentAnchorElement = restoredTerminalElement || paginationActionRef.value
+    if (anchorCompensationAllowed && currentAnchorElement) {
+      const currentAnchorBounds = currentAnchorElement.getBoundingClientRect()
       const currentOffset =
-        paginationActionRef.value.getBoundingClientRect().top - pageScroll.state.viewportTop
+        (restoredTerminalElement ? currentAnchorBounds.bottom : currentAnchorBounds.top) -
+        pageScroll.state.viewportTop
       pageScroll.scrollToPosition(pageScroll.state.top + currentOffset - anchorOffset, {
         behavior: 'auto',
       })
