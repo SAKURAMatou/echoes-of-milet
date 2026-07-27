@@ -1,6 +1,8 @@
 <template>
   <article
+    ref="releaseRoot"
     class="release-page overflow-visible rounded-lg bg-[linear-gradient(180deg,rgba(255,255,255,0.72),rgba(248,253,255,0.78))] text-[#1e2a35]"
+    :data-page-scroll-target="pageScroll.state.targetKind"
   >
     <div
       class="sticky top-16 z-30 grid grid-cols-3 gap-1.5 border-b border-slate-200/80 bg-white/80 p-2 backdrop-blur-[14px] md:hidden"
@@ -236,9 +238,14 @@
         :loading="albumsData.loading.value"
         :error="albumsData.error.value"
         :has-more="albumsData.hasMore.value"
+        :current-page="albumsData.currentPage.value"
         :view-mode="viewMode"
-        @load-more="albumsData.loadMore"
-        @retry="albumsData.retry"
+        :stack-enabled="stackEnhancementEnabled"
+        :prepare-next-page="albumsData.prepareNextPage"
+        :commit-next-page="albumsData.commitNextPage"
+        :next-section-id="nextChapter('ALBUMS')?.anchorId"
+        :next-section-label="nextChapterLabel('ALBUMS')"
+        @enter-next-section="enterNextSection"
       />
 
       <ReleaseSection
@@ -252,9 +259,14 @@
         :loading="epsSinglesData.loading.value"
         :error="epsSinglesData.error.value"
         :has-more="epsSinglesData.hasMore.value"
+        :current-page="epsSinglesData.currentPage.value"
         :view-mode="viewMode"
-        @load-more="epsSinglesData.loadMore"
-        @retry="epsSinglesData.retry"
+        :stack-enabled="stackEnhancementEnabled"
+        :prepare-next-page="epsSinglesData.prepareNextPage"
+        :commit-next-page="epsSinglesData.commitNextPage"
+        :next-section-id="nextChapter('EP_SINGLE')?.anchorId"
+        :next-section-label="nextChapterLabel('EP_SINGLE')"
+        @enter-next-section="enterNextSection"
       />
 
       <ReleaseSection
@@ -268,9 +280,14 @@
         :loading="livesData.loading.value"
         :error="livesData.error.value"
         :has-more="livesData.hasMore.value"
+        :current-page="livesData.currentPage.value"
         :view-mode="viewMode"
-        @load-more="livesData.loadMore"
-        @retry="livesData.retry"
+        :stack-enabled="stackEnhancementEnabled"
+        :prepare-next-page="livesData.prepareNextPage"
+        :commit-next-page="livesData.commitNextPage"
+        :next-section-id="nextChapter('LIVE')?.anchorId"
+        :next-section-label="nextChapterLabel('LIVE')"
+        @enter-next-section="enterNextSection"
       />
     </div>
   </article>
@@ -283,15 +300,24 @@
 <script setup lang="ts">
 import ReleaseSection from '@/components/milet/music/ReleaseSection.vue'
 import StackMapDrawer from '@/components/milet/music/StackMapDrawer.vue'
-import { computed, getCurrentInstance, onMounted, ref } from 'vue'
+import { computed, getCurrentInstance, nextTick, onMounted, ref } from 'vue'
 import { useReleaseData } from '@/composables/useReleaseData'
 import { RELEASE_PAGE_TEXT } from '@/composables/lang/ReleaseMetaData'
 import { initImgUrl } from '@/composables/ImgUrlUtil'
 import { usePageAnchorScroll } from '@/composables/usePageAnchorScroll'
+import {
+  useBusinessAnchorScrollRestoration,
+  usePageScroll,
+  usePageScrollPage,
+} from '@/composables/page-scroll'
+import type { ScrollSnapshot } from '@/composables/page-scroll'
 
 const { appContext } = getCurrentInstance()!
 const global = appContext.config.globalProperties
 const { scrollToPageAnchor } = usePageAnchorScroll()
+const pageScroll = usePageScroll()
+const pageScrollPage = usePageScrollPage()
+const releaseRoot = ref<HTMLElement | null>(null)
 
 const currentLang = computed(() => (global.$lang?.lang === 'jp' ? 'jp' : 'zh'))
 const pageText = computed(() => RELEASE_PAGE_TEXT[currentLang.value])
@@ -314,10 +340,18 @@ const appliedYear = ref('')
 const appliedKeyword = ref('')
 const calendarYears = ref<string[]>([])
 const filtersApplying = ref(false)
+const displayMode = computed(() => (appliedKeyword.value ? 'search' : 'archive'))
+const stackEnhancementEnabled = computed(
+  () => displayMode.value === 'archive' && viewMode.value === 'list',
+)
 
 function onChapterAnchorClick(event: MouseEvent, anchorId: string) {
   event.preventDefault()
   scrollToPageAnchor(anchorId)
+}
+
+function enterNextSection(anchorId: string) {
+  scrollToPageAnchor(anchorId, { behavior: 'smooth', history: 'none' })
 }
 
 const releaseTypeOptions = computed<Array<{ value: ReleaseTypeFilter; label: string }>>(() => [
@@ -362,22 +396,23 @@ async function applyReleaseFilters() {
   try {
     if (appliedReleaseTypeFilter.value === 'album') {
       await albumsData.refresh(filters)
-      return
-    }
-    if (appliedReleaseTypeFilter.value === 'ep') {
+    } else if (appliedReleaseTypeFilter.value === 'ep') {
       await epsSinglesData.refresh(filters)
-      return
-    }
-    if (appliedReleaseTypeFilter.value === 'live') {
+    } else if (appliedReleaseTypeFilter.value === 'live') {
       await livesData.refresh(filters)
-      return
+    } else {
+      await Promise.all([
+        albumsData.refresh(filters),
+        epsSinglesData.refresh(filters),
+        livesData.refresh(filters),
+      ])
     }
-
-    await Promise.all([
-      albumsData.refresh(filters),
-      epsSinglesData.refresh(filters),
-      livesData.refresh(filters),
-    ])
+    await nextTick()
+    pageScroll.invalidateMetrics()
+    const firstChapter = chapters.value[0]
+    if (firstChapter) {
+      scrollToPageAnchor(firstChapter.anchorId, { behavior: 'auto', history: 'none' })
+    }
   } finally {
     filtersApplying.value = false
   }
@@ -456,12 +491,71 @@ const chapters = computed(() =>
   }),
 )
 
-onMounted(() => {
+function nextChapter(currentKey: string) {
+  if (displayMode.value !== 'archive') return undefined
+  const currentIndex = chapters.value.findIndex((chapter) => chapter.key === currentKey)
+  return currentIndex >= 0 ? chapters.value[currentIndex + 1] : undefined
+}
+
+function nextChapterLabel(currentKey: string) {
+  const chapter = nextChapter(currentKey)
+  if (!chapter) return undefined
+  return currentLang.value === 'jp'
+    ? `次のタイプへ：${chapter.title}`
+    : `进入下个类型：${chapter.title}`
+}
+
+type ReleaseDataSource = ReturnType<typeof useReleaseData>
+
+async function ensurePageCount(source: ReleaseDataSource, targetPage: number, signal: AbortSignal) {
+  while (source.currentPage.value < targetPage && source.hasMore.value && !signal.aborted) {
+    const transactionId = `restore-${Date.now().toString(36)}-${Math.random().toString(36).slice(2)}`
+    const prepared = await source.prepareNextPage({ signal, transactionId })
+    if (prepared.status !== 'success' || signal.aborted) return
+    const committed = source.commitNextPage(prepared.batch, { beforeDataMutation: () => {} })
+    if (committed.status === 'rejected') return
+  }
+}
+
+useBusinessAnchorScrollRestoration({
+  root: releaseRoot,
+  capturePageState: () => ({
+    albumPage: albumsData.currentPage.value,
+    epPage: epsSinglesData.currentPage.value,
+    livePage: livesData.currentPage.value,
+  }),
+  async prepare(snapshot: ScrollSnapshot, signal: AbortSignal) {
+    const pageState = snapshot.pageState as
+      | { albumPage?: number; epPage?: number; livePage?: number }
+      | undefined
+    await Promise.all([
+      ensurePageCount(albumsData, pageState?.albumPage || 1, signal),
+      ensurePageCount(epsSinglesData, pageState?.epPage || 1, signal),
+      ensurePageCount(livesData, pageState?.livePage || 1, signal),
+    ])
+    await nextTick()
+    pageScroll.invalidateMetrics()
+  },
+})
+
+onMounted(async () => {
+  const releaseReady = pageScrollPage.markScrollContentPending('releases-initial-data')
   const currentYear = new Date().getFullYear()
   calendarYears.value = Array.from({ length: Math.max(0, currentYear - 2018 + 1) }, (_, index) =>
     String(currentYear - index),
   )
   document.title = pageText.value.metaTitle
+  try {
+    await Promise.all([
+      albumsData.initialize(),
+      epsSinglesData.initialize(),
+      livesData.initialize(),
+    ])
+    await nextTick()
+    pageScroll.invalidateMetrics()
+  } finally {
+    releaseReady()
+  }
 })
 </script>
 
