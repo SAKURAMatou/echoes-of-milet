@@ -88,6 +88,7 @@
 import { nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 
 import SideMenuItems from './SideMenuItems.vue'
+import { usePageScroll } from '@/composables/page-scroll'
 
 const props = defineProps({
   menuOpen: {
@@ -103,13 +104,8 @@ const mobileScrollRef = ref<HTMLElement | null>(null)
 const showDesktopScrollHint = ref(false)
 const showMobileScrollHint = ref(false)
 let resizeObserver: ResizeObserver | null = null
-let lockedScrollY = 0
-const previousBodyStyle = {
-  overflow: '',
-  position: '',
-  top: '',
-  width: '',
-}
+const pageScroll = usePageScroll()
+let releasePageLock: (() => void) | null = null
 
 function hasHiddenContent(scrollEl: HTMLElement | null) {
   if (!scrollEl) {
@@ -146,34 +142,6 @@ function observeScrollContainers() {
   }
 }
 
-function lockBodyScroll() {
-  if (typeof document === 'undefined') {
-    return
-  }
-
-  lockedScrollY = window.scrollY
-  previousBodyStyle.overflow = document.body.style.overflow
-  previousBodyStyle.position = document.body.style.position
-  previousBodyStyle.top = document.body.style.top
-  previousBodyStyle.width = document.body.style.width
-  document.body.style.overflow = 'hidden'
-  document.body.style.position = 'fixed'
-  document.body.style.top = `-${lockedScrollY}px`
-  document.body.style.width = '100%'
-}
-
-function unlockBodyScroll() {
-  if (typeof document === 'undefined') {
-    return
-  }
-
-  document.body.style.overflow = previousBodyStyle.overflow
-  document.body.style.position = previousBodyStyle.position
-  document.body.style.top = previousBodyStyle.top
-  document.body.style.width = previousBodyStyle.width
-  window.scrollTo(0, lockedScrollY)
-}
-
 onMounted(() => {
   isClient.value = true
   resizeObserver =
@@ -190,9 +158,11 @@ watch(
   async (isOpen) => {
     await nextTick()
     if (isOpen) {
-      lockBodyScroll()
+      releasePageLock?.()
+      releasePageLock = pageScroll.lockPageScroll('mobile-menu')
     } else {
-      unlockBodyScroll()
+      releasePageLock?.()
+      releasePageLock = null
     }
     observeScrollContainers()
     updateScrollHints()
@@ -200,9 +170,8 @@ watch(
 )
 
 onBeforeUnmount(() => {
-  if (props.menuOpen) {
-    unlockBodyScroll()
-  }
+  releasePageLock?.()
+  releasePageLock = null
   resizeObserver?.disconnect()
   window.removeEventListener('resize', updateScrollHints)
 })

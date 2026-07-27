@@ -120,6 +120,7 @@
             v-for="(it, i) in items"
             :key="`${it.event_date}-${it.timeline_title}-${i}`"
             :ref="(el) => setItemRef(el, i)"
+            :data-page-scroll-anchor="timelineAnchorId(it, i)"
             class="relative"
             :class="[
               visibleSet.has(i) ? 'translate-y-0 opacity-100' : 'translate-y-4 opacity-0',
@@ -256,6 +257,11 @@ import { apiRoutes, getBackendOrigin } from '@/config/api'
 import FormattedPlainText from '@/components/FormattedPlainText.vue'
 import RelatedArticleList from '@/components/milet/article/RelatedArticleList.vue'
 import type { RelatedArticleGroup } from '@/composables/articleType'
+import {
+  useBusinessAnchorScrollRestoration,
+  usePageScroll,
+  usePageScrollPage,
+} from '@/composables/page-scroll'
 
 const instance = getCurrentInstance()
 const global = instance?.appContext.config.globalProperties
@@ -280,6 +286,7 @@ const timelineHeroYears = computed(() => {
 const currentLang = computed<SupportedLang>(() => (global?.$lang?.lang === 'jp' ? 'jp' : 'zh'))
 
 const currentPage = ref(1)
+const loadedPage = ref(0)
 const hasMoreData = ref(true)
 const isLoading = ref(false)
 const hasLoadedOnce = ref(false)
@@ -297,49 +304,22 @@ const visibleSet = reactive(new Set<number>())
 let io: IntersectionObserver | null = null
 
 const activeIndex = ref(0)
-let scrollContainer: HTMLElement | Window = window
+const pageScroll = usePageScroll()
+const { markScrollContentPending } = usePageScrollPage()
+let unsubscribeScrollFrame: (() => void) | null = null
 
 const progress = ref(0)
 const progressPct = computed(() => Math.max(0, Math.min(100, Math.round(progress.value * 100))))
 
-let rafId = 0
 function scheduleUpdate() {
-  if (rafId) return
-  rafId = requestAnimationFrame(() => {
-    rafId = 0
-    updateActiveAndProgress()
-  })
-}
-
-function findScrollContainer(el: HTMLElement | null) {
-  let current = el?.parentElement ?? null
-
-  while (current) {
-    const style = window.getComputedStyle(current)
-    const overflowY = style.overflowY
-    const isScrollable = overflowY === 'auto' || overflowY === 'scroll' || overflowY === 'overlay'
-
-    if (isScrollable) return current
-    current = current.parentElement
-  }
-
-  return window
+  updateActiveAndProgress()
 }
 
 function getScrollMetrics() {
-  if (scrollContainer instanceof HTMLElement) {
-    const rect = scrollContainer.getBoundingClientRect()
-    return {
-      viewportTop: rect.top,
-      viewportHeight: rect.height,
-      viewportBottom: rect.bottom,
-    }
-  }
-
   return {
-    viewportTop: 0,
-    viewportHeight: window.innerHeight,
-    viewportBottom: window.innerHeight,
+    viewportTop: pageScroll.state.viewportTop,
+    viewportHeight: pageScroll.state.viewportHeight,
+    viewportBottom: pageScroll.state.viewportTop + pageScroll.state.viewportHeight,
   }
 }
 
@@ -426,6 +406,10 @@ function hasItemLink(link: string | undefined | null) {
   return Boolean(getItemHref(link))
 }
 
+function timelineAnchorId(item: TimeLineResItem, index: number) {
+  return `timeline-${item.timeline_id ?? `${item.event_date}-${index}`}`
+}
+
 function cardWrapClass(i: number) {
   if (i % 2 === 0) {
     return 'md:col-start-1 md:justify-self-end'
@@ -463,17 +447,21 @@ function cardClass(i: number, isClickable = false) {
 
 onMounted(async () => {
   document.title = 'milet activities timeline'
-  scrollContainer = findScrollContainer(wrapEl.value)
-
+  const releasePending = markScrollContentPending('timeline-initial-data')
   isLoading.value = true
-  const { hasMore } = await getData(1)
-  hasLoadedOnce.value = true
-  hasMoreData.value = hasMore
-  currentPage.value = 2
-  isLoading.value = false
+  try {
+    const { hasMore } = await getData(1)
+    hasLoadedOnce.value = true
+    hasMoreData.value = hasMore
+    currentPage.value = 2
+  } finally {
+    isLoading.value = false
+    await nextTick()
+    pageScroll.invalidateMetrics()
+    releasePending()
+  }
 
   await nextTick()
-  scrollContainer = findScrollContainer(wrapEl.value)
 
   io = new IntersectionObserver(
     (entries) => {
@@ -495,20 +483,18 @@ onMounted(async () => {
   for (const el of Array.from(itemEls.values())) io.observe(el)
 
   updateActiveAndProgress()
-  scrollContainer.addEventListener('scroll', scheduleUpdate, { passive: true })
-  window.addEventListener('resize', scheduleUpdate)
+  unsubscribeScrollFrame = pageScroll.subscribeScrollFrame(scheduleUpdate)
 })
 
 onBeforeUnmount(() => {
   if (io) io.disconnect()
-  scrollContainer.removeEventListener('scroll', scheduleUpdate)
-  window.removeEventListener('resize', scheduleUpdate)
-  if (rafId) cancelAnimationFrame(rafId)
+  unsubscribeScrollFrame?.()
 })
 
-const getData = async (page: number = 1) => {
+const getData = async (page: number = 1, signal?: AbortSignal) => {
   try {
-    const response = await axiosInstance.get(`${apiRoutes.miletTimeline}/${page}`)
+    const response = await axiosInstance.get(`${apiRoutes.miletTimeline}/${page}`, { signal })
+    if (signal?.aborted) return { data: { zh: [], jp: [] }, hasMore: false }
     const { data, hasMore } = response.data
 
     for (const k of Object.keys(data)) {
@@ -516,12 +502,34 @@ const getData = async (page: number = 1) => {
         displayedData.value[k] = [...displayedData.value[k], ...data[k]]
       }
     }
+    loadedPage.value = Math.max(loadedPage.value, page)
     return { data, hasMore }
   } catch (error) {
+    if (signal?.aborted) return { data: { zh: [], jp: [] }, hasMore: false }
     console.error('Error fetching timeline data:', error)
     return { data: { zh: [], jp: [] }, hasMore: false }
   }
 }
+
+useBusinessAnchorScrollRestoration({
+  root: wrapEl,
+  capturePageState: () => ({ loadedPage: loadedPage.value }),
+  async prepare(snapshot, signal) {
+    const targetPage = Number(
+      (snapshot.pageState as { loadedPage?: number } | undefined)?.loadedPage,
+    )
+    if (!Number.isFinite(targetPage) || targetPage <= loadedPage.value) return
+
+    for (let page = loadedPage.value + 1; page <= targetPage && !signal.aborted; page += 1) {
+      const { hasMore } = await getData(page, signal)
+      hasMoreData.value = hasMore
+      currentPage.value = page + 1
+      if (!hasMore) break
+    }
+    await nextTick()
+    pageScroll.invalidateMetrics()
+  },
+})
 
 const loadMoreData = async () => {
   if (isLoading.value || !hasMoreData.value) return
@@ -539,6 +547,7 @@ const loadMoreData = async () => {
     }
 
     await nextTick()
+    pageScroll.invalidateMetrics()
     for (let i = previousCount; i < items.value.length; i++) {
       const el = itemEls.get(i)
       if (el && io) {
@@ -560,6 +569,7 @@ const items = computed<TimeLineResItem[]>(() => {
 
 watch(items, async () => {
   await nextTick()
+  pageScroll.invalidateMetrics()
   scheduleUpdate()
 })
 </script>

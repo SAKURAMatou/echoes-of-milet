@@ -1,5 +1,5 @@
 <template>
-  <div class="w-full px-4 py-6">
+  <div ref="galleryRoot" class="w-full px-4 py-6">
     <section
       class="relative mx-auto mb-10 max-w-3xl overflow-hidden rounded-2xl border border-white/80 bg-white/80 px-6 py-8 shadow-[0_24px_70px_-50px_rgba(15,61,99,0.55)] backdrop-blur sm:px-9 sm:py-10"
     >
@@ -38,6 +38,7 @@
         <div
           v-for="album in topAlbumList"
           :key="album.galleryId"
+          :data-page-scroll-anchor="`gallery-${album.galleryId}`"
           class="album-card group cursor-pointer"
           @click="goToGallery(album.galleryId)"
         >
@@ -111,6 +112,7 @@
         <div
           v-for="album in normalAlbumList"
           :key="album.galleryId"
+          :data-page-scroll-anchor="`gallery-${album.galleryId}`"
           class="album-card group cursor-pointer"
           @click="goToGallery(album.galleryId)"
         >
@@ -247,10 +249,7 @@
               <h2 id="gallery-notice-title" class="mt-2 text-xl font-semibold text-[#143d63]">
                 {{ pageText.noticeTitle }}
               </h2>
-              <p
-                id="gallery-notice-description"
-                class="mt-4 text-sm leading-7 text-slate-600"
-              >
+              <p id="gallery-notice-description" class="mt-4 text-sm leading-7 text-slate-600">
                 {{ pageText.tip }}
               </p>
               <p class="mt-4 text-xs leading-5 text-slate-400">
@@ -288,12 +287,20 @@ import { withLangParam } from '@/composables/useLangRoute'
 import { apiRoutes, buildStaticAssetUrl } from '@/config/api'
 import { MILET_GALLERY_TEXT } from '@/composables/lang/miletGallery'
 import { useAppState } from '@/composables/useAppState'
+import {
+  useBusinessAnchorScrollRestoration,
+  usePageScroll,
+  usePageScrollPage,
+} from '@/composables/page-scroll'
 
 const router = useRouter()
 const route = useRoute()
 const { appContext } = getCurrentInstance()
 const global = appContext.config.globalProperties
 const appState = useAppState()
+const pageScroll = usePageScroll()
+const { markScrollContentPending } = usePageScrollPage()
+const galleryRoot = ref(null)
 const GALLERY_LIST_CACHE_KEY = 'milet-gallery-list:v1'
 const cachedGalleryList =
   appState.miletGalleryListData?.key === GALLERY_LIST_CACHE_KEY
@@ -310,7 +317,7 @@ const GALLERY_NOTICE_REPEAT_MS = 7 * 24 * 60 * 60 * 1000
 const clientMounted = ref(false)
 const noticeOpen = ref(false)
 let noticeTimer = null
-let previousBodyOverflow = ''
+let releaseNoticeLock = null
 
 // 数据相关
 const topAlbumList = ref(cachedGalleryList?.topAlbums || [])
@@ -333,8 +340,8 @@ const clearNoticeTimer = () => {
 
 const openNotice = () => {
   noticeTimer = null
-  previousBodyOverflow = document.body.style.overflow
-  document.body.style.overflow = 'hidden'
+  releaseNoticeLock?.()
+  releaseNoticeLock = pageScroll.lockPageScroll('gallery-notice')
   noticeOpen.value = true
 }
 
@@ -358,7 +365,8 @@ const scheduleNoticeFromStorage = () => {
 
 const closeNotice = () => {
   noticeOpen.value = false
-  document.body.style.overflow = previousBodyOverflow
+  releaseNoticeLock?.()
+  releaseNoticeLock = null
   const dismissedAt = Date.now()
   try {
     window.localStorage.setItem(GALLERY_NOTICE_DISMISSED_AT_KEY, String(dismissedAt))
@@ -375,9 +383,12 @@ const handleNoticeKeydown = (event) => {
 /**
  * 获取相册列表数据
  */
-const loadAlbums = async (istop, page) => {
+const loadAlbums = async (istop, page, signal) => {
   try {
-    const response = await axiosInstance.get(`${apiRoutes.miletGallery}/${istop}/${page}`)
+    const response = await axiosInstance.get(`${apiRoutes.miletGallery}/${istop}/${page}`, {
+      signal,
+    })
+    if (signal?.aborted) return totalPages.value
 
     if (response.code === 200) {
       const albums = Array.isArray(response.data) ? response.data : []
@@ -394,10 +405,34 @@ const loadAlbums = async (istop, page) => {
       return response.maxPage || 1
     }
   } catch (error) {
+    if (signal?.aborted) return totalPages.value
     console.error('获取相册数据失败:', error)
   }
   return 1
 }
+
+useBusinessAnchorScrollRestoration({
+  root: galleryRoot,
+  capturePageState: () => ({ loadedPage: currentPage.value }),
+  async prepare(snapshot, signal) {
+    const targetPage = Number((snapshot.pageState || {}).loadedPage)
+    if (!Number.isFinite(targetPage) || targetPage <= currentPage.value) return
+
+    for (
+      let nextPage = currentPage.value + 1;
+      nextPage <= targetPage && !signal.aborted;
+      nextPage += 1
+    ) {
+      const maxPage = await loadAlbums(0, nextPage, signal)
+      currentPage.value = nextPage
+      totalPages.value = maxPage
+      isLastPage.value = nextPage >= maxPage
+      if (isLastPage.value) break
+    }
+    await nextTick()
+    pageScroll.invalidateMetrics()
+  },
+})
 
 /**
  * 初始化加载
@@ -553,6 +588,7 @@ const delayLoadMore = throttle(() => {
 onServerPrefetch(initLoad)
 
 onMounted(async () => {
+  const releasePending = markScrollContentPending('gallery-initial-data')
   clientMounted.value = true
   document.title = pageText.value.metaTitle
   window.addEventListener('keydown', handleNoticeKeydown)
@@ -560,16 +596,25 @@ onMounted(async () => {
   if (cachedGalleryList) {
     await nextTick()
     setupIntersectionObserver()
+    pageScroll.invalidateMetrics()
+    releasePending()
     return
   }
 
-  initLoad()
+  try {
+    await initLoad()
+    await nextTick()
+    pageScroll.invalidateMetrics()
+  } finally {
+    releasePending()
+  }
 })
 
 onUnmounted(() => {
   clearNoticeTimer()
   window.removeEventListener('keydown', handleNoticeKeydown)
-  if (noticeOpen.value) document.body.style.overflow = previousBodyOverflow
+  releaseNoticeLock?.()
+  releaseNoticeLock = null
   if (galleryObserver.value) {
     galleryObserver.value.disconnect()
   }

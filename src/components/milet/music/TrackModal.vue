@@ -23,8 +23,19 @@
                 class="relative flex items-center justify-between border-b border-slate-200/80 px-4 py-3.5 md:px-6 md:py-4"
               >
                 <div class="flex min-w-0 items-start gap-3">
-                  <span class="mt-1 grid size-8 shrink-0 place-items-center rounded-md border border-sky-200/80 bg-sky-50 text-sky-700" aria-hidden="true">
-                    <svg class="size-[18px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                  <span
+                    class="mt-1 grid size-8 shrink-0 place-items-center rounded-md border border-sky-200/80 bg-sky-50 text-sky-700"
+                    aria-hidden="true"
+                  >
+                    <svg
+                      class="size-[18px]"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="1.8"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                    >
                       <path d="M9 18V5l10-2v13" />
                       <circle cx="6" cy="18" r="3" />
                       <circle cx="16" cy="16" r="3" />
@@ -473,8 +484,9 @@
 </template>
 
 <script setup lang="ts">
-import { computed, getCurrentInstance, ref, watch } from 'vue'
+import { computed, getCurrentInstance, onBeforeUnmount, ref, watch } from 'vue'
 import type { Track, TrackListenData } from '@/composables/releaseType'
+import { usePageScroll } from '@/composables/page-scroll'
 import RelatedArticleList from '@/components/milet/article/RelatedArticleList.vue'
 import TrackListenPlatformIcon from './TrackListenPlatformIcon.vue'
 
@@ -518,6 +530,8 @@ const emit = defineEmits<{ (e: 'close'): void }>()
 
 const { appContext } = getCurrentInstance()!
 const global = appContext.config.globalProperties
+const pageScroll = usePageScroll()
+let releasePageLock: (() => void) | null = null
 
 const emptyListenData = (): TrackListenData => ({ jp: [], zh: [] })
 
@@ -539,7 +553,10 @@ const currentLanguageLabel = computed(() =>
 )
 
 function formatSourceTypeTag(sourceType: string) {
-  const isManual = String(sourceType || '').trim().toLowerCase() === 'manual'
+  const isManual =
+    String(sourceType || '')
+      .trim()
+      .toLowerCase() === 'manual'
 
   if (currentLang.value === 'jp') {
     return isManual ? '手動' : '自動'
@@ -560,6 +577,20 @@ watch(
   },
   { immediate: true },
 )
+
+watch(
+  () => props.open,
+  (open) => {
+    releasePageLock?.()
+    releasePageLock = open ? pageScroll.lockPageScroll('track-modal') : null
+  },
+  { immediate: true },
+)
+
+onBeforeUnmount(() => {
+  releasePageLock?.()
+  releasePageLock = null
+})
 
 function openListenDrawer() {
   if (!hasListenData.value) {

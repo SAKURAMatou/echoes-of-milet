@@ -1,5 +1,6 @@
 <template>
   <section
+    ref="newsRoot"
     class="news-collection mx-auto min-h-[calc(100svh-5rem)] w-full max-w-5xl rounded-lg bg-[linear-gradient(to_bottom_right,white,#ebf8ff,#bee3f8)] px-4 py-8 sm:px-6 sm:py-10"
   >
     <header
@@ -11,16 +12,22 @@
       <div class="news-hero-paper pointer-events-none absolute inset-y-0 right-0 w-[58%]"></div>
       <div class="relative min-h-[15rem]">
         <div class="relative z-10 max-w-3xl">
-          <p class="font-['Montserrat','sans-serif'] text-[12px] font-semibold uppercase tracking-[.18em] text-[#317f8d]">
+          <p
+            class="font-['Montserrat','sans-serif'] text-[12px] font-semibold uppercase tracking-[.18em] text-[#317f8d]"
+          >
             CURRENT: News
           </p>
-          <h1 class="milet-page-title-font mt-5 text-5xl leading-none text-[#143d63] sm:text-6xl md:text-7xl">
+          <h1
+            class="milet-page-title-font mt-5 text-5xl leading-none text-[#143d63] sm:text-6xl md:text-7xl"
+          >
             News Collection
           </h1>
           <p class="mt-5 max-w-2xl text-sm font-medium leading-7 text-slate-600">
             {{ pageText.lead }}
           </p>
-          <p class="mt-4 max-w-3xl rounded-lg border border-sky-100/80 bg-white/58 px-4 py-3 text-[13px] leading-6 text-slate-500 shadow-[0_18px_45px_-36px_rgba(15,23,42,0.64)] backdrop-blur">
+          <p
+            class="mt-4 max-w-3xl rounded-lg border border-sky-100/80 bg-white/58 px-4 py-3 text-[13px] leading-6 text-slate-500 shadow-[0_18px_45px_-36px_rgba(15,23,42,0.64)] backdrop-blur"
+          >
             {{ pageText.disclaimer }}
           </p>
         </div>
@@ -30,8 +37,12 @@
           aria-hidden="true"
         >
           <div class="absolute right-0 top-3 flex w-64 items-center gap-4">
-            <span class="h-px flex-1 bg-[linear-gradient(90deg,rgba(184,148,68,0.16),rgba(184,148,68,0.76))]"></span>
-            <span class="h-2.5 w-2.5 rotate-45 border border-[#b89444]/60 bg-white/82 shadow-[0_0_0_5px_rgba(255,255,255,0.38)]"></span>
+            <span
+              class="h-px flex-1 bg-[linear-gradient(90deg,rgba(184,148,68,0.16),rgba(184,148,68,0.76))]"
+            ></span>
+            <span
+              class="h-2.5 w-2.5 rotate-45 border border-[#b89444]/60 bg-white/82 shadow-[0_0_0_5px_rgba(255,255,255,0.38)]"
+            ></span>
           </div>
           <div class="absolute bottom-2 right-4 h-24 w-72 overflow-hidden opacity-65">
             <span
@@ -181,6 +192,7 @@
           <article
             v-for="item in group.items"
             :key="item.id"
+            :data-page-scroll-anchor="`news-${item.id}`"
             class="news-card group grid min-h-[164px] grid-cols-[104px_1fr] overflow-hidden rounded-lg border bg-white/72 text-left shadow-sm backdrop-blur transition hover:-translate-y-0.5 hover:shadow-md sm:grid-cols-[132px_1fr]"
             :class="topicCardClass(groupIndex)"
           >
@@ -202,14 +214,18 @@
                 v-else
                 class="grid h-full min-h-[164px] place-items-center bg-gradient-to-br from-sky-50 to-pink-50 px-3 text-center"
               >
-                <span class="font-['Montserrat','sans-serif'] text-[11px] font-semibold uppercase tracking-[.18em] text-slate-400">
+                <span
+                  class="font-['Montserrat','sans-serif'] text-[11px] font-semibold uppercase tracking-[.18em] text-slate-400"
+                >
                   news
                 </span>
               </div>
             </a>
 
             <div class="flex min-w-0 flex-col p-4">
-              <div class="mb-2 flex items-center justify-between gap-3 text-[11px] uppercase tracking-[.12em] text-slate-400">
+              <div
+                class="mb-2 flex items-center justify-between gap-3 text-[11px] uppercase tracking-[.12em] text-slate-400"
+              >
                 <button
                   type="button"
                   class="truncate transition hover:text-sky-700"
@@ -277,6 +293,11 @@ import { useRoute } from 'vue-router'
 
 import axiosInstance from '@/AxiosUtil'
 import { apiRoutes } from '@/config/api'
+import {
+  useBusinessAnchorScrollRestoration,
+  usePageScroll,
+  usePageScrollPage,
+} from '@/composables/page-scroll'
 
 type PublicNewsItem = {
   id: number
@@ -313,6 +334,9 @@ type PublicNewsTopicsResponse = {
 }
 
 const route = useRoute()
+const pageScroll = usePageScroll()
+const { markScrollContentPending } = usePageScrollPage()
+const newsRoot = ref<HTMLElement | null>(null)
 const instance = getCurrentInstance()
 const global = instance?.appContext.config.globalProperties as any
 
@@ -412,11 +436,21 @@ function topicCardClass(index: number) {
 function topicTagStyle(index: number) {
   const palette = [
     ['rgba(14, 165, 233, 0.28)', 'rgba(240, 249, 255, 0.82)', '#075985', 'rgba(2, 132, 199, 0.14)'],
-    ['rgba(236, 72, 153, 0.24)', 'rgba(253, 242, 248, 0.82)', '#9d174d', 'rgba(219, 39, 119, 0.13)'],
+    [
+      'rgba(236, 72, 153, 0.24)',
+      'rgba(253, 242, 248, 0.82)',
+      '#9d174d',
+      'rgba(219, 39, 119, 0.13)',
+    ],
     ['rgba(16, 185, 129, 0.24)', 'rgba(236, 253, 245, 0.82)', '#047857', 'rgba(5, 150, 105, 0.13)'],
     ['rgba(245, 158, 11, 0.25)', 'rgba(255, 251, 235, 0.84)', '#92400e', 'rgba(217, 119, 6, 0.14)'],
     ['rgba(99, 102, 241, 0.22)', 'rgba(238, 242, 255, 0.82)', '#3730a3', 'rgba(79, 70, 229, 0.13)'],
-    ['rgba(20, 184, 166, 0.24)', 'rgba(240, 253, 250, 0.82)', '#0f766e', 'rgba(13, 148, 136, 0.13)'],
+    [
+      'rgba(20, 184, 166, 0.24)',
+      'rgba(240, 253, 250, 0.82)',
+      '#0f766e',
+      'rgba(13, 148, 136, 0.13)',
+    ],
   ]
   const color = palette[Math.max(0, index) % palette.length]
   return {
@@ -510,7 +544,7 @@ function setupTopicRailObserver() {
   topicResizeObserver.observe(topicRailEl.value)
 }
 
-async function loadNews() {
+async function loadNews(signal?: AbortSignal) {
   if (loading.value || !hasMore.value) return
 
   loading.value = true
@@ -523,7 +557,11 @@ async function loadNews() {
       params.tag = selectedTag.value
     }
 
-    const response = await axiosInstance.get<PublicNewsResponse>(apiRoutes.miletNews, { params })
+    const response = await axiosInstance.get<PublicNewsResponse>(apiRoutes.miletNews, {
+      params,
+      signal,
+    })
+    if (signal?.aborted) return
 
     if (response.success === false) {
       throw new Error(response.message || 'Failed to load news')
@@ -534,6 +572,7 @@ async function loadNews() {
     hasMore.value = Boolean(response.hasMore)
     page.value += 1
   } catch (error) {
+    if (signal?.aborted) return
     console.error('Failed to load public news:', error)
     hasMore.value = false
   } finally {
@@ -541,6 +580,36 @@ async function loadNews() {
     hasLoadedOnce.value = true
   }
 }
+
+useBusinessAnchorScrollRestoration({
+  root: newsRoot,
+  capturePageState: () => ({
+    loadedPage: Math.max(0, page.value - 1),
+    selectedTag: selectedTag.value,
+  }),
+  async prepare(snapshot, signal) {
+    const pageState = snapshot.pageState as
+      | { loadedPage?: number; selectedTag?: string }
+      | undefined
+    const targetTag = pageState?.selectedTag || ''
+    const targetPage = Number(pageState?.loadedPage)
+
+    if (targetTag !== selectedTag.value) {
+      selectedTag.value = targetTag
+      resetNewsList()
+    }
+    while (
+      Number.isFinite(targetPage) &&
+      page.value <= targetPage &&
+      hasMore.value &&
+      !signal.aborted
+    ) {
+      await loadNews(signal)
+    }
+    await nextTick()
+    pageScroll.invalidateMetrics()
+  },
+})
 
 function setupObserver() {
   observer?.disconnect()
@@ -558,12 +627,18 @@ function setupObserver() {
 }
 
 onMounted(async () => {
+  const releasePending = markScrollContentPending('news-initial-data')
   document.title = 'milet news collection'
-  await Promise.all([loadNewsTopics(), loadNews()])
-  await nextTick()
-  setupTopicRailObserver()
-  updateTopicRailHint()
-  setupObserver()
+  try {
+    await Promise.all([loadNewsTopics(), loadNews()])
+    await nextTick()
+    setupTopicRailObserver()
+    updateTopicRailHint()
+    setupObserver()
+    pageScroll.invalidateMetrics()
+  } finally {
+    releasePending()
+  }
 })
 
 onBeforeUnmount(() => {
@@ -587,7 +662,12 @@ onBeforeUnmount(() => {
 
 .news-hero-paper {
   background:
-    linear-gradient(90deg, rgba(255, 255, 255, 0.92), rgba(240, 249, 255, 0.1) 34%, rgba(255, 255, 255, 0.03)),
+    linear-gradient(
+      90deg,
+      rgba(255, 255, 255, 0.92),
+      rgba(240, 249, 255, 0.1) 34%,
+      rgba(255, 255, 255, 0.03)
+    ),
     url('/background/news-hero-bg.webp') center right / cover no-repeat;
   opacity: 0.9;
 }
@@ -598,7 +678,13 @@ onBeforeUnmount(() => {
   position: absolute;
   inset: auto 2rem 1.4rem 2rem;
   height: 1px;
-  background: linear-gradient(90deg, transparent, rgba(184, 148, 68, 0.48), rgba(184, 148, 68, 0.12), transparent);
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(184, 148, 68, 0.48),
+    rgba(184, 148, 68, 0.12),
+    transparent
+  );
 }
 
 .news-hero-signal {

@@ -95,6 +95,7 @@ export function createPageScrollCoordinator(): PageScrollCoordinator {
   let activeGeneration: NavigationGeneration | null = null
   let nextNavigationIntent: ScrollNavigationIntent | null = null
   let appMounted = false
+  let releasePhysicalLock: (() => void) | null = null
   const snapshots = new Map<string, ScrollSnapshot>()
 
   const isBrowser = typeof window !== 'undefined' && typeof document !== 'undefined'
@@ -380,6 +381,8 @@ export function createPageScrollCoordinator(): PageScrollCoordinator {
     }
 
     const previousScrollTop = preserveTop && target ? readPageScrollTop(target) : 0
+    releasePhysicalLock?.()
+    releasePhysicalLock = null
     unbindTarget?.()
     unbindTarget = null
     target = nextTarget
@@ -393,6 +396,7 @@ export function createPageScrollCoordinator(): PageScrollCoordinator {
     }
 
     refreshResizeObserver()
+    if (lockTokens.size > 0) releasePhysicalLock = applyPhysicalLock()
     scheduleMeasure()
   }
 
@@ -467,12 +471,60 @@ export function createPageScrollCoordinator(): PageScrollCoordinator {
     }
   }
 
+  function applyPhysicalLock(): (() => void) | null {
+    if (!target || !isBrowser) return null
+    const lockedTarget = target
+    const lockedTop = readPageScrollTop(lockedTarget)
+
+    if (lockedTarget.kind === 'element') {
+      const element = lockedTarget.target
+      const previousOverflow = element.style.overflow
+      const previousOverscrollBehavior = element.style.overscrollBehavior
+      element.style.overflow = 'hidden'
+      element.style.overscrollBehavior = 'contain'
+      return () => {
+        element.style.overflow = previousOverflow
+        element.style.overscrollBehavior = previousOverscrollBehavior
+        element.scrollTo({ top: lockedTop, left: 0, behavior: 'auto' })
+      }
+    }
+
+    const body = document.body
+    const documentElement = document.documentElement
+    const previous = {
+      bodyOverflow: body.style.overflow,
+      bodyPosition: body.style.position,
+      bodyTop: body.style.top,
+      bodyWidth: body.style.width,
+      bodyPaddingRight: body.style.paddingRight,
+      documentOverflow: documentElement.style.overflow,
+    }
+    const scrollbarWidth = Math.max(0, window.innerWidth - documentElement.clientWidth)
+    body.style.overflow = 'hidden'
+    body.style.position = 'fixed'
+    body.style.top = `-${lockedTop}px`
+    body.style.width = '100%'
+    if (scrollbarWidth > 0) body.style.paddingRight = `${scrollbarWidth}px`
+    documentElement.style.overflow = 'hidden'
+
+    return () => {
+      body.style.overflow = previous.bodyOverflow
+      body.style.position = previous.bodyPosition
+      body.style.top = previous.bodyTop
+      body.style.width = previous.bodyWidth
+      body.style.paddingRight = previous.bodyPaddingRight
+      documentElement.style.overflow = previous.documentOverflow
+      window.scrollTo({ top: lockedTop, left: 0, behavior: 'auto' })
+    }
+  }
+
   function lockPageScroll() {
     if (disposed) return () => {}
     const token = Symbol('page-scroll-lock')
     lockTokens.add(token)
     state.lockCount = lockTokens.size
     state.isLocked = lockTokens.size > 0
+    if (lockTokens.size === 1) releasePhysicalLock = applyPhysicalLock()
 
     let active = true
     return () => {
@@ -481,6 +533,11 @@ export function createPageScrollCoordinator(): PageScrollCoordinator {
       lockTokens.delete(token)
       state.lockCount = lockTokens.size
       state.isLocked = lockTokens.size > 0
+      if (lockTokens.size === 0) {
+        releasePhysicalLock?.()
+        releasePhysicalLock = null
+        scheduleMeasure()
+      }
     }
   }
 
@@ -521,6 +578,8 @@ export function createPageScrollCoordinator(): PageScrollCoordinator {
     activeGeneration = null
     activeRestorer = null
     snapshots.clear()
+    releasePhysicalLock?.()
+    releasePhysicalLock = null
     subscribers.clear()
     lockTokens.clear()
     state.lockCount = 0
