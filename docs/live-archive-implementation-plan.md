@@ -1677,6 +1677,8 @@ live_performances.venue_line_art_image_id
 
 根据场馆链接生成素材的工作流：
 
+详细可执行流程见 [Live Archive Venue Line Art Workflow](./live-archive-venue-lineart-workflow.md)。后续新增场馆线稿图时，优先按该 workflow 生成源图、转换 mask WebP 并完成浅色/深色背景检查。
+
 1. 先通过场馆官网、官方设施页或可信公开资料确认建筑识别点。
 2. 提取 3-6 个建筑特征，例如屋顶轮廓、塔楼、入口雨棚、玻璃幕墙、立面格栅、台阶、圆形大厅等。
 3. 使用统一提示词生成“可抠背景的线稿源图”。
