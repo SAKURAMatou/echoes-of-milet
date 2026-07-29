@@ -2,30 +2,43 @@
   <button
     class="chapter-control chapter-control-prev"
     type="button"
-    aria-label="Previous chapter"
+    :disabled="atStart"
+    :aria-label="previousLabel"
     @click="$emit('prev')"
   >
-    <span class="desktop-arrow max-md:hidden">←</span>
-    <span class="mobile-arrow md:hidden">↑</span>
-    <em>prev</em>
+    <span aria-hidden="true">←</span>
+    <em>{{ lang === 'ja' ? '前へ' : '上一章' }}</em>
   </button>
   <button
     class="chapter-control chapter-control-next"
     type="button"
-    aria-label="Next chapter"
+    :disabled="atEnd"
+    :aria-label="nextLabel"
     @click="$emit('next')"
   >
-    <span class="desktop-arrow max-md:hidden">→</span>
-    <span class="mobile-arrow md:hidden">↓</span>
-    <em>next</em>
+    <span aria-hidden="true">→</span>
+    <em>{{ lang === 'ja' ? '次へ' : '下一章' }}</em>
   </button>
 </template>
 
 <script setup lang="ts">
+import { computed } from 'vue'
+
+import type { AnniversaryLang } from '@/composables/miletAnniversary'
+
+const props = defineProps<{
+  atStart: boolean
+  atEnd: boolean
+  lang: AnniversaryLang
+}>()
+
 defineEmits<{
   (event: 'prev'): void
   (event: 'next'): void
 }>()
+
+const previousLabel = computed(() => (props.lang === 'ja' ? '前の章' : '上一章'))
+const nextLabel = computed(() => (props.lang === 'ja' ? '次の章' : '下一章'))
 </script>
 
 <style scoped>
@@ -38,19 +51,19 @@ defineEmits<{
   min-height: 11rem;
   align-items: center;
   justify-content: center;
-  gap: 0.3rem;
-  border: 1px solid rgba(255, 255, 255, 0.72);
-  background: rgba(255, 255, 255, 0.2);
-  color: rgba(39, 109, 123, 0.86);
+  gap: 0.35rem;
+  border: 1px solid rgba(255, 255, 255, 0.78);
+  background: rgba(255, 255, 255, 0.38);
+  color: rgba(39, 109, 123, 0.9);
   text-transform: uppercase;
-  backdrop-filter: blur(18px);
+  backdrop-filter: blur(12px);
   box-shadow: 0 24px 70px -54px rgba(31, 43, 53, 0.95);
   transform: translateY(-50%);
   transition:
-    transform 220ms ease,
-    background 220ms ease,
-    opacity 220ms ease;
-  animation: chapter-control-breathe 3.8s ease-in-out infinite;
+    transform var(--anniversary-micro-duration, 180ms) ease,
+    background var(--anniversary-micro-duration, 180ms) ease,
+    opacity var(--anniversary-micro-duration, 180ms) ease;
+  animation: chapter-control-hint 1.6s ease-out 1;
 }
 
 .chapter-control-prev {
@@ -73,73 +86,48 @@ defineEmits<{
   font-size: 0.66rem;
   font-style: normal;
   font-weight: 800;
-  letter-spacing: 0.18em;
+  letter-spacing: 0.12em;
   writing-mode: vertical-rl;
 }
 
-.chapter-control:hover {
-  opacity: 1;
-  background: rgba(255, 255, 255, 0.58);
+.chapter-control:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.7);
 }
 
-.chapter-control-prev:hover {
+.chapter-control-prev:hover:not(:disabled) {
   transform: translateY(-50%) translateX(-0.2rem);
 }
 
-.chapter-control-next:hover {
+.chapter-control-next:hover:not(:disabled) {
   transform: translateY(-50%) translateX(0.2rem);
 }
 
-@keyframes chapter-control-breathe {
+.chapter-control:focus-visible {
+  outline: 3px solid rgba(39, 109, 123, 0.55);
+  outline-offset: 4px;
+}
+
+.chapter-control:disabled {
+  cursor: not-allowed;
+  opacity: 0.16;
+  animation: none;
+}
+
+@keyframes chapter-control-hint {
   0%,
   100% {
-    opacity: 0.24;
+    opacity: 0.42;
   }
 
   45% {
-    opacity: 0.78;
-  }
-
-  70% {
-    opacity: 0.42;
+    opacity: 0.82;
   }
 }
 
-@media (max-width: 767px) {
+@media (prefers-reduced-motion: reduce) {
   .chapter-control {
-    left: 50%;
-    width: min(40vw, 10.5rem);
-    min-height: 3.35rem;
-    flex-direction: row;
-    border-radius: 1.35rem 0.45rem 1.35rem 0.45rem;
-    clip-path: polygon(12% 0, 88% 0, 100% 52%, 82% 100%, 18% 100%, 0 52%);
-    transform: translateX(-50%);
-  }
-
-  .chapter-control em {
-    writing-mode: horizontal-tb;
-  }
-
-  .chapter-control-prev {
-    top: 6.85rem;
-    right: auto;
-  }
-
-  .chapter-control-next {
-    top: auto;
-    right: auto;
-    bottom: 1.05rem;
-  }
-
-  .chapter-control-prev:hover,
-  .chapter-control-next:hover {
-    transform: translateX(-50%);
-  }
-}
-
-@media (max-width: 767px) and (max-height: 760px) {
-  .chapter-control {
-    min-height: 3rem;
+    animation: none;
+    transition: none;
   }
 }
 </style>

@@ -54,7 +54,7 @@ export const routes: RouteRecordRaw[] = [
         meta: {
           renderMode: getConfiguredRenderMode('/milet/anniversary'),
           seoKey: 'anniversary',
-          scrollPolicy: 'manual',
+          scrollPolicy: 'restore',
         },
         component: () => import('@/views/milet/MiletAnniversaryView.vue'),
       },

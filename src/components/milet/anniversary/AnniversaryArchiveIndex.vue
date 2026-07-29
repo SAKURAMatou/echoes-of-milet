@@ -1,6 +1,6 @@
 <template>
-  <section class="relative z-10 flex h-full items-center">
-    <div class="mx-auto w-full max-w-6xl px-5 pt-20 sm:px-8">
+  <section class="relative z-10 min-h-dvh py-24 sm:py-28" data-page-scroll-anchor="anniversary-archive">
+    <div class="mx-auto w-full max-w-6xl px-5 sm:px-8">
       <div class="grid gap-10 md:grid-cols-[0.82fr_1.18fr] md:items-start">
         <div>
           <p class="section-eyebrow">anniversary archive</p>
@@ -20,6 +20,7 @@
             :key="year"
             :to="{ name: 'miletAnniversary', params: { lang: routeLang, year } }"
             class="archive-year-link"
+            :data-page-scroll-anchor="`anniversary-${year}`"
           >
             <span class="archive-year-number">{{ year }}</span>
             <span class="archive-year-copy">
@@ -84,6 +85,11 @@ defineProps<{
   background:
     linear-gradient(135deg, rgba(255, 255, 255, 0.94), rgba(241, 250, 251, 0.88)),
     linear-gradient(90deg, rgba(49, 127, 141, 0.1), rgba(221, 190, 95, 0.12));
+}
+
+.archive-year-link:focus-visible {
+  outline: 3px solid rgba(39, 109, 123, 0.5);
+  outline-offset: 4px;
 }
 
 .archive-year-number {
