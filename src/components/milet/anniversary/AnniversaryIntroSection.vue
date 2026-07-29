@@ -30,14 +30,14 @@
       </div>
 
       <div class="order-1 flex justify-center md:order-2" aria-hidden="true">
-        <div class="anniversary-number" :class="{ 'play-rings': playEntrance }">
+        <div class="anniversary-number" :class="{ 'play-rings': playEntrance && motionActive }">
           <i
             v-for="ring in ringCount"
-            :key="ring"
+            :key="`${ring}-${motionCycle}`"
             class="echo-ring"
             :style="ringStyle(ring)"
           ></i>
-          <span class="anniversary-digit text-8xl font-semibold leading-none sm:text-9xl">{{ anniversaryNo }}</span>
+          <span :key="`digit-${motionCycle}`" class="anniversary-digit text-8xl font-semibold leading-none sm:text-9xl">{{ anniversaryNo }}</span>
           <span class="mt-2 text-lg font-semibold uppercase tracking-[0.26em]">anniversary</span>
           <span class="mt-5 max-w-[260px] text-center text-sm leading-7 text-[#52636f]">
             {{ lang === 'ja' ? 'お祝いを、やわらかい光にして。' : '把祝福放进柔和的光里。' }}
@@ -64,6 +64,8 @@ const props = defineProps<{
   lang: AnniversaryLang
   active: boolean
   playEntrance: boolean
+  motionActive: boolean
+  motionCycle: number
 }>()
 
 defineEmits<{

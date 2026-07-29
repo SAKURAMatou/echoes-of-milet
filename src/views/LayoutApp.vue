@@ -1,8 +1,7 @@
 <template>
   <div
     data-page-layout-root
-    class="min-h-screen w-full max-w-[100vw] overflow-x-clip"
-    :class="archiveUsesWindowScroll ? '' : 'md:h-dvh md:min-h-0 md:overflow-hidden'"
+    class="min-h-screen w-full max-w-[100vw] overflow-x-clip md:h-dvh md:min-h-0 md:overflow-hidden"
   >
     <Header
       :showHanbor="true"
@@ -15,14 +14,10 @@
       class="fixed inset-0 min-h-screen bg-[url(/background/bg-milet-home-pre.webp)] bg-cover pointer-events-none bg-[position:8%_50%] opacity-45"
     ></div>
     <LanguageSelect class="max-md:hidden" />
-    <div
-      class="relative w-full max-w-[100vw] overflow-x-clip md:overflow-x-hidden"
-      :class="archiveUsesWindowScroll ? '' : 'md:h-full'"
-    >
+    <div class="relative w-full max-w-[100vw] overflow-x-clip md:h-full md:overflow-x-hidden">
       <!-- 整体容器：页面居中布局 -->
       <div
-        class="flex w-full max-w-full overflow-x-clip pt-16 md:box-border md:pt-[4.5rem] md:overflow-x-hidden md:gap-6 lg:gap-8 xl:gap-10"
-        :class="archiveUsesWindowScroll ? '' : 'md:h-full'"
+        class="flex w-full max-w-full overflow-x-clip pt-16 md:h-full md:box-border md:pt-[4.5rem] md:overflow-x-hidden md:gap-6 lg:gap-8 xl:gap-10"
       >
         <!-- 左侧菜单栏 -->
         <SideMenuLeft :menuOpen="menuOpen" @closeMenu="menuClick" />
@@ -31,12 +26,7 @@
         <div
           ref="scrollContainerRef"
           data-page-scroll-container
-          class="min-w-0 flex-1 scroll-pt-6 overflow-x-clip [scrollbar-gutter:stable] md:scroll-pt-12 md:overflow-x-hidden"
-          :class="
-            archiveUsesWindowScroll
-              ? 'overflow-y-visible'
-              : 'overscroll-y-contain md:min-h-0 md:overflow-y-auto'
-          "
+          class="min-w-0 flex-1 scroll-pt-6 overflow-x-clip overscroll-y-contain [scrollbar-gutter:stable] md:min-h-0 md:scroll-pt-12 md:overflow-x-hidden md:overflow-y-auto"
         >
           <div
             class="mx-auto flex w-full max-w-[1500px] justify-start"
@@ -74,7 +64,7 @@ import SideMenuLeft from '@/components/menu/SideMenuLeft.vue'
 
 import LanguageSelect from '@/components/LanguageSelect.vue'
 
-import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
+import { nextTick, onBeforeUnmount, onMounted, ref } from 'vue'
 import { useRoute } from 'vue-router'
 import { usePageScroll } from '@/composables/page-scroll'
 
@@ -88,28 +78,15 @@ const pageScroll = usePageScroll()
 let unregisterScrollContainer: (() => void) | null = null
 let unregisterContentMetrics: (() => void) | null = null
 
-const archiveUsesWindowScroll = computed(
-  () => route.name === 'miletAnniversary' && !route.params.year,
-)
-
-async function syncScrollContainerTarget() {
+onMounted(async () => {
   await nextTick()
-  unregisterScrollContainer?.()
-  unregisterScrollContainer = null
-  if (!archiveUsesWindowScroll.value && scrollContainerRef.value) {
+  if (scrollContainerRef.value) {
     unregisterScrollContainer = pageScroll.registerElementTarget(scrollContainerRef.value)
   }
-  pageScroll.invalidateMetrics()
-}
-
-onMounted(async () => {
-  await syncScrollContainerTarget()
   if (contentMetricsRef.value) {
     unregisterContentMetrics = pageScroll.registerContentMetricsElement(contentMetricsRef.value)
   }
 })
-
-watch(archiveUsesWindowScroll, syncScrollContainerTarget, { flush: 'post' })
 
 onBeforeUnmount(() => {
   unregisterContentMetrics?.()

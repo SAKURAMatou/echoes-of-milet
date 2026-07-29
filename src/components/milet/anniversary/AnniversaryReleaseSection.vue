@@ -27,6 +27,12 @@
 
       <div class="release-stage mobile-scroll-region anniversary-body">
         <div class="release-glow" aria-hidden="true"></div>
+        <span
+          v-if="motionActive"
+          :key="`release-light-${motionCycle}`"
+          class="release-light-cycle"
+          aria-hidden="true"
+        ></span>
         <button
           v-for="(release, index) in releases"
           :key="release.id"
@@ -38,7 +44,7 @@
           @click="$emit('selectRelease', index)"
         >
           <img
-            :src="initImgUrl(release.cover)"
+            :src="anniversaryImageUrl(release.cover)"
             :alt="release.title"
             :loading="Math.abs(index - activeReleaseIndex) <= 1 ? 'eager' : 'lazy'"
             decoding="async"
@@ -77,6 +83,8 @@ const props = defineProps<{
   activeReleaseIndex: number
   lang: AnniversaryLang
   active: boolean
+  motionActive: boolean
+  motionCycle: number
 }>()
 
 defineEmits<{
@@ -99,6 +107,10 @@ function releaseClass(index: number) {
   if (index === (props.activeReleaseIndex + 1) % props.releases.length) return 'is-next'
   return 'is-prev'
 }
+
+function anniversaryImageUrl(url: string) {
+  return url === '/echoes-of-milet-OG.webp' ? url : initImgUrl(url)
+}
 </script>
 
 <style scoped>
@@ -106,6 +118,7 @@ function releaseClass(index: number) {
 .section-title { margin-top: 1rem; font-family: Cormorant Garamond, serif; font-size: 3rem; line-height: 1; color: #1d2b36; }
 .release-stage { position: relative; min-height: 560px; }
 .release-glow { position: absolute; inset: 2rem 12% 6.5rem; border-radius: 50%; background: radial-gradient(circle, rgba(255,255,255,.96), var(--release-glow) 54%, transparent 72%); transition: background 260ms ease; }
+.release-light-cycle { position: absolute; inset: 1rem 7% 7.5rem; z-index: 2; border-radius: 50%; background: radial-gradient(circle at 24% 44%,rgba(255,255,255,.72),transparent 18%),linear-gradient(112deg,transparent 28%,color-mix(in srgb,var(--release-accent),transparent 66%) 48%,transparent 65%); opacity: 0; pointer-events: none; transform: translate3d(-7%,2%,0); animation: release-light-arrival 1500ms var(--anniversary-ease-out,ease-out) 1 both; }
 .release-cover { position: absolute; top: 1.25rem; left: 50%; width: 46%; max-width: 250px; aspect-ratio: 1; overflow: hidden; border-radius: 1.25rem; border: 1px solid rgba(255,255,255,.84); background: white; box-shadow: 0 30px 80px -44px rgba(31,43,53,.92); transition: transform 520ms var(--anniversary-ease-out, ease-out), opacity 320ms ease, filter 320ms ease; transform-origin: center; }
 .release-cover img { width: 100%; height: 100%; object-fit: cover; }
 .release-cover.is-current { z-index: 3; opacity: 1; transform: translateX(-50%) scale(1.05); box-shadow: 0 28px 74px -36px var(--release-accent); }
@@ -118,6 +131,7 @@ function releaseClass(index: number) {
 .release-copy { position: absolute; right: 4%; top: 21rem; left: 4%; z-index: 4; border-top: 1px solid color-mix(in srgb, var(--release-accent), transparent 82%); padding-top: 1.1rem; }
 .release-copy-enter-active, .release-copy-leave-active { transition: opacity 180ms ease, transform 180ms ease; }
 .release-copy-enter-from, .release-copy-leave-to { opacity: 0; transform: translateY(8px); }
+@keyframes release-light-arrival { 0% { opacity: 0; transform: translate3d(-7%,2%,0); } 24%,68% { opacity: .72; } 100% { opacity: 0; transform: translate3d(7%,-2%,0); } }
 
 @media (max-width: 767px), (max-height: 640px) {
   .section-title { font-size: 2.45rem; }
@@ -132,6 +146,6 @@ function releaseClass(index: number) {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .release-cover, .release-cover::after, .release-glow, .release-copy-enter-active, .release-copy-leave-active { transition: none; }
+  .release-cover, .release-cover::after, .release-glow, .release-light-cycle, .release-copy-enter-active, .release-copy-leave-active { animation: none; transition: none; }
 }
 </style>

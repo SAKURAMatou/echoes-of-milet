@@ -23,7 +23,12 @@
         </div>
       </div>
 
-      <div class="photo-stage mobile-scroll-region anniversary-body" :class="assembled ? 'is-assembled' : 'is-playing'">
+      <div
+        class="photo-stage mobile-scroll-region anniversary-body"
+        :class="{ 'is-assembled': assembled, 'is-playing': !assembled, 'is-resetting': resetting }"
+        @pointerenter="$emit('interactionPause')"
+        @pointerleave="$emit('interactionResume')"
+      >
         <svg class="constellation-lines" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
           <path pathLength="1" d="M10 38 C24 13 34 61 48 34 S71 60 90 29 M20 73 C36 50 43 85 59 62 S78 85 88 70" />
           <path pathLength="1" class="constellation-m" d="M32 65 L41 39 L50 61 L59 39 L68 65" />
@@ -39,7 +44,12 @@
           :class="photoFrameClass(index)"
           :style="photoStyle(photo)"
         >
-          <img :src="initImgUrl(photo.image)" :alt="photo.alt" loading="lazy" decoding="async" />
+          <img
+            :src="anniversaryImageUrl(photo.image)"
+            :alt="photo.alt"
+            :loading="motionActive ? 'eager' : 'lazy'"
+            decoding="async"
+          />
           <figcaption><span>{{ photo.month }}</span>{{ assembled ? 'milet の日' : photo.caption }}</figcaption>
         </figure>
       </div>
@@ -58,13 +68,19 @@ const props = defineProps<{
   photos: AnniversaryPhoto[]
   currentPhotoIndex: number
   assembled: boolean
+  resetting: boolean
   lang: AnniversaryLang
   routeLang: string
   anniversaryNo: number
   active: boolean
+  motionActive: boolean
 }>()
 
-defineEmits<{ (event: 'replay'): void }>()
+defineEmits<{
+  (event: 'replay'): void
+  (event: 'interactionPause'): void
+  (event: 'interactionResume'): void
+}>()
 
 function photoFrameClass(index: number) {
   return {
@@ -76,6 +92,10 @@ function photoFrameClass(index: number) {
 
 function photoStyle(photo: AnniversaryPhoto) {
   return { '--x': photo.final.x, '--y': photo.final.y, '--w': photo.final.w, '--r': photo.final.r, '--mx': photo.final.mx, '--my': photo.final.my, '--mw': photo.final.mw, '--mr': photo.final.mr }
+}
+
+function anniversaryImageUrl(url: string) {
+  return url === '/echoes-of-milet-OG.webp' ? url : initImgUrl(url)
 }
 </script>
 
@@ -106,6 +126,9 @@ function photoStyle(photo: AnniversaryPhoto) {
 .photo-frame.is-active::after { content: ''; position: absolute; inset: -20%; border: 1px solid rgba(221,190,95,.65); border-radius: 50%; animation: placement-wave 420ms ease-out 1; }
 .photo-frame.is-past { opacity: .42; transform: translate(-50%,-50%) scale(.62) rotate(8deg); }
 .photo-stage.is-assembled .photo-frame { left: var(--x); top: var(--y); width: var(--w); transform: rotate(var(--r)); }
+.photo-stage.is-resetting .constellation-lines,
+.photo-stage.is-resetting .photo-center-copy,
+.photo-stage.is-resetting .photo-frame { animation: none !important; transition: none !important; }
 @keyframes draw-constellation { to { stroke-dashoffset: 0; } }
 @keyframes placement-wave { from { opacity: .8; transform: scale(.55); } to { opacity: 0; transform: scale(1); } }
 

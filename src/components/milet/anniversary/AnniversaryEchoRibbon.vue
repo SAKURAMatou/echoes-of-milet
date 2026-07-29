@@ -17,6 +17,7 @@
         />
         <circle
           v-if="index === activeChapter"
+          :key="`desktop-pulse-${activeChapter}-${motionCycle}`"
           :cx="node.x"
           :cy="node.y"
           r="13"
@@ -40,6 +41,14 @@
           r="4.5"
           :class="['echo-node', index <= activeChapter ? 'is-read' : '']"
         />
+        <circle
+          v-if="index === activeChapter"
+          :key="`compact-pulse-${activeChapter}-${motionCycle}`"
+          :cx="node.x"
+          :cy="node.y"
+          r="8"
+          class="echo-node-pulse"
+        />
       </g>
     </svg>
   </div>
@@ -51,6 +60,7 @@ import { computed } from 'vue'
 const props = defineProps<{
   activeChapter: number
   chapterCount: number
+  motionCycle: number
 }>()
 
 const desktopPath = 'M 28 138 C 142 30, 244 154, 354 86 S 574 42, 690 112 S 878 150, 972 42'

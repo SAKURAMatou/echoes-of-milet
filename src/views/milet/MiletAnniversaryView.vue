@@ -56,6 +56,7 @@
       <AnniversaryEchoRibbon
         :active-chapter="activeChapter"
         :chapter-count="content.chapters.length"
+        :motion-cycle="motionCycle"
       />
 
       <div
@@ -69,7 +70,9 @@
           :anniversary-no="anniversaryNo"
           :lang="lang"
           :active="compactMode || activeChapter === 0"
-          :play-entrance="introMotionPlayed && !restoredFromHistory"
+          :motion-active="activeChapter === 0"
+          :motion-cycle="motionCycle"
+          :play-entrance="introMotionPlayed"
           @next="goChapter(1, 'control')"
         />
 
@@ -97,6 +100,8 @@
           :active-release-index="activeReleaseIndex"
           :lang="lang"
           :active="compactMode || activeChapter === 2"
+          :motion-active="activeChapter === 2"
+          :motion-cycle="motionCycle"
           @select-release="selectRelease"
         />
 
@@ -105,11 +110,15 @@
           :photos="content.photos"
           :current-photo-index="currentPhotoIndex"
           :assembled="photoAssembled"
+          :resetting="photoResetting"
           :lang="lang"
           :route-lang="routeLang"
           :anniversary-no="anniversaryNo"
           :active="compactMode || activeChapter === 3"
-          @replay="restartPhotoFilm"
+          :motion-active="activeChapter === 3"
+          @replay="replayPhotoFilm"
+          @interaction-pause="pausePhotoInteraction"
+          @interaction-resume="resumePhotoInteraction"
         />
       </div>
 
@@ -183,23 +192,31 @@ const momentInteractionPaused = ref(false)
 const momentEchoKey = ref(0)
 const manualEchoActive = ref(false)
 const currentPhotoIndex = ref(-1)
-const photoAssembled = ref(true)
+const photoAssembled = ref(false)
 const photoPlaying = ref(false)
+const photoResetting = ref(false)
+const photoInteractionPaused = ref(false)
 const compactMode = ref(true)
 const reducedMotion = ref(false)
 const pageVisible = ref(true)
 const introMotionPlayed = ref(false)
-const restoredFromHistory = ref(false)
+const restoringState = ref(false)
 const chapterContentVisible = ref(true)
 const trackTransitionEnabled = ref(true)
 const chapterTransitionLocked = ref(false)
 const showNavigationHint = ref(true)
 const fragmentCycle = ref(0)
+const motionCycle = ref(0)
 const touchStart = ref({ x: 0, y: 0 })
 
 const momentAutoplayMs = 5200
+const photoStepMs = 420
+const photoLoopDelayMs = 5600
+const ambientLoopMs = 7600
 let momentTimer = 0
 let photoTimer = 0
+let photoLoopTimer = 0
+let ambientLoopTimer = 0
 let chapterTimer = 0
 let wheelResetTimer = 0
 let momentEchoTimer = 0
@@ -210,6 +227,9 @@ let reducedMotionQuery: MediaQueryList | null = null
 let unsubscribeScrollFrame: (() => void) | null = null
 let anniversaryRequestController: AbortController | null = null
 let anniversaryRequestGeneration = 0
+let photoRunToken = 0
+let restorationSessionId = 0
+let clearRestorationAbortHandler: (() => void) | null = null
 
 const routeLang = computed(() => String(route.params.lang || 'zh'))
 const routeYear = computed(() => String(route.params.year || ''))
@@ -433,8 +453,19 @@ function clearMomentTimer() {
 }
 
 function clearPhotoTimer() {
-  if (photoTimer) window.clearInterval(photoTimer)
+  photoRunToken += 1
+  if (photoTimer) window.clearTimeout(photoTimer)
   photoTimer = 0
+}
+
+function clearPhotoLoopTimer() {
+  if (photoLoopTimer) window.clearTimeout(photoLoopTimer)
+  photoLoopTimer = 0
+}
+
+function clearAmbientLoopTimer() {
+  if (ambientLoopTimer) window.clearInterval(ambientLoopTimer)
+  ambientLoopTimer = 0
 }
 
 function canRunMomentTimer() {
@@ -488,39 +519,124 @@ function selectRelease(index: number) {
   activeReleaseIndex.value = Math.max(0, Math.min(content.value.releases.length - 1, index))
 }
 
+function canRunPhotoFilm() {
+  return (
+    activeChapter.value === 3 &&
+    chapterContentVisible.value &&
+    !chapterTransitionLocked.value &&
+    !restoringState.value &&
+    pageVisible.value &&
+    !reducedMotion.value &&
+    !photoInteractionPaused.value &&
+    content.value.photos.length > 0
+  )
+}
+
+function schedulePhotoLoop() {
+  clearPhotoLoopTimer()
+  if (!photoAssembled.value || !canRunPhotoFilm()) return
+  const runToken = photoRunToken
+  photoLoopTimer = window.setTimeout(() => {
+    photoLoopTimer = 0
+    if (runToken !== photoRunToken || !canRunPhotoFilm()) return
+    restartPhotoFilm()
+  }, photoLoopDelayMs)
+}
+
 function continuePhotoFilm() {
   clearPhotoTimer()
-  if (!photoPlaying.value || !pageVisible.value || activeChapter.value !== 3 || reducedMotion.value) return
-  photoTimer = window.setInterval(() => {
+  if (!photoPlaying.value || !canRunPhotoFilm()) return
+  const runToken = photoRunToken
+  const revealNext = () => {
+    if (runToken !== photoRunToken || !canRunPhotoFilm()) return
     if (currentPhotoIndex.value >= content.value.photos.length - 1) {
       clearPhotoTimer()
       photoPlaying.value = false
       photoAssembled.value = true
+      schedulePhotoLoop()
       return
     }
     currentPhotoIndex.value += 1
-  }, 340)
+    photoTimer = window.setTimeout(revealNext, photoStepMs)
+  }
+  photoTimer = window.setTimeout(revealNext, photoStepMs)
 }
 
 function restartPhotoFilm() {
   clearPhotoTimer()
+  clearPhotoLoopTimer()
   if (reducedMotion.value) {
     currentPhotoIndex.value = content.value.photos.length - 1
     photoAssembled.value = true
     photoPlaying.value = false
+    photoResetting.value = false
     return
   }
+  photoResetting.value = true
   photoAssembled.value = false
   currentPhotoIndex.value = -1
-  photoPlaying.value = true
-  continuePhotoFilm()
+  photoPlaying.value = false
+  const resetRunToken = photoRunToken
+  nextTick(() => {
+    window.requestAnimationFrame(() => {
+      if (resetRunToken !== photoRunToken) return
+      photoResetting.value = false
+      if (!canRunPhotoFilm()) return
+      photoPlaying.value = true
+      continuePhotoFilm()
+    })
+  })
+}
+
+function replayPhotoFilm() {
+  photoInteractionPaused.value = false
+  restartPhotoFilm()
+}
+
+function pausePhotoInteraction() {
+  photoInteractionPaused.value = true
+  clearPhotoTimer()
+  clearPhotoLoopTimer()
+  photoResetting.value = false
+}
+
+function resumePhotoInteraction() {
+  photoInteractionPaused.value = false
+  syncTimers()
+}
+
+function canRunAmbientMotion() {
+  return !showArchiveIndex.value && pageVisible.value && !reducedMotion.value
+}
+
+function restartAmbientMotion() {
+  clearAmbientLoopTimer()
+  if (!canRunAmbientMotion()) return
+  motionCycle.value += 1
+  fragmentCycle.value += 1
+  ambientLoopTimer = window.setInterval(() => {
+    motionCycle.value += 1
+    fragmentCycle.value += 1
+  }, ambientLoopMs)
 }
 
 function syncTimers() {
   clearMomentTimer()
   clearPhotoTimer()
+  clearPhotoLoopTimer()
+  photoResetting.value = false
   if (canRunMomentTimer()) startMomentAutoplay()
-  if (photoPlaying.value) continuePhotoFilm()
+  if (!canRunPhotoFilm()) return
+  if (photoPlaying.value || (!photoAssembled.value && currentPhotoIndex.value < content.value.photos.length - 1)) {
+    photoPlaying.value = true
+    continuePhotoFilm()
+    return
+  }
+  if (!photoAssembled.value) {
+    photoPlaying.value = false
+    photoAssembled.value = true
+  }
+  schedulePhotoLoop()
 }
 
 function syncViewportMode() {
@@ -621,53 +737,128 @@ usePageScrollRestoration({
   async prepare(snapshot, signal) {
     const state = readPageState(snapshot)
     if (!state || signal.aborted) return
-    restoredFromHistory.value = true
+    clearRestorationAbortHandler?.()
+    const sessionId = ++restorationSessionId
+    const previousState = {
+      activeChapter: activeChapter.value,
+      activeMomentIndex: activeMomentIndex.value,
+      activeReleaseIndex: activeReleaseIndex.value,
+      momentPaused: momentPaused.value,
+      photoAssembled: photoAssembled.value,
+      currentPhotoIndex: currentPhotoIndex.value,
+      photoPlaying: photoPlaying.value,
+      photoResetting: photoResetting.value,
+      photoInteractionPaused: photoInteractionPaused.value,
+      introMotionPlayed: introMotionPlayed.value,
+      showNavigationHint: showNavigationHint.value,
+    }
+    const previousTrackTransitionEnabled = trackTransitionEnabled.value
+    let sessionSettled = false
+    const detachAbortHandler = () => signal.removeEventListener('abort', handleAbort)
+    const clearAbortHandler = () => {
+      if (sessionSettled) return
+      sessionSettled = true
+      detachAbortHandler()
+      if (clearRestorationAbortHandler === clearAbortHandler) clearRestorationAbortHandler = null
+    }
+    const rollback = async () => {
+      if (sessionSettled) return
+      sessionSettled = true
+      detachAbortHandler()
+      if (clearRestorationAbortHandler === clearAbortHandler) clearRestorationAbortHandler = null
+      activeChapter.value = previousState.activeChapter
+      activeMomentIndex.value = previousState.activeMomentIndex
+      activeReleaseIndex.value = previousState.activeReleaseIndex
+      momentPaused.value = previousState.momentPaused
+      photoAssembled.value = previousState.photoAssembled
+      currentPhotoIndex.value = previousState.currentPhotoIndex
+      photoPlaying.value = previousState.photoPlaying
+      photoResetting.value = previousState.photoResetting
+      photoInteractionPaused.value = previousState.photoInteractionPaused
+      introMotionPlayed.value = previousState.introMotionPlayed
+      showNavigationHint.value = previousState.showNavigationHint
+      await nextTick()
+      if (sessionId !== restorationSessionId) return
+      restoringState.value = false
+      trackTransitionEnabled.value = previousTrackTransitionEnabled
+      syncTimers()
+      restartAmbientMotion()
+    }
+    function handleAbort() {
+      void rollback()
+    }
+    clearRestorationAbortHandler = clearAbortHandler
+    signal.addEventListener('abort', handleAbort, { once: true })
+    restoringState.value = true
     showNavigationHint.value = false
     introMotionPlayed.value = true
     activeChapter.value = state.activeChapter
     activeMomentIndex.value = state.activeMomentIndex
     activeReleaseIndex.value = state.activeReleaseIndex
     momentPaused.value = state.momentPaused
-    photoAssembled.value = state.photoAssembled
-    currentPhotoIndex.value = state.currentPhotoIndex
+    photoAssembled.value = true
+    currentPhotoIndex.value = content.value.photos.length - 1
     photoPlaying.value = false
+    photoResetting.value = false
+    photoInteractionPaused.value = false
     trackTransitionEnabled.value = false
     await nextTick()
+    if (signal.aborted) {
+      await rollback()
+      return
+    }
   },
   restore(snapshot) {
+    clearRestorationAbortHandler?.()
     if (showArchiveIndex.value || compactMode.value) pageScroll.restoreSnapshot(snapshot, { behavior: 'auto' })
     else pageScroll.scrollToTop({ behavior: 'auto' })
     trackTransitionEnabled.value = true
+    restoringState.value = false
+    window.requestAnimationFrame(() => {
+      syncTimers()
+      restartAmbientMotion()
+    })
     return true
   },
 })
 
 function resetStoryState() {
+  clearRestorationAbortHandler?.()
+  restorationSessionId += 1
   clearMomentTimer()
   clearPhotoTimer()
+  clearPhotoLoopTimer()
+  clearAmbientLoopTimer()
   activeChapter.value = 0
   activeMomentIndex.value = 0
   activeReleaseIndex.value = 0
   momentProgress.value = 0
   momentPaused.value = false
   momentInteractionPaused.value = false
-  currentPhotoIndex.value = content.value.photos.length - 1
-  photoAssembled.value = true
+  currentPhotoIndex.value = -1
+  photoAssembled.value = false
   photoPlaying.value = false
-  restoredFromHistory.value = false
+  photoResetting.value = false
+  photoInteractionPaused.value = false
+  restoringState.value = false
   introMotionPlayed.value = false
   chapterContentVisible.value = true
   pageScroll.scrollToTop({ behavior: 'auto' })
   nextTick(() => {
     pageRoot.value?.querySelectorAll<HTMLElement>('[data-scroll-region]').forEach((region) => region.scrollTo({ top: 0, behavior: 'auto' }))
     setupChapterObserver()
-    window.requestAnimationFrame(() => { introMotionPlayed.value = !reducedMotion.value })
+    window.requestAnimationFrame(() => {
+      introMotionPlayed.value = !reducedMotion.value
+      restartAmbientMotion()
+    })
   })
 }
 
 function handleVisibilityChange() {
   pageVisible.value = !document.hidden
   syncTimers()
+  if (pageVisible.value) restartAmbientMotion()
+  else clearAmbientLoopTimer()
 }
 
 function handleReducedMotionChange(event: MediaQueryListEvent | MediaQueryList) {
@@ -675,15 +866,31 @@ function handleReducedMotionChange(event: MediaQueryListEvent | MediaQueryList) 
   if (reducedMotion.value) {
     clearMomentTimer()
     clearPhotoTimer()
+    clearPhotoLoopTimer()
+    clearAmbientLoopTimer()
     photoPlaying.value = false
+    photoResetting.value = false
     currentPhotoIndex.value = content.value.photos.length - 1
     photoAssembled.value = true
   } else {
+    introMotionPlayed.value = true
     syncTimers()
+    restartAmbientMotion()
   }
 }
 
-watch(activeChapter, () => syncTimers())
+watch(activeChapter, (value, previous) => {
+  if (restoringState.value) {
+    clearMomentTimer()
+    clearPhotoTimer()
+    clearPhotoLoopTimer()
+    clearAmbientLoopTimer()
+    return
+  }
+  if (value === 3 && previous !== 3 && !reducedMotion.value) restartPhotoFilm()
+  else syncTimers()
+  restartAmbientMotion()
+})
 
 watch(lang, () => {
   if (typeof document !== 'undefined') document.title = pageTitle.value
@@ -711,13 +918,16 @@ onMounted(() => {
   window.addEventListener('resize', syncViewportMode)
   document.addEventListener('visibilitychange', handleVisibilityChange)
   pageRoot.value?.addEventListener('wheel', handleWheel, { passive: false })
-  window.requestAnimationFrame(() => { introMotionPlayed.value = !reducedMotion.value })
 })
 
 onBeforeUnmount(() => {
   anniversaryRequestController?.abort()
+  clearRestorationAbortHandler?.()
+  restorationSessionId += 1
   clearMomentTimer()
   clearPhotoTimer()
+  clearPhotoLoopTimer()
+  clearAmbientLoopTimer()
   clearChapterTimer()
   if (wheelResetTimer) window.clearTimeout(wheelResetTimer)
   if (momentEchoTimer) window.clearTimeout(momentEchoTimer)
@@ -743,9 +953,10 @@ onBeforeUnmount(() => {
   overflow-x: clip;
 }
 
-.anniversary-page.is-stage { height: 100%; min-height: 560px; overflow: hidden; }
+.anniversary-page.is-stage { height: 100vh; height: 100dvh; min-height: 0; overflow: hidden; }
 .anniversary-page.is-archive, .anniversary-page.is-compact { min-height: 100dvh; overflow: visible; }
-.anniversary-header { position: absolute; inset: 0 0 auto; }
+.anniversary-header { position: absolute; inset: 0 0 auto; pointer-events: none; }
+.anniversary-header .brand-pill { pointer-events: auto; }
 .is-archive .anniversary-header, .is-compact .anniversary-header { position: relative; }
 .anniversary-wash { z-index: 0; background: radial-gradient(circle at 28% 22%,rgba(255,255,255,.96),transparent 28%), linear-gradient(135deg,#fff 0%,#eef8ff 46%,#f9f1d8 100%); }
 .anniversary-beams { z-index: 1; background: linear-gradient(112deg,transparent 0%,transparent 22%,rgba(116,183,213,.2) 28%,transparent 44%), linear-gradient(64deg,transparent 0%,transparent 48%,rgba(221,190,95,.18) 58%,transparent 74%); opacity: .72; animation: beam-arrival 1600ms ease-out 1 both; }
@@ -761,8 +972,12 @@ onBeforeUnmount(() => {
 .anniversary-track.no-track-transition { transition: none; }
 .anniversary-track.is-compact { width: 100%; flex-direction: column; }
 :deep(.anniversary-slide) { display: flex; width: 100%; flex: 0 0 100%; align-items: center; }
-.anniversary-track.is-stage :deep(.anniversary-slide) { height: 100%; }
-.anniversary-track.is-stage :deep(.mobile-slide-shell) { padding-top: 4rem; padding-bottom: 3.5rem; }
+.anniversary-track.is-stage :deep(.anniversary-slide) {
+  box-sizing: border-box;
+  height: 100%;
+  padding-block: 5.5rem 3rem;
+}
+.anniversary-track.is-stage :deep(.mobile-slide-shell) { max-height: 100%; padding-block: 0; }
 .anniversary-track.is-compact :deep(.anniversary-slide) { min-height: max(100svh, 42rem); align-items: center; padding: 2.75rem 0 5rem; }
 .anniversary-track.is-compact :deep(.mobile-slide-shell) { padding-top: 0; }
 .is-content-hidden :deep(.anniversary-slide:not([aria-hidden='true']) .anniversary-copy),
