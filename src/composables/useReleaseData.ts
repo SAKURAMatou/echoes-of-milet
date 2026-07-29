@@ -107,13 +107,18 @@ export function useReleaseData(options: ReleaseDataOptions) {
         return { status: 'aborted' }
       }
 
+      const pageItems = Array.isArray(response.data) ? response.data.slice(0, pageSize) : []
+
       return {
         status: 'success',
         batch: {
           transactionId: optionsArg.transactionId,
           basePage,
           nextPage,
-          items: Array.isArray(response.data) ? response.data : [],
+          // Keep the client-side page boundary stable even if an upstream cache returns an
+          // oversized first page. The remaining records are requested through the normal
+          // page=2, page=3... flow so the existing load-more and scroll behavior stays intact.
+          items: pageItems,
           total: Number(response.total || 0),
         },
       }
