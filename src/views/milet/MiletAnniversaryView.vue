@@ -111,7 +111,7 @@
       :lang="lang"
     />
 
-    <template v-else>
+    <template v-else-if="storyContentReady">
       <AnniversaryChapterNav
         :chapters="content.chapters"
         :active-chapter="activeChapter"
@@ -124,6 +124,7 @@
         :active-chapter="activeChapter"
         :chapter-count="content.chapters.length"
         :motion-cycle="motionCycle"
+        :compact="compactMode"
       />
 
       <div
@@ -161,12 +162,14 @@
         />
 
         <AnniversaryReleaseSection
+          ref="releaseSection"
           :chapter="content.chapters[2]"
           :releases="content.releases"
           :active-release="activeRelease"
           :active-release-index="activeReleaseIndex"
           :lang="lang"
           :active="compactMode || activeChapter === 2"
+          :compact="compactMode"
           :motion-active="activeChapter === 2"
           :motion-cycle="motionCycle"
           @select-release="selectRelease"
@@ -203,6 +206,26 @@
       </p>
       <p class="sr-only" aria-live="polite">{{ chapterAnnouncement }}</p>
     </template>
+
+    <section v-else class="anniversary-data-state relative z-10" :aria-busy="loadingAnniversary">
+      <div class="anniversary-data-card" role="status">
+        <p class="section-eyebrow">anniversary archive</p>
+        <h1 class="font-serif text-4xl text-[#1d2b36] sm:text-5xl">
+          {{ loadingAnniversary ? dataStateCopy.loading : dataStateCopy.error }}
+        </h1>
+        <p class="mt-4 max-w-lg text-sm leading-7 text-[#60717b] sm:text-base">
+          {{ loadingAnniversary ? dataStateCopy.loadingNote : dataStateCopy.errorNote }}
+        </p>
+        <button
+          v-if="!loadingAnniversary"
+          type="button"
+          class="data-retry-button mt-7"
+          @click="loadAnniversaryData(true)"
+        >
+          {{ dataStateCopy.retry }}
+        </button>
+      </div>
+    </section>
   </main>
 </template>
 
@@ -231,26 +254,43 @@ import {
   type AnniversaryRecord,
 } from '@/composables/miletAnniversary'
 import { useAppState } from '@/composables/useAppState'
-import { usePageScroll, usePageScrollRestoration, type ScrollSnapshot } from '@/composables/page-scroll'
+import {
+  usePageScroll,
+  usePageScrollRestoration,
+  type PageScrollFrame,
+  type ScrollSnapshot,
+} from '@/composables/page-scroll'
 import { apiRoutes } from '@/config/api'
 
 type ChapterInputSource = 'observer' | 'wheel' | 'keyboard' | 'pointer' | 'control' | 'restore'
 
 interface AnniversaryPageState {
+  contextKey: string
   activeChapter: number
+  activeMomentId: string | null
   activeMomentIndex: number
+  activeReleaseId: string | null
   activeReleaseIndex: number
   momentPaused: boolean
   photoAssembled: boolean
   currentPhotoIndex: number
 }
 
+type AnniversaryDataStatus = 'idle' | 'loading' | 'ready' | 'error'
+
+interface AnniversaryReleaseSectionHandle {
+  measureStageOverflow(): boolean | null
+}
+
 const appState = useAppState()
 const route = useRoute()
 const pageScroll = usePageScroll()
 const pageRoot = ref<HTMLElement | null>(null)
+const releaseSection = ref<AnniversaryReleaseSectionHandle | null>(null)
 
 const activeChapter = ref(0)
+const pendingChapter = ref<number | null>(null)
+const pendingChapterFocus = ref(false)
 const activeMomentIndex = ref(0)
 const activeReleaseIndex = ref(0)
 const momentProgress = ref(0)
@@ -263,7 +303,9 @@ const photoAssembled = ref(false)
 const photoPlaying = ref(false)
 const photoResetting = ref(false)
 const photoInteractionPaused = ref(false)
-const compactMode = ref(true)
+const viewportCompact = ref(true)
+const releaseOverflowCompact = ref(false)
+const compactMode = computed(() => viewportCompact.value || releaseOverflowCompact.value)
 const reducedMotion = ref(false)
 const pageVisible = ref(true)
 const introMotionPlayed = ref(false)
@@ -285,6 +327,8 @@ let photoTimer = 0
 let photoLoopTimer = 0
 let ambientLoopTimer = 0
 let chapterTimer = 0
+let chapterDelayResolve: ((completed: boolean) => void) | null = null
+let compactScrollSettleTimer = 0
 let wheelResetTimer = 0
 let momentEchoTimer = 0
 let wheelAccumulator = 0
@@ -294,24 +338,59 @@ let reducedMotionQuery: MediaQueryList | null = null
 let unsubscribeScrollFrame: (() => void) | null = null
 let anniversaryRequestController: AbortController | null = null
 let anniversaryRequestGeneration = 0
+let anniversaryRequestEndpoint = ''
+let chapterTransitionGeneration = 0
 let photoRunToken = 0
 let restorationSessionId = 0
 let clearRestorationAbortHandler: (() => void) | null = null
+let pendingRestoredMomentId: string | null = null
+let pendingRestoredReleaseId: string | null = null
+let releaseFitFrame = 0
+let releaseFitGeneration = 0
+let anniversaryMounted = false
 
 const routeLang = computed(() => String(route.params.lang || 'zh'))
 const routeYear = computed(() => String(route.params.year || ''))
 const lang = computed(() => anniversaryLang(routeLang.value))
 const fallbackPayload = buildAnniversaryPayloadFromConfig(anniversaryArchiveConfig)
-const anniversaryPayload = ref<AnniversaryApiPayload | null>(appState.miletAnniversaryData)
-const resolvedAnniversaryPayload = computed(() => anniversaryPayload.value ?? fallbackPayload)
-const loadingAnniversary = ref(false)
-const loadedAnniversaryEndpoint = ref(appState.miletAnniversaryData ? anniversaryApiUrl() : '')
+const pageStateContextKey = computed(() => (routeYear.value ? `year:${routeYear.value}` : 'archive'))
+const routeFallbackPayload = computed<AnniversaryApiPayload | null>(() => {
+  if (!routeYear.value) return fallbackPayload
+  const localRecord = anniversaryArchiveConfig.records[routeYear.value]
+  if (!localRecord) return null
+  return {
+    ...fallbackPayload,
+    latestYear: localRecord.year,
+    record: localRecord,
+  }
+})
+const initialAnniversaryEndpoint = anniversaryApiUrl()
+const initialAnniversaryPayload =
+  appState.miletAnniversaryData?.key === initialAnniversaryEndpoint &&
+  payloadMatchesRoute(appState.miletAnniversaryData.payload)
+    ? appState.miletAnniversaryData.payload
+    : null
+const anniversaryPayload = ref<AnniversaryApiPayload | null>(initialAnniversaryPayload)
+const anniversaryDataStatus = ref<AnniversaryDataStatus>(initialAnniversaryPayload ? 'ready' : 'idle')
+const resolvedAnniversaryPayload = computed(
+  () => anniversaryPayload.value ?? routeFallbackPayload.value ?? fallbackPayload,
+)
+const loadingAnniversary = computed(() => anniversaryDataStatus.value === 'loading')
+const loadedAnniversaryEndpoint = ref(initialAnniversaryPayload ? initialAnniversaryEndpoint : '')
 const availableYears = computed(() =>
   resolvedAnniversaryPayload.value.recordYears?.length
     ? resolvedAnniversaryPayload.value.recordYears
     : getAvailableAnniversaryYears(anniversaryArchiveConfig),
 )
 const showArchiveIndex = computed(() => !routeYear.value)
+const storyContentReady = computed(
+  () =>
+    !showArchiveIndex.value &&
+    Boolean(
+      (anniversaryPayload.value && payloadMatchesRoute(anniversaryPayload.value)) ||
+      routeFallbackPayload.value,
+    ),
+)
 const storyStage = computed(() => !showArchiveIndex.value && !compactMode.value)
 const record = computed<AnniversaryRecord>(() =>
   resolvedAnniversaryPayload.value.record ??
@@ -319,12 +398,30 @@ const record = computed<AnniversaryRecord>(() =>
 )
 const content = computed(() => getAnniversaryRecordContent(record.value, lang.value))
 const anniversaryNo = computed(() => record.value.anniversaryNo)
-const activeMoment = computed(() => content.value.timeline[activeMomentIndex.value])
-const activeRelease = computed(() => content.value.releases[activeReleaseIndex.value])
+const activeMoment = computed(() => content.value.timeline[activeMomentIndex.value] ?? null)
+const activeRelease = computed(() => content.value.releases[activeReleaseIndex.value] ?? null)
+const pageRecordYear = computed(() => Number(routeYear.value) || record.value.year)
 const pageTitle = computed(() =>
   lang.value === 'ja'
-    ? `milet anniversary ${record.value.year} | Echoes of milet`
-    : `milet 周年记录 ${record.value.year} | Echoes of milet`,
+    ? `milet anniversary ${pageRecordYear.value} | Echoes of milet`
+    : `milet 周年记录 ${pageRecordYear.value} | Echoes of milet`,
+)
+const dataStateCopy = computed(() =>
+  lang.value === 'ja'
+    ? {
+        loading: '記念の記録を読み込んでいます',
+        loadingNote: 'この年のページを準備しています。少しだけお待ちください。',
+        error: 'この年の記録を表示できませんでした',
+        errorNote: '前の年の内容は表示せず、正しい記録をもう一度取得できます。',
+        retry: 'もう一度読み込む',
+      }
+    : {
+        loading: '正在读取周年记录',
+        loadingNote: '正在准备这一年的页面，请稍候。',
+        error: '暂时无法显示这一年的记录',
+        errorNote: '页面不会沿用其他年份的内容，可以重新获取正确记录。',
+        retry: '重新加载',
+      },
 )
 const chapterAnnouncement = computed(() => {
   if (showArchiveIndex.value) return ''
@@ -360,29 +457,60 @@ function anniversaryApiUrl() {
   return routeYear.value ? `${apiRoutes.miletAnniversary}/${routeYear.value}` : apiRoutes.miletAnniversary
 }
 
+function payloadMatchesRoute(payload: AnniversaryApiPayload, expectedYear = routeYear.value) {
+  if (!expectedYear) return true
+  return payload.record.year === Number(expectedYear)
+}
+
 async function loadAnniversaryData(force = false) {
   const endpoint = anniversaryApiUrl()
-  if (!force && (loadingAnniversary.value || loadedAnniversaryEndpoint.value === endpoint)) return
+  const expectedYear = routeYear.value
+  if (
+    !force &&
+    loadedAnniversaryEndpoint.value === endpoint &&
+    anniversaryPayload.value &&
+    payloadMatchesRoute(anniversaryPayload.value, expectedYear)
+  ) return
+  if (!force && anniversaryRequestController && anniversaryRequestEndpoint === endpoint) return
+
   anniversaryRequestController?.abort()
   const controller = new AbortController()
   const generation = ++anniversaryRequestGeneration
   anniversaryRequestController = controller
-  loadingAnniversary.value = true
+  anniversaryRequestEndpoint = endpoint
+  anniversaryDataStatus.value = 'loading'
   try {
     const response = await axiosInstance.get(endpoint, { signal: controller.signal })
-    if (controller.signal.aborted || generation !== anniversaryRequestGeneration) return
+    if (
+      controller.signal.aborted ||
+      generation !== anniversaryRequestGeneration ||
+      endpoint !== anniversaryApiUrl() ||
+      expectedYear !== routeYear.value
+    ) return
     const payload = normalizeAnniversaryPayload(response)
-    if (payload) {
-      anniversaryPayload.value = payload
-      appState.miletAnniversaryData = payload
-      loadedAnniversaryEndpoint.value = endpoint
+    if (!payload || !payloadMatchesRoute(payload, expectedYear)) {
+      throw new Error(`Invalid anniversary payload for ${endpoint}`)
     }
+
+    const previousMomentId = pendingRestoredMomentId ?? activeMoment.value?.id ?? null
+    const previousReleaseId = pendingRestoredReleaseId ?? activeRelease.value?.id ?? null
+    anniversaryPayload.value = payload
+    appState.miletAnniversaryData = { key: endpoint, payload }
+    loadedAnniversaryEndpoint.value = endpoint
+    anniversaryDataStatus.value = 'ready'
+    reconcileContentState(previousMomentId, previousReleaseId)
+    pendingRestoredMomentId = null
+    pendingRestoredReleaseId = null
+    if (typeof document !== 'undefined') document.title = pageTitle.value
   } catch (error) {
-    if (!controller.signal.aborted) console.error('anniversary data fetch error', error)
+    if (!controller.signal.aborted && generation === anniversaryRequestGeneration) {
+      anniversaryDataStatus.value = 'error'
+      console.error('anniversary data fetch error', error)
+    }
   } finally {
     if (generation === anniversaryRequestGeneration) {
-      loadingAnniversary.value = false
       anniversaryRequestController = null
+      anniversaryRequestEndpoint = ''
     }
   }
 }
@@ -391,19 +519,79 @@ function clampChapter(index: number) {
   return Math.max(0, Math.min(content.value.chapters.length - 1, index))
 }
 
-function clearChapterTimer() {
-  if (chapterTimer) window.clearTimeout(chapterTimer)
-  chapterTimer = 0
+function resolveContentIndex(
+  items: Array<{ id: string }>,
+  preferredId: string | null | undefined,
+  fallbackIndex: number,
+) {
+  if (!items.length) return 0
+  const matchedIndex = preferredId ? items.findIndex((item) => item.id === preferredId) : -1
+  if (matchedIndex >= 0) return matchedIndex
+  if (preferredId) return 0
+  return Math.max(0, Math.min(items.length - 1, fallbackIndex))
 }
 
-function waitForChapterDelay(ms: number) {
-  return new Promise<void>((resolve) => {
+function reconcileContentState(
+  preferredMomentId: string | null = activeMoment.value?.id ?? null,
+  preferredReleaseId: string | null = activeRelease.value?.id ?? null,
+) {
+  activeChapter.value = clampChapter(activeChapter.value)
+  activeMomentIndex.value = resolveContentIndex(
+    content.value.timeline,
+    preferredMomentId,
+    activeMomentIndex.value,
+  )
+  activeReleaseIndex.value = resolveContentIndex(
+    content.value.releases,
+    preferredReleaseId,
+    activeReleaseIndex.value,
+  )
+  currentPhotoIndex.value = Math.max(
+    -1,
+    Math.min(content.value.photos.length - 1, currentPhotoIndex.value),
+  )
+
+  if (!content.value.timeline.length) {
+    momentProgress.value = 0
+    if (anniversaryMounted) clearMomentTimer()
+  }
+  if (!content.value.releases.length) activeReleaseIndex.value = 0
+  if (!content.value.photos.length) {
+    currentPhotoIndex.value = -1
+    photoAssembled.value = true
+    photoPlaying.value = false
+    if (anniversaryMounted) {
+      clearPhotoTimer()
+      clearPhotoLoopTimer()
+    }
+  }
+}
+
+function clearChapterTimer() {
+  if (chapterTimer && typeof window !== 'undefined') window.clearTimeout(chapterTimer)
+  chapterTimer = 0
+  chapterDelayResolve?.(false)
+  chapterDelayResolve = null
+}
+
+function waitForChapterDelay(ms: number, transitionId: number) {
+  return new Promise<boolean>((resolve) => {
     clearChapterTimer()
+    chapterDelayResolve = resolve
     chapterTimer = window.setTimeout(() => {
       chapterTimer = 0
-      resolve()
+      chapterDelayResolve = null
+      resolve(transitionId === chapterTransitionGeneration)
     }, ms)
   })
+}
+
+function cancelChapterTransition() {
+  chapterTransitionGeneration += 1
+  clearChapterTimer()
+  chapterTransitionLocked.value = false
+  chapterContentVisible.value = true
+  trackTransitionEnabled.value = true
 }
 
 async function goChapter(index: number, source: ChapterInputSource = 'pointer') {
@@ -411,35 +599,41 @@ async function goChapter(index: number, source: ChapterInputSource = 'pointer') 
   showNavigationHint.value = false
 
   if (compactMode.value) {
-    activeChapter.value = nextIndex
-    fragmentCycle.value += 1
+    cancelChapterTransition()
     if (source !== 'observer') {
+      pendingChapter.value = nextIndex
+      pendingChapterFocus.value = source === 'keyboard'
       await nextTick()
-      pageScroll.scrollToAnchor(`anniversary-chapter-${content.value.chapters[nextIndex].id}`, {
+      const didScroll = pageScroll.scrollToAnchor(`anniversary-chapter-${content.value.chapters[nextIndex].id}`, {
         behavior: reducedMotion.value ? 'auto' : 'smooth',
         offset: 64,
       })
-      if (source === 'keyboard') window.setTimeout(() => focusChapterHeading(nextIndex), 260)
+      if (!didScroll) finishCompactChapterNavigation()
+      else scheduleCompactScrollSettle(reducedMotion.value ? 32 : 180)
     }
     return
   }
 
   if (nextIndex === activeChapter.value || chapterTransitionLocked.value) return
+  cancelChapterTransition()
+  const transitionId = chapterTransitionGeneration
   chapterTransitionLocked.value = true
   const directJump = Math.abs(nextIndex - activeChapter.value) > 1
   chapterContentVisible.value = false
-  await waitForChapterDelay(reducedMotion.value ? 1 : 200)
+  if (!(await waitForChapterDelay(reducedMotion.value ? 1 : 200, transitionId))) return
 
   if (directJump) trackTransitionEnabled.value = false
   activeChapter.value = nextIndex
   fragmentCycle.value += 1
   await nextTick()
+  if (transitionId !== chapterTransitionGeneration) return
   if (directJump) {
     await new Promise<void>((resolve) => window.requestAnimationFrame(() => resolve()))
+    if (transitionId !== chapterTransitionGeneration) return
     trackTransitionEnabled.value = true
   }
   chapterContentVisible.value = true
-  await waitForChapterDelay(reducedMotion.value ? 1 : directJump ? 220 : 650)
+  if (!(await waitForChapterDelay(reducedMotion.value ? 1 : directJump ? 220 : 650, transitionId))) return
   chapterTransitionLocked.value = false
   if (source === 'keyboard' || source === 'control') focusChapterHeading(nextIndex)
   syncTimers()
@@ -536,7 +730,18 @@ function clearAmbientLoopTimer() {
 }
 
 function canRunMomentTimer() {
-  return activeChapter.value === 1 && !momentPaused.value && !momentInteractionPaused.value && pageVisible.value && !reducedMotion.value
+  return (
+    !showArchiveIndex.value &&
+    activeChapter.value === 1 &&
+    chapterContentVisible.value &&
+    !chapterTransitionLocked.value &&
+    !restoringState.value &&
+    !momentPaused.value &&
+    !momentInteractionPaused.value &&
+    pageVisible.value &&
+    !reducedMotion.value &&
+    content.value.timeline.length > 0
+  )
 }
 
 function startMomentAutoplay() {
@@ -553,6 +758,7 @@ function startMomentAutoplay() {
 }
 
 function selectMoment(index: number) {
+  if (!content.value.timeline.length) return
   activeMomentIndex.value = Math.max(0, Math.min(content.value.timeline.length - 1, index))
   momentProgress.value = 0
   momentPaused.value = true
@@ -583,12 +789,14 @@ function resumeFromInteraction() {
 }
 
 function selectRelease(index: number) {
+  if (!content.value.releases.length) return
   activeReleaseIndex.value = Math.max(0, Math.min(content.value.releases.length - 1, index))
 }
 
 function canRunPhotoFilm() {
   return (
     activeChapter.value === 3 &&
+    !showArchiveIndex.value &&
     chapterContentVisible.value &&
     !chapterTransitionLocked.value &&
     !restoringState.value &&
@@ -706,23 +914,110 @@ function syncTimers() {
   schedulePhotoLoop()
 }
 
+function applyLayoutModeChange(previousCompact: boolean) {
+  const nextCompact = compactMode.value
+  if (previousCompact === nextCompact) {
+    pageScroll.invalidateMetrics()
+    return
+  }
+
+  cancelChapterTransition()
+  clearCompactChapterNavigation()
+  trackTransitionEnabled.value = false
+  nextTick(() => {
+    if (!anniversaryMounted) return
+    trackTransitionEnabled.value = true
+    setupChapterObserver()
+    if (nextCompact && !restoringState.value) {
+      const chapterId = content.value.chapters[activeChapter.value]?.id
+      if (chapterId) {
+        pageScroll.scrollToAnchor(`anniversary-chapter-${chapterId}`, { behavior: 'auto', offset: 64 })
+      }
+    }
+    pageScroll.invalidateMetrics()
+  })
+}
+
+function cancelReleaseFitCheck() {
+  releaseFitGeneration += 1
+  if (releaseFitFrame && typeof window !== 'undefined') window.cancelAnimationFrame(releaseFitFrame)
+  releaseFitFrame = 0
+}
+
+function syncReleaseFitMode() {
+  if (viewportCompact.value || showArchiveIndex.value) return false
+  const needsCompactLayout = releaseSection.value?.measureStageOverflow()
+  if (needsCompactLayout == null) return false
+  if (needsCompactLayout === releaseOverflowCompact.value) return true
+
+  const previousCompact = compactMode.value
+  releaseOverflowCompact.value = needsCompactLayout
+  applyLayoutModeChange(previousCompact)
+  return true
+}
+
+function scheduleReleaseFitCheck() {
+  if (!anniversaryMounted || typeof window === 'undefined' || showArchiveIndex.value) return
+
+  cancelReleaseFitCheck()
+  const generation = releaseFitGeneration
+
+  nextTick(() => {
+    if (
+      !anniversaryMounted ||
+      generation !== releaseFitGeneration ||
+      viewportCompact.value ||
+      showArchiveIndex.value
+    ) return
+
+    releaseFitFrame = window.requestAnimationFrame(() => {
+      releaseFitFrame = 0
+      if (
+        !anniversaryMounted ||
+        generation !== releaseFitGeneration ||
+        viewportCompact.value ||
+        showArchiveIndex.value
+      ) return
+
+      syncReleaseFitMode()
+    })
+  })
+}
+
+function waitForReleaseFitFrame(signal: AbortSignal) {
+  if (viewportCompact.value || showArchiveIndex.value || signal.aborted) {
+    return Promise.resolve(!signal.aborted)
+  }
+
+  cancelReleaseFitCheck()
+  return new Promise<boolean>((resolve) => {
+    let settled = false
+    const finish = (ready: boolean) => {
+      if (settled) return
+      settled = true
+      signal.removeEventListener('abort', handleAbort)
+      resolve(ready)
+    }
+    const frame = window.requestAnimationFrame(() => finish(true))
+    const handleAbort = () => {
+      window.cancelAnimationFrame(frame)
+      finish(false)
+    }
+    signal.addEventListener('abort', handleAbort, { once: true })
+  })
+}
+
 function syncViewportMode() {
   const width = window.innerWidth
   const height = window.innerHeight
-  const nextCompact = width <= 767 || height <= 640 || (height < 700 && width / Math.max(height, 1) >= 1.5)
-  if (compactMode.value !== nextCompact) {
-    compactMode.value = nextCompact
-    chapterContentVisible.value = true
-    trackTransitionEnabled.value = false
-    nextTick(() => {
-      trackTransitionEnabled.value = true
-      setupChapterObserver()
-      if (nextCompact) {
-        pageScroll.scrollToAnchor(`anniversary-chapter-${content.value.chapters[activeChapter.value].id}`, { behavior: 'auto', offset: 64 })
-      }
-      pageScroll.invalidateMetrics()
-    })
-  }
+  const nextViewportCompact =
+    width <= 767 || height <= 640 || (height < 700 && width / Math.max(height, 1) >= 1.5)
+  const previousCompact = compactMode.value
+  viewportCompact.value = nextViewportCompact
+  applyLayoutModeChange(previousCompact)
+
+  if (nextViewportCompact) cancelReleaseFitCheck()
+  else scheduleReleaseFitCheck()
 }
 
 function setupChapterObserver() {
@@ -734,16 +1029,14 @@ function setupChapterObserver() {
     const root = target?.kind === 'element' ? target.target : null
     chapterObserver = new IntersectionObserver(
       (entries) => {
-        const visible = entries
-          .filter((entry) => entry.isIntersecting)
-          .sort((a, b) => b.intersectionRatio - a.intersectionRatio)[0]
-        if (!visible) return
-        const index = content.value.chapters.findIndex((chapter) => visible.target.id === `anniversary-chapter-${chapter.id}`)
-        if (index >= 0 && index !== activeChapter.value) void goChapter(index, 'observer')
+        if (entries.some((entry) => entry.isIntersecting)) syncActiveChapterFromGeometry()
       },
       { root, rootMargin: '-22% 0px -48% 0px', threshold: [0.08, 0.25, 0.5] },
     )
-    pageRoot.value?.querySelectorAll<HTMLElement>('[id^="anniversary-chapter-"]').forEach((section) => chapterObserver?.observe(section))
+    pageRoot.value
+      ?.querySelectorAll<HTMLElement>('[id^="anniversary-chapter-"]')
+      .forEach((section) => chapterObserver?.observe(section))
+    syncActiveChapterFromGeometry()
   })
 }
 
@@ -763,17 +1056,70 @@ function syncActiveChapterFromGeometry() {
   }
 }
 
+function clearCompactScrollSettleTimer() {
+  if (compactScrollSettleTimer && typeof window !== 'undefined') {
+    window.clearTimeout(compactScrollSettleTimer)
+  }
+  compactScrollSettleTimer = 0
+}
+
+function clearCompactChapterNavigation() {
+  clearCompactScrollSettleTimer()
+  pendingChapter.value = null
+  pendingChapterFocus.value = false
+}
+
+function finishCompactChapterNavigation() {
+  clearCompactScrollSettleTimer()
+  syncActiveChapterFromGeometry()
+  const shouldFocus = pendingChapterFocus.value
+  const settledChapter = activeChapter.value
+  pendingChapter.value = null
+  pendingChapterFocus.value = false
+  if (shouldFocus) focusChapterHeading(settledChapter)
+}
+
+function scheduleCompactScrollSettle(delay = 140) {
+  clearCompactScrollSettleTimer()
+  if (pendingChapter.value == null || typeof window === 'undefined') return
+  compactScrollSettleTimer = window.setTimeout(finishCompactChapterNavigation, delay)
+}
+
+function handlePageScrollFrame(frame: PageScrollFrame) {
+  syncActiveChapterFromGeometry()
+  if (pendingChapter.value == null) return
+  if (frame.state.isScrolling) {
+    clearCompactScrollSettleTimer()
+    return
+  }
+  scheduleCompactScrollSettle()
+}
+
 function readPageState(snapshot: ScrollSnapshot): AnniversaryPageState | null {
   if (!snapshot.pageState || typeof snapshot.pageState !== 'object') return null
   const candidate = (snapshot.pageState as { anniversary?: unknown }).anniversary
   if (!candidate || typeof candidate !== 'object') return null
   const state = candidate as Partial<AnniversaryPageState>
-  if (typeof state.activeChapter !== 'number') return null
+  if (
+    state.contextKey !== pageStateContextKey.value ||
+    typeof state.activeChapter !== 'number'
+  ) return null
   const restoredPhotoIndex = Number(state.currentPhotoIndex)
   return {
+    contextKey: state.contextKey,
     activeChapter: clampChapter(state.activeChapter),
-    activeMomentIndex: Math.max(0, Math.min(content.value.timeline.length - 1, Number(state.activeMomentIndex) || 0)),
-    activeReleaseIndex: Math.max(0, Math.min(content.value.releases.length - 1, Number(state.activeReleaseIndex) || 0)),
+    activeMomentId: typeof state.activeMomentId === 'string' ? state.activeMomentId : null,
+    activeMomentIndex: resolveContentIndex(
+      content.value.timeline,
+      typeof state.activeMomentId === 'string' ? state.activeMomentId : null,
+      Number(state.activeMomentIndex) || 0,
+    ),
+    activeReleaseId: typeof state.activeReleaseId === 'string' ? state.activeReleaseId : null,
+    activeReleaseIndex: resolveContentIndex(
+      content.value.releases,
+      typeof state.activeReleaseId === 'string' ? state.activeReleaseId : null,
+      Number(state.activeReleaseIndex) || 0,
+    ),
     momentPaused: Boolean(state.momentPaused),
     photoAssembled: state.photoAssembled !== false,
     currentPhotoIndex: Math.max(
@@ -791,8 +1137,11 @@ usePageScrollRestoration({
       capturedAt: Date.now(),
       pageState: {
         anniversary: {
+          contextKey: pageStateContextKey.value,
           activeChapter: activeChapter.value,
+          activeMomentId: activeMoment.value?.id ?? null,
           activeMomentIndex: activeMomentIndex.value,
+          activeReleaseId: activeRelease.value?.id ?? null,
           activeReleaseIndex: activeReleaseIndex.value,
           momentPaused: momentPaused.value,
           photoAssembled: photoAssembled.value,
@@ -802,8 +1151,18 @@ usePageScrollRestoration({
     }
   },
   async prepare(snapshot, signal) {
+    cancelChapterTransition()
+    clearCompactChapterNavigation()
+    clearMomentTimer()
+    clearPhotoTimer()
+    clearPhotoLoopTimer()
+    clearAmbientLoopTimer()
+    photoPlaying.value = false
+    photoResetting.value = false
     const state = readPageState(snapshot)
     if (!state || signal.aborted) return
+    pendingRestoredMomentId = state.activeMomentId
+    pendingRestoredReleaseId = state.activeReleaseId
     clearRestorationAbortHandler?.()
     const sessionId = ++restorationSessionId
     const previousState = {
@@ -844,6 +1203,8 @@ usePageScrollRestoration({
       photoInteractionPaused.value = previousState.photoInteractionPaused
       introMotionPlayed.value = previousState.introMotionPlayed
       showNavigationHint.value = previousState.showNavigationHint
+      pendingRestoredMomentId = null
+      pendingRestoredReleaseId = null
       await nextTick()
       if (sessionId !== restorationSessionId) return
       restoringState.value = false
@@ -870,6 +1231,11 @@ usePageScrollRestoration({
     photoInteractionPaused.value = false
     trackTransitionEnabled.value = false
     await nextTick()
+    const fitFrameReady = await waitForReleaseFitFrame(signal)
+    if (fitFrameReady) {
+      syncReleaseFitMode()
+      await nextTick()
+    }
     if (signal.aborted) {
       await rollback()
       return
@@ -892,6 +1258,10 @@ usePageScrollRestoration({
 function resetStoryState() {
   clearRestorationAbortHandler?.()
   restorationSessionId += 1
+  pendingRestoredMomentId = null
+  pendingRestoredReleaseId = null
+  cancelChapterTransition()
+  clearCompactChapterNavigation()
   clearMomentTimer()
   clearPhotoTimer()
   clearPhotoLoopTimer()
@@ -902,8 +1272,8 @@ function resetStoryState() {
   momentProgress.value = 0
   momentPaused.value = false
   momentInteractionPaused.value = false
-  currentPhotoIndex.value = -1
-  photoAssembled.value = false
+  currentPhotoIndex.value = reducedMotion.value ? content.value.photos.length - 1 : -1
+  photoAssembled.value = reducedMotion.value
   photoPlaying.value = false
   photoResetting.value = false
   photoInteractionPaused.value = false
@@ -959,19 +1329,54 @@ watch(activeChapter, (value, previous) => {
   restartAmbientMotion()
 })
 
-watch(lang, () => {
-  if (typeof document !== 'undefined') document.title = pageTitle.value
-})
+watch(
+  content,
+  (_value, previousContent) => {
+    const previousMomentId = previousContent?.timeline[activeMomentIndex.value]?.id ?? null
+    const previousReleaseId = previousContent?.releases[activeReleaseIndex.value]?.id ?? null
+    reconcileContentState(previousMomentId, previousReleaseId)
+  },
+  { flush: 'sync' },
+)
+
+watch(
+  pageTitle,
+  (value) => {
+    if (typeof document !== 'undefined') document.title = value
+  },
+  { immediate: true },
+)
+
+watch(
+  () =>
+    content.value.releases
+      .map((release) => [release.id, release.type, release.date, release.title, release.note].join('\u001f'))
+      .join('\u001e'),
+  () => scheduleReleaseFitCheck(),
+  { flush: 'post' },
+)
 
 watch(routeYear, (value, previous) => {
-  if (typeof document !== 'undefined') document.title = pageTitle.value
-  void loadAnniversaryData(true)
-  if (value !== previous) resetStoryState()
+  if (value === previous) return
+  anniversaryRequestController?.abort()
+  resetStoryState()
+  const endpoint = anniversaryApiUrl()
+  const cachedPayload =
+    appState.miletAnniversaryData?.key === endpoint &&
+    payloadMatchesRoute(appState.miletAnniversaryData.payload, value)
+      ? appState.miletAnniversaryData.payload
+      : null
+  anniversaryPayload.value = cachedPayload
+  loadedAnniversaryEndpoint.value = cachedPayload ? endpoint : ''
+  anniversaryDataStatus.value = cachedPayload ? 'ready' : 'idle'
+  reconcileContentState()
+  void loadAnniversaryData()
 })
 
 onServerPrefetch(() => loadAnniversaryData())
 
 onMounted(() => {
+  anniversaryMounted = true
   document.title = pageTitle.value
   void loadAnniversaryData()
   pageVisible.value = !document.hidden
@@ -980,22 +1385,28 @@ onMounted(() => {
   reducedMotionQuery.addEventListener('change', handleReducedMotionChange)
   syncViewportMode()
   setupChapterObserver()
-  unsubscribeScrollFrame = pageScroll.subscribeScrollFrame(syncActiveChapterFromGeometry)
+  unsubscribeScrollFrame = pageScroll.subscribeScrollFrame(handlePageScrollFrame)
   window.addEventListener('keydown', handleKeydown)
   window.addEventListener('resize', syncViewportMode)
   document.addEventListener('visibilitychange', handleVisibilityChange)
   pageRoot.value?.addEventListener('wheel', handleWheel, { passive: false })
+  if ('fonts' in document) {
+    void document.fonts.ready.then(() => scheduleReleaseFitCheck())
+  }
 })
 
 onBeforeUnmount(() => {
+  anniversaryMounted = false
+  cancelReleaseFitCheck()
   anniversaryRequestController?.abort()
   clearRestorationAbortHandler?.()
   restorationSessionId += 1
+  cancelChapterTransition()
+  clearCompactChapterNavigation()
   clearMomentTimer()
   clearPhotoTimer()
   clearPhotoLoopTimer()
   clearAmbientLoopTimer()
-  clearChapterTimer()
   if (wheelResetTimer) window.clearTimeout(wheelResetTimer)
   if (momentEchoTimer) window.clearTimeout(momentEchoTimer)
   chapterObserver?.disconnect()
@@ -1025,6 +1436,10 @@ onBeforeUnmount(() => {
 .anniversary-header { position: absolute; inset: 0 0 auto; pointer-events: none; }
 .anniversary-header .brand-pill { pointer-events: auto; }
 .is-archive .anniversary-header, .is-compact .anniversary-header { position: relative; }
+.anniversary-data-state { display: grid; min-height: 100dvh; place-items: center; padding: 7rem 1.25rem 3rem; }
+.anniversary-data-card { width: min(100%, 42rem); border: 1px solid rgba(255,255,255,.82); border-radius: 2rem; background: rgba(255,255,255,.72); padding: clamp(1.5rem,4vw,3rem); box-shadow: 0 30px 90px -58px rgba(31,43,53,.88); backdrop-filter: blur(12px); }
+.data-retry-button { min-height: 2.75rem; border: 1px solid rgba(39,109,123,.28); border-radius: 999px; background: rgba(39,109,123,.94); padding: 0 1.25rem; color: white; font-weight: 800; }
+.data-retry-button:focus-visible { outline: 3px solid rgba(49,127,141,.42); outline-offset: 4px; }
 .anniversary-wash { z-index: 0; background: radial-gradient(circle at 28% 22%,rgba(255,255,255,.96),transparent 28%), linear-gradient(135deg,#fff 0%,#eef8ff 46%,#f9f1d8 100%); }
 .anniversary-beams { z-index: 1; background: linear-gradient(112deg,transparent 0%,transparent 22%,rgba(116,183,213,.2) 28%,transparent 44%), linear-gradient(64deg,transparent 0%,transparent 48%,rgba(221,190,95,.18) 58%,transparent 74%); opacity: .72; animation: beam-arrival 1600ms ease-out 1 both; }
 .anniversary-atmosphere { z-index: 2; contain: paint; overflow: hidden; pointer-events: none; }
@@ -1052,6 +1467,9 @@ onBeforeUnmount(() => {
 .anniversary-track.is-stage { width: 100%; height: 100%; flex-direction: row; transition: transform var(--anniversary-track-duration) var(--anniversary-ease-out); }
 .anniversary-track.no-track-transition { transition: none; }
 .anniversary-track.is-compact { width: 100%; flex-direction: column; }
+.anniversary-page.is-compact .anniversary-track :deep(.mobile-slide-shell) {
+  padding-right: max(3rem, calc(env(safe-area-inset-right, 0px) + 2.5rem));
+}
 :deep(.anniversary-slide) { display: flex; width: 100%; flex: 0 0 100%; align-items: center; }
 .anniversary-track.is-stage :deep(.anniversary-slide) {
   box-sizing: border-box;

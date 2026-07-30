@@ -165,7 +165,7 @@ const { scrollToPageAnchor } = usePageAnchorScroll()
 const menu = computed(() => getMenu())
 
 function isActiveRoute(item: MenuItem) {
-  return route.name === item.routerName
+  return route.name === item.routerName || item.activeRouteNames?.includes(String(route.name)) === true
 }
 
 function buildMenuRoute(item: MenuItem) {
@@ -180,7 +180,7 @@ function buildMenuRoute(item: MenuItem) {
   )
 }
 
-const activeItem = computed(() => menu.value.find((m) => route.name === m.routerName))
+const activeItem = computed(() => menu.value.find(isActiveRoute))
 const emit = defineEmits(['closeMenuItem'])
 
 function onMenuItemClick() {

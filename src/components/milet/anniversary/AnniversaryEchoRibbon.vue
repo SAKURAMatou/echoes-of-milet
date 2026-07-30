@@ -1,5 +1,5 @@
 <template>
-  <div class="echo-ribbon" aria-hidden="true">
+  <div class="echo-ribbon" :class="{ 'is-compact-mode': compact }" aria-hidden="true">
     <div class="echo-ribbon-desktop">
       <svg viewBox="0 0 1000 180" preserveAspectRatio="none">
         <path class="echo-ribbon-memory" :d="desktopPath" pathLength="1" />
@@ -59,6 +59,7 @@ const props = defineProps<{
   activeChapter: number
   chapterCount: number
   motionCycle: number
+  compact: boolean
 }>()
 
 const desktopPath = 'M 28 138 C 142 30, 244 154, 354 86 S 574 42, 690 112 S 878 150, 972 42'
@@ -184,6 +185,33 @@ function nodeStyle(node: { x: number; y: number }, viewWidth: number, viewHeight
   display: none;
 }
 
+.echo-ribbon.is-compact-mode {
+  position: fixed;
+  inset: 8.5rem max(0.35rem, env(safe-area-inset-right, 0px)) max(2.4rem, env(safe-area-inset-bottom, 0px)) auto;
+  width: 1.7rem;
+  height: auto;
+  opacity: 0.62;
+}
+
+.echo-ribbon.is-compact-mode .echo-ribbon-desktop {
+  display: none;
+}
+
+.echo-ribbon.is-compact-mode .echo-ribbon-compact {
+  display: block;
+}
+
+.echo-ribbon.is-compact-mode .echo-ribbon-compact .echo-node {
+  width: 0.56rem;
+  height: 0.56rem;
+  border-width: 1.5px;
+}
+
+.echo-ribbon.is-compact-mode .echo-ribbon-compact .echo-node-pulse {
+  width: 1rem;
+  height: 1rem;
+}
+
 @keyframes echo-node-arrival {
   from {
     opacity: 0.8;
@@ -221,6 +249,19 @@ function nodeStyle(node: { x: number; y: number }, viewWidth: number, viewHeight
   .echo-ribbon-compact .echo-node-pulse {
     width: 1rem;
     height: 1rem;
+  }
+}
+
+@media (max-height: 699px) and (min-aspect-ratio: 3/2) {
+  .echo-ribbon,
+  .echo-ribbon.is-compact-mode {
+    top: max(9.5rem, calc(env(safe-area-inset-top, 0px) + 9rem));
+  }
+
+  .echo-ribbon.is-compact-mode .echo-ribbon-compact .echo-node-pulse,
+  .echo-ribbon-compact .echo-node-pulse {
+    width: 0.9rem;
+    height: 0.9rem;
   }
 }
 

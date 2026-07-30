@@ -18,7 +18,7 @@
           <RouterLink
             v-for="year in availableYears"
             :key="year"
-            :to="{ name: 'miletAnniversary', params: { lang: routeLang, year } }"
+            :to="{ name: 'miletAnniversaryYear', params: { lang: routeLang, year } }"
             class="archive-year-link"
             :data-page-scroll-anchor="`anniversary-${year}`"
           >

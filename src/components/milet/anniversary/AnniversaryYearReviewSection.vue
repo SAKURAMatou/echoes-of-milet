@@ -26,57 +26,62 @@
       </div>
 
       <div class="year-panel mobile-scroll-region anniversary-body">
-        <Transition name="moment-echo" mode="out-in">
-          <div
-            :key="`${activeMoment.id}-${momentEchoKey}`"
-            class="moment-content"
-            :class="{ 'manual-echo': manualEchoActive }"
-          >
-            <div class="moment-heading">
-              <p class="text-xs font-semibold uppercase tracking-[0.22em] text-[#317f8d]">
-                {{ activeMoment.date }}
-              </p>
-              <div class="moment-title-row">
-                <h3 class="font-serif text-3xl leading-tight text-[#263542] sm:text-4xl">
-                  {{ activeMoment.title }}
-                </h3>
-                <div class="moment-actions">
-                  <span class="moment-label rounded-full border border-[#d9c27b] px-3 py-1 text-xs font-semibold uppercase text-[#8a6e1b]">
-                    {{ activeMoment.label }}
-                  </span>
-                  <button
-                    class="moment-toggle"
-                    type="button"
-                    :aria-pressed="paused"
-                    :aria-label="paused ? pauseText.resumeLabel : pauseText.pauseLabel"
-                    @click="$emit('togglePause')"
-                  >
-                    {{ paused ? pauseText.resume : pauseText.pause }}
-                  </button>
+        <template v-if="activeMoment">
+          <Transition name="moment-echo" mode="out-in">
+            <div
+              :key="`${activeMoment.id}-${momentEchoKey}`"
+              class="moment-content"
+              :class="{ 'manual-echo': manualEchoActive }"
+            >
+              <div class="moment-heading">
+                <p class="text-xs font-semibold uppercase tracking-[0.22em] text-[#317f8d]">
+                  {{ activeMoment.date }}
+                </p>
+                <div class="moment-title-row">
+                  <h3 class="font-serif text-3xl leading-tight text-[#263542] sm:text-4xl">
+                    {{ activeMoment.title }}
+                  </h3>
+                  <div class="moment-actions">
+                    <span class="moment-label rounded-full border border-[#d9c27b] px-3 py-1 text-xs font-semibold uppercase text-[#8a6e1b]">
+                      {{ activeMoment.label }}
+                    </span>
+                    <button
+                      class="moment-toggle"
+                      type="button"
+                      :aria-pressed="paused"
+                      :aria-label="paused ? pauseText.resumeLabel : pauseText.pauseLabel"
+                      @click="$emit('togglePause')"
+                    >
+                      {{ paused ? pauseText.resume : pauseText.pause }}
+                    </button>
+                  </div>
                 </div>
               </div>
+              <p class="mt-5 text-sm leading-7 text-[#586872] sm:text-base">
+                {{ activeMoment.body }}
+              </p>
             </div>
-            <p class="mt-5 text-sm leading-7 text-[#586872] sm:text-base">
-              {{ activeMoment.body }}
-            </p>
-          </div>
-        </Transition>
+          </Transition>
 
-        <div class="moment-progress-list" aria-label="Year moments">
-          <button
-            v-for="(moment, index) in timeline"
-            :key="moment.id"
-            type="button"
-            class="moment-progress"
-            :class="index === activeMomentIndex ? 'is-active' : ''"
-            :aria-current="index === activeMomentIndex ? 'step' : undefined"
-            :aria-label="`${moment.date}: ${moment.title}`"
-            @click="$emit('selectMoment', index)"
-          >
-            <span>{{ moment.date.replace(/^\d{4}[-\s]?/, '') }}</span>
-            <i :style="index === activeMomentIndex ? progressStyle(progress) : undefined"></i>
-          </button>
-        </div>
+          <div class="moment-progress-list" aria-label="Year moments">
+            <button
+              v-for="(moment, index) in timeline"
+              :key="moment.id"
+              type="button"
+              class="moment-progress"
+              :class="index === activeMomentIndex ? 'is-active' : ''"
+              :aria-current="index === activeMomentIndex ? 'step' : undefined"
+              :aria-label="`${moment.date}: ${moment.title}`"
+              @click="$emit('selectMoment', index)"
+            >
+              <span>{{ moment.date.replace(/^\d{4}[-\s]?/, '') }}</span>
+              <i :style="index === activeMomentIndex ? progressStyle(progress) : undefined"></i>
+            </button>
+          </div>
+        </template>
+        <p v-else class="moment-empty" role="status">
+          {{ lang === 'ja' ? 'この年の記録は準備中です。' : '这一年的回忆仍在整理中。' }}
+        </p>
       </div>
     </div>
   </section>
@@ -93,7 +98,7 @@ import type {
 const props = defineProps<{
   chapter: AnniversaryChapter
   timeline: AnniversaryTimelineMoment[]
-  activeMoment: AnniversaryTimelineMoment
+  activeMoment: AnniversaryTimelineMoment | null
   activeMomentIndex: number
   progress: number
   paused: boolean
@@ -147,6 +152,7 @@ function handleFocusOut(event: FocusEvent) {
 .moment-progress.is-active span { color: #276d7b; }
 .moment-progress.is-active i { box-shadow: 0 0 0 4px rgba(221, 190, 95, 0.12); }
 .moment-content { position: relative; }
+.moment-empty { display: grid; min-height: 12rem; place-items: center; color: #60717b; text-align: center; }
 .moment-content.manual-echo::before, .moment-content.manual-echo::after { content: ''; position: absolute; inset: -.6rem; pointer-events: none; border: 1px solid rgba(49,127,141,.28); border-radius: 1.1rem; animation: manual-moment-echo 460ms ease-out 1 both; }
 .moment-content.manual-echo::after { border-color: rgba(221,190,95,.35); animation-delay: 70ms; }
 .moment-echo-enter-active, .moment-echo-leave-active { transition: opacity 180ms ease, transform 180ms ease; }

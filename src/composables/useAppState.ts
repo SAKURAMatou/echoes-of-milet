@@ -14,7 +14,7 @@ export interface AppState {
   lang: SupportedLang
   miletHomeData: Record<string, any> | null
   miletArticleData: PublicArticleDetail | null
-  miletAnniversaryData: AnniversaryApiPayload | null
+  miletAnniversaryData: CachedPayload<AnniversaryApiPayload> | null
   miletPilgrimageData: PilgrimageSsrPayload | null
   miletLiveListData: CachedPayload<LiveEventListResponse> | null
   miletLiveDetailData: CachedPayload<LiveEventDetailPayload> | null
