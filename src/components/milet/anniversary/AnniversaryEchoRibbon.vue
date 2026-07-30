@@ -4,10 +4,11 @@
       <svg viewBox="0 0 1000 180" preserveAspectRatio="none">
         <path class="echo-ribbon-memory" :d="desktopPath" pathLength="1" />
         <path
-          class="echo-ribbon-progress"
-          :d="desktopPath"
+          v-for="(segment, index) in desktopSegments"
+          :key="`desktop-segment-${index}`"
+          :class="['echo-ribbon-progress', { 'is-active': index < activeSegmentCount }]"
+          :d="segment"
           pathLength="1"
-          :style="progressStyle"
         />
       </svg>
       <span
@@ -28,10 +29,11 @@
       <svg viewBox="0 0 40 400" preserveAspectRatio="none">
         <path class="echo-ribbon-memory" :d="compactPath" pathLength="1" />
         <path
-          class="echo-ribbon-progress"
-          :d="compactPath"
+          v-for="(segment, index) in compactSegments"
+          :key="`compact-segment-${index}`"
+          :class="['echo-ribbon-progress', { 'is-active': index < activeSegmentCount }]"
+          :d="segment"
           pathLength="1"
-          :style="progressStyle"
         />
       </svg>
       <span
@@ -61,6 +63,16 @@ const props = defineProps<{
 
 const desktopPath = 'M 28 138 C 142 30, 244 154, 354 86 S 574 42, 690 112 S 878 150, 972 42'
 const compactPath = 'M 21 12 C 6 66, 34 92, 19 137 S 7 211, 20 263 S 34 330, 21 388'
+const desktopSegments = [
+  'M 28 138 C 142 30, 244 154, 354 86',
+  'M 354 86 C 464 18, 574 42, 690 112',
+  'M 690 112 C 806 182, 878 150, 972 42',
+]
+const compactSegments = [
+  'M 21 12 C 6 66, 34 92, 19 137',
+  'M 19 137 C 4 182, 7 211, 20 263',
+  'M 20 263 C 33 315, 34 330, 21 388',
+]
 const desktopNodes = [
   { x: 28, y: 138 },
   { x: 354, y: 86 },
@@ -74,11 +86,9 @@ const compactNodes = [
   { x: 21, y: 388 },
 ]
 
-const progressStyle = computed(() => {
-  const denominator = Math.max(1, props.chapterCount - 1)
-  const progress = Math.max(0, Math.min(1, props.activeChapter / denominator))
-  return { '--echo-progress': `${1 - progress}` }
-})
+const activeSegmentCount = computed(() =>
+  Math.max(0, Math.min(props.activeChapter, props.chapterCount - 1, desktopSegments.length)),
+)
 
 function nodeStyle(node: { x: number; y: number }, viewWidth: number, viewHeight: number) {
   return {
@@ -126,9 +136,17 @@ function nodeStyle(node: { x: number; y: number }, viewWidth: number, viewHeight
 .echo-ribbon-progress {
   stroke: rgba(49, 127, 141, 0.58);
   stroke-width: 2.6;
-  stroke-dasharray: 1;
-  stroke-dashoffset: var(--echo-progress);
-  transition: stroke-dashoffset var(--anniversary-track-duration) var(--anniversary-ease-out);
+  stroke-dasharray: 1 1;
+  stroke-dashoffset: 1;
+  opacity: 0;
+  transition:
+    stroke-dashoffset 420ms var(--anniversary-ease-out),
+    opacity var(--anniversary-micro-duration) ease;
+}
+
+.echo-ribbon-progress.is-active {
+  stroke-dashoffset: 0;
+  opacity: 1;
 }
 
 .echo-node {
@@ -180,7 +198,7 @@ function nodeStyle(node: { x: number; y: number }, viewWidth: number, viewHeight
 @media (max-width: 767px), (max-height: 640px), (max-height: 699px) and (min-aspect-ratio: 3/2) {
   .echo-ribbon {
     position: fixed;
-    inset: 8.5rem 0.35rem 2.4rem auto;
+    inset: 8.5rem max(0.35rem, env(safe-area-inset-right, 0px)) max(2.4rem, env(safe-area-inset-bottom, 0px)) auto;
     width: 1.7rem;
     height: auto;
     opacity: 0.62;

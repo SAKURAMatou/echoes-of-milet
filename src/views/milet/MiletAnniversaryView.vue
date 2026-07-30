@@ -18,14 +18,68 @@
     <div
       v-if="!showArchiveIndex"
       class="anniversary-atmosphere absolute inset-0"
-      :class="`is-chapter-${activeChapter + 1}`"
+      :class="[
+        `is-chapter-${activeChapter + 1}`,
+        motionCycle % 2 === 0 ? 'is-cycle-even' : 'is-cycle-odd',
+      ]"
       aria-hidden="true"
     >
-      <span :key="`ambient-blue-${motionCycle}`" class="ambient-orb is-blue"></span>
-      <span :key="`ambient-gold-${motionCycle}`" class="ambient-orb is-gold"></span>
-      <span :key="`ambient-finale-${motionCycle}`" class="ambient-orb is-finale"></span>
-      <span class="ambient-echo-watermark"></span>
-      <span :key="`ambient-rays-${motionCycle}`" class="ambient-celebration-rays"></span>
+      <span class="ambient-orb is-blue"></span>
+      <span class="ambient-orb is-gold"></span>
+      <span class="ambient-shared-echo">
+        <svg
+          class="ambient-shared-echo-desktop"
+          viewBox="0 0 1200 720"
+          preserveAspectRatio="xMidYMid slice"
+        >
+          <path
+            class="ambient-shared-arc is-primary"
+            d="M -80 530 C 170 330, 335 590, 545 430 S 925 195, 1280 350"
+          />
+          <path
+            class="ambient-shared-arc is-secondary"
+            d="M -95 580 C 150 400, 345 640, 575 475 S 930 260, 1290 395"
+          />
+          <g class="ambient-shared-ticks">
+            <path d="M 154 411 l -8 -13" />
+            <path d="M 354 500 l -5 -16" />
+            <path d="M 566 453 l 4 -17" />
+            <path d="M 790 310 l 9 -14" />
+            <path d="M 1036 272 l 12 -11" />
+          </g>
+          <g class="ambient-shared-glints">
+            <circle cx="154" cy="411" r="3" />
+            <circle cx="566" cy="453" r="2.5" />
+            <circle cx="1036" cy="272" r="3" />
+          </g>
+        </svg>
+        <svg
+          class="ambient-shared-echo-compact"
+          viewBox="0 0 390 844"
+          preserveAspectRatio="xMidYMid slice"
+        >
+          <path
+            class="ambient-shared-arc is-primary"
+            d="M -40 760 C 108 642, 48 438, 188 332 S 286 166, 330 24"
+          />
+          <path
+            class="ambient-shared-arc is-secondary"
+            d="M -58 806 C 116 694, 78 478, 214 376 S 296 204, 336 62"
+          />
+          <g class="ambient-shared-ticks">
+            <path d="M 72 652 l -12 -7" />
+            <path d="M 105 520 l -14 -3" />
+            <path d="M 185 335 l -12 -8" />
+            <path d="M 255 244 l -10 -10" />
+            <path d="M 311 112 l -11 -9" />
+          </g>
+          <g class="ambient-shared-glints">
+            <circle cx="72" cy="652" r="3" />
+            <circle cx="185" cy="335" r="2.5" />
+            <circle cx="311" cy="112" r="3" />
+          </g>
+        </svg>
+      </span>
     </div>
     <div class="echo-fragments absolute inset-0" aria-hidden="true">
       <span
@@ -977,11 +1031,16 @@ onBeforeUnmount(() => {
 .ambient-orb { --orb-opacity: .48; --orb-from-x: -1.5%; --orb-from-y: 1%; position: absolute; display: block; width: clamp(20rem,36vw,36rem); aspect-ratio: 1; border-radius: 50%; opacity: var(--orb-opacity); transform: translate3d(0,0,0) scale(1); animation: ambient-orb-arrival 1800ms var(--anniversary-ease-out) 1 both; }
 .ambient-orb.is-blue { left: -9%; top: 7%; background: radial-gradient(circle,rgba(255,255,255,.72) 0%,rgba(116,183,213,.2) 34%,rgba(116,183,213,.08) 57%,transparent 72%); }
 .ambient-orb.is-gold { --orb-opacity: .44; --orb-from-x: 1.5%; right: -7%; top: 10%; background: radial-gradient(circle,rgba(255,255,255,.68) 0%,rgba(221,190,95,.18) 35%,rgba(221,190,95,.07) 58%,transparent 73%); animation-delay: 140ms; }
-.ambient-orb.is-finale { --orb-opacity: .34; --orb-from-y: 1.8%; left: 37%; bottom: -28%; width: clamp(18rem,30vw,30rem); background: radial-gradient(circle,rgba(255,255,255,.58) 0%,rgba(116,183,213,.12) 36%,rgba(221,190,95,.08) 56%,transparent 72%); animation-delay: 280ms; }
-.ambient-echo-watermark { position: absolute; right: 7%; top: 11%; display: block; width: clamp(22rem,38vw,38rem); aspect-ratio: 1; border-radius: 50%; background: repeating-radial-gradient(circle,rgba(49,127,141,.2) 0,rgba(49,127,141,.2) 1px,transparent 1px,transparent 2.4rem); opacity: .2; -webkit-mask-image: radial-gradient(circle,#000 0%,rgba(0,0,0,.9) 48%,transparent 74%); mask-image: radial-gradient(circle,#000 0%,rgba(0,0,0,.9) 48%,transparent 74%); transition: opacity var(--anniversary-track-duration) ease,transform var(--anniversary-track-duration) var(--anniversary-ease-out); }
-.anniversary-atmosphere.is-chapter-3 .ambient-echo-watermark { opacity: .26; transform: translate3d(-3%,2%,0); }
-.anniversary-atmosphere.is-chapter-4 .ambient-echo-watermark { opacity: .34; transform: translate3d(-5%,4%,0) scale(1.04); }
-.ambient-celebration-rays { position: absolute; right: -10%; top: -24%; display: block; width: min(64vw,58rem); aspect-ratio: 1; border-radius: 50%; background: repeating-conic-gradient(from -12deg,rgba(221,190,95,.15) 0deg,rgba(221,190,95,.15) 1deg,transparent 1deg,transparent 14deg); opacity: .22; -webkit-mask-image: radial-gradient(circle,rgba(0,0,0,.94) 0%,rgba(0,0,0,.48) 40%,transparent 70%); mask-image: radial-gradient(circle,rgba(0,0,0,.94) 0%,rgba(0,0,0,.48) 40%,transparent 70%); transform: scale(1); animation: ambient-rays-arrival 1700ms var(--anniversary-ease-out) 120ms 1 both; }
+.ambient-shared-echo { --ambient-shared-opacity: .28; --ambient-shared-peak: .48; position: absolute; inset: 0; display: block; opacity: var(--ambient-shared-opacity); transform: translate3d(0,0,0) scale(1); transform-origin: center; animation-duration: 2200ms; animation-timing-function: var(--anniversary-ease-out); animation-fill-mode: both; }
+.anniversary-atmosphere.is-cycle-even .ambient-shared-echo { animation-name: ambient-shared-echo-even; }
+.anniversary-atmosphere.is-cycle-odd .ambient-shared-echo { animation-name: ambient-shared-echo-odd; }
+.ambient-shared-echo svg { position: absolute; inset: 0; width: 100%; height: 100%; overflow: hidden; }
+.ambient-shared-echo-compact { display: none; }
+.ambient-shared-arc { fill: none; stroke-linecap: round; vector-effect: non-scaling-stroke; }
+.ambient-shared-arc.is-primary { stroke: rgba(49,127,141,.22); stroke-width: 1.5; }
+.ambient-shared-arc.is-secondary { stroke: rgba(116,183,213,.13); stroke-width: 1; }
+.ambient-shared-ticks path { fill: none; stroke: rgba(184,145,47,.42); stroke-width: 1.35; stroke-linecap: round; vector-effect: non-scaling-stroke; }
+.ambient-shared-glints circle { fill: rgba(236,213,137,.78); stroke: rgba(255,255,255,.92); stroke-width: 1.5; vector-effect: non-scaling-stroke; }
 .anniversary-wave { z-index: 2; background: repeating-linear-gradient(90deg,rgba(49,127,141,.12) 0,rgba(49,127,141,.12) 1px,transparent 1px,transparent 16px), linear-gradient(180deg,rgba(255,255,255,0),rgba(49,127,141,.12)); mask-image: linear-gradient(180deg,transparent 0%,#000 28%,#000 100%); pointer-events: none; }
 .echo-fragments { z-index: 3; overflow: hidden; pointer-events: none; }
 .echo-fragments span { position: absolute; display: block; opacity: 0; transform: rotate(var(--fragment-rotation)); animation: fragment-echo 1700ms var(--anniversary-ease-out) var(--fragment-delay) 1 both; }
@@ -1014,7 +1073,8 @@ onBeforeUnmount(() => {
 button, .brand-pill { cursor: pointer; }
 @keyframes beam-arrival { from { opacity: 0; transform: translateX(-1.2%); } to { opacity: .72; transform: translateX(0); } }
 @keyframes ambient-orb-arrival { from { opacity: .08; transform: translate3d(var(--orb-from-x),var(--orb-from-y),0) scale(.9); } 48% { opacity: .58; } to { opacity: var(--orb-opacity); transform: translate3d(0,0,0) scale(1); } }
-@keyframes ambient-rays-arrival { from { opacity: 0; transform: scale(.96) rotate(-2deg); } 52% { opacity: .3; } to { opacity: .22; transform: scale(1) rotate(0); } }
+@keyframes ambient-shared-echo-even { from { opacity: .04; transform: translate3d(-1.2%,1%,0) scale(.985); } 48% { opacity: var(--ambient-shared-peak); } to { opacity: var(--ambient-shared-opacity); transform: translate3d(0,0,0) scale(1); } }
+@keyframes ambient-shared-echo-odd { from { opacity: .04; transform: translate3d(-1.2%,1%,0) scale(.985); } 48% { opacity: var(--ambient-shared-peak); } to { opacity: var(--ambient-shared-opacity); transform: translate3d(0,0,0) scale(1); } }
 @keyframes fragment-echo { 0% { opacity: 0; transform: rotate(var(--fragment-rotation)) scale(.7); } 22%, 64% { opacity: .58; } 100% { opacity: 0; transform: rotate(calc(var(--fragment-rotation) + 20deg)) translateY(-1.1rem) scale(1); } }
 @keyframes navigation-hint { 0% { opacity: 0; transform: translate(50%,.4rem); } 20%, 78% { opacity: .86; transform: translate(50%,0); } 100% { opacity: .36; } }
 
@@ -1024,21 +1084,22 @@ button, .brand-pill { cursor: pointer; }
   .ambient-orb { width: min(76vw,22rem); }
   .ambient-orb.is-blue { left: -9rem; top: 8rem; }
   .ambient-orb.is-gold { right: -10rem; top: 38%; }
-  .ambient-orb.is-finale { left: 24%; bottom: -5rem; width: min(68vw,20rem); }
-  .ambient-echo-watermark { right: -8rem; top: 10rem; width: 21rem; opacity: .17; }
-  .anniversary-atmosphere.is-chapter-3 .ambient-echo-watermark,
-  .anniversary-atmosphere.is-chapter-4 .ambient-echo-watermark { opacity: .22; transform: none; }
-  .ambient-celebration-rays { right: -12rem; top: 1rem; width: 27rem; opacity: .17; }
+  .ambient-shared-echo { --ambient-shared-opacity: .23; --ambient-shared-peak: .4; right: 2.75rem; }
   .echo-fragments span:nth-child(n+5) { display: none; }
   .anniversary-track:not(.is-stage) { width: 100%; height: auto; flex-direction: column; transform: none !important; }
   .anniversary-track:not(.is-stage) :deep(.anniversary-slide) { width: 100%; height: auto; min-height: max(100svh,42rem); flex: none; }
-  .anniversary-track:not(.is-stage) :deep(.mobile-slide-shell) { grid-template-columns: minmax(0,1fr); max-width: 48rem; }
+  .anniversary-track:not(.is-stage) :deep(.mobile-slide-shell) { grid-template-columns: minmax(0,1fr); max-width: 48rem; padding-right: max(3rem, calc(env(safe-area-inset-right, 0px) + 2.5rem)); }
   .anniversary-track:not(.is-stage) :deep(.anniversary-slide-intro .mobile-slide-shell > :first-child) { order: 2; }
   .anniversary-track:not(.is-stage) :deep(.anniversary-slide-intro .mobile-slide-shell > :last-child) { order: 1; }
 }
 
+@media (max-width: 767px) and (max-aspect-ratio: 3/2) {
+  .ambient-shared-echo-desktop { display: none; }
+  .ambient-shared-echo-compact { display: block; }
+}
+
 .is-page-hidden .anniversary-beams,
-.is-page-hidden .anniversary-atmosphere span,
+.is-page-hidden .anniversary-atmosphere *,
 .is-page-hidden .echo-fragments span { animation-play-state: paused !important; }
 .is-archive .anniversary-beams { animation: none; opacity: .38; }
 .is-archive .echo-fragments { display: none; }
