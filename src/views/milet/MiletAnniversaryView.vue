@@ -1317,6 +1317,7 @@ function handleReducedMotionChange(event: MediaQueryListEvent | MediaQueryList) 
 }
 
 watch(activeChapter, (value, previous) => {
+  if (value !== 1) momentInteractionPaused.value = false
   if (restoringState.value) {
     clearMomentTimer()
     clearPhotoTimer()

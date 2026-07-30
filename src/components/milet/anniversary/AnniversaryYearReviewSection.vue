@@ -5,10 +5,6 @@
     data-page-scroll-anchor="anniversary-chapter-year"
     :inert="active ? undefined : true"
     :aria-hidden="active ? undefined : 'true'"
-    @pointerenter="$emit('interactionPause')"
-    @pointerleave="$emit('interactionResume')"
-    @focusin="$emit('interactionPause')"
-    @focusout="handleFocusOut"
   >
     <div
       class="mobile-slide-shell mx-auto grid w-full max-w-6xl items-center gap-7 px-5 sm:px-8 md:grid-cols-[0.86fr_1.14fr] md:gap-12"
@@ -25,7 +21,13 @@
         </p>
       </div>
 
-      <div class="year-panel mobile-scroll-region anniversary-body">
+      <div
+        class="year-panel mobile-scroll-region anniversary-body"
+        @pointerenter="$emit('interactionPause')"
+        @pointerleave="$emit('interactionResume')"
+        @focusin="$emit('interactionPause')"
+        @focusout="handleFocusOut"
+      >
         <template v-if="activeMoment">
           <Transition name="moment-echo" mode="out-in">
             <div
