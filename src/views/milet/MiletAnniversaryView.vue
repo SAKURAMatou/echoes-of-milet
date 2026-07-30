@@ -7,6 +7,7 @@
       'is-compact': !showArchiveIndex && compactMode,
       'is-stage': storyStage,
       'is-content-hidden': !chapterContentVisible,
+      'is-page-hidden': !pageVisible,
     }"
     :data-anniversary-mode="showArchiveIndex ? 'archive' : compactMode ? 'compact' : 'stage'"
     @touchstart.passive="handleTouchStart"
@@ -14,6 +15,18 @@
   >
     <div class="anniversary-wash absolute inset-0" aria-hidden="true"></div>
     <div class="anniversary-beams absolute inset-0" aria-hidden="true"></div>
+    <div
+      v-if="!showArchiveIndex"
+      class="anniversary-atmosphere absolute inset-0"
+      :class="`is-chapter-${activeChapter + 1}`"
+      aria-hidden="true"
+    >
+      <span :key="`ambient-blue-${motionCycle}`" class="ambient-orb is-blue"></span>
+      <span :key="`ambient-gold-${motionCycle}`" class="ambient-orb is-gold"></span>
+      <span :key="`ambient-finale-${motionCycle}`" class="ambient-orb is-finale"></span>
+      <span class="ambient-echo-watermark"></span>
+      <span :key="`ambient-rays-${motionCycle}`" class="ambient-celebration-rays"></span>
+    </div>
     <div class="echo-fragments absolute inset-0" aria-hidden="true">
       <span
         v-for="fragment in echoFragments"
@@ -960,6 +973,15 @@ onBeforeUnmount(() => {
 .is-archive .anniversary-header, .is-compact .anniversary-header { position: relative; }
 .anniversary-wash { z-index: 0; background: radial-gradient(circle at 28% 22%,rgba(255,255,255,.96),transparent 28%), linear-gradient(135deg,#fff 0%,#eef8ff 46%,#f9f1d8 100%); }
 .anniversary-beams { z-index: 1; background: linear-gradient(112deg,transparent 0%,transparent 22%,rgba(116,183,213,.2) 28%,transparent 44%), linear-gradient(64deg,transparent 0%,transparent 48%,rgba(221,190,95,.18) 58%,transparent 74%); opacity: .72; animation: beam-arrival 1600ms ease-out 1 both; }
+.anniversary-atmosphere { z-index: 2; contain: paint; overflow: hidden; pointer-events: none; }
+.ambient-orb { --orb-opacity: .48; --orb-from-x: -1.5%; --orb-from-y: 1%; position: absolute; display: block; width: clamp(20rem,36vw,36rem); aspect-ratio: 1; border-radius: 50%; opacity: var(--orb-opacity); transform: translate3d(0,0,0) scale(1); animation: ambient-orb-arrival 1800ms var(--anniversary-ease-out) 1 both; }
+.ambient-orb.is-blue { left: -9%; top: 7%; background: radial-gradient(circle,rgba(255,255,255,.72) 0%,rgba(116,183,213,.2) 34%,rgba(116,183,213,.08) 57%,transparent 72%); }
+.ambient-orb.is-gold { --orb-opacity: .44; --orb-from-x: 1.5%; right: -7%; top: 10%; background: radial-gradient(circle,rgba(255,255,255,.68) 0%,rgba(221,190,95,.18) 35%,rgba(221,190,95,.07) 58%,transparent 73%); animation-delay: 140ms; }
+.ambient-orb.is-finale { --orb-opacity: .34; --orb-from-y: 1.8%; left: 37%; bottom: -28%; width: clamp(18rem,30vw,30rem); background: radial-gradient(circle,rgba(255,255,255,.58) 0%,rgba(116,183,213,.12) 36%,rgba(221,190,95,.08) 56%,transparent 72%); animation-delay: 280ms; }
+.ambient-echo-watermark { position: absolute; right: 7%; top: 11%; display: block; width: clamp(22rem,38vw,38rem); aspect-ratio: 1; border-radius: 50%; background: repeating-radial-gradient(circle,rgba(49,127,141,.2) 0,rgba(49,127,141,.2) 1px,transparent 1px,transparent 2.4rem); opacity: .2; -webkit-mask-image: radial-gradient(circle,#000 0%,rgba(0,0,0,.9) 48%,transparent 74%); mask-image: radial-gradient(circle,#000 0%,rgba(0,0,0,.9) 48%,transparent 74%); transition: opacity var(--anniversary-track-duration) ease,transform var(--anniversary-track-duration) var(--anniversary-ease-out); }
+.anniversary-atmosphere.is-chapter-3 .ambient-echo-watermark { opacity: .26; transform: translate3d(-3%,2%,0); }
+.anniversary-atmosphere.is-chapter-4 .ambient-echo-watermark { opacity: .34; transform: translate3d(-5%,4%,0) scale(1.04); }
+.ambient-celebration-rays { position: absolute; right: -10%; top: -24%; display: block; width: min(64vw,58rem); aspect-ratio: 1; border-radius: 50%; background: repeating-conic-gradient(from -12deg,rgba(221,190,95,.15) 0deg,rgba(221,190,95,.15) 1deg,transparent 1deg,transparent 14deg); opacity: .22; -webkit-mask-image: radial-gradient(circle,rgba(0,0,0,.94) 0%,rgba(0,0,0,.48) 40%,transparent 70%); mask-image: radial-gradient(circle,rgba(0,0,0,.94) 0%,rgba(0,0,0,.48) 40%,transparent 70%); transform: scale(1); animation: ambient-rays-arrival 1700ms var(--anniversary-ease-out) 120ms 1 both; }
 .anniversary-wave { z-index: 2; background: repeating-linear-gradient(90deg,rgba(49,127,141,.12) 0,rgba(49,127,141,.12) 1px,transparent 1px,transparent 16px), linear-gradient(180deg,rgba(255,255,255,0),rgba(49,127,141,.12)); mask-image: linear-gradient(180deg,transparent 0%,#000 28%,#000 100%); pointer-events: none; }
 .echo-fragments { z-index: 3; overflow: hidden; pointer-events: none; }
 .echo-fragments span { position: absolute; display: block; opacity: 0; transform: rotate(var(--fragment-rotation)); animation: fragment-echo 1700ms var(--anniversary-ease-out) var(--fragment-delay) 1 both; }
@@ -991,17 +1013,35 @@ onBeforeUnmount(() => {
 .navigation-hint { position: absolute; right: 50%; bottom: 1rem; z-index: 30; border-radius: 999px; background: rgba(255,255,255,.78); padding: .55rem 1rem; color: #60717b; font-size: .7rem; font-weight: 700; letter-spacing: .08em; transform: translateX(50%); animation: navigation-hint 2.4s ease-out 1 both; }
 button, .brand-pill { cursor: pointer; }
 @keyframes beam-arrival { from { opacity: 0; transform: translateX(-1.2%); } to { opacity: .72; transform: translateX(0); } }
+@keyframes ambient-orb-arrival { from { opacity: .08; transform: translate3d(var(--orb-from-x),var(--orb-from-y),0) scale(.9); } 48% { opacity: .58; } to { opacity: var(--orb-opacity); transform: translate3d(0,0,0) scale(1); } }
+@keyframes ambient-rays-arrival { from { opacity: 0; transform: scale(.96) rotate(-2deg); } 52% { opacity: .3; } to { opacity: .22; transform: scale(1) rotate(0); } }
 @keyframes fragment-echo { 0% { opacity: 0; transform: rotate(var(--fragment-rotation)) scale(.7); } 22%, 64% { opacity: .58; } 100% { opacity: 0; transform: rotate(calc(var(--fragment-rotation) + 20deg)) translateY(-1.1rem) scale(1); } }
 @keyframes navigation-hint { 0% { opacity: 0; transform: translate(50%,.4rem); } 20%, 78% { opacity: .86; transform: translate(50%,0); } 100% { opacity: .36; } }
 
 @media (max-width: 767px), (max-height: 640px), (max-height: 699px) and (min-aspect-ratio: 3/2) {
   .anniversary-page:not(.is-archive) { min-height: 100dvh; height: auto; overflow: visible; }
+  .anniversary-atmosphere { position: fixed; inset: 0; overflow: hidden; }
+  .ambient-orb { width: min(76vw,22rem); }
+  .ambient-orb.is-blue { left: -9rem; top: 8rem; }
+  .ambient-orb.is-gold { right: -10rem; top: 38%; }
+  .ambient-orb.is-finale { left: 24%; bottom: -5rem; width: min(68vw,20rem); }
+  .ambient-echo-watermark { right: -8rem; top: 10rem; width: 21rem; opacity: .17; }
+  .anniversary-atmosphere.is-chapter-3 .ambient-echo-watermark,
+  .anniversary-atmosphere.is-chapter-4 .ambient-echo-watermark { opacity: .22; transform: none; }
+  .ambient-celebration-rays { right: -12rem; top: 1rem; width: 27rem; opacity: .17; }
+  .echo-fragments span:nth-child(n+5) { display: none; }
   .anniversary-track:not(.is-stage) { width: 100%; height: auto; flex-direction: column; transform: none !important; }
   .anniversary-track:not(.is-stage) :deep(.anniversary-slide) { width: 100%; height: auto; min-height: max(100svh,42rem); flex: none; }
   .anniversary-track:not(.is-stage) :deep(.mobile-slide-shell) { grid-template-columns: minmax(0,1fr); max-width: 48rem; }
   .anniversary-track:not(.is-stage) :deep(.anniversary-slide-intro .mobile-slide-shell > :first-child) { order: 2; }
   .anniversary-track:not(.is-stage) :deep(.anniversary-slide-intro .mobile-slide-shell > :last-child) { order: 1; }
 }
+
+.is-page-hidden .anniversary-beams,
+.is-page-hidden .anniversary-atmosphere span,
+.is-page-hidden .echo-fragments span { animation-play-state: paused !important; }
+.is-archive .anniversary-beams { animation: none; opacity: .38; }
+.is-archive .echo-fragments { display: none; }
 
 @media (prefers-reduced-motion: reduce) {
   .anniversary-beams, .echo-fragments span, .navigation-hint, .anniversary-page *, .anniversary-page *::before, .anniversary-page *::after { animation: none !important; transition-duration: 1ms !important; transition-delay: 0ms !important; }

@@ -1,56 +1,52 @@
 <template>
   <div class="echo-ribbon" aria-hidden="true">
-    <svg class="echo-ribbon-desktop" viewBox="0 0 1000 180" preserveAspectRatio="none">
-      <path class="echo-ribbon-memory" :d="desktopPath" pathLength="1" />
-      <path
-        class="echo-ribbon-progress"
-        :d="desktopPath"
-        pathLength="1"
-        :style="progressStyle"
-      />
-      <g v-for="(node, index) in desktopNodes" :key="`desktop-${index}`">
-        <circle
-          :cx="node.x"
-          :cy="node.y"
-          r="7"
-          :class="['echo-node', index <= activeChapter ? 'is-read' : '']"
+    <div class="echo-ribbon-desktop">
+      <svg viewBox="0 0 1000 180" preserveAspectRatio="none">
+        <path class="echo-ribbon-memory" :d="desktopPath" pathLength="1" />
+        <path
+          class="echo-ribbon-progress"
+          :d="desktopPath"
+          pathLength="1"
+          :style="progressStyle"
         />
-        <circle
+      </svg>
+      <span
+        v-for="(node, index) in desktopNodes"
+        :key="`desktop-${index}`"
+        :class="['echo-node', index <= activeChapter ? 'is-read' : '']"
+        :style="nodeStyle(node, 1000, 180)"
+      >
+        <i
           v-if="index === activeChapter"
           :key="`desktop-pulse-${activeChapter}-${motionCycle}`"
-          :cx="node.x"
-          :cy="node.y"
-          r="13"
           class="echo-node-pulse"
-        />
-      </g>
-    </svg>
+        ></i>
+      </span>
+    </div>
 
-    <svg class="echo-ribbon-compact" viewBox="0 0 40 400" preserveAspectRatio="none">
-      <path class="echo-ribbon-memory" :d="compactPath" pathLength="1" />
-      <path
-        class="echo-ribbon-progress"
-        :d="compactPath"
-        pathLength="1"
-        :style="progressStyle"
-      />
-      <g v-for="(node, index) in compactNodes" :key="`compact-${index}`">
-        <circle
-          :cx="node.x"
-          :cy="node.y"
-          r="4.5"
-          :class="['echo-node', index <= activeChapter ? 'is-read' : '']"
+    <div class="echo-ribbon-compact">
+      <svg viewBox="0 0 40 400" preserveAspectRatio="none">
+        <path class="echo-ribbon-memory" :d="compactPath" pathLength="1" />
+        <path
+          class="echo-ribbon-progress"
+          :d="compactPath"
+          pathLength="1"
+          :style="progressStyle"
         />
-        <circle
+      </svg>
+      <span
+        v-for="(node, index) in compactNodes"
+        :key="`compact-${index}`"
+        :class="['echo-node', index <= activeChapter ? 'is-read' : '']"
+        :style="nodeStyle(node, 40, 400)"
+      >
+        <i
           v-if="index === activeChapter"
           :key="`compact-pulse-${activeChapter}-${motionCycle}`"
-          :cx="node.x"
-          :cy="node.y"
-          r="8"
           class="echo-node-pulse"
-        />
-      </g>
-    </svg>
+        ></i>
+      </span>
+    </div>
   </div>
 </template>
 
@@ -64,7 +60,7 @@ const props = defineProps<{
 }>()
 
 const desktopPath = 'M 28 138 C 142 30, 244 154, 354 86 S 574 42, 690 112 S 878 150, 972 42'
-const compactPath = 'M 21 12 C 5 92, 35 135, 19 202 S 6 306, 21 388'
+const compactPath = 'M 21 12 C 6 66, 34 92, 19 137 S 7 211, 20 263 S 34 330, 21 388'
 const desktopNodes = [
   { x: 28, y: 138 },
   { x: 354, y: 86 },
@@ -83,6 +79,13 @@ const progressStyle = computed(() => {
   const progress = Math.max(0, Math.min(1, props.activeChapter / denominator))
   return { '--echo-progress': `${1 - progress}` }
 })
+
+function nodeStyle(node: { x: number; y: number }, viewWidth: number, viewHeight: number) {
+  return {
+    left: `${(node.x / viewWidth) * 100}%`,
+    top: `${(node.y / viewHeight) * 100}%`,
+  }
+}
 </script>
 
 <style scoped>
@@ -94,9 +97,16 @@ const progressStyle = computed(() => {
   pointer-events: none;
 }
 
+.echo-ribbon-desktop,
+.echo-ribbon-compact,
 .echo-ribbon svg {
+  position: absolute;
+  inset: 0;
   width: 100%;
   height: 100%;
+}
+
+.echo-ribbon svg {
   overflow: visible;
 }
 
@@ -105,6 +115,7 @@ const progressStyle = computed(() => {
   fill: none;
   stroke-linecap: round;
   stroke-linejoin: round;
+  vector-effect: non-scaling-stroke;
 }
 
 .echo-ribbon-memory {
@@ -121,23 +132,33 @@ const progressStyle = computed(() => {
 }
 
 .echo-node {
-  fill: rgba(255, 255, 255, 0.9);
-  stroke: rgba(49, 127, 141, 0.24);
-  stroke-width: 2;
+  position: absolute;
+  box-sizing: border-box;
+  width: 0.82rem;
+  height: 0.82rem;
+  border: 2px solid rgba(49, 127, 141, 0.24);
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.94);
+  transform: translate(-50%, -50%);
   transition:
-    fill var(--anniversary-micro-duration) ease,
-    stroke var(--anniversary-micro-duration) ease;
+    background var(--anniversary-micro-duration) ease,
+    border-color var(--anniversary-micro-duration) ease;
 }
 
 .echo-node.is-read {
-  fill: rgba(221, 190, 95, 0.88);
-  stroke: rgba(49, 127, 141, 0.72);
+  border-color: rgba(49, 127, 141, 0.72);
+  background: rgba(221, 190, 95, 0.92);
 }
 
 .echo-node-pulse {
-  fill: none;
-  stroke: rgba(49, 127, 141, 0.4);
-  stroke-width: 1.5;
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 1.55rem;
+  height: 1.55rem;
+  border: 1.5px solid rgba(49, 127, 141, 0.4);
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
   animation: echo-node-arrival 680ms var(--anniversary-ease-out) 1 both;
 }
 
@@ -148,17 +169,15 @@ const progressStyle = computed(() => {
 @keyframes echo-node-arrival {
   from {
     opacity: 0.8;
-    transform: scale(0.65);
-    transform-origin: center;
+    transform: translate(-50%, -50%) scale(0.65);
   }
   to {
     opacity: 0;
-    transform: scale(1.4);
-    transform-origin: center;
+    transform: translate(-50%, -50%) scale(1.4);
   }
 }
 
-@media (max-width: 767px), (max-height: 640px) {
+@media (max-width: 767px), (max-height: 640px), (max-height: 699px) and (min-aspect-ratio: 3/2) {
   .echo-ribbon {
     position: fixed;
     inset: 8.5rem 0.35rem 2.4rem auto;
@@ -174,6 +193,17 @@ const progressStyle = computed(() => {
   .echo-ribbon-compact {
     display: block;
   }
+
+  .echo-ribbon-compact .echo-node {
+    width: 0.56rem;
+    height: 0.56rem;
+    border-width: 1.5px;
+  }
+
+  .echo-ribbon-compact .echo-node-pulse {
+    width: 1rem;
+    height: 1rem;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -184,6 +214,7 @@ const progressStyle = computed(() => {
 
   .echo-node-pulse {
     animation: none;
+    opacity: 0.34;
   }
 }
 </style>
