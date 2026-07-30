@@ -81,6 +81,13 @@
         </svg>
       </span>
     </div>
+    <div v-if="!showArchiveIndex" class="celebration-layer absolute inset-0" aria-hidden="true">
+      <span
+        v-for="piece in celebrationPieces"
+        :key="`celebration-piece-${piece.id}`"
+        :style="piece.style"
+      ></span>
+    </div>
     <div class="echo-fragments absolute inset-0" aria-hidden="true">
       <span
         v-for="fragment in echoFragments"
@@ -432,6 +439,30 @@ const chapterAnnouncement = computed(() => {
 })
 const trackTransformStyle = computed(() => ({
   transform: storyStage.value ? `translate3d(-${activeChapter.value * 100}%, 0, 0)` : 'none',
+}))
+
+const celebrationPieces = [
+  ['7%', '0.2s', '9.5s'],
+  ['13%', '3.2s', '10.4s'],
+  ['18%', '1.4s', '8.8s'],
+  ['24%', '5s', '11s'],
+  ['31%', '2.6s', '9.2s'],
+  ['38%', '0.9s', '10.6s'],
+  ['44%', '4.4s', '8.6s'],
+  ['51%', '1.8s', '11.4s'],
+  ['57%', '6.1s', '9.7s'],
+  ['63%', '2.1s', '10.1s'],
+  ['69%', '5.4s', '8.9s'],
+  ['74%', '0.7s', '11.2s'],
+  ['80%', '3.8s', '9.4s'],
+  ['85%', '1.1s', '10.8s'],
+  ['90%', '4.9s', '8.7s'],
+  ['35%', '7.2s', '12s'],
+  ['66%', '6.8s', '11.5s'],
+  ['96%', '2.9s', '10.9s'],
+].map(([left, animationDelay, animationDuration], index) => ({
+  id: index + 1,
+  style: { left, animationDelay, animationDuration },
 }))
 
 const echoFragments = computed(() => {
@@ -1458,6 +1489,11 @@ onBeforeUnmount(() => {
 .ambient-shared-ticks path { fill: none; stroke: rgba(184,145,47,.42); stroke-width: 1.35; stroke-linecap: round; vector-effect: non-scaling-stroke; }
 .ambient-shared-glints circle { fill: rgba(236,213,137,.78); stroke: rgba(255,255,255,.92); stroke-width: 1.5; vector-effect: non-scaling-stroke; }
 .anniversary-wave { z-index: 2; background: repeating-linear-gradient(90deg,rgba(49,127,141,.12) 0,rgba(49,127,141,.12) 1px,transparent 1px,transparent 16px), linear-gradient(180deg,rgba(255,255,255,0),rgba(49,127,141,.12)); mask-image: linear-gradient(180deg,transparent 0%,#000 28%,#000 100%); pointer-events: none; }
+.celebration-layer { z-index: 3; contain: strict; overflow: hidden; pointer-events: none; }
+.celebration-layer span { position: absolute; top: 0; display: block; width: .72rem; height: 1.35rem; border-radius: .18rem; background: rgba(221,190,95,.5); box-shadow: 0 10px 24px -18px rgba(31,43,53,.8); opacity: 0; transform: translate3d(0,-3rem,0) rotate(0deg); animation: confetti-fall 8.8s linear infinite; will-change: transform,opacity; }
+.celebration-layer span:nth-child(3n) { width: .9rem; height: .9rem; border-radius: .2rem; background: rgba(49,127,141,.34); transform: translate3d(0,-3rem,0) rotate(45deg); }
+.celebration-layer span:nth-child(4n) { width: 1.15rem; height: .22rem; border-radius: 999px; background: rgba(140,72,85,.24); }
+.celebration-layer span:nth-child(5n) { width: .48rem; height: .48rem; border: 1px solid rgba(49,127,141,.42); border-radius: 0; background: transparent; transform: translate3d(0,-3rem,0) rotate(45deg); }
 .echo-fragments { z-index: 3; overflow: hidden; pointer-events: none; }
 .echo-fragments span { position: absolute; display: block; opacity: 0; transform: rotate(var(--fragment-rotation)); animation: fragment-echo 1700ms var(--anniversary-ease-out) var(--fragment-delay) 1 both; }
 .echo-fragments .is-wave { width: 1.7rem; height: .18rem; border-radius: 999px; background: rgba(49,127,141,.28); box-shadow: .45rem .32rem 0 rgba(49,127,141,.13); }
@@ -1494,6 +1530,7 @@ button, .brand-pill { cursor: pointer; }
 @keyframes ambient-orb-arrival { from { opacity: .08; transform: translate3d(var(--orb-from-x),var(--orb-from-y),0) scale(.9); } 48% { opacity: .58; } to { opacity: var(--orb-opacity); transform: translate3d(0,0,0) scale(1); } }
 @keyframes ambient-shared-echo-even { from { opacity: .04; transform: translate3d(-1.2%,1%,0) scale(.985); } 48% { opacity: var(--ambient-shared-peak); } to { opacity: var(--ambient-shared-opacity); transform: translate3d(0,0,0) scale(1); } }
 @keyframes ambient-shared-echo-odd { from { opacity: .04; transform: translate3d(-1.2%,1%,0) scale(.985); } 48% { opacity: var(--ambient-shared-peak); } to { opacity: var(--ambient-shared-opacity); transform: translate3d(0,0,0) scale(1); } }
+@keyframes confetti-fall { 0% { opacity: 0; transform: translate3d(-1.2rem,-4rem,0) rotate(0deg); } 12% { opacity: .58; } 70% { opacity: .46; } 100% { opacity: 0; transform: translate3d(1.8rem,calc(100dvh + 5rem),0) rotate(300deg); } }
 @keyframes fragment-echo { 0% { opacity: 0; transform: rotate(var(--fragment-rotation)) scale(.7); } 22%, 64% { opacity: .58; } 100% { opacity: 0; transform: rotate(calc(var(--fragment-rotation) + 20deg)) translateY(-1.1rem) scale(1); } }
 @keyframes navigation-hint { 0% { opacity: 0; transform: translate(50%,.4rem); } 20%, 78% { opacity: .86; transform: translate(50%,0); } 100% { opacity: .36; } }
 
@@ -1504,6 +1541,8 @@ button, .brand-pill { cursor: pointer; }
   .ambient-orb.is-blue { left: -9rem; top: 8rem; }
   .ambient-orb.is-gold { right: -10rem; top: 38%; }
   .ambient-shared-echo { --ambient-shared-opacity: .23; --ambient-shared-peak: .4; right: 2.75rem; }
+  .celebration-layer { position: fixed; height: 100dvh; }
+  .celebration-layer span:nth-child(n+13) { display: none; }
   .echo-fragments span:nth-child(n+5) { display: none; }
   .anniversary-track:not(.is-stage) { width: 100%; height: auto; flex-direction: column; transform: none !important; }
   .anniversary-track:not(.is-stage) :deep(.anniversary-slide) { width: 100%; height: auto; min-height: max(100svh,42rem); flex: none; }
@@ -1519,11 +1558,12 @@ button, .brand-pill { cursor: pointer; }
 
 .is-page-hidden .anniversary-beams,
 .is-page-hidden .anniversary-atmosphere *,
+.is-page-hidden .celebration-layer span,
 .is-page-hidden .echo-fragments span { animation-play-state: paused !important; }
 .is-archive .anniversary-beams { animation: none; opacity: .38; }
 .is-archive .echo-fragments { display: none; }
 
 @media (prefers-reduced-motion: reduce) {
-  .anniversary-beams, .echo-fragments span, .navigation-hint, .anniversary-page *, .anniversary-page *::before, .anniversary-page *::after { animation: none !important; transition-duration: 1ms !important; transition-delay: 0ms !important; }
+  .anniversary-beams, .celebration-layer span, .echo-fragments span, .navigation-hint, .anniversary-page *, .anniversary-page *::before, .anniversary-page *::after { animation: none !important; transition-duration: 1ms !important; transition-delay: 0ms !important; }
 }
 </style>
