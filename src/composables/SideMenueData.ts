@@ -7,6 +7,7 @@ export type MenuItem = {
   shown: boolean
   color: 'pink' | 'green' | 'teal' | 'amber' | 'sky' | 'violet'
   routerName?: string
+  activeRouteNames?: string[]
   routeParams?: Record<string, string | number>
   children?: { key: string; label: string; href?: string }[]
 }
@@ -117,7 +118,8 @@ export function getMenu(now = new Date()): MenuItem[] {
       label: anniversaryMeta.label,
       sub: anniversaryMeta.sub,
       color: 'violet',
-      routerName: 'miletAnniversary',
+      routerName: anniversaryMeta.routeParams?.year ? 'miletAnniversaryYear' : 'miletAnniversary',
+      activeRouteNames: ['miletAnniversary', 'miletAnniversaryYear'],
       routeParams: anniversaryMeta.routeParams,
       shown: true,
     },

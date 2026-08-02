@@ -443,16 +443,82 @@ function unwrapApiPayload(value: unknown) {
   return value
 }
 
+function isObjectRecord(value: unknown): value is Record<string, unknown> {
+  return Boolean(value) && typeof value === 'object' && !Array.isArray(value)
+}
+
+function hasStringFields(value: Record<string, unknown>, fields: string[]) {
+  return fields.every((field) => typeof value[field] === 'string')
+}
+
+function hasUniqueIds(items: Array<{ id: string }>) {
+  return new Set(items.map((item) => item.id)).size === items.length
+}
+
+function isAnniversaryChapter(value: unknown): value is AnniversaryChapter {
+  return isObjectRecord(value) && hasStringFields(value, ['id', 'eyebrow', 'title'])
+}
+
+function isAnniversaryTimelineMoment(value: unknown): value is AnniversaryTimelineMoment {
+  return isObjectRecord(value) && hasStringFields(value, ['id', 'date', 'label', 'title', 'body'])
+}
+
+function isAnniversaryRelease(value: unknown): value is AnniversaryRelease {
+  return isObjectRecord(value) && hasStringFields(value, ['id', 'date', 'type', 'title', 'cover', 'note'])
+}
+
+function isAnniversaryPhoto(value: unknown): value is AnniversaryPhoto {
+  if (!isObjectRecord(value) || !hasStringFields(value, ['id', 'month', 'image', 'alt', 'caption'])) {
+    return false
+  }
+
+  return (
+    isObjectRecord(value.final) &&
+    hasStringFields(value.final, ['x', 'y', 'w', 'r', 'mx', 'my', 'mw', 'mr'])
+  )
+}
+
+function isAnniversaryRecordContent(value: unknown): value is AnniversaryRecordContent {
+  if (
+    !isObjectRecord(value) ||
+    !hasStringFields(value, ['title', 'lead', 'giftNote', 'archiveTitle', 'archiveLead']) ||
+    !Array.isArray(value.chapters) ||
+    value.chapters.length !== 4 ||
+    !value.chapters.every(isAnniversaryChapter) ||
+    !hasUniqueIds(value.chapters) ||
+    !Array.isArray(value.timeline) ||
+    !value.timeline.every(isAnniversaryTimelineMoment) ||
+    !hasUniqueIds(value.timeline) ||
+    !Array.isArray(value.releases) ||
+    !value.releases.every(isAnniversaryRelease) ||
+    !hasUniqueIds(value.releases) ||
+    !Array.isArray(value.photos) ||
+    !value.photos.every(isAnniversaryPhoto) ||
+    !hasUniqueIds(value.photos)
+  ) {
+    return false
+  }
+
+  return true
+}
+
+function isAnniversaryRecord(value: unknown): value is AnniversaryRecord {
+  return (
+    isObjectRecord(value) &&
+    Number.isInteger(value.year) &&
+    Number(value.year) > 0 &&
+    Number.isInteger(value.anniversaryNo) &&
+    Number(value.anniversaryNo) > 0 &&
+    isAnniversaryRecordContent(value.zh) &&
+    isAnniversaryRecordContent(value.ja)
+  )
+}
+
 export function normalizeAnniversaryPayload(value: unknown) {
   const payload = unwrapApiPayload(value)
 
-  if (!payload || typeof payload !== 'object') {
-    return null
-  }
-
-  const candidate = payload as Partial<AnniversaryApiPayload>
-  if ('year' in candidate && typeof (candidate as Partial<AnniversaryRecord>).year === 'number') {
-    const record = candidate as AnniversaryRecord
+  if (isAnniversaryRecord(payload)) {
+    const record = payload
 
     return {
       debutDate: anniversaryArchiveConfig.debutDate,
@@ -468,23 +534,52 @@ export function normalizeAnniversaryPayload(value: unknown) {
     } satisfies AnniversaryApiPayload
   }
 
-  if (!candidate.record || typeof candidate.record.year !== 'number') {
+  if (!isObjectRecord(payload)) {
     return null
   }
 
+  const candidate = payload
+  const record = candidate.record
+  if (!isAnniversaryRecord(record)) return null
+  if (
+    ('debutDate' in candidate && typeof candidate.debutDate !== 'string') ||
+    ('debutMonth' in candidate &&
+      (!Number.isInteger(candidate.debutMonth) || Number(candidate.debutMonth) < 1 || Number(candidate.debutMonth) > 12)) ||
+    ('latestYear' in candidate &&
+      (!Number.isInteger(candidate.latestYear) || Number(candidate.latestYear) < 1)) ||
+    ('isAnniversaryMonth' in candidate && typeof candidate.isAnniversaryMonth !== 'boolean') ||
+    ('recordYears' in candidate &&
+      (!Array.isArray(candidate.recordYears) ||
+        !candidate.recordYears.every((year) => Number.isInteger(year) && Number(year) > 0))) ||
+    ('menu' in candidate && !isObjectRecord(candidate.menu))
+  ) return null
+
+  const menu = isObjectRecord(candidate.menu) ? candidate.menu : {}
+  if (
+    ('label' in menu && typeof menu.label !== 'string') ||
+    ('sub' in menu && typeof menu.sub !== 'string') ||
+    ('targetYear' in menu && menu.targetYear !== null && !Number.isInteger(menu.targetYear))
+  ) return null
+
+  const recordYears = Array.isArray(candidate.recordYears)
+    ? candidate.recordYears.filter((year): year is number => Number.isInteger(year) && Number(year) > 0)
+    : []
+
   return {
-    debutDate: candidate.debutDate || anniversaryArchiveConfig.debutDate,
-    debutMonth: candidate.debutMonth || anniversaryArchiveConfig.debutMonth,
-    latestYear: candidate.latestYear || candidate.record.year,
+    debutDate: typeof candidate.debutDate === 'string' ? candidate.debutDate : anniversaryArchiveConfig.debutDate,
+    debutMonth: Number.isInteger(candidate.debutMonth) ? Number(candidate.debutMonth) : anniversaryArchiveConfig.debutMonth,
+    latestYear: Number.isInteger(candidate.latestYear) ? Number(candidate.latestYear) : record.year,
     isAnniversaryMonth:
-      candidate.isAnniversaryMonth ?? isAnniversaryMonth(anniversaryArchiveConfig),
+      typeof candidate.isAnniversaryMonth === 'boolean'
+        ? candidate.isAnniversaryMonth
+        : isAnniversaryMonth(anniversaryArchiveConfig),
     menu: {
-      label: candidate.menu?.label || 'ANNIVERSARY',
-      sub: candidate.menu?.sub,
-      targetYear: candidate.menu?.targetYear ?? null,
+      label: typeof menu.label === 'string' ? menu.label : 'ANNIVERSARY',
+      sub: typeof menu.sub === 'string' ? menu.sub : undefined,
+      targetYear: Number.isInteger(menu.targetYear) ? Number(menu.targetYear) : null,
     },
-    recordYears: candidate.recordYears?.length ? candidate.recordYears : [candidate.record.year],
-    record: candidate.record,
+    recordYears: recordYears.length ? recordYears : [record.year],
+    record,
   } satisfies AnniversaryApiPayload
 }
 
