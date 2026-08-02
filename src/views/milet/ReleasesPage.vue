@@ -9,15 +9,17 @@
       class="sticky top-16 z-30 grid grid-cols-3 gap-1.5 border-b border-slate-200/80 bg-white/80 p-2 backdrop-blur-[14px] md:hidden"
     >
       <button
+        v-echo-press
         type="button"
-        class="min-h-[2.6rem] rounded-md border border-slate-300/80 bg-white/75 px-1.5 py-1 text-[0.86rem] font-bold leading-tight text-[#143d63] transition hover:bg-sky-50"
+        class="min-h-11 rounded-md border border-slate-300/80 bg-white/75 px-1.5 py-1 text-[0.86rem] font-bold leading-tight text-[#143d63] transition hover:bg-sky-50"
         @click="drawerOpen = true"
       >
         {{ pageText.stackMap.desc }}
       </button>
       <button
+        v-echo-press
         type="button"
-        class="min-h-[2.6rem] rounded-md border px-1.5 py-1 text-[0.86rem] font-bold leading-tight transition hover:bg-sky-50"
+        class="min-h-11 rounded-md border px-1.5 py-1 text-[0.86rem] font-bold leading-tight transition hover:bg-sky-50"
         :class="
           viewMode === 'list'
             ? 'border-[#317f8d] bg-[#317f8d] text-white hover:bg-[#317f8d]'
@@ -29,8 +31,9 @@
         {{ pageText.page.listView }}
       </button>
       <button
+        v-echo-press
         type="button"
-        class="min-h-[2.6rem] rounded-md border px-1.5 py-1 text-[0.86rem] font-bold leading-tight transition hover:bg-sky-50"
+        class="min-h-11 rounded-md border px-1.5 py-1 text-[0.86rem] font-bold leading-tight transition hover:bg-sky-50"
         :class="
           viewMode === 'shelf'
             ? 'border-[#317f8d] bg-[#317f8d] text-white hover:bg-[#317f8d]'
@@ -71,8 +74,9 @@
               class="inline-flex overflow-hidden rounded-md border border-slate-200/80 bg-white/78 shadow-[0_12px_30px_-24px_rgba(15,23,42,0.7)]"
             >
               <button
+                v-echo-press
                 type="button"
-                class="min-h-10 px-4 text-sm font-semibold transition"
+                class="min-h-11 px-4 text-sm font-semibold transition"
                 :class="
                   viewMode === 'list' ? 'bg-[#317f8d] text-white' : 'text-slate-500 hover:bg-sky-50'
                 "
@@ -82,8 +86,9 @@
                 {{ pageText.page.listView }}
               </button>
               <button
+                v-echo-press
                 type="button"
-                class="min-h-10 border-l border-slate-200/80 px-4 text-sm font-semibold transition"
+                class="min-h-11 border-l border-slate-200/80 px-4 text-sm font-semibold transition"
                 :class="
                   viewMode === 'shelf'
                     ? 'bg-[#317f8d] text-white'
@@ -147,7 +152,7 @@
           <p class="text-sm font-semibold text-[#143d63]">{{ pageText.filters.title }}</p>
           <p class="mt-1 text-xs leading-5 text-slate-500">{{ pageText.filters.hint }}</p>
         </div>
-        <p class="text-xs font-medium tabular-nums text-[#317f8d]" aria-live="polite">
+        <p class="text-xs font-medium tabular-nums text-[#317f8d]">
           {{ pageText.filters.resultsPrefix }} {{ visibleReleaseTotal }}
           {{ pageText.filters.resultsSuffix }}
         </p>
@@ -164,10 +169,11 @@
             :aria-label="pageText.filters.type"
           >
             <button
+              v-echo-press
               v-for="option in releaseTypeOptions"
               :key="option.value"
               type="button"
-              class="min-h-10 rounded-md border px-3 py-2 text-sm font-semibold transition"
+              class="min-h-11 rounded-md border px-3 py-2 text-sm font-semibold transition"
               :class="
                 releaseTypeFilter === option.value
                   ? 'border-[#317f8d] bg-[#317f8d] text-white'
@@ -186,7 +192,7 @@
           }}</span>
           <select
             v-model="yearFilter"
-            class="h-10 w-full rounded-md border border-slate-200 bg-white/90 px-3 text-sm text-slate-700 outline-none transition focus:border-[#317f8d] focus:ring-2 focus:ring-sky-100"
+            class="h-11 w-full rounded-md border border-slate-200 bg-white/90 px-3 text-sm text-slate-700 outline-none transition focus:border-[#317f8d] focus:ring-2 focus:ring-sky-100"
           >
             <option value="">{{ pageText.filters.allYears }}</option>
             <option v-for="year in yearOptions" :key="year" :value="year">{{ year }}</option>
@@ -200,7 +206,7 @@
           <input
             v-model="keywordInput"
             type="search"
-            class="h-10 w-full rounded-md border border-slate-200 bg-white/90 px-3 text-sm text-slate-700 outline-none transition placeholder:text-slate-400 focus:border-[#317f8d] focus:ring-2 focus:ring-sky-100"
+            class="h-11 w-full rounded-md border border-slate-200 bg-white/90 px-3 text-sm text-slate-700 outline-none transition placeholder:text-slate-400 focus:border-[#317f8d] focus:ring-2 focus:ring-sky-100"
             :placeholder="pageText.filters.namePlaceholder"
             @keyup.enter="applyReleaseFilters"
           />
@@ -208,17 +214,19 @@
 
         <div class="flex items-end gap-2">
           <button
+            v-echo-press
             type="button"
-            class="h-10 rounded-md bg-[#143d63] px-4 text-sm font-semibold text-white transition hover:bg-[#1b527f] disabled:cursor-wait disabled:opacity-60"
+            class="min-h-11 rounded-md bg-[#143d63] px-4 text-sm font-semibold text-white transition hover:bg-[#1b527f] disabled:cursor-wait disabled:opacity-60"
             :disabled="filtersApplying"
             @click="applyReleaseFilters"
           >
             {{ filtersApplying ? pageText.filters.applying : pageText.filters.apply }}
           </button>
           <button
+            v-echo-press
             v-if="hasActiveFilters"
             type="button"
-            class="h-10 rounded-md border border-slate-200 bg-white px-3 text-sm font-semibold text-slate-600 transition hover:bg-slate-50"
+            class="min-h-11 rounded-md border border-slate-200 bg-white px-3 text-sm font-semibold text-slate-600 transition hover:bg-slate-50"
             @click="clearReleaseFilters"
           >
             {{ pageText.filters.clear }}
@@ -301,7 +309,7 @@
 <script setup lang="ts">
 import ReleaseSection from '@/components/milet/music/ReleaseSection.vue'
 import StackMapDrawer from '@/components/milet/music/StackMapDrawer.vue'
-import { computed, getCurrentInstance, nextTick, onMounted, ref } from 'vue'
+import { computed, getCurrentInstance, nextTick, onMounted, ref, watch } from 'vue'
 import { useReleaseData } from '@/composables/useReleaseData'
 import { RELEASE_PAGE_TEXT } from '@/composables/lang/ReleaseMetaData'
 import { initImgUrl } from '@/composables/ImgUrlUtil'
@@ -312,11 +320,13 @@ import {
   usePageScrollPage,
 } from '@/composables/page-scroll'
 import type { ScrollSnapshot } from '@/composables/page-scroll'
+import { useSiteInteraction } from '@/composables/site-interaction'
 
 const { appContext } = getCurrentInstance()!
 const global = appContext.config.globalProperties
 const { scrollToPageAnchor } = usePageAnchorScroll()
 const pageScroll = usePageScroll()
+const interaction = useSiteInteraction()
 const pageScrollPage = usePageScrollPage()
 const releaseRoot = ref<HTMLElement | null>(null)
 
@@ -379,6 +389,12 @@ const visibleReleaseTotal = computed(() => {
   if (appliedReleaseTypeFilter.value === 'ep') return epsSinglesData.total.value
   if (appliedReleaseTypeFilter.value === 'live') return livesData.total.value
   return albumsData.total.value + epsSinglesData.total.value + livesData.total.value
+})
+
+watch(visibleReleaseTotal, (count) => {
+  interaction.announce(
+    currentLang.value === 'jp' ? `${count} 件のリリースを表示しています` : `当前显示 ${count} 条发行记录`,
+  )
 })
 
 function isSectionVisible(section: Exclude<ReleaseTypeFilter, 'all'>) {

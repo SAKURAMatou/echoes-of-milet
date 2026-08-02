@@ -27,7 +27,7 @@
     >
       <div class="flex items-center mb-6">
         <h2 class="text-2xl font-bold text-gray-800 flex items-center">
-          <span class="mr-2">📌</span>
+          <svg class="mr-2 h-5 w-5 text-pink-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true"><path d="m14 4 6 6-3 1-4 4-1 5-2-2-4 4-2-2 4-4-2-2 5-1 4-4 1-3Z" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.7" /></svg>
           {{ pageText.topAlbums }}
         </h2>
         <div
@@ -35,22 +35,26 @@
         ></div>
       </div>
       <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div
+        <button
           v-for="album in topAlbumList"
           :key="album.galleryId"
+          v-echo-press
+          type="button"
           :data-page-scroll-anchor="`gallery-${album.galleryId}`"
-          class="album-card group cursor-pointer"
+          class="album-card group w-full cursor-pointer text-left"
+          :aria-label="getAlbumTitle(album.description)"
           @click="goToGallery(album.galleryId)"
         >
           <div
-            class="relative rounded-xl overflow-hidden shadow-md hover:shadow-xl transition-all duration-300 transform hover:scale-105"
+            class="relative overflow-hidden rounded-xl shadow-md transition-shadow duration-300 hover:shadow-xl"
           >
             <!-- 封面图片作为背景 -->
             <div class="relative w-full h-80 overflow-hidden bg-gray-200">
               <img
                 :src="getImageUrl(album.coverUrlAccess || album.coverUrl)"
                 :alt="getAlbumTitle(album.description)"
-                class="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110"
+                class="h-full w-full object-cover transition-transform duration-300 group-hover:scale-[1.015]"
+                :style="galleryTransitionStyle(album.galleryId)"
               />
               <!-- 覆盖层 -->
               <div
@@ -67,7 +71,7 @@
                   </h3>
                   <span
                     class="text-xs bg-pink-100 text-pink-700 px-3 py-1 rounded-full font-semibold whitespace-nowrap"
-                    >📌 {{ pageText.toptip }}</span
+                    >{{ pageText.toptip }}</span
                   >
                   <span
                     v-if="isRecentlyUpdated(album.updatedAt)"
@@ -93,7 +97,7 @@
               </p>
             </div>
           </div>
-        </div>
+        </button>
       </div>
     </div>
 
@@ -101,7 +105,7 @@
     <div id="all-gallery" v-if="!loading && normalAlbumList.length > 0" class="max-w-3xl mx-auto">
       <div class="flex items-center mb-6">
         <h2 class="text-2xl font-bold text-gray-800 flex items-center">
-          <span class="mr-2">🎞️</span>
+          <svg class="mr-2 h-5 w-5 text-sky-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2" stroke-width="1.7"/><path d="M7 5v14M17 5v14M3 9h4m10 0h4M3 15h4m10 0h4" stroke-width="1.7"/></svg>
           {{ pageText.albums }}
         </h2>
         <div
@@ -109,22 +113,26 @@
         ></div>
       </div>
       <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-4">
-        <div
+        <button
           v-for="album in normalAlbumList"
           :key="album.galleryId"
+          v-echo-press
+          type="button"
           :data-page-scroll-anchor="`gallery-${album.galleryId}`"
-          class="album-card group cursor-pointer"
+          class="album-card group w-full cursor-pointer text-left"
+          :aria-label="getAlbumTitle(album.description)"
           @click="goToGallery(album.galleryId)"
         >
           <div
-            class="relative rounded-xl overflow-hidden shadow-md hover:shadow-xl transition-all duration-300 transform hover:scale-105"
+            class="relative overflow-hidden rounded-xl shadow-md transition-shadow duration-300 hover:shadow-xl"
           >
             <!-- 封面图片作为背景 -->
             <div class="relative w-full h-80 overflow-hidden bg-gray-200">
               <img
                 :src="getImageUrl(album.coverUrlAccess || album.coverUrl)"
                 :alt="getAlbumTitle(album.description)"
-                class="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110"
+                class="h-full w-full object-cover transition-transform duration-300 group-hover:scale-[1.015]"
+                :style="galleryTransitionStyle(album.galleryId)"
               />
               <!-- 覆盖层 -->
               <div
@@ -163,51 +171,55 @@
               </p>
             </div>
           </div>
-        </div>
+        </button>
       </div>
 
       <!-- 自动翻页的锚点元素 -->
       <div ref="observerTarget" class="w-full p-5 text-center text-gray-500" v-if="!isLastPage">
         <p class="flex items-center justify-center">
-          <span class="inline-block animate-spin mr-2">⏳</span>
+          <span class="mr-2 inline-block h-4 w-4 animate-spin rounded-full border-2 border-sky-200 border-t-sky-600" aria-hidden="true"></span>
           加载中...
         </p>
       </div>
     </div>
 
     <!-- 加载状态 -->
-    <div v-if="loading" class="max-w-3xl mx-auto text-center py-12">
-      <div class="inline-block">
-        <svg
-          class="animate-spin h-12 w-12 text-blue-500"
-          xmlns="http://www.w3.org/2000/svg"
-          fill="none"
-          viewBox="0 0 24 24"
-        >
-          <circle
-            class="opacity-25"
-            cx="12"
-            cy="12"
-            r="10"
-            stroke="currentColor"
-            stroke-width="4"
-          ></circle>
-          <path
-            class="opacity-75"
-            fill="currentColor"
-            d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-          ></path>
-        </svg>
-      </div>
-      <p class="mt-4 text-gray-600">加载相册中...</p>
-    </div>
+    <EchoAsyncState
+      v-if="loading"
+      class="mx-auto max-w-3xl"
+      state="loading"
+      :title="global.$lang.lang === 'jp' ? 'アルバムを読み込んでいます' : '正在加载相册'"
+    />
 
     <!-- 空状态 -->
+    <EchoAsyncState
+      v-if="!loading && loadError && topAlbumList.length === 0 && normalAlbumList.length === 0"
+      class="mx-auto max-w-3xl"
+      state="error"
+      :title="global.$lang.lang === 'jp' ? 'アルバムを表示できません' : '暂时无法显示相册'"
+      :description="loadError"
+      :action-label="global.$lang.lang === 'jp' ? '再試行' : '重试'"
+      @action="initLoad"
+    />
+    <EchoAsyncState
+      v-else-if="!loading && topAlbumList.length === 0 && normalAlbumList.length === 0"
+      class="mx-auto max-w-3xl"
+      state="empty"
+      :title="global.$lang.lang === 'jp' ? '公開中のアルバムはまだありません' : '暂无相册数据'"
+    />
     <div
-      v-if="!loading && topAlbumList.length === 0 && normalAlbumList.length === 0"
-      class="max-w-3xl mx-auto text-center py-12"
+      v-if="!loading && loadError && (topAlbumList.length > 0 || normalAlbumList.length > 0)"
+      class="mx-auto mt-5 flex max-w-3xl flex-col gap-3 rounded-lg border border-amber-200/80 bg-amber-50/78 px-4 py-3 text-sm text-amber-950 sm:flex-row sm:items-center sm:justify-between"
     >
-      <p class="text-gray-500 text-lg">暂无相册数据</p>
+      <p>{{ global.$lang.lang === 'jp' ? '最新のアルバムを読み込めませんでした。現在の一覧を表示しています。' : '最新相册加载失败，当前仍显示原有列表。' }}</p>
+      <button
+        v-echo-press
+        type="button"
+        class="inline-flex min-h-11 shrink-0 items-center justify-center rounded-lg border border-amber-300 bg-white/80 px-4 font-bold text-amber-900 transition hover:bg-white"
+        @click="initLoad"
+      >
+        {{ global.$lang.lang === 'jp' ? '再試行' : '重试' }}
+      </button>
     </div>
 
     <Teleport v-if="clientMounted" to="body">
@@ -282,6 +294,7 @@ import {
   onServerPrefetch,
 } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
+import EchoAsyncState from '@/components/interaction/EchoAsyncState.vue'
 import axiosInstance from '@/AxiosUtil'
 import { withLangParam } from '@/composables/useLangRoute'
 import { apiRoutes, buildStaticAssetUrl } from '@/config/api'
@@ -323,6 +336,7 @@ let releaseNoticeLock = null
 const topAlbumList = ref(cachedGalleryList?.topAlbums || [])
 const normalAlbumList = ref(cachedGalleryList?.normalAlbums || [])
 const loading = ref(!cachedGalleryList)
+const loadError = ref('')
 const isLoadingMore = ref(false)
 const currentPage = ref(1)
 const totalPages = ref(cachedGalleryList?.maxPage || 1)
@@ -385,6 +399,7 @@ const handleNoticeKeydown = (event) => {
  */
 const loadAlbums = async (istop, page, signal) => {
   try {
+    loadError.value = ''
     const response = await axiosInstance.get(`${apiRoutes.miletGallery}/${istop}/${page}`, {
       signal,
     })
@@ -407,6 +422,7 @@ const loadAlbums = async (istop, page, signal) => {
   } catch (error) {
     if (signal?.aborted) return totalPages.value
     console.error('获取相册数据失败:', error)
+    loadError.value = error instanceof Error ? error.message : 'Gallery load failed.'
   }
   return 1
 }
@@ -515,12 +531,20 @@ const isRecentlyUpdated = (updatedAt) => {
  * 跳转到相册详情页
  */
 const goToGallery = (galleryId) => {
-  router.push(
-    withLangParam(
-      { name: 'galleryDetail', params: { galleryId: galleryId } },
-      String(route.params.lang || 'zh'),
-    ),
+  const target = withLangParam(
+    { name: 'galleryDetail', params: { galleryId: galleryId } },
+    String(route.params.lang || 'zh'),
   )
+  const startViewTransition = Reflect.get(document, 'startViewTransition')
+  if (typeof startViewTransition === 'function') {
+    startViewTransition.call(document, () => router.push(target))
+    return
+  }
+  void router.push(target)
+}
+
+function galleryTransitionStyle(galleryId) {
+  return { viewTransitionName: `gallery-${String(galleryId).replace(/[^a-zA-Z0-9_-]/g, '-')}` }
 }
 
 /**

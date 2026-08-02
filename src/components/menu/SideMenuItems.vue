@@ -1,7 +1,7 @@
 <template>
   <div>
     <div class="mb-5 md:hidden">
-      <LanguageSelect variant="menu" />
+      <LanguageSelect variant="menu" @beforeNavigate="onLanguageNavigate" />
     </div>
 
     <div class="flex justify-around items-center text-xs">
@@ -23,7 +23,7 @@
           v-for="(item, index) in menu"
           :key="item.key"
           class="group"
-          :style="{ '--d': `${index * 120}ms` }"
+        :style="{ '--d': `${Math.min(index, 5) * 30}ms` }"
         >
           <!-- Sticker -->
 
@@ -187,6 +187,10 @@ function onMenuItemClick() {
   emit('closeMenuItem')
 }
 
+function onLanguageNavigate() {
+  emit('closeMenuItem')
+}
+
 function onSubmenuClick(event: MouseEvent, href?: string) {
   if (!href?.startsWith('#') || href.length <= 1) {
     emit('closeMenuItem')
@@ -226,8 +230,8 @@ function onSubmenuClick(event: MouseEvent, href?: string) {
 .menu-stagger-enter-active,
 .menu-stagger-appear-active {
   transition:
-    transform 420ms cubic-bezier(0.2, 0.8, 0.2, 1),
-    opacity 420ms ease;
+    transform var(--echo-duration-route) var(--echo-ease-out),
+    opacity var(--echo-duration-route) var(--echo-ease-out);
   transition-delay: var(--d);
 }
 
@@ -257,5 +261,15 @@ function onSubmenuClick(event: MouseEvent, href?: string) {
 /* 鍙€夛細閬垮厤 group 鍦ㄨ繃娓℃湡闂存拺寮€瀵艰嚧鎶栧姩 */
 .menu-stagger-move {
   transition: transform 260ms ease;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .menu-stagger-enter-active,
+  .menu-stagger-appear-active,
+  .menu-stagger-leave-active,
+  .menu-stagger-move { transition: none; transition-delay: 0ms !important; }
+  .menu-stagger-enter-from,
+  .menu-stagger-appear-from,
+  .menu-stagger-leave-to { opacity: 1; transform: none; }
 }
 </style>

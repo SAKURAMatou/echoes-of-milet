@@ -2,7 +2,6 @@
   <LiveDetailShell :theme-preset="payload?.displayConfig?.themePreset">
     <div
       class="relative z-20 mx-auto max-w-7xl px-4 pt-4 sm:px-7"
-      aria-live="polite"
     >
       <div class="rounded-lg border border-[#d9b77c]/32 bg-[#d9b77c]/10 px-4 py-3 text-sm text-[#f3eadf]">
         {{ routeLang === 'ja' ? 'Live Archive preview' : 'Live Archive 预览' }}
@@ -31,9 +30,11 @@ import {
   type LiveEventDetailPayload,
 } from '@/composables/liveArchive'
 import { useAppState } from '@/composables/useAppState'
+import { useSiteInteraction } from '@/composables/site-interaction'
 
 const route = useRoute()
 const appState = useAppState()
+const interaction = useSiteInteraction()
 const routeLang = computed(() => (String(route.params.lang) === 'ja' ? 'ja' : 'zh'))
 const lang = computed(() => normalizeLiveLang(routeLang.value))
 const previewId = computed(() => String(route.params.previewId || '').trim())
@@ -90,6 +91,7 @@ function syncDocumentTitle() {
 onServerPrefetch(loadPreview)
 
 onMounted(() => {
+  interaction.announce(routeLang.value === 'ja' ? 'Live Archive preview' : 'Live Archive 预览')
   if (!payload.value && appState.miletLivePreviewData?.key !== previewKey.value) {
     void loadPreview()
   }

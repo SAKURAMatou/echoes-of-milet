@@ -1,5 +1,6 @@
 <template>
   <main
+    id="main-content"
     ref="pageRoot"
     class="anniversary-page relative bg-[#f8fcfb] text-[#1f2b35]"
     :class="{
@@ -211,7 +212,6 @@
       <p v-if="storyStage && showNavigationHint" class="navigation-hint" aria-hidden="true">
         {{ lang === 'ja' ? 'スクロール / 矢印キーで章をめぐる' : '滚动 / 方向键浏览章节' }}
       </p>
-      <p class="sr-only" aria-live="polite">{{ chapterAnnouncement }}</p>
     </template>
 
     <section v-else class="anniversary-data-state relative z-10" :aria-busy="loadingAnniversary">
@@ -268,6 +268,7 @@ import {
   type ScrollSnapshot,
 } from '@/composables/page-scroll'
 import { apiRoutes } from '@/config/api'
+import { useSiteInteraction } from '@/composables/site-interaction'
 
 type ChapterInputSource = 'observer' | 'wheel' | 'keyboard' | 'pointer' | 'control' | 'restore'
 
@@ -292,6 +293,7 @@ interface AnniversaryReleaseSectionHandle {
 const appState = useAppState()
 const route = useRoute()
 const pageScroll = usePageScroll()
+const interaction = useSiteInteraction()
 const pageRoot = ref<HTMLElement | null>(null)
 const releaseSection = ref<AnniversaryReleaseSectionHandle | null>(null)
 
@@ -436,6 +438,9 @@ const chapterAnnouncement = computed(() => {
   return lang.value === 'ja'
     ? `${activeChapter.value + 1}章、${chapter.title}`
     : `第 ${activeChapter.value + 1} 章，${chapter.title}`
+})
+watch(chapterAnnouncement, (message) => {
+  if (message) interaction.announce(message)
 })
 const trackTransformStyle = computed(() => ({
   transform: storyStage.value ? `translate3d(-${activeChapter.value * 100}%, 0, 0)` : 'none',
@@ -1490,7 +1495,7 @@ onBeforeUnmount(() => {
 .ambient-shared-glints circle { fill: rgba(236,213,137,.78); stroke: rgba(255,255,255,.92); stroke-width: 1.5; vector-effect: non-scaling-stroke; }
 .anniversary-wave { z-index: 2; background: repeating-linear-gradient(90deg,rgba(49,127,141,.12) 0,rgba(49,127,141,.12) 1px,transparent 1px,transparent 16px), linear-gradient(180deg,rgba(255,255,255,0),rgba(49,127,141,.12)); mask-image: linear-gradient(180deg,transparent 0%,#000 28%,#000 100%); pointer-events: none; }
 .celebration-layer { z-index: 3; contain: strict; overflow: hidden; pointer-events: none; }
-.celebration-layer span { position: absolute; top: 0; display: block; width: .72rem; height: 1.35rem; border-radius: .18rem; background: rgba(221,190,95,.5); box-shadow: 0 10px 24px -18px rgba(31,43,53,.8); opacity: 0; transform: translate3d(0,-3rem,0) rotate(0deg); animation: confetti-fall 8.8s linear infinite; will-change: transform,opacity; }
+.celebration-layer span { position: absolute; top: 0; display: block; width: .72rem; height: 1.35rem; border-radius: .18rem; background: rgba(221,190,95,.5); box-shadow: 0 10px 24px -18px rgba(31,43,53,.8); opacity: 0; transform: translate3d(0,-3rem,0) rotate(0deg); animation: confetti-fall 4.8s linear 1 both; will-change: transform,opacity; }
 .celebration-layer span:nth-child(3n) { width: .9rem; height: .9rem; border-radius: .2rem; background: rgba(49,127,141,.34); transform: translate3d(0,-3rem,0) rotate(45deg); }
 .celebration-layer span:nth-child(4n) { width: 1.15rem; height: .22rem; border-radius: 999px; background: rgba(140,72,85,.24); }
 .celebration-layer span:nth-child(5n) { width: .48rem; height: .48rem; border: 1px solid rgba(49,127,141,.42); border-radius: 0; background: transparent; transform: translate3d(0,-3rem,0) rotate(45deg); }

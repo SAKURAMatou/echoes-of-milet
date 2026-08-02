@@ -27,7 +27,7 @@
               v-for="(paragraph, index) in copy.story.paragraphs"
               :key="getParagraphKey(paragraph, index)"
               class="story-line rounded-[24px] border border-white/70 bg-white/75 px-5 py-4 text-[15px] leading-8 text-slate-600 shadow-[0_18px_50px_rgba(148,163,184,0.14)] backdrop-blur"
-              :style="{ '--story-delay': `${index * 140}ms` }"
+              :style="{ '--story-delay': `${Math.min(index, 3) * 30}ms` }"
             >
               <LinkedText
                 :text="getParagraphText(paragraph)"
@@ -57,7 +57,7 @@
               </div>
               <button
                 type="button"
-                class="inline-flex h-9 w-9 items-center justify-center rounded-full border border-slate-200 text-slate-500 transition hover:bg-slate-50 hover:text-slate-700"
+                class="inline-flex h-11 w-11 items-center justify-center rounded-full border border-slate-200 text-slate-500 transition hover:bg-slate-50 hover:text-slate-700"
                 :aria-label="copy.feedback.closeLabel"
                 @click="showMessageOwner = false"
               >
@@ -97,10 +97,12 @@
                 autocomplete="email"
                 class="w-full min-w-0 rounded-2xl border bg-slate-50/60 px-4 py-3 outline-none transition focus:border-sky-300 focus:bg-white focus:ring-4 focus:ring-sky-100"
                 :class="errors.email ? 'border-rose-300' : 'border-slate-200'"
+                :aria-invalid="Boolean(errors.email)"
+                :aria-describedby="errors.email ? 'email-error' : undefined"
                 :placeholder="copy.form.emailPlaceholder"
                 @blur="validateField('email')"
               />
-              <p v-if="errors.email" class="mt-2 text-sm text-rose-500">{{ errors.email }}</p>
+              <p v-if="errors.email" id="email-error" class="mt-2 text-sm text-rose-500">{{ errors.email }}</p>
             </div>
 
             <div>
@@ -118,10 +120,12 @@
                 autocomplete="off"
                 class="w-full min-w-0 rounded-2xl border bg-slate-50/60 px-4 py-3 outline-none transition focus:border-sky-300 focus:bg-white focus:ring-4 focus:ring-sky-100"
                 :class="errors.title ? 'border-rose-300' : 'border-slate-200'"
+                :aria-invalid="Boolean(errors.title)"
+                :aria-describedby="errors.title ? 'title-error' : undefined"
                 :placeholder="copy.form.titlePlaceholder"
                 @blur="validateField('title')"
               />
-              <p v-if="errors.title" class="mt-2 text-sm text-rose-500">{{ errors.title }}</p>
+              <p v-if="errors.title" id="title-error" class="mt-2 text-sm text-rose-500">{{ errors.title }}</p>
             </div>
 
             <div>
@@ -138,10 +142,12 @@
                 maxlength="2000"
                 class="w-full min-w-0 rounded-[24px] border bg-slate-50/60 px-4 py-3 outline-none transition focus:border-sky-300 focus:bg-white focus:ring-4 focus:ring-sky-100"
                 :class="errors.content ? 'border-rose-300' : 'border-slate-200'"
+                :aria-invalid="Boolean(errors.content)"
+                :aria-describedby="errors.content ? 'content-error' : undefined"
                 :placeholder="copy.form.contentPlaceholder"
                 @blur="validateField('content')"
               ></textarea>
-              <p v-if="errors.content" class="mt-2 text-sm text-rose-500">{{ errors.content }}</p>
+              <p v-if="errors.content" id="content-error" class="mt-2 text-sm text-rose-500">{{ errors.content }}</p>
             </div>
 
             <div class="hidden" aria-hidden="true">
@@ -177,6 +183,8 @@
             <div class="flex flex-wrap items-center justify-between gap-4 pt-2">
               <p class="text-sm leading-6 text-slate-500">{{ copy.form.submitHint }}</p>
               <button
+                ref="submitTriggerRef"
+                v-echo-press
                 type="submit"
                 class="inline-flex w-full items-center justify-center rounded-full bg-slate-800 px-6 py-3 text-sm font-medium text-white transition hover:-translate-y-0.5 hover:bg-sky-700 disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto sm:min-w-[170px]"
                 :disabled="isSubmitting"
@@ -211,10 +219,15 @@
         <div
           v-if="showConfirm"
           class="fixed inset-0 z-[120] flex items-center justify-center bg-slate-900/35 px-4 backdrop-blur-sm"
-          @click.self="showConfirm = false"
+          @click.self="closeConfirm"
         >
           <div
+            ref="confirmDialogRef"
             class="w-full max-w-2xl rounded-[32px] bg-white p-6 shadow-[0_32px_100px_rgba(15,23,42,0.28)] md:p-8"
+            role="dialog"
+            aria-modal="true"
+            :aria-label="copy.confirm.title"
+            @keydown="handleConfirmKeydown"
           >
             <p class="text-xs tracking-[0.24em] text-slate-500">{{ copy.confirm.eyebrow }}</p>
             <h3 class="mt-3 font-['Cormorant_Garamond',serif] text-4xl text-slate-800">
@@ -247,14 +260,16 @@
 
             <div class="mt-8 flex flex-wrap justify-end gap-3">
               <button
+                ref="confirmBackRef"
                 type="button"
                 class="rounded-full border border-slate-200 px-5 py-2.5 text-sm text-slate-600 transition hover:bg-slate-50"
                 :disabled="isSubmitting"
-                @click="showConfirm = false"
+                @click="closeConfirm"
               >
                 {{ copy.confirm.back }}
               </button>
               <button
+                v-echo-press
                 type="button"
                 class="rounded-full bg-slate-800 px-5 py-2.5 text-sm text-white transition hover:bg-sky-700 disabled:cursor-not-allowed disabled:opacity-60"
                 :disabled="isSubmitting"
@@ -298,9 +313,13 @@ import axiosInstance from '@/AxiosUtil'
 import LinkedText from '@/components/LinkedText.vue'
 import { ABOUT_COPY } from '@/composables/lang/AboutMedata'
 import { apiRoutes } from '@/config/api'
+import { useSiteInteraction } from '@/composables/site-interaction'
+import { usePageScroll } from '@/composables/page-scroll'
 
 const { appContext } = getCurrentInstance()
 const global = appContext.config.globalProperties
+const interaction = useSiteInteraction()
+const pageScroll = usePageScroll()
 
 const form = reactive({
   email: '',
@@ -329,6 +348,10 @@ const isClientReady = ref(false)
 const turnstileToken = ref('')
 const widgetId = ref(null)
 const toastTimer = ref(null)
+const submitTriggerRef = ref(null)
+const confirmDialogRef = ref(null)
+const confirmBackRef = ref(null)
+let releaseConfirmLock = null
 
 const turnstileSiteKey = import.meta.env.VITE_TURNSTILE_SITE_KEY || ''
 const feedbackApiUrl = apiRoutes.aboutFeedback
@@ -446,9 +469,37 @@ function validateForm() {
 
 function openConfirm() {
   if (!validateForm()) {
+    const firstInvalid = errors.email ? 'email' : errors.title ? 'title' : errors.content ? 'content' : null
+    if (firstInvalid) document.getElementById(firstInvalid)?.focus({ preventScroll: true })
+    interaction.announce(activeLang.value === 'jp' ? '入力内容を確認してください' : '请检查表单中的错误')
     return
   }
   showConfirm.value = true
+}
+
+function closeConfirm(restoreFocus = true) {
+  showConfirm.value = false
+  if (restoreFocus) submitTriggerRef.value?.focus({ preventScroll: true })
+}
+
+function handleConfirmKeydown(event) {
+  if (event.key === 'Escape' && !isSubmitting.value) {
+    event.preventDefault()
+    closeConfirm()
+    return
+  }
+  if (event.key !== 'Tab' || !confirmDialogRef.value) return
+  const controls = Array.from(confirmDialogRef.value.querySelectorAll('button:not([disabled])'))
+  if (!controls.length) return
+  const first = controls[0]
+  const last = controls[controls.length - 1]
+  if (event.shiftKey && document.activeElement === first) {
+    event.preventDefault()
+    last.focus()
+  } else if (!event.shiftKey && document.activeElement === last) {
+    event.preventDefault()
+    first.focus()
+  }
 }
 
 function resetForm() {
@@ -468,6 +519,7 @@ function resetForm() {
 function showToast(message) {
   toast.message = message
   toast.visible = true
+  interaction.announce(message)
 
   if (toastTimer.value) {
     clearTimeout(toastTimer.value)
@@ -608,18 +660,29 @@ watch(
   { flush: 'post' },
 )
 
+watch(showConfirm, async (open) => {
+  releaseConfirmLock?.()
+  releaseConfirmLock = null
+  if (!open) return
+  releaseConfirmLock = pageScroll.lockPageScroll('about-confirm')
+  await nextTick()
+  confirmBackRef.value?.focus({ preventScroll: true })
+})
+
 onBeforeUnmount(() => {
   if (toastTimer.value) {
     clearTimeout(toastTimer.value)
   }
+  releaseConfirmLock?.()
+  releaseConfirmLock = null
 })
 </script>
 
 <style scoped>
 .story-line {
-  opacity: 0;
-  transform: translateY(18px);
-  animation: story-rise 720ms ease forwards;
+  opacity: 0.92;
+  transform: translateY(6px);
+  animation: story-rise 360ms var(--echo-ease-out) forwards;
   animation-delay: var(--story-delay);
 }
 
@@ -650,13 +713,17 @@ onBeforeUnmount(() => {
 
 @keyframes story-rise {
   from {
-    opacity: 0;
-    transform: translateY(18px);
+    opacity: 0.92;
+    transform: translateY(6px);
   }
 
   to {
     opacity: 1;
     transform: translateY(0);
   }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .story-line { opacity: 1; transform: none; animation: none; }
 }
 </style>

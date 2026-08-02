@@ -4,6 +4,21 @@
 @import 'tailwindcss';
 @plugin "@tailwindcss/typography";
 
+:root {
+  --echo-color-ink: #1a2c50;
+  --echo-color-teal: #317f8d;
+  --echo-color-sky: #8fc5df;
+  --echo-color-gold: #ddbe5f;
+  --echo-color-paper: rgba(255, 255, 255, 0.88);
+  --echo-duration-press: 120ms;
+  --echo-duration-micro: 200ms;
+  --echo-duration-route: 280ms;
+  --echo-duration-hero: 480ms;
+  --echo-ease-out: cubic-bezier(0.2, 0.8, 0.2, 1);
+  --echo-ease-in: cubic-bezier(0.4, 0, 1, 1);
+  --echo-ease-standard: cubic-bezier(0.4, 0, 0.2, 1);
+}
+
 @layer base {
   * {
     scrollbar-width: thin;
@@ -39,6 +54,11 @@
   *::-webkit-scrollbar-corner {
     background: transparent;
   }
+
+  :focus-visible {
+    outline: 2px solid var(--echo-color-teal);
+    outline-offset: 3px;
+  }
 }
 
 @layer utilities {
@@ -52,6 +72,59 @@
     width: 0;
     height: 0;
   }
+
+  .echo-focus:focus-visible {
+    outline: 2px solid var(--echo-color-teal);
+    outline-offset: 3px;
+  }
+}
+
+.echo-skip-link {
+  position: fixed;
+  top: .5rem;
+  left: .5rem;
+  z-index: 100;
+  transform: translateY(-150%);
+  border-radius: 9999px;
+  background: white;
+  padding: .65rem 1rem;
+  color: var(--echo-color-ink);
+  box-shadow: 0 10px 30px rgba(26, 44, 80, .18);
+  transition: transform var(--echo-duration-micro) var(--echo-ease-out);
+}
+.echo-skip-link:focus { transform: translateY(0); }
+
+.echo-press { position: relative; overflow: hidden; isolation: isolate; }
+.echo-press::after {
+  content: '';
+  pointer-events: none;
+  position: absolute;
+  width: 8rem;
+  aspect-ratio: 1;
+  left: calc(var(--echo-press-x, 50%) - 4rem);
+  top: calc(var(--echo-press-y, 50%) - 4rem);
+  z-index: -1;
+  border-radius: 9999px;
+  background: radial-gradient(circle, rgba(143, 197, 223, .28), transparent 68%);
+  opacity: 0;
+  transform: scale(.18);
+}
+.echo-press.is-echo-pressed::after { animation: echo-press-feedback var(--echo-duration-micro) var(--echo-ease-out); }
+@keyframes echo-press-feedback { 50% { opacity: 1; } to { opacity: 0; transform: scale(1); } }
+
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --echo-duration-press: 1ms;
+    --echo-duration-micro: 1ms;
+    --echo-duration-route: 1ms;
+    --echo-duration-hero: 1ms;
+  }
+  *, *::before, *::after {
+    scroll-behavior: auto !important;
+    transition-delay: 0ms !important;
+  }
+  .echo-press.is-echo-pressed { background-color: rgba(143, 197, 223, .16); }
+  .echo-press.is-echo-pressed::after { animation: none; }
 }
 
 @layer components {

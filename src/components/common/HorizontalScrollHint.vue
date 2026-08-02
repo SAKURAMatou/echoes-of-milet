@@ -196,7 +196,7 @@ onBeforeUnmount(() => {
 }
 
 .horizontal-scroll-hint__control--left svg {
-  animation: horizontal-scroll-hint-prev 1.65s ease-in-out infinite;
+  animation: horizontal-scroll-hint-prev 720ms ease-in-out 2;
 }
 
 .horizontal-scroll-hint__control--right {
@@ -212,7 +212,7 @@ onBeforeUnmount(() => {
 }
 
 .horizontal-scroll-hint__control--right svg {
-  animation: horizontal-scroll-hint-next 1.65s ease-in-out infinite;
+  animation: horizontal-scroll-hint-next 720ms ease-in-out 2;
 }
 
 @media (hover: hover) and (pointer: fine) {
@@ -245,5 +245,9 @@ onBeforeUnmount(() => {
   50% {
     transform: translateX(0.14rem);
   }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .horizontal-scroll-hint__control svg { animation: none; transition: color 1ms; }
 }
 </style>

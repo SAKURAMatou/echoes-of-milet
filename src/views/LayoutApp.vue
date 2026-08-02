@@ -5,6 +5,7 @@
   >
     <Header
       :showHanbor="true"
+      :menuOpen="menuOpen"
       ref="headerRef"
       @openMenu="menuOpen = true"
       @closeMenu="menuOpen = false"
@@ -13,8 +14,8 @@
     <div
       class="fixed inset-0 min-h-screen bg-[url(/background/bg-milet-home-pre.webp)] bg-cover pointer-events-none bg-[position:8%_50%] opacity-45"
     ></div>
-    <LanguageSelect class="max-md:hidden" />
-    <div class="relative w-full max-w-[100vw] overflow-x-clip md:h-full md:overflow-x-hidden">
+    <LanguageSelect data-menu-inert class="max-md:hidden" />
+    <div data-menu-inert class="relative w-full max-w-[100vw] overflow-x-clip md:h-full md:overflow-x-hidden">
       <!-- 整体容器：页面居中布局 -->
       <div
         class="flex w-full max-w-full overflow-x-clip pt-16 md:h-full md:box-border md:pt-[4.5rem] md:overflow-x-hidden md:gap-6 lg:gap-8 xl:gap-10"
@@ -37,6 +38,7 @@
             "
           >
             <main
+              id="main-content"
               ref="contentMetricsRef"
               class="w-full max-w-full rounded-lg border border-white/70 bg-white/78 shadow-[18px_24px_70px_-52px_rgba(31,41,55,0.55)]"
               :class="
@@ -69,7 +71,7 @@ import { useRoute } from 'vue-router'
 import { usePageScroll } from '@/composables/page-scroll'
 
 const menuOpen = ref(false)
-const headerRef = ref(null)
+const headerRef = ref<{ closeMenu(): void; focusMenuButton(): void } | null>(null)
 const route = useRoute()
 const scrollContainerRef = ref<HTMLElement | null>(null)
 const contentMetricsRef = ref<HTMLElement | null>(null)
@@ -95,6 +97,6 @@ onBeforeUnmount(() => {
 
 const menuClick = () => {
   menuOpen.value = false
-  headerRef.value.closeMenu()
+  headerRef.value?.focusMenuButton()
 }
 </script>

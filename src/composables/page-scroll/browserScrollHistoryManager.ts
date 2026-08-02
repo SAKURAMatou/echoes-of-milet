@@ -9,6 +9,7 @@ export interface BrowserNavigationStart {
   fromEntryKey: string
   isHistoryNavigation: boolean
   pendingTargetEntryKey: string | null
+  historyDirection: 'forward' | 'back' | 'unknown'
 }
 
 export interface BrowserScrollHistoryManager {
@@ -75,11 +76,18 @@ class BrowserScrollHistoryManagerImpl implements BrowserScrollHistoryManager {
     const position = readPosition(state)
     const isHistoryNavigation =
       position !== null && this.currentPosition !== null && position !== this.currentPosition
+    const historyDirection =
+      !isHistoryNavigation || position === null || this.currentPosition === null
+        ? 'unknown'
+        : position < this.currentPosition
+          ? 'back'
+          : 'forward'
 
     return {
       fromEntryKey: this.currentEntryKey,
       isHistoryNavigation,
       pendingTargetEntryKey: isHistoryNavigation ? pendingTargetEntryKey : null,
+      historyDirection,
     }
   }
 

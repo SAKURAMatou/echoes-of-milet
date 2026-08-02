@@ -1,5 +1,6 @@
 <template>
   <div
+    id="main-content"
     class="live-detail-shell min-h-svh text-[var(--live-detail-title)]"
     :class="themeClass"
     :style="themeStyle"

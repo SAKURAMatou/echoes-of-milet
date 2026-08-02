@@ -286,7 +286,7 @@
   transform: translate(-50%, -50%);
   border-radius: 999px;
   background: var(--spot-soft, rgba(47, 143, 131, 0.22));
-  animation: pilgrimage-route-current-pulse 1.1s ease-out infinite;
+  animation: pilgrimage-route-current-pulse 620ms ease-out 1 both;
   content: '';
 }
 
@@ -529,7 +529,7 @@
   background-repeat: no-repeat;
   background-size: auto 100%;
   animation: pilgrimage-route-actor-steps var(--route-actor-duration, 1s)
-    steps(var(--route-actor-frame-count, 1)) infinite;
+    steps(var(--route-actor-frame-count, 1)) 1 both;
 }
 
 .pilgrimage-route-arrow {

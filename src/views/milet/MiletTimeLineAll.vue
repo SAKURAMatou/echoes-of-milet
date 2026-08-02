@@ -80,9 +80,25 @@
       </div>
     </header>
 
-    <div v-if="isLoading && !hasLoadedOnce" class="relative flex justify-center py-8">
-      <div class="text-sm font-medium text-slate-500">loading...</div>
-    </div>
+    <EchoAsyncState
+      v-if="isLoading && !hasLoadedOnce"
+      state="loading"
+      :title="currentLang === 'jp' ? 'タイムラインを読み込んでいます' : '正在读取时间线'"
+    />
+    <EchoAsyncState
+      v-else-if="timelineError && items.length === 0"
+      state="error"
+      :title="currentLang === 'jp' ? 'タイムラインを表示できません' : '暂时无法显示时间线'"
+      :description="timelineError"
+      :action-label="currentLang === 'jp' ? '再試行' : '重试'"
+      :disabled="isLoading"
+      @action="retryInitial"
+    />
+    <EchoAsyncState
+      v-else-if="!isLoading && items.length === 0"
+      state="empty"
+      :title="currentLang === 'jp' ? '公開中の記録はまだありません' : '还没有公开的时间线记录'"
+    />
 
     <div v-else class="relative pb-4">
       <div class="relative h-10">
@@ -130,11 +146,11 @@
             ]"
           >
             <div
-              class="absolute top-6 z-20 h-5 w-5 -translate-x-1/2 rounded-full border-[5px] border-white bg-[#1f5f8f] shadow-[0_0_0_1px_rgba(184,148,68,0.38),0_10px_28px_-18px_rgba(20,61,99,0.9)] transition-all duration-300"
+              class="timeline-node absolute top-6 z-20 h-5 w-5 -translate-x-1/2 rounded-full border-[5px] border-white bg-[#1f5f8f] shadow-[0_0_0_1px_rgba(184,148,68,0.38),0_10px_28px_-18px_rgba(20,61,99,0.9)] transition-all duration-300"
               :class="[
                 dotPosClass,
                 i === activeIndex
-                  ? 'scale-110 shadow-[0_0_0_6px_rgba(184,148,68,0.18),0_12px_30px_-18px_rgba(20,61,99,0.9)]'
+                  ? 'is-active scale-110 shadow-[0_0_0_6px_rgba(184,148,68,0.18),0_12px_30px_-18px_rgba(20,61,99,0.9)]'
                   : 'scale-100',
               ]"
             ></div>
@@ -258,12 +274,14 @@ import axiosInstance from '@/AxiosUtil'
 import { apiRoutes, getBackendOrigin } from '@/config/api'
 import FormattedPlainText from '@/components/FormattedPlainText.vue'
 import RelatedArticleList from '@/components/milet/article/RelatedArticleList.vue'
+import EchoAsyncState from '@/components/interaction/EchoAsyncState.vue'
 import type { RelatedArticleGroup } from '@/composables/articleType'
 import {
   useBusinessAnchorScrollRestoration,
   usePageScroll,
   usePageScrollPage,
 } from '@/composables/page-scroll'
+import { useSiteInteraction } from '@/composables/site-interaction'
 
 const instance = getCurrentInstance()
 const global = instance?.appContext.config.globalProperties
@@ -292,6 +310,7 @@ const loadedPage = ref(0)
 const hasMoreData = ref(true)
 const isLoading = ref(false)
 const hasLoadedOnce = ref(false)
+const timelineError = ref('')
 
 const itemEls = reactive(new Map<number, HTMLElement>())
 function setItemRef(el: any, idx: number) {
@@ -307,6 +326,7 @@ let io: IntersectionObserver | null = null
 
 const activeIndex = ref(0)
 const pageScroll = usePageScroll()
+const interaction = useSiteInteraction()
 const { markScrollContentPending } = usePageScrollPage()
 let unsubscribeScrollFrame: (() => void) | null = null
 
@@ -516,6 +536,7 @@ onBeforeUnmount(() => {
 
 const getData = async (page: number = 1, signal?: AbortSignal) => {
   try {
+    timelineError.value = ''
     const response = await axiosInstance.get(`${apiRoutes.miletTimeline}/${page}`, { signal })
     if (signal?.aborted) return { data: { zh: [], jp: [] }, hasMore: false }
     const { data, hasMore } = response.data
@@ -526,11 +547,38 @@ const getData = async (page: number = 1, signal?: AbortSignal) => {
       }
     }
     loadedPage.value = Math.max(loadedPage.value, page)
+    interaction.announce(
+      currentLang.value === 'jp'
+        ? `${items.value.length} 件のタイムラインを表示しています`
+        : `当前显示 ${items.value.length} 条时间线记录`,
+    )
     return { data, hasMore }
   } catch (error) {
     if (signal?.aborted) return { data: { zh: [], jp: [] }, hasMore: false }
     console.error('Error fetching timeline data:', error)
+    timelineError.value = error instanceof Error ? error.message : 'Timeline load failed.'
+    interaction.announce(currentLang.value === 'jp' ? '読み込みに失敗しました' : '时间线加载失败')
     return { data: { zh: [], jp: [] }, hasMore: false }
+  }
+}
+
+async function retryInitial() {
+  if (isLoading.value) return
+  isLoading.value = true
+  timelineError.value = ''
+  displayedData.value = { zh: [], jp: [] }
+  currentPage.value = 1
+  loadedPage.value = 0
+  try {
+    const { hasMore } = await getData(1)
+    hasMoreData.value = hasMore
+    currentPage.value = 2
+    hasLoadedOnce.value = true
+    await nextTick()
+    pageScroll.invalidateMetrics()
+    observeRenderedItems()
+  } finally {
+    isLoading.value = false
   }
 }
 
@@ -597,6 +645,20 @@ watch(items, async () => {
   scheduleUpdate()
 })
 </script>
+
+<style scoped>
+.timeline-node.is-active::after {
+  content: '';
+  pointer-events: none;
+  position: absolute;
+  inset: -8px;
+  border: 1px solid rgba(184, 148, 68, .5);
+  border-radius: 9999px;
+  animation: timeline-node-echo var(--echo-duration-route) var(--echo-ease-out) 1 both;
+}
+@keyframes timeline-node-echo { to { opacity: 0; transform: scale(1.7); } }
+@media (prefers-reduced-motion: reduce) { .timeline-node.is-active::after { animation: none; inset: -4px; } }
+</style>
 
 <style scoped>
 .timeline-hero {

@@ -18,16 +18,20 @@
       </div>
 
       <button
+        ref="menuButtonRef"
         v-if="showHanbor"
-        class="md:hidden flex items-center px-3 py-2 border rounded text-[#546e7a] border-white"
+        type="button"
+        class="echo-focus md:hidden flex min-h-11 min-w-11 items-center justify-center rounded-full border border-white px-2 py-2 text-[#546e7a] transition-colors hover:border-sky-200 hover:bg-white/80"
         @click="toggleMenu"
-        aria-label="Toggle menu"
+        :aria-label="menuOpen ? closeLabel : openLabel"
+        :aria-expanded="menuOpen"
+        aria-controls="mobile-site-menu"
       >
         <div class="relative w-6 h-6">
           <!-- 汉堡菜单图标 -->
           <svg
             class="absolute w-6 h-6 transition-all duration-300 ease-in-out"
-            :class="isMenuOpen ? 'opacity-0 rotate-90' : 'opacity-100 rotate-0'"
+            :class="menuOpen ? 'opacity-0 rotate-90' : 'opacity-100 rotate-0'"
             fill="none"
             stroke="currentColor"
             stroke-width="2"
@@ -39,7 +43,7 @@
           <!-- 关闭图标 -->
           <svg
             class="absolute w-6 h-6 transition-all duration-300 ease-in-out"
-            :class="isMenuOpen ? 'opacity-100 rotate-0' : 'opacity-0 -rotate-90'"
+            :class="menuOpen ? 'opacity-100 rotate-0' : 'opacity-0 -rotate-90'"
             fill="none"
             stroke="currentColor"
             stroke-width="2"
@@ -57,36 +61,29 @@
 import { computed, ref } from 'vue'
 import { useRoute } from 'vue-router'
 
-import eventBus from '@/plugins/event-bus'
 import { withLangParam } from '@/composables/useLangRoute'
 
-const isMenuOpen = ref(false)
-const searchContent = ref(null)
 const route = useRoute()
+const menuButtonRef = ref<HTMLButtonElement | null>(null)
 
 const emit = defineEmits(['openMenu', 'closeMenu'])
-const searchEvent = () => {
-  if (!searchContent.value) {
-    return
-  }
-  console.log(searchContent.value)
-  // emit('onSearch', searchContent.value)
-  eventBus.emit('search', '关键词abc')
-}
 
 const toggleMenu = () => {
-  isMenuOpen.value = !isMenuOpen.value
-  emit(isMenuOpen.value ? 'openMenu' : 'closeMenu')
+  emit(props.menuOpen ? 'closeMenu' : 'openMenu')
 }
 const closeMenu = () => {
-  isMenuOpen.value = false
+  emit('closeMenu')
 }
+const focusMenuButton = () => menuButtonRef.value?.focus({ preventScroll: true })
 
 const homeLink = computed(() => withLangParam({ name: 'home' }, String(route.params.lang || 'zh')))
+const openLabel = computed(() => (String(route.params.lang) === 'ja' ? 'メニューを開く' : '打开菜单'))
+const closeLabel = computed(() => (String(route.params.lang) === 'ja' ? 'メニューを閉じる' : '关闭菜单'))
 defineExpose({
   closeMenu,
+  focusMenuButton,
 })
-const prop = defineProps({ showHanbor: Boolean })
+const props = defineProps({ showHanbor: Boolean, menuOpen: Boolean })
 </script>
 
 <style scoped>

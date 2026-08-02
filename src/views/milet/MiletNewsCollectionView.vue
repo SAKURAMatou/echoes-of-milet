@@ -71,6 +71,7 @@
     >
       <div ref="topicRailEl" class="topic-rail" @scroll="updateTopicRailHint">
         <button
+          v-echo-press
           type="button"
           class="news-tag news-tag-all"
           :class="!selectedTag ? 'is-active' : ''"
@@ -80,6 +81,7 @@
           {{ pageText.allTags }}
         </button>
         <button
+          v-echo-press
           v-for="(tag, index) in visibleTopicTags"
           :key="tag.topic"
           type="button"
@@ -153,20 +155,44 @@
       </button>
     </div>
 
-    <div v-if="loading && items.length === 0" class="space-y-4">
-      <div
-        v-for="i in 3"
-        :key="i"
-        class="h-36 animate-pulse rounded-lg border border-sky-100 bg-white/60"
-      />
+    <div
+      v-if="loadError && items.length"
+      class="mb-6 flex flex-col gap-3 rounded-lg border border-amber-200/80 bg-amber-50/78 px-4 py-3 text-sm text-amber-950 sm:flex-row sm:items-center sm:justify-between"
+    >
+      <p>{{ pageText.error }} {{ loadError }}</p>
+      <button
+        v-echo-press
+        type="button"
+        class="inline-flex min-h-11 shrink-0 items-center justify-center rounded-lg border border-amber-300 bg-white/80 px-4 font-bold text-amber-900 transition hover:bg-white"
+        :disabled="loading"
+        @click="retryNews"
+      >
+        {{ pageText.retry }}
+      </button>
     </div>
 
-    <div
+    <EchoAsyncState
+      v-if="loading && items.length === 0"
+      state="loading"
+      :title="pageText.loading"
+    />
+    <EchoAsyncState
+      v-else-if="loadError && items.length === 0"
+      state="error"
+      :title="pageText.error"
+      :description="loadError"
+      :action-label="pageText.retry"
+      :disabled="loading"
+      @action="retryNews"
+    />
+    <EchoAsyncState
       v-else-if="!loading && items.length === 0"
-      class="rounded-lg border border-dashed border-sky-200 bg-white/60 px-6 py-12 text-center text-sm text-slate-500"
-    >
-      {{ selectedTag ? pageText.filteredEmpty : pageText.empty }}
-    </div>
+      state="empty"
+      :title="selectedTag ? pageText.filteredEmpty : pageText.empty"
+      :description="selectedTag ? pageText.clearHint : ''"
+      :action-label="selectedTag ? pageText.clear : ''"
+      @action="selectTag('')"
+    />
 
     <div v-else class="space-y-10">
       <section
@@ -190,6 +216,7 @@
 
         <div class="grid gap-4 md:grid-cols-2">
           <article
+            v-echo-press
             v-for="item in group.items"
             :key="item.id"
             :data-page-scroll-anchor="`news-${item.id}`"
@@ -292,12 +319,14 @@ import { computed, getCurrentInstance, nextTick, onBeforeUnmount, onMounted, ref
 import { useRoute } from 'vue-router'
 
 import axiosInstance from '@/AxiosUtil'
+import EchoAsyncState from '@/components/interaction/EchoAsyncState.vue'
 import { apiRoutes } from '@/config/api'
 import {
   useBusinessAnchorScrollRestoration,
   usePageScroll,
   usePageScrollPage,
 } from '@/composables/page-scroll'
+import { useSiteInteraction } from '@/composables/site-interaction'
 
 type PublicNewsItem = {
   id: number
@@ -335,6 +364,7 @@ type PublicNewsTopicsResponse = {
 
 const route = useRoute()
 const pageScroll = usePageScroll()
+const interaction = useSiteInteraction()
 const { markScrollContentPending } = usePageScrollPage()
 const newsRoot = ref<HTMLElement | null>(null)
 const instance = getCurrentInstance()
@@ -347,6 +377,7 @@ const pageSize = ref(12)
 const hasMore = ref(true)
 const loading = ref(false)
 const hasLoadedOnce = ref(false)
+const loadError = ref('')
 const loadMoreEl = ref<HTMLElement | null>(null)
 const topicRailEl = ref<HTMLElement | null>(null)
 const selectedTag = ref('')
@@ -370,6 +401,10 @@ const pageText = computed(() => {
       open: 'Open article',
       allTags: 'All',
       filterByTopic: 'Filter by this topic',
+      error: 'ニュースを表示できませんでした。',
+      retry: '再試行',
+      clear: 'すべて表示',
+      clearHint: 'topic フィルターを解除して、すべてのニュースを確認できます。',
       disclaimer:
         'このページは公開ニュースリンクの収集と紹介を目的としており、ニュース本文の保存や転載は行いません。全文は元のニュースページでご確認ください。',
     }
@@ -385,6 +420,10 @@ const pageText = computed(() => {
     open: '打开新闻',
     allTags: '全部',
     filterByTopic: '按这个 topic 筛选',
+    error: '暂时无法显示新闻',
+    retry: '重试',
+    clear: '查看全部',
+    clearHint: '清除 topic 筛选后可以查看全部新闻。',
     disclaimer:
       '本页仅用于收藏和转引公开新闻链接，不保存、不转载新闻正文内容；完整内容请以原始新闻页面为准。',
   }
@@ -473,6 +512,7 @@ function resetNewsList() {
   page.value = 1
   hasMore.value = true
   hasLoadedOnce.value = false
+  loadError.value = ''
 }
 
 async function selectTag(tag: string) {
@@ -548,6 +588,7 @@ async function loadNews(signal?: AbortSignal) {
   if (loading.value || !hasMore.value) return
 
   loading.value = true
+  loadError.value = ''
   try {
     const params: Record<string, string | number> = {
       page: page.value,
@@ -571,14 +612,26 @@ async function loadNews(signal?: AbortSignal) {
     items.value = [...items.value, ...nextItems]
     hasMore.value = Boolean(response.hasMore)
     page.value += 1
+    interaction.announce(
+      global?.$lang?.lang === 'jp'
+        ? `${items.value.length} 件のニュースを表示しています`
+        : `当前显示 ${items.value.length} 条新闻`,
+    )
   } catch (error) {
     if (signal?.aborted) return
     console.error('Failed to load public news:', error)
+    loadError.value = error instanceof Error ? error.message : pageText.value.error
     hasMore.value = false
+    interaction.announce(pageText.value.error)
   } finally {
     loading.value = false
     hasLoadedOnce.value = true
   }
+}
+
+function retryNews() {
+  hasMore.value = true
+  void loadNews()
 }
 
 useBusinessAnchorScrollRestoration({
@@ -688,7 +741,7 @@ onBeforeUnmount(() => {
 }
 
 .news-hero-signal {
-  animation: news-signal-pulse 2.8s ease-in-out infinite;
+  animation: news-signal-pulse 820ms ease-out 1 both;
 }
 
 .topic-filter {
@@ -776,11 +829,11 @@ onBeforeUnmount(() => {
 }
 
 .topic-scroll-control-prev svg {
-  animation: topic-prev-hint 1.65s ease-in-out infinite;
+  animation: topic-prev-hint 720ms ease-in-out 2;
 }
 
 .topic-scroll-control-next svg {
-  animation: topic-next-hint 1.65s ease-in-out infinite;
+  animation: topic-next-hint 720ms ease-in-out 2;
 }
 
 .news-tag {

@@ -17,7 +17,7 @@
           <span class="scroll-more-hint__pill">
             <span>MORE</span>
             <svg
-              class="h-3.5 w-3.5 animate-bounce"
+              class="scroll-more-hint__arrow h-3.5 w-3.5"
               viewBox="0 0 24 24"
               fill="none"
               stroke="currentColor"
@@ -36,16 +36,26 @@
   </aside>
 
   <teleport v-if="isClient && menuOpen" to="body">
-    <div class="fixed inset-x-0 bottom-0 top-16 z-40 md:hidden" @click="emit('closeMenu')">
+    <button
+      type="button"
+      class="fixed inset-x-0 bottom-0 top-16 z-40 cursor-default md:hidden"
+      aria-label="Close menu"
+      tabindex="-1"
+      @click="requestClose"
+    >
       <div class="absolute inset-0 bg-slate-900/30 backdrop-blur-sm"></div>
-    </div>
+    </button>
 
     <aside
+      id="mobile-site-menu"
+      ref="mobileDialogRef"
       class="fixed left-0 top-16 z-50 h-[calc(100dvh-4rem)] w-[min(310px,100vw)] max-w-[100vw] md:hidden"
       role="dialog"
       aria-modal="true"
       aria-label="Mobile menu"
+      tabindex="-1"
       @click.stop
+      @keydown="onDialogKeydown"
     >
       <div
         class="relative h-full overflow-hidden border-r border-white/30 bg-[linear-gradient(to_bottom_right,white,#ebf8ff,#bee3f8)]"
@@ -55,7 +65,7 @@
           class="scrollbar-none h-full touch-pan-y overflow-y-auto overscroll-contain"
           @scroll="updateMobileHint"
         >
-          <SideMenuItems class="pl-6 pr-6 py-6" @closeMenuItem="emit('closeMenu')" />
+          <SideMenuItems class="pl-6 pr-6 py-6" @closeMenuItem="requestClose" />
         </div>
 
         <transition name="scroll-hint">
@@ -64,7 +74,7 @@
             <span class="scroll-more-hint__pill">
               <span>MORE</span>
               <svg
-                class="h-3.5 w-3.5 animate-bounce"
+                class="scroll-more-hint__arrow h-3.5 w-3.5"
                 viewBox="0 0 24 24"
                 fill="none"
                 stroke="currentColor"
@@ -86,6 +96,7 @@
 
 <script setup lang="ts">
 import { nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
+import { useRoute } from 'vue-router'
 
 import SideMenuItems from './SideMenuItems.vue'
 import { usePageScroll } from '@/composables/page-scroll'
@@ -101,11 +112,68 @@ const emit = defineEmits(['closeMenu'])
 const isClient = ref(false)
 const desktopScrollRef = ref<HTMLElement | null>(null)
 const mobileScrollRef = ref<HTMLElement | null>(null)
+const mobileDialogRef = ref<HTMLElement | null>(null)
 const showDesktopScrollHint = ref(false)
 const showMobileScrollHint = ref(false)
 let resizeObserver: ResizeObserver | null = null
 const pageScroll = usePageScroll()
+const route = useRoute()
 let releasePageLock: (() => void) | null = null
+let backgroundElements: HTMLElement[] = []
+
+const FOCUSABLE = 'a[href],button:not([disabled]),[tabindex]:not([tabindex="-1"]),select,input,textarea'
+
+function requestClose() {
+  emit('closeMenu')
+}
+
+function setBackgroundInert(inert: boolean) {
+  if (typeof document === 'undefined') return
+  if (inert) {
+    backgroundElements = Array.from(document.querySelectorAll<HTMLElement>('[data-menu-inert]'))
+    backgroundElements.forEach((element) => {
+      element.inert = true
+      element.setAttribute('aria-hidden', 'true')
+    })
+    return
+  }
+  backgroundElements.forEach((element) => {
+    element.inert = false
+    element.removeAttribute('aria-hidden')
+  })
+  backgroundElements = []
+}
+
+function focusInitialControl() {
+  const first = mobileDialogRef.value?.querySelector<HTMLElement>(FOCUSABLE)
+  ;(first || mobileDialogRef.value)?.focus({ preventScroll: true })
+}
+
+function onDialogKeydown(event: KeyboardEvent) {
+  if (event.key === 'Escape') {
+    event.preventDefault()
+    requestClose()
+    return
+  }
+  if (event.key !== 'Tab' || !mobileDialogRef.value) return
+  const controls = Array.from(mobileDialogRef.value.querySelectorAll<HTMLElement>(FOCUSABLE)).filter(
+    (element) => !element.hasAttribute('disabled') && element.offsetParent !== null,
+  )
+  if (!controls.length) {
+    event.preventDefault()
+    mobileDialogRef.value.focus()
+    return
+  }
+  const first = controls[0]
+  const last = controls[controls.length - 1]
+  if (event.shiftKey && document.activeElement === first) {
+    event.preventDefault()
+    last.focus()
+  } else if (!event.shiftKey && document.activeElement === last) {
+    event.preventDefault()
+    first.focus()
+  }
+}
 
 function hasHiddenContent(scrollEl: HTMLElement | null) {
   if (!scrollEl) {
@@ -160,18 +228,29 @@ watch(
     if (isOpen) {
       releasePageLock?.()
       releasePageLock = pageScroll.lockPageScroll('mobile-menu')
+      setBackgroundInert(true)
+      focusInitialControl()
     } else {
       releasePageLock?.()
       releasePageLock = null
+      setBackgroundInert(false)
     }
     observeScrollContainers()
     updateScrollHints()
   },
 )
 
+watch(
+  () => route.fullPath,
+  () => {
+    if (props.menuOpen) requestClose()
+  },
+)
+
 onBeforeUnmount(() => {
   releasePageLock?.()
   releasePageLock = null
+  setBackgroundInert(false)
   resizeObserver?.disconnect()
   window.removeEventListener('resize', updateScrollHints)
 })
@@ -214,6 +293,18 @@ onBeforeUnmount(() => {
   box-shadow:
     0 10px 26px -18px rgb(15 23 42 / 0.7),
     inset 0 1px 0 rgb(255 255 255 / 0.9);
+}
+
+.scroll-more-hint__arrow {
+  animation: menu-more-cue 700ms var(--echo-ease-out) 2;
+}
+
+@keyframes menu-more-cue {
+  50% { transform: translateY(3px); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .scroll-more-hint__arrow { animation: none; }
 }
 
 .scroll-hint-enter-active,

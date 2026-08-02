@@ -112,6 +112,7 @@
         </label>
 
         <button
+          v-echo-press
           type="button"
           class="mt-auto h-11 rounded-lg border border-[#317f8d]/40 bg-[#317f8d] px-5 text-sm font-bold text-white shadow-[0_16px_28px_-22px_rgba(20,61,99,0.85)] transition hover:bg-[#246d7c]"
           @click="applyFilters"
@@ -123,26 +124,44 @@
 
     <section class="grid gap-4 px-4 py-6 sm:px-7">
       <div
+        v-if="error && items.length"
+        class="flex flex-col gap-3 rounded-lg border border-amber-200/80 bg-amber-50/78 px-4 py-3 text-sm text-amber-950 sm:flex-row sm:items-center sm:justify-between"
+      >
+        <p>{{ routeLang === 'ja' ? '最新の条件を読み込めませんでした。現在の一覧を表示しています。' : '最新筛选结果加载失败，当前仍显示原有列表。' }}</p>
+        <button
+          v-echo-press
+          type="button"
+          class="inline-flex min-h-11 shrink-0 items-center justify-center rounded-lg border border-amber-300 bg-white/80 px-4 font-bold text-amber-900 transition hover:bg-white"
+          :disabled="loading"
+          @click="applyFilters"
+        >
+          {{ routeLang === 'ja' ? '再試行' : '重试' }}
+        </button>
+      </div>
+      <EchoAsyncState
         v-if="loading && !items.length"
-        class="rounded-lg border border-dashed border-[#b7d6e2] bg-white/62 p-8 text-center text-sm text-[#5f7178]"
-      >
-        loading...
-      </div>
-      <div
+        state="loading"
+        :title="routeLang === 'ja' ? 'Live archive を読み込んでいます' : '正在读取 Live Archive'"
+      />
+      <EchoAsyncState
         v-else-if="error && !items.length"
-        class="rounded-lg border border-dashed border-rose-200 bg-rose-50/70 p-8 text-center text-sm text-rose-700"
-      >
-        {{ error }}
-      </div>
-      <div
+        state="error"
+        :title="routeLang === 'ja' ? 'Live archive を表示できません' : '暂时无法显示 Live Archive'"
+        :description="error"
+        :action-label="routeLang === 'ja' ? '再試行' : '重试'"
+        :disabled="loading"
+        @action="applyFilters"
+      />
+      <EchoAsyncState
         v-else-if="!items.length"
-        class="rounded-lg border border-dashed border-[#b7d6e2] bg-white/62 p-8 text-center text-sm text-[#5f7178]"
-      >
-        {{ routeLang === 'ja' ? 'Live archive はまだありません。' : '暂无 live archive。' }}
-      </div>
+        state="empty"
+        :title="routeLang === 'ja' ? 'Live archive はまだありません。' : '暂无 Live Archive。'"
+        :description="routeLang === 'ja' ? '条件を変えて、もう一度検索できます。' : '可以调整筛选条件后重新搜索。'"
+      />
 
       <div v-else class="grid gap-4 lg:grid-cols-2">
         <RouterLink
+          v-echo-press
           v-for="item in items"
           :key="item.id"
           :to="{ name: 'miletLiveDetail', params: { lang: routeLang, slug: item.slug } }"
@@ -207,6 +226,7 @@
       </div>
 
       <button
+        v-echo-press
         v-if="hasMore"
         type="button"
         class="mx-auto mt-2 rounded-lg border border-[#317f8d]/40 bg-white/72 px-5 py-2.5 text-sm font-bold text-[#317f8d] transition hover:bg-sky-50 disabled:cursor-wait disabled:opacity-60"
@@ -234,9 +254,12 @@ import {
   type LiveEventListResponse,
 } from '@/composables/liveArchive'
 import { useAppState } from '@/composables/useAppState'
+import EchoAsyncState from '@/components/interaction/EchoAsyncState.vue'
+import { useSiteInteraction } from '@/composables/site-interaction'
 
 const route = useRoute()
 const appState = useAppState()
+const interaction = useSiteInteraction()
 const routeLang = computed(() => (String(route.params.lang) === 'ja' ? 'ja' : 'zh'))
 const lang = computed(() => normalizeLiveLang(routeLang.value))
 const selectedType = ref(String(route.query.type || 'all'))
@@ -299,8 +322,14 @@ async function loadList(page = 1, append = false) {
     if (!append) {
       appState.miletLiveListData = { key, payload }
     }
+    interaction.announce(
+      routeLang.value === 'ja'
+        ? `${data.value.items.length} 件の Live archive を表示しています`
+        : `当前显示 ${data.value.items.length} 条 Live Archive`,
+    )
   } catch (err) {
     error.value = err instanceof Error ? err.message : 'Live archive load failed.'
+    interaction.announce(routeLang.value === 'ja' ? '読み込みに失敗しました' : '加载失败，可以重试')
   } finally {
     loading.value = false
   }
@@ -361,7 +390,7 @@ watch(routeLang, () => {
 }
 
 .live-archive-hero-signal {
-  animation: live-archive-signal-pulse 1.9s ease-in-out infinite;
+  animation: live-archive-signal-pulse 780ms ease-out 1 both;
 }
 
 @keyframes live-archive-signal-pulse {

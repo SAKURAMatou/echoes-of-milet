@@ -160,7 +160,7 @@ onBeforeUnmount(() => {
   mask-image: linear-gradient(180deg, #000 0%, rgba(0, 0, 0, 0.9) 58%, transparent 100%);
   -webkit-mask-image: linear-gradient(180deg, #000 0%, rgba(0, 0, 0, 0.9) 58%, transparent 100%);
   transform-origin: center top;
-  animation: live-beam-drift 9s ease-in-out infinite alternate;
+  animation: live-beam-drift var(--echo-duration-hero) var(--echo-ease-out) 1 both;
 }
 
 .hero-live-haze {
@@ -174,7 +174,7 @@ onBeforeUnmount(() => {
       rgba(255, 255, 255, 0) 70px
     );
   opacity: 0.7;
-  animation: haze-shift 12s ease-in-out infinite alternate;
+  animation: haze-shift var(--echo-duration-hero) var(--echo-ease-out) 1 both;
 }
 
 .hero-stage-floor {
@@ -234,19 +234,19 @@ onBeforeUnmount(() => {
   stroke: rgba(49, 127, 141, 0.24);
   stroke-width: 4;
   filter: drop-shadow(0 12px 22px rgba(49, 127, 141, 0.12));
-  animation: sine-primary-flow 8.5s linear infinite;
+  animation: sine-primary-flow var(--echo-duration-hero) var(--echo-ease-out) 1 both;
 }
 
 .hero-sine-secondary {
   stroke: rgba(140, 72, 85, 0.14);
   stroke-width: 2;
-  animation: sine-secondary-flow 11s linear infinite;
+  animation: sine-secondary-flow var(--echo-duration-hero) var(--echo-ease-out) 1 both;
 }
 
 .hero-sine-tertiary {
   stroke: rgba(49, 127, 141, 0.11);
   stroke-width: 1.5;
-  animation: sine-tertiary-flow 14s linear infinite;
+  animation: sine-tertiary-flow var(--echo-duration-hero) var(--echo-ease-out) 1 both;
 }
 
 .hero-waveform-line {
@@ -263,7 +263,7 @@ onBeforeUnmount(() => {
 .hero-scroll-indicator {
   background: radial-gradient(circle, rgba(255, 255, 255, 0.74) 0%, rgba(255, 255, 255, 0) 72%);
   box-shadow: 0 14px 36px -26px rgba(49, 127, 141, 0.9);
-  animation: hero-scroll-pulse 1.8s ease-in-out infinite;
+  animation: hero-scroll-pulse 680ms ease-out 2;
 }
 
 .is-animation-paused .hero-live-beams,

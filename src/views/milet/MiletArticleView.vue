@@ -9,6 +9,8 @@
       class="pointer-events-none fixed inset-x-0 top-[3.45rem] z-40 block px-4 pt-2 min-[1180px]:hidden"
     >
       <button
+        ref="mobileTocButton"
+        v-echo-press
         type="button"
         class="pointer-events-auto mx-auto flex h-11 w-full max-w-md items-center justify-center gap-2 rounded-lg border border-[rgba(171,209,223,0.72)] bg-[linear-gradient(180deg,rgba(255,255,255,0.9),rgba(239,249,255,0.86)),radial-gradient(circle_at_92%_0,rgba(186,230,253,0.36),transparent_9rem)] text-[0.8rem] font-bold uppercase tracking-[0.12em] text-[#143d63] shadow-[0_16px_42px_-32px_rgba(20,61,99,0.72)] backdrop-blur-xl transition active:translate-y-px"
         aria-controls="article-mobile-toc-panel"
@@ -37,8 +39,10 @@
         <div
           v-if="mobileTocOpen"
           id="article-mobile-toc-panel"
+          ref="mobileTocPanel"
           class="pointer-events-auto mx-auto mt-2 w-full max-w-md rounded-lg border border-[rgba(171,209,223,0.72)] bg-[linear-gradient(180deg,rgba(255,255,255,0.94),rgba(241,250,255,0.9)),radial-gradient(circle_at_100%_0,rgba(186,230,253,0.28),transparent_10rem)] shadow-[0_24px_58px_-34px_rgba(20,61,99,0.72)] backdrop-blur-[18px]"
           @click="handleMobileTocClick"
+          @keydown="handleMobileTocKeydown"
         >
           <ArticleToc
             :items="article.toc"
@@ -50,6 +54,7 @@
     </div>
 
     <main
+      id="main-content"
       class="flex min-h-svh w-full flex-col items-center bg-[radial-gradient(circle_at_16%_7%,rgba(186,230,253,0.45),transparent_24rem),radial-gradient(circle_at_88%_22%,rgba(204,251,241,0.3),transparent_20rem),linear-gradient(180deg,#f7fbfd_0%,#eef8fb_48%,#f8fbfd_100%)] px-[clamp(1rem,2.8vw,2.5rem)] pb-[clamp(1rem,2.8vw,2.5rem)] min-[1180px]:grid min-[1180px]:grid-cols-[minmax(0,70.25rem)_minmax(13rem,15rem)] min-[1180px]:items-start min-[1180px]:justify-center min-[1180px]:gap-[clamp(1.5rem,3vw,2.75rem)] min-[1180px]:px-[clamp(1.5rem,4vw,4rem)]"
       :class="
         article?.toc?.length
@@ -106,18 +111,20 @@
         <div
           class="mx-auto w-[min(100%,var(--article-readable-max-width,56rem))] max-w-[var(--article-readable-max-width,56rem)] px-4 py-8 sm:px-6 md:px-8 md:py-10"
         >
-          <div
+          <EchoAsyncState
             v-if="loading"
-            class="rounded-lg border border-dashed border-slate-200 bg-white/72 p-8 text-center text-sm text-slate-500"
-          >
-            loading...
-          </div>
-          <div
+            state="loading"
+            :title="routeLang === 'ja' ? '記事を読み込んでいます' : '正在读取文章'"
+          />
+          <EchoAsyncState
             v-else-if="error"
-            class="rounded-lg border border-dashed border-rose-200 bg-rose-50/70 p-8 text-center text-sm text-rose-700"
-          >
-            {{ error }}
-          </div>
+            state="error"
+            :title="routeLang === 'ja' ? '記事を表示できません' : '暂时无法显示文章'"
+            :description="error"
+            :action-label="routeLang === 'ja' ? '再試行' : '重试'"
+            :disabled="loading"
+            @action="fetchArticle"
+          />
           <div
             v-else-if="article?.html"
             ref="articleContentRef"
@@ -172,12 +179,17 @@ import { useArticleAlbumEmbeds } from '@/composables/useArticleAlbumEmbeds'
 import { useArticleImageEnhancements } from '@/composables/useArticleImageEnhancements'
 import type { PublicArticleDetail } from '@/composables/articleType'
 import { usePageAnchorScroll } from '@/composables/usePageAnchorScroll'
+import { usePageScroll } from '@/composables/page-scroll'
+import { useSiteInteraction } from '@/composables/site-interaction'
+import EchoAsyncState from '@/components/interaction/EchoAsyncState.vue'
 
 import '../../assets/article-content.css'
 import '../../assets/mixed-media.css'
 
 const route = useRoute()
 const { scrollToPageAnchor } = usePageAnchorScroll()
+const pageScroll = usePageScroll()
+const interaction = useSiteInteraction()
 const state = useAppState()
 const { appContext } = getCurrentInstance()!
 const global = appContext.config.globalProperties
@@ -187,7 +199,10 @@ const error = ref('')
 const article = ref<PublicArticleDetail | null>(state.miletArticleData)
 const articleContentRef = ref<HTMLElement | null>(null)
 const mobileTocRoot = ref<HTMLElement | null>(null)
+const mobileTocButton = ref<HTMLButtonElement | null>(null)
+const mobileTocPanel = ref<HTMLElement | null>(null)
 const mobileTocOpen = ref(false)
+let releaseMobileTocLock: (() => void) | null = null
 const albumEmbeds = useArticleAlbumEmbeds()
 const imageEnhancements = useArticleImageEnhancements()
 const routeLang = computed(() => (String(route.params.lang) === 'ja' ? 'ja' : 'zh'))
@@ -243,10 +258,12 @@ async function fetchArticle() {
     article.value = response.item
     state.miletArticleData = response.item
     shouldSetupEnhancements = true
+    interaction.announce(routeLang.value === 'ja' ? '記事を読み込みました' : '文章已加载')
   } catch (err) {
     error.value = err instanceof Error ? err.message : 'Article load failed.'
     article.value = null
     state.miletArticleData = null
+    interaction.announce(routeLang.value === 'ja' ? '記事の読み込みに失敗しました' : '文章加载失败')
   } finally {
     loading.value = false
   }
@@ -264,8 +281,19 @@ function formatDate(value: string) {
 function handleMobileTocClick(event: MouseEvent) {
   const target = event.target
   if (target instanceof HTMLElement && target.closest('a')) {
-    mobileTocOpen.value = false
+    closeMobileToc(false)
   }
+}
+
+function closeMobileToc(restoreFocus = true) {
+  mobileTocOpen.value = false
+  if (restoreFocus) mobileTocButton.value?.focus({ preventScroll: true })
+}
+
+function handleMobileTocKeydown(event: KeyboardEvent) {
+  if (event.key !== 'Escape') return
+  event.preventDefault()
+  closeMobileToc()
 }
 
 function handleArticleContentClick(event: MouseEvent) {
@@ -286,7 +314,7 @@ function handleMobileTocOutsidePointer(event: PointerEvent) {
   const target = event.target
   if (!(target instanceof Node)) return
   if (mobileTocRoot.value?.contains(target)) return
-  mobileTocOpen.value = false
+  closeMobileToc(false)
 }
 
 onServerPrefetch(fetchArticle)
@@ -309,13 +337,24 @@ onMounted(() => {
 watch(
   () => [route.params.slug, route.params.lang],
   () => {
-    mobileTocOpen.value = false
+    closeMobileToc(false)
     if (!import.meta.env.SSR) fetchArticle()
   },
 )
 
+watch(mobileTocOpen, async (open) => {
+  releaseMobileTocLock?.()
+  releaseMobileTocLock = null
+  if (!open) return
+  releaseMobileTocLock = pageScroll.lockPageScroll('article-mobile-toc')
+  await nextTick()
+  mobileTocPanel.value?.querySelector<HTMLElement>('a[href],button')?.focus({ preventScroll: true })
+})
+
 onBeforeUnmount(() => {
   document.removeEventListener('pointerdown', handleMobileTocOutsidePointer, true)
+  releaseMobileTocLock?.()
+  releaseMobileTocLock = null
   cleanupArticleEnhancements()
 })
 </script>

@@ -292,7 +292,7 @@ onBeforeUnmount(closeList)
     inset 0 0 0 1px rgba(var(--related-article-glow-rgb), 0.18),
     inset 0 0 18px rgba(var(--related-article-glow-rgb), 0.04);
   opacity: 0.55;
-  animation: related-article-border-glow 5.6s ease-in-out infinite;
+  animation: related-article-border-glow 900ms ease-out 1 both;
 }
 
 .related-article-trigger::after {
@@ -312,7 +312,7 @@ onBeforeUnmount(closeList)
     transparent 100%
   );
   transform: translateX(-125%);
-  animation: related-article-sweep 5.6s ease-in-out infinite;
+  animation: related-article-sweep 700ms ease-out 1 both;
 }
 
 .related-article-trigger:hover::after,
@@ -333,11 +333,11 @@ onBeforeUnmount(closeList)
 }
 
 .related-article-signal {
-  animation: related-article-pulse 3.4s ease-in-out infinite;
+  animation: related-article-pulse 620ms ease-out 1 both;
 }
 
 .related-article-chevron-icon {
-  animation: related-article-chevron 2.8s ease-in-out infinite;
+  animation: related-article-chevron 560ms ease-out 1 both;
 }
 
 .related-article-trigger:hover .related-article-chevron-icon,

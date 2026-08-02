@@ -37,13 +37,19 @@
       <ReleaseSpineDeck :works="visibleSpineWorks" :hidden-count="hiddenSpineCount" />
     </div>
 
-    <div v-if="loading && works.length === 0" class="space-y-3">
-      <div
-        v-for="index in 3"
-        :key="index"
-        class="h-32 animate-pulse rounded-lg border border-sky-100/80 bg-white/58 motion-reduce:animate-none"
-      ></div>
-    </div>
+    <EchoAsyncState
+      v-if="loading && works.length === 0"
+      state="loading"
+      :title="pageText.pagination.loading"
+    />
+    <EchoAsyncState
+      v-else-if="effectiveError && works.length === 0"
+      state="error"
+      :title="pageText.pagination.failed"
+      :action-label="pageText.pagination.retry"
+      :disabled="loading || paginationBusy"
+      @action="loadNextPage"
+    />
 
     <WorkStack
       v-else
@@ -63,6 +69,7 @@
       >
         <span>{{ pageText.pagination.failed }}</span>
         <button
+          v-echo-press
           type="button"
           class="min-h-11 rounded-md border border-rose-200 bg-white/82 px-4 py-2 text-xs font-semibold transition hover:bg-rose-100 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-rose-100"
           @click="loadNextPage"
@@ -79,6 +86,7 @@
           {{ loadedCount }} / {{ totalCount }} {{ pageText.chapter.archived }}
         </div>
         <button
+          v-echo-press
           v-if="loading || hasMore"
           type="button"
           class="min-h-11 cursor-pointer rounded-md border border-[#d8c38f]/80 bg-[#fffaf0]/92 px-8 py-2 text-sm font-semibold text-[#143d63] shadow-[0_14px_34px_-26px_rgba(85,70,36,0.8)] transition hover:-translate-y-0.5 hover:border-[#b89444] hover:bg-white focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-amber-100 disabled:cursor-not-allowed disabled:opacity-60"
@@ -97,6 +105,7 @@
       </div>
 
       <button
+        v-echo-press
         v-if="nextSectionId && nextSectionLabel"
         type="button"
         class="mt-5 min-h-11 w-full rounded-lg border border-sky-100 bg-white/72 px-4 py-2 text-sm font-semibold text-[#317f8d] transition hover:border-sky-200 hover:bg-sky-50 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-sky-100"
@@ -106,7 +115,6 @@
         {{ nextSectionLabel }}
       </button>
 
-      <p class="sr-only" aria-live="polite">{{ liveMessage }}</p>
     </footer>
   </section>
 </template>
@@ -116,6 +124,7 @@ import { computed, getCurrentInstance, nextTick, onBeforeUnmount, ref, toRef, wa
 
 import ReleaseSpineDeck from './ReleaseSpineDeck.vue'
 import WorkStack from './WorkStack.vue'
+import EchoAsyncState from '@/components/interaction/EchoAsyncState.vue'
 import { RELEASE_PAGE_TEXT } from '@/composables/lang/ReleaseMetaData'
 import { usePageScroll } from '@/composables/page-scroll'
 import type { Work } from '@/composables/releaseType'
@@ -125,6 +134,7 @@ import type {
   PreparedReleasePage,
 } from '@/composables/useReleaseData'
 import { useReleaseCardStack } from '@/composables/useReleaseCardStack'
+import { useSiteInteraction } from '@/composables/site-interaction'
 
 const props = defineProps<{
   sectionId: string
@@ -158,6 +168,7 @@ const emit = defineEmits<{
 const { appContext } = getCurrentInstance()!
 const global = appContext.config.globalProperties
 const pageScroll = usePageScroll()
+const interaction = useSiteInteraction()
 const sectionRef = ref<HTMLElement | null>(null)
 const chapterHeaderRef = ref<HTMLElement | null>(null)
 const paginationActionRef = ref<HTMLElement | null>(null)
@@ -340,6 +351,10 @@ watch(
     if (!enabled || viewMode === 'shelf') paginationController?.abort()
   },
 )
+
+watch(liveMessage, (message) => {
+  if (message) interaction.announce(message)
+})
 
 onBeforeUnmount(() => paginationController?.abort())
 </script>

@@ -11,8 +11,13 @@ import {
   PageScrollCoordinatorKey,
 } from './composables/page-scroll'
 import { AppStateKey, createInitialState, type AppState } from './composables/useAppState'
+import {
+  createSiteInteractionCoordinator,
+  SiteInteractionCoordinatorKey,
+} from './composables/site-interaction'
 import { createLangPlugin } from './plugins/LangPlugin'
 import { createAppRouter } from './router'
+import { echoPress } from './directives/echoPress'
 
 interface CreateAppOptions {
   initialState?: Partial<AppState>
@@ -26,16 +31,20 @@ export function createApp(options: CreateAppOptions = {}) {
   const shouldHydrate = import.meta.env.SSR || options.hydrate !== false
   const app = shouldHydrate ? createSSRApp(App) : createClientApp(App)
   const scrollCoordinator = createPageScrollCoordinator()
+  const interactionCoordinator = createSiteInteractionCoordinator()
   const router = createAppRouter(
     import.meta.env.SSR,
     scrollCoordinator,
     options.browserHistoryManager,
+    interactionCoordinator,
   )
   const state = reactive(createInitialState(options.initialState))
 
   app.provide(AppStateKey, state)
   app.provide(PageScrollCoordinatorKey, scrollCoordinator)
+  app.provide(SiteInteractionCoordinatorKey, interactionCoordinator)
   app.use(router)
+  app.directive('echo-press', echoPress)
   app.use(
     createLangPlugin({
       state,
@@ -57,7 +66,10 @@ export function createApp(options: CreateAppOptions = {}) {
     })
   }
 
-  app.onUnmount(() => scrollCoordinator.dispose())
+  app.onUnmount(() => {
+    interactionCoordinator.dispose()
+    scrollCoordinator.dispose()
+  })
 
-  return { app, router, state, scrollCoordinator }
+  return { app, router, state, scrollCoordinator, interactionCoordinator }
 }

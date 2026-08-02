@@ -1,6 +1,7 @@
 <template>
   <Header :showHanbor="false" />
   <main
+    id="main-content"
     class="site-home-page min-h-screen overflow-x-hidden bg-[#f7fcff] font-montserrat text-[#20314a] md:flex md:h-[100svh] md:min-h-[760px] md:flex-col [@media(min-width:768px)_and_(max-height:760px)]:h-auto [@media(min-width:768px)_and_(max-height:760px)]:min-h-[100svh]"
   >
     <section
@@ -22,7 +23,7 @@
       <div
         class="hero-content-frame mx-auto flex min-h-[calc(92svh-5rem)] w-full max-w-[1180px] items-start px-3 pb-8 pt-[34vh] sm:px-7 md:h-full md:min-h-0 md:items-center md:px-10 md:pb-0 md:pt-20 lg:px-8 [@media(min-width:768px)_and_(max-height:760px)]:h-auto [@media(min-width:768px)_and_(max-height:760px)]:min-h-0 [@media(min-width:768px)_and_(max-height:760px)]:items-start [@media(min-width:768px)_and_(max-height:760px)]:pb-12 [@media(min-width:768px)_and_(max-height:760px)]:pt-[8.5rem]"
       >
-        <div class="hero-copy-wash animate-fadein relative isolate w-full max-w-[640px]">
+        <div class="hero-copy-wash hero-arrival relative isolate w-full max-w-[640px]">
           <p
             class="mb-4 text-xs font-semibold uppercase tracking-[0.32em] text-[#5a8eb1] md:text-sm"
           >
@@ -44,12 +45,14 @@
 
           <div class="hero-actions mt-7 flex flex-wrap items-center gap-3 md:mt-6">
             <router-link
+              v-echo-press
               :to="miletLink"
               class="inline-flex min-h-12 items-center justify-center rounded-full bg-[#182c4a] px-7 text-sm font-semibold uppercase tracking-[0.18em] text-white shadow-[0_18px_40px_-22px_rgba(24,44,74,0.95)] transition duration-300 hover:-translate-y-0.5 hover:bg-[#3f8fbd] focus-visible:outline focus-visible:outline-offset-4 focus-visible:outline-[#3f8fbd]"
             >
               {{ homeCopy.primaryCta }}
             </router-link>
             <router-link
+              v-echo-press
               :to="aboutLink"
               class="inline-flex min-h-12 items-center justify-center rounded-full border border-[#8fc5df]/80 bg-white/68 px-7 text-sm font-semibold uppercase tracking-[0.18em] text-[#1e4569] shadow-[0_16px_36px_-28px_rgba(31,69,105,0.8)] transition duration-300 hover:-translate-y-0.5 hover:border-[#4e9ac5] hover:bg-white focus-visible:outline focus-visible:outline-offset-4 focus-visible:outline-[#4e9ac5]"
             >
@@ -67,6 +70,7 @@
         class="site-home-recommend-grid relative z-[1] mx-auto grid max-w-[1180px] gap-5 border-t border-[#c8e5f2] bg-[#f7fcff] pt-7 md:grid-cols-4 md:gap-0 md:pt-5"
       >
         <router-link
+          v-echo-press
           v-for="item in homeCopy.highlights"
           :key="item.title"
           :to="item.to"
@@ -208,10 +212,10 @@ watchEffect(() => {
 </script>
 
 <style>
-@keyframes fadein {
+@keyframes home-copy-arrival {
   from {
-    opacity: 0;
-    transform: translateY(18px);
+    opacity: 0.86;
+    transform: translateY(8px);
   }
   to {
     opacity: 1;
@@ -219,8 +223,18 @@ watchEffect(() => {
   }
 }
 
-.animate-fadein {
-  animation: fadein 1.1s ease-out both;
+.hero-arrival > p:first-child,
+.hero-arrival > h1,
+.hero-arrival > .hero-actions {
+  animation: home-copy-arrival var(--echo-duration-hero) var(--echo-ease-out) both;
+}
+.hero-arrival > h1 { animation-delay: 45ms; }
+.hero-arrival > .hero-actions { animation-delay: 110ms; }
+
+@media (prefers-reduced-motion: reduce) {
+  .hero-arrival > p:first-child,
+  .hero-arrival > h1,
+  .hero-arrival > .hero-actions { animation: none; }
 }
 
 @media (max-width: 767px) {

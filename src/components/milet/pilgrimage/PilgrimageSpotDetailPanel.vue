@@ -425,7 +425,7 @@ onBeforeUnmount(() => {
 }
 
 .pilgrimage-detail-scroll-cue {
-  animation: pilgrimage-detail-scroll-cue-fade 2.4s ease-in-out infinite;
+  animation: pilgrimage-detail-scroll-cue-fade 760ms ease-in-out 2;
 }
 
 .pilgrimage-detail-scroll-cue__chevrons {
@@ -436,7 +436,7 @@ onBeforeUnmount(() => {
   border-right: 2px solid rgba(107, 90, 149, 0.82);
   border-bottom: 2px solid rgba(107, 90, 149, 0.82);
   transform: rotate(45deg);
-  animation: pilgrimage-detail-scroll-cue-down 1.5s ease-in-out infinite;
+  animation: pilgrimage-detail-scroll-cue-down 760ms ease-in-out 2;
 }
 
 .pilgrimage-detail-illustration::after {
