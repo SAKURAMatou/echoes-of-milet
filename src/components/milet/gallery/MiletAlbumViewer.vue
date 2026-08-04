@@ -81,7 +81,6 @@ import { computed, nextTick, onMounted, onUnmounted, ref, watch } from 'vue'
 import axiosInstance from '@/AxiosUtil'
 import { apiRoutes, buildStaticAssetPreviewUrl, buildStaticAssetUrl } from '@/config/api'
 import { MILET_PIC_TEXT } from '@/composables/lang/miletPic'
-import { Fancybox } from '@fancyapps/ui'
 import '@fancyapps/ui/dist/fancybox/fancybox.css'
 
 type GalleryLang = 'zh' | 'ja' | 'jp'
@@ -130,20 +129,39 @@ const loading = ref(false)
 const error = ref('')
 const useSplitColumns = ref(false)
 const pageText = computed(() => MILET_PIC_TEXT[props.lang === 'ja' ? 'jp' : props.lang])
+
+function positiveDimension(value: number | undefined) {
+  return Number.isFinite(value) && Number(value) > 0 ? Number(value) : 0
+}
+
+function estimatedImageHeight(img: GalleryImage) {
+  const width = positiveDimension(img.w) || positiveDimension(img.weight)
+  const height = positiveDimension(img.h) || positiveDimension(img.height)
+
+  if (!width || !height) return 1
+  return Math.min(4, Math.max(0.35, height / width))
+}
+
 const imageColumns = computed<IndexedGalleryImage[][]>(() => {
   const indexedImages = imgList.value.map((img, originalIndex) => ({ ...img, originalIndex }))
   if (!useSplitColumns.value) return [indexedImages]
 
-  return indexedImages.reduce<IndexedGalleryImage[][]>(
-    (columns, img, index) => {
-      columns[index % 2].push(img)
-      return columns
-    },
-    [[], []],
-  )
+  const columns: IndexedGalleryImage[][] = [[], []]
+  const estimatedColumnHeights = [0, 0]
+
+  indexedImages.forEach((img) => {
+    const columnIndex = estimatedColumnHeights[0] <= estimatedColumnHeights[1] ? 0 : 1
+    columns[columnIndex].push(img)
+    estimatedColumnHeights[columnIndex] += estimatedImageHeight(img) + 0.08
+  })
+
+  return columns
 })
 
 let columnMediaQuery: MediaQueryList | null = null
+let fancyboxApi: typeof import('@fancyapps/ui')['Fancybox'] | null = null
+let lightboxRequestId = 0
+let componentMounted = false
 
 function updateColumnMode() {
   useSplitColumns.value = Boolean(columnMediaQuery?.matches)
@@ -221,18 +239,31 @@ function lightboxOptions(startIndex: number) {
   }
 }
 
-function openLightbox(event: MouseEvent, startIndex: number) {
+async function openLightbox(event: MouseEvent, startIndex: number) {
   event.preventDefault()
-  const slides = imgList.value.map((img, index) => ({
-    src: img.link,
-    thumbSrc: img.prelink || img.link,
-    alt: img.comment || `Image ${index + 1}`,
-    caption: img.comment || `Image ${index + 1}`,
-    width: img.w || img.weight,
-    height: img.h || img.height,
-    downloadSrc: img.link,
-  }))
-  Fancybox.show(slides, lightboxOptions(startIndex))
+  const fallbackHref = (event.currentTarget as HTMLAnchorElement | null)?.href
+  const requestId = ++lightboxRequestId
+
+  try {
+    const { Fancybox } = await import('@fancyapps/ui')
+    if (!componentMounted || requestId !== lightboxRequestId) return
+
+    fancyboxApi = Fancybox
+    const slides = imgList.value.map((img, index) => ({
+      src: img.link,
+      thumbSrc: img.prelink || img.link,
+      alt: img.comment || `Image ${index + 1}`,
+      caption: img.comment || `Image ${index + 1}`,
+      width: img.w || img.weight,
+      height: img.h || img.height,
+      downloadSrc: img.link,
+    }))
+    Fancybox.show(slides, lightboxOptions(startIndex))
+  } catch {
+    if (componentMounted && requestId === lightboxRequestId && fallbackHref) {
+      window.location.assign(fallbackHref)
+    }
+  }
 }
 
 function setupObserver() {
@@ -285,6 +316,7 @@ function resetAndLoad() {
 }
 
 onMounted(() => {
+  componentMounted = true
   setupColumnMediaQuery()
   resetAndLoad()
 })
@@ -295,8 +327,11 @@ watch(
 )
 
 onUnmounted(() => {
+  componentMounted = false
+  lightboxRequestId += 1
   observer.value?.disconnect()
   cleanupColumnMediaQuery()
-  Fancybox.close(false)
+  fancyboxApi?.close(false)
+  fancyboxApi = null
 })
 </script>
