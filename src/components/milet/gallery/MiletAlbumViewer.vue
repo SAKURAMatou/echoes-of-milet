@@ -2,7 +2,8 @@
   <section ref="rootRef" :class="['milet-album-viewer', embedded ? 'is-embedded' : '']">
     <div
       v-if="showTip"
-      class="mx-auto mb-6 max-w-3xl rounded-xl border-l-4 border-yellow-400 bg-yellow-50 p-6 text-yellow-800 shadow-md"
+      class="mb-6 max-w-3xl rounded-xl border-l-4 border-yellow-400 bg-yellow-50 p-6 text-yellow-800 shadow-md"
+      :class="embedded ? 'mx-auto' : 'mx-4 sm:mx-auto'"
     >
       <div class="flex items-center">
         <svg class="mr-2 h-6 w-6 shrink-0 text-yellow-500" fill="currentColor" viewBox="0 0 20 20">
