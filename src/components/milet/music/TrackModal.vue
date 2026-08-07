@@ -206,11 +206,11 @@
                         </div>
                       </div>
 
-                      <RelatedArticleList
-                        v-if="track.articles?.items?.length"
-                        :articles="track.articles"
+                      <ExtraInformationList
+                        v-if="track.extraInfo?.items?.length || track.articles?.items?.length"
+                        :extra-info="track.extraInfo"
+                        :legacy-articles="track.articles"
                         variant="modal"
-                        :limit="1"
                         :lang="currentLang"
                       />
 
@@ -487,7 +487,7 @@
 import { computed, getCurrentInstance, onBeforeUnmount, ref, watch } from 'vue'
 import type { Track, TrackListenData } from '@/composables/releaseType'
 import { usePageScroll } from '@/composables/page-scroll'
-import RelatedArticleList from '@/components/milet/article/RelatedArticleList.vue'
+import ExtraInformationList from '@/components/milet/extra-information/ExtraInformationList.vue'
 import TrackListenPlatformIcon from './TrackListenPlatformIcon.vue'
 
 const TRACK_MODAL_TEXT = {

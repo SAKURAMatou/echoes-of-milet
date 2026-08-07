@@ -169,6 +169,7 @@ export interface LiveEventDetailPayload {
   setlistState?: LiveSetlistState
   setlistEmptyMessage?: string
   setlistOverridesByPerformanceId?: Record<string, LiveSetlistOverride[]>
+  extraInfo?: import('@/composables/extraInformation').ExtraInformationGroup
   relatedArticles?: LiveRelatedArticle[]
   relatedGalleries?: LiveRelatedGallery[]
   displayConfig?: LiveDisplayConfig | null

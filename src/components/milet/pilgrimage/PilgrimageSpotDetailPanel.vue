@@ -36,7 +36,9 @@
       </button>
     </div>
 
-    <div class="pilgrimage-detail-scroll-region relative flex min-h-0 min-w-0 flex-1 overflow-x-hidden">
+    <div
+      class="pilgrimage-detail-scroll-region relative flex min-h-0 min-w-0 flex-1 overflow-x-hidden"
+    >
       <div
         v-if="selectedSpotDetail"
         ref="detailScrollRef"
@@ -116,10 +118,14 @@
               :text="selectedSpotDetail.description"
             />
 
-            <RelatedArticleList
-              v-if="selectedSpotDetail.articles?.items?.length"
+            <ExtraInformationList
+              v-if="
+                selectedSpotDetail.extraInfo?.items?.length ||
+                selectedSpotDetail.articles?.items?.length
+              "
               class="mt-4"
-              :articles="selectedSpotDetail.articles"
+              :extra-info="selectedSpotDetail.extraInfo"
+              :legacy-articles="selectedSpotDetail.articles"
               variant="modal"
               :lang="lang"
             />
@@ -261,7 +267,7 @@
 <script setup lang="ts">
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import FormattedPlainText from '@/components/FormattedPlainText.vue'
-import RelatedArticleList from '@/components/milet/article/RelatedArticleList.vue'
+import ExtraInformationList from '@/components/milet/extra-information/ExtraInformationList.vue'
 import type {
   PilgrimageLang,
   PilgrimagePageText,

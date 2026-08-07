@@ -82,10 +82,11 @@
                   </span>
                 </span>
               </div>
-              <RelatedArticleList
-                v-if="collection?.articles?.items?.length"
+              <ExtraInformationList
+                v-if="collection.extraInfo?.items?.length || collection.articles?.items?.length"
                 class="mt-3"
-                :articles="collection.articles"
+                :extra-info="collection.extraInfo"
+                :legacy-articles="collection.articles"
                 variant="release"
                 :lang="lang"
                 @click.stop
@@ -118,10 +119,14 @@
               </span>
             </div>
 
-            <RelatedArticleList
-              v-if="activeCollection.articles?.items?.length"
+            <ExtraInformationList
+              v-if="
+                activeCollection.extraInfo?.items?.length ||
+                activeCollection.articles?.items?.length
+              "
               class="mt-3"
-              :articles="activeCollection.articles"
+              :extra-info="activeCollection.extraInfo"
+              :legacy-articles="activeCollection.articles"
               variant="release"
               :lang="lang"
             />
@@ -181,7 +186,7 @@
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue'
 
-import RelatedArticleList from '@/components/milet/article/RelatedArticleList.vue'
+import ExtraInformationList from '@/components/milet/extra-information/ExtraInformationList.vue'
 import type { PilgrimageCollection, PilgrimageLang } from '@/composables/miletPilgrimage'
 import { buildStaticAssetUrl } from '@/config/api'
 

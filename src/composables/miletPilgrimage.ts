@@ -1,5 +1,6 @@
 import { LinkedTextLink } from '@/components/LinkedText.vue'
 import type { RelatedArticleGroup } from '@/composables/articleType'
+import type { ExtraInformationGroup } from '@/composables/extraInformation'
 
 export type PilgrimageLang = 'zh' | 'jp'
 export type PilgrimageDisplayMode = 'map' | 'collection'
@@ -78,6 +79,7 @@ export interface PilgrimageCollection {
   description: string
   coverImageUrl: string
   sortOrder: number
+  extraInfo?: ExtraInformationGroup
   articles?: RelatedArticleGroup
   spots: PilgrimageCollectionSpot[]
 }
@@ -91,6 +93,7 @@ export interface PilgrimageSpotDetail extends PilgrimageSpotSummary {
   navigationProvider: 'auto' | 'amap' | 'google'
   navigationMode: 'walking' | 'driving' | 'transit'
   linkUrl: string
+  extraInfo?: ExtraInformationGroup
   articles?: RelatedArticleGroup
   photos: PilgrimagePhoto[]
 }

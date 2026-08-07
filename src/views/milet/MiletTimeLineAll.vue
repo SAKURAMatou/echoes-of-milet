@@ -232,12 +232,12 @@
                     <span class="h-px flex-1 bg-[#317f8d]/18"></span>
                   </div>
                 </component>
-                <RelatedArticleList
-                  v-if="it.articles?.items?.length"
+                <ExtraInformationList
+                  v-if="it.extraInfo?.items?.length || it.articles?.items?.length"
                   class="w-full max-w-[21.5rem] md:min-h-0"
-                  :articles="it.articles"
+                  :extra-info="it.extraInfo"
+                  :legacy-articles="it.articles"
                   variant="timeline"
-                  :limit="1"
                   :lang="currentLang"
                 />
               </div>
@@ -273,9 +273,10 @@ import {
 import axiosInstance from '@/AxiosUtil'
 import { apiRoutes, getBackendOrigin } from '@/config/api'
 import FormattedPlainText from '@/components/FormattedPlainText.vue'
-import RelatedArticleList from '@/components/milet/article/RelatedArticleList.vue'
+import ExtraInformationList from '@/components/milet/extra-information/ExtraInformationList.vue'
 import EchoAsyncState from '@/components/interaction/EchoAsyncState.vue'
 import type { RelatedArticleGroup } from '@/composables/articleType'
+import type { ExtraInformationGroup } from '@/composables/extraInformation'
 import {
   useBusinessAnchorScrollRestoration,
   usePageScroll,
@@ -292,6 +293,7 @@ type TimeLineResItem = {
   timeline_body: string
   link_url: string
   timeline_id?: number | string
+  extraInfo?: ExtraInformationGroup
   articles?: RelatedArticleGroup
 }
 

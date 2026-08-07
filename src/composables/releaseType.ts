@@ -1,4 +1,5 @@
 import type { RelatedArticleGroup } from './articleType'
+import type { ExtraInformationGroup } from './extraInformation'
 
 export type ReleaseType = 'ALBUM' | 'EP' | 'SINGLE' | 'LIVE' | 'LIVE_BD' | 'LIVE_DVD'
 export type DistributionType = 'PHYSICAL' | 'STREAMING'
@@ -35,6 +36,7 @@ export interface Track {
   performers: string
   language: string
   listenData?: TrackListenData
+  extraInfo?: ExtraInformationGroup
   articles?: RelatedArticleGroup
 }
 
@@ -65,5 +67,6 @@ export interface Work {
   distributionType: DistributionType
   releaseDate: string
   editions: ReleaseEdition[]
+  extraInfo?: ExtraInformationGroup
   articles?: RelatedArticleGroup
 }

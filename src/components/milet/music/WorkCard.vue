@@ -146,12 +146,12 @@
           </div>
         </div>
 
-        <RelatedArticleList
-          v-if="work.articles?.items?.length"
+        <ExtraInformationList
+          v-if="work.extraInfo?.items?.length || work.articles?.items?.length"
           :class="viewMode === 'shelf' ? 'mt-3' : 'mt-4'"
-          :articles="work.articles"
+          :extra-info="work.extraInfo"
+          :legacy-articles="work.articles"
           variant="release"
-          :limit="1"
           :lang="currentLang"
         />
       </div>
@@ -275,7 +275,7 @@ import { initImgUrl } from '@/composables/ImgUrlUtil'
 import { liveLangRequestConfig } from '@/composables/liveArchive'
 import { apiRoutes } from '@/config/api'
 import { WORK_TEXT } from '@/composables/lang/ReleaseMetaData'
-import RelatedArticleList from '@/components/milet/article/RelatedArticleList.vue'
+import ExtraInformationList from '@/components/milet/extra-information/ExtraInformationList.vue'
 import type { Disc, ReleaseEdition, Track, Work } from '@/composables/releaseType'
 
 const TrackModal = defineAsyncComponent(() => import('./TrackModal.vue'))
@@ -412,6 +412,7 @@ async function openTrack(t: Track) {
       t.recorded_at = d.recorded_at || t.recorded_at
       t.singer = d.singer || t.singer
       t.listenData = d.listenData || t.listenData
+      t.extraInfo = d.extraInfo || t.extraInfo
       t.articles = d.articles || t.articles
     }
   }
