@@ -82,15 +82,17 @@
                 >
                   {{ pageText.navigation }}
                 </a>
-                <a
-                  v-if="spotLinkUrl"
-                  :href="spotLinkUrl"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  class="rounded-lg border border-[#99e6d6] bg-[#f0fdfa]/82 px-3 py-2 text-center text-sm font-semibold text-[#1d6564] transition hover:border-[#5eead4] hover:bg-white focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-teal-100"
-                >
-                  {{ pageText.spotLink }}
-                </a>
+                <ExtraInformationList
+                  v-if="
+                    selectedSpotDetail.extraInfo?.items?.length ||
+                    selectedSpotDetail.articles?.items?.length
+                  "
+                  :extra-info="selectedSpotDetail.extraInfo"
+                  :legacy-articles="selectedSpotDetail.articles"
+                  variant="chip"
+                  :lang="lang"
+                  :trigger-label="pageText.extraInformation"
+                />
               </div>
             </div>
 
@@ -116,18 +118,6 @@
             <FormattedPlainText
               class="mt-4 text-sm leading-7 text-[#526670]"
               :text="selectedSpotDetail.description"
-            />
-
-            <ExtraInformationList
-              v-if="
-                selectedSpotDetail.extraInfo?.items?.length ||
-                selectedSpotDetail.articles?.items?.length
-              "
-              class="mt-4"
-              :extra-info="selectedSpotDetail.extraInfo"
-              :legacy-articles="selectedSpotDetail.articles"
-              variant="modal"
-              :lang="lang"
             />
           </div>
         </div>
@@ -290,27 +280,6 @@ defineEmits<{
   close: []
 }>()
 
-function safeSpotHref(value?: string | null) {
-  const href = (value || '').trim()
-  if (!href) return ''
-  const lowerHref = href.toLowerCase()
-  if (
-    lowerHref.startsWith('javascript:') ||
-    lowerHref.startsWith('data:') ||
-    lowerHref.startsWith('vbscript:')
-  ) {
-    return ''
-  }
-  if (href.startsWith('/')) return href
-  try {
-    const url = new URL(href)
-    return url.protocol === 'http:' || url.protocol === 'https:' ? href : ''
-  } catch {
-    return ''
-  }
-}
-
-const spotLinkUrl = computed(() => safeSpotHref(props.selectedSpotDetail?.linkUrl))
 const panelVisible = computed(() =>
   Boolean(props.selectedSpotDetail || props.spotDetailLoading || props.spotDetailError),
 )

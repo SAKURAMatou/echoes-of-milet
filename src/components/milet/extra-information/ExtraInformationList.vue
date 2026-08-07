@@ -26,9 +26,9 @@
       </span>
       <span
         class="relative z-[1] min-w-0 flex-1 truncate text-left text-sm font-semibold text-[#143d63]"
-        :title="items[0]?.title"
+        :title="triggerLabel || items[0]?.title"
       >
-        {{ items[0]?.title }}
+        {{ triggerLabel || items[0]?.title }}
       </span>
       <span
         class="relative z-[1] shrink-0 rounded-full border border-[#d9b45f]/45 bg-white/75 px-1.5 py-0.5 text-[10px] font-bold leading-none text-[#946517] shadow-[0_6px_16px_-12px_rgba(180,130,35,0.72)]"
@@ -199,6 +199,7 @@ const props = withDefaults(
     legacyGalleries?: LegacyGallery[] | null
     variant?: 'timeline' | 'release' | 'modal' | 'chip' | 'live'
     lang?: SupportedLang | 'ja'
+    triggerLabel?: string
   }>(),
   {
     extraInfo: null,
@@ -206,6 +207,7 @@ const props = withDefaults(
     legacyGalleries: null,
     variant: 'timeline',
     lang: 'zh',
+    triggerLabel: '',
   },
 )
 
@@ -270,7 +272,7 @@ const sectionLabel = computed(() => (isJapanese.value ? '関連情報' : '额外
 const closeLabel = computed(() => (isJapanese.value ? '関連情報を閉じる' : '关闭额外信息'))
 const internalLabel = computed(() => (isJapanese.value ? 'サイト内コンテンツ' : '站内内容'))
 const triggerAriaLabel = computed(() => {
-  const title = items.value[0]?.title || sectionLabel.value
+  const title = props.triggerLabel || items.value[0]?.title || sectionLabel.value
   return isJapanese.value
     ? `${title}。関連情報は${totalCount.value}件あります`
     : `${title}，共 ${totalCount.value} 项额外信息`
