@@ -5,6 +5,8 @@
       type="button"
       :class="[triggerClass, { 'is-open': listOpen, 'is-reminding': reminderActive }]"
       :aria-expanded="listOpen"
+      :aria-controls="popoverId"
+      aria-haspopup="true"
       :aria-label="triggerAriaLabel"
       @click="toggleList"
       @mouseenter="hovered = true"
@@ -51,11 +53,12 @@
       </svg>
     </button>
 
-    <Teleport to="body">
+    <Teleport to="body" :disabled="mobileInline">
       <div
         v-if="listOpen"
+        :id="popoverId"
         ref="popoverEl"
-        :style="popoverStyle"
+        :style="mobileInline ? undefined : popoverStyle"
         :class="popoverClass"
         role="region"
         :aria-label="sectionLabel"
@@ -81,7 +84,7 @@
           <button
             ref="closeEl"
             type="button"
-            class="rounded-md px-2 py-1 text-xs font-semibold text-slate-400 transition hover:bg-slate-100 hover:text-slate-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#d9b45f]/45"
+            class="grid min-h-11 min-w-11 place-items-center rounded-md px-2 py-1 text-xs font-semibold text-slate-400 transition hover:bg-slate-100 hover:text-slate-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#d9b45f]/45"
             :aria-label="closeLabel"
             @click="closeList(true)"
           >
@@ -152,7 +155,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
+import { computed, nextTick, onBeforeUnmount, onMounted, ref, useId, watch } from 'vue'
 import type { CSSProperties } from 'vue'
 import { RouterLink } from 'vue-router'
 
@@ -207,6 +210,8 @@ const props = withDefaults(
 )
 
 const listOpen = ref(false)
+const popoverId = `extra-information-${useId()}`
+const mobileInline = ref(false)
 const reminderActive = ref(false)
 const hovered = ref(false)
 const focused = ref(false)
@@ -218,6 +223,7 @@ const closeEl = ref<HTMLButtonElement | null>(null)
 const popoverStyle = ref<CSSProperties>({})
 
 let intersectionObserver: IntersectionObserver | null = null
+let mobileMediaQuery: MediaQueryList | null = null
 let reminderTimer: ReturnType<typeof setTimeout> | null = null
 let reminderEndTimer: ReturnType<typeof setTimeout> | null = null
 
@@ -278,15 +284,20 @@ const rootClass = computed(() => {
 
 const triggerClass = computed(() => {
   const base =
-    'extra-information-trigger group relative isolate flex w-full min-w-0 items-center gap-2 overflow-hidden rounded-md border border-[#cda54d]/65 bg-[linear-gradient(135deg,rgba(255,255,255,0.94),rgba(253,248,232,0.84))] text-left shadow-[0_14px_38px_-32px_rgba(111,79,18,0.72)] transition duration-200 hover:-translate-y-px hover:border-[#b88628]/80 hover:bg-[#fffaf0] focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-[#e8cc83]/35'
+    'extra-information-trigger group relative isolate flex min-h-11 w-full min-w-0 items-center gap-2 overflow-hidden rounded-md border border-[#cda54d]/65 bg-[linear-gradient(135deg,rgba(255,255,255,0.94),rgba(253,248,232,0.84))] text-left shadow-[0_14px_38px_-32px_rgba(111,79,18,0.72)] transition duration-200 hover:-translate-y-px hover:border-[#b88628]/80 hover:bg-[#fffaf0] focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-[#e8cc83]/35'
   if (props.variant === 'modal') return `${base} px-3.5 py-2`
   if (props.variant === 'live') return `${base} px-3.5 py-2.5`
   return `${base} px-3 py-1.5`
 })
 
 const popoverClass = computed(() => {
-  const width = props.variant === 'modal' || props.variant === 'live' ? '30rem' : '27rem'
-  return `fixed z-[1200] w-[min(${width},calc(100vw-1.5rem))] overflow-hidden rounded-xl border border-[#d9b77c]/45 bg-white/96 shadow-[0_30px_90px_-38px_rgba(15,23,42,0.52)] ring-1 ring-white/80 backdrop-blur-xl`
+  const base =
+    'z-[1200] overflow-hidden rounded-xl border border-[#d9b77c]/45 bg-white/96 shadow-[0_30px_90px_-38px_rgba(15,23,42,0.52)] ring-1 ring-white/80 backdrop-blur-xl'
+  if (mobileInline.value) return `${base} relative mt-2 w-full`
+  if (props.variant === 'modal' || props.variant === 'live') {
+    return `${base} fixed w-[min(30rem,calc(100vw-1.5rem))]`
+  }
+  return `${base} fixed w-[min(27rem,calc(100vw-1.5rem))]`
 })
 
 const canRemind = computed(
@@ -317,22 +328,22 @@ function resourceLabel(type: ExtraInformationResourceType) {
 
 function cardClass(type: ExtraInformationResourceType) {
   if (type === 'article')
-    return 'border-sky-100 hover:border-sky-300 hover:bg-sky-50/55 focus-visible:ring-sky-100 text-[#317f8d]'
-  if (type === 'gallery')
     return 'border-violet-100 hover:border-violet-300 hover:bg-violet-50/55 focus-visible:ring-violet-100 text-violet-600'
-  return 'border-emerald-100 hover:border-emerald-300 hover:bg-emerald-50/55 focus-visible:ring-emerald-100 text-emerald-600'
+  if (type === 'gallery')
+    return 'border-emerald-100 hover:border-emerald-300 hover:bg-emerald-50/55 focus-visible:ring-emerald-100 text-emerald-600'
+  return 'border-sky-100 hover:border-sky-300 hover:bg-sky-50/55 focus-visible:ring-sky-100 text-[#317f8d]'
 }
 
 function placeholderClass(type: ExtraInformationResourceType) {
-  if (type === 'article') return 'from-sky-50 to-cyan-100 text-[#317f8d]'
-  if (type === 'gallery') return 'from-violet-50 to-fuchsia-100 text-violet-600'
-  return 'from-emerald-50 to-teal-100 text-emerald-700'
+  if (type === 'article') return 'from-violet-50 to-fuchsia-100 text-violet-600'
+  if (type === 'gallery') return 'from-emerald-50 to-teal-100 text-emerald-700'
+  return 'from-slate-50 to-sky-100 text-[#317f8d]'
 }
 
 function badgeClass(type: ExtraInformationResourceType) {
-  if (type === 'article') return 'text-[#317f8d]'
-  if (type === 'gallery') return 'text-violet-600'
-  return 'text-emerald-700'
+  if (type === 'article') return 'text-violet-600'
+  if (type === 'gallery') return 'text-emerald-700'
+  return 'text-[#317f8d]'
 }
 
 function sourceHost(url: string) {
@@ -393,12 +404,32 @@ function updatePopoverPosition() {
   popoverStyle.value = { left: `${left}px`, top: `${top}px` }
 }
 
-async function openList() {
-  listOpen.value = true
-  await nextTick()
+function addDesktopPositionListeners() {
+  if (mobileInline.value) return
   updatePopoverPosition()
   window.addEventListener('resize', updatePopoverPosition)
   window.addEventListener('scroll', updatePopoverPosition, true)
+}
+
+function removeDesktopPositionListeners() {
+  window.removeEventListener('resize', updatePopoverPosition)
+  window.removeEventListener('scroll', updatePopoverPosition, true)
+}
+
+function handleMobileMediaChange(event: MediaQueryListEvent | MediaQueryList) {
+  mobileInline.value = event.matches
+  popoverStyle.value = {}
+  if (!listOpen.value) return
+  removeDesktopPositionListeners()
+  if (!mobileInline.value) {
+    void nextTick(addDesktopPositionListeners)
+  }
+}
+
+async function openList() {
+  listOpen.value = true
+  await nextTick()
+  addDesktopPositionListeners()
   document.addEventListener('pointerdown', handleOutsidePointer, true)
   document.addEventListener('keydown', handleKeydown)
   closeEl.value?.focus()
@@ -407,8 +438,7 @@ async function openList() {
 function closeList(restoreFocus = false) {
   listOpen.value = false
   if (typeof window !== 'undefined') {
-    window.removeEventListener('resize', updatePopoverPosition)
-    window.removeEventListener('scroll', updatePopoverPosition, true)
+    removeDesktopPositionListeners()
     document.removeEventListener('pointerdown', handleOutsidePointer, true)
     document.removeEventListener('keydown', handleKeydown)
   }
@@ -452,6 +482,9 @@ watch(canRemind, scheduleReminder)
 onMounted(() => {
   pageVisible.value = document.visibilityState === 'visible'
   document.addEventListener('visibilitychange', handleVisibilityChange)
+  mobileMediaQuery = window.matchMedia('(max-width: 767px)')
+  handleMobileMediaChange(mobileMediaQuery)
+  mobileMediaQuery.addEventListener('change', handleMobileMediaChange)
   if ('IntersectionObserver' in window && triggerEl.value) {
     intersectionObserver = new IntersectionObserver(
       ([entry]) => {
@@ -469,6 +502,7 @@ onBeforeUnmount(() => {
   closeList()
   clearReminderTimers()
   intersectionObserver?.disconnect()
+  mobileMediaQuery?.removeEventListener('change', handleMobileMediaChange)
   document.removeEventListener('visibilitychange', handleVisibilityChange)
 })
 </script>
