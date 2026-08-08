@@ -229,7 +229,7 @@ News 和额外信息链接共同调用该服务，不允许新功能通过 HTTP 
 - 识别 `/zh/`、`/ja/` 前缀并保存 `detected_lang`。
 - 只有命中已知可本地化路由时才设置 `localization_mode=path_prefix`，公开端再按当前语言生成地址。
 - 不能确认路由可本地化时保留原地址，不做盲目字符串替换。
-- 站内域名白名单和用于生成完整资源地址的基础 origin 由 Worker 环境配置提供，不在代码中硬编码。
+- 站内域名从 `system_config` 的 `public_site_origin / echoes-of-milet` 读取，不在 Worker env 或业务代码中重复配置；用于生成完整资源地址的 `PUBLIC_ASSET_ORIGIN` 仍由 Worker 环境提供。
 
 如果粘贴的站内 URL 可以解析成系统资源，应优先建议转换资源类型：
 
@@ -449,6 +449,18 @@ WHERE EXISTS (
 - KV 写入失败：返回当前 D1 结果并记录日志。
 - revision 查询失败：额外信息整体降级为空组，不影响主体接口；不能使用可能过期的 KV revision 猜测结果。
 - 额外信息整体失败：主体正常返回，`extraInfo={ count: 0, items: [] }`。
+
+### 7.4 System Config 查询缓存
+
+内部链接解析使用 `system_config` 中的以下配置识别公开端绝对地址：
+
+```text
+code = public_site_origin
+ckey = echoes-of-milet
+cvalue = {"origin":"https://miles-dml.org"}
+```
+
+读取使用统一的 `code + ckey` 两级缓存：Worker isolate 内存缓存 30 秒，KV 正常结果缓存 1 小时，缺失结果只缓存 60 秒。缓存未命中或 KV 不可用时回源 D1；同一配置的管理端新增、修改以及 `code / ckey` 调整后，集中删除旧键和新键。配置缺失、JSON 无效或 origin 不是 HTTP/HTTPS 地址时停止解析并返回明确错误，不能把站内绝对地址降级保存为外部链接。
 
 ## 8. 管理端交互方案
 
