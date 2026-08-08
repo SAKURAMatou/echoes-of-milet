@@ -321,12 +321,12 @@
       />
     </section>
 
-    <ExtraInformationList
+    <LiveRelatedLinks
       :extra-info="payload.extraInfo"
       :legacy-articles="payload.relatedArticles || []"
       :legacy-galleries="payload.relatedGalleries || []"
       :lang="lang"
-      variant="live"
+      :route-lang="routeLang"
     />
 
     <p
@@ -350,7 +350,7 @@ import { computed, defineAsyncComponent, onBeforeUnmount, ref, watch } from 'vue
 
 import axiosInstance from '@/AxiosUtil'
 import LiveMainVisualPanel from '@/components/milet/live/LiveMainVisualPanel.vue'
-import ExtraInformationList from '@/components/milet/extra-information/ExtraInformationList.vue'
+import LiveRelatedLinks from '@/components/milet/live/LiveRelatedLinks.vue'
 import LiveSetlist from '@/components/milet/live/LiveSetlist.vue'
 import {
   composeLiveSetlist,

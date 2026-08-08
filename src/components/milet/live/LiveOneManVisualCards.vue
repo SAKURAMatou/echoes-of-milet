@@ -270,13 +270,13 @@
       @select-track="$emit('select-track', $event)"
     />
 
-    <ExtraInformationList
+    <LiveRelatedLinks
       id="live-related"
       :extra-info="payload.extraInfo"
       :legacy-articles="payload.relatedArticles || []"
       :legacy-galleries="payload.relatedGalleries || []"
       :lang="lang"
-      variant="live"
+      :route-lang="routeLang"
     />
   </article>
 </template>
@@ -285,7 +285,7 @@
 import { computed } from 'vue'
 
 import LiveMainVisualPanel from '@/components/milet/live/LiveMainVisualPanel.vue'
-import ExtraInformationList from '@/components/milet/extra-information/ExtraInformationList.vue'
+import LiveRelatedLinks from '@/components/milet/live/LiveRelatedLinks.vue'
 import LiveSetlist from '@/components/milet/live/LiveSetlist.vue'
 import {
   formatLiveDate,

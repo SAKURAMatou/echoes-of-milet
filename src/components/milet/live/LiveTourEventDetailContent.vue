@@ -258,12 +258,13 @@
         @select-track="handleTrackSelect"
       />
 
-      <ExtraInformationList
+      <LiveRelatedLinks
         :extra-info="payload.extraInfo"
         :legacy-articles="payload.relatedArticles || []"
         :legacy-galleries="payload.relatedGalleries || []"
         :lang="lang"
-        variant="live"
+        :route-lang="routeLang"
+        layout="rail"
       />
     </section>
 
@@ -296,7 +297,7 @@ import { computed, defineAsyncComponent, onBeforeUnmount, ref, watch } from 'vue
 import { RouterLink } from 'vue-router'
 
 import axiosInstance from '@/AxiosUtil'
-import ExtraInformationList from '@/components/milet/extra-information/ExtraInformationList.vue'
+import LiveRelatedLinks from '@/components/milet/live/LiveRelatedLinks.vue'
 import LiveSetlist from '@/components/milet/live/LiveSetlist.vue'
 import LiveTourRoute from '@/components/milet/live/LiveTourRoute.vue'
 import {
