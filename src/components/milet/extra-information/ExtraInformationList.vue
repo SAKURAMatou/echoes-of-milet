@@ -203,8 +203,7 @@ const props = withDefaults(
     variant?: 'timeline' | 'release' | 'modal' | 'chip' | 'live'
     lang?: SupportedLang | 'ja'
     triggerLabel?: string
-    inline?: boolean
-    inlineFullRow?: boolean
+    floating?: boolean
   }>(),
   {
     extraInfo: null,
@@ -213,15 +212,14 @@ const props = withDefaults(
     variant: 'timeline',
     lang: 'zh',
     triggerLabel: '',
-    inline: false,
-    inlineFullRow: false,
+    floating: false,
   },
 )
 
 const listOpen = ref(false)
 const popoverId = `extra-information-${useId()}`
 const mobileInline = ref(false)
-const inlineMode = computed(() => props.inline || mobileInline.value)
+const inlineMode = computed(() => mobileInline.value && !props.floating)
 const reminderActive = ref(false)
 const hovered = ref(false)
 const focused = ref(false)
@@ -286,7 +284,6 @@ const triggerAriaLabel = computed(() => {
 })
 
 const rootClass = computed(() => {
-  if (props.inlineFullRow) return 'contents'
   if (props.variant === 'chip') {
     return 'relative inline-flex min-w-0 max-w-full flex-col items-stretch'
   }
@@ -305,7 +302,6 @@ const triggerClass = computed(() => {
 const popoverClass = computed(() => {
   const base =
     'z-[1200] overflow-hidden rounded-xl border border-[#d9b77c]/45 bg-white/96 shadow-[0_30px_90px_-38px_rgba(15,23,42,0.52)] ring-1 ring-white/80 backdrop-blur-xl'
-  if (props.inlineFullRow) return `${base} relative col-span-full mt-2 w-full max-w-full`
   if (inlineMode.value) return `${base} relative mt-2 w-full max-w-full`
   if (props.variant === 'modal' || props.variant === 'live') {
     return `${base} fixed w-[min(30rem,calc(100vw-1.5rem))]`
@@ -402,11 +398,15 @@ function updatePopoverPosition() {
     Math.max(viewportPadding, rect.left),
     window.innerWidth - width - viewportPadding,
   )
-  const estimatedHeight = Math.min(460, 58 + items.value.length * 96)
+  const measuredHeight = popoverEl.value?.getBoundingClientRect().height || 0
+  const popoverHeight = Math.min(
+    measuredHeight || Math.min(460, 58 + items.value.length * 96),
+    window.innerHeight - viewportPadding * 2,
+  )
   const belowTop = rect.bottom + 8
   const top =
-    belowTop + estimatedHeight > window.innerHeight - viewportPadding
-      ? Math.max(viewportPadding, rect.top - estimatedHeight - 8)
+    belowTop + popoverHeight > window.innerHeight - viewportPadding
+      ? Math.max(viewportPadding, rect.top - popoverHeight - 8)
       : belowTop
   popoverStyle.value = { left: `${left}px`, top: `${top}px` }
 }
