@@ -41,17 +41,10 @@
     </div>
 
     <div
-      v-if="!selectedDistrict"
-      class="absolute left-10 top-28 z-10 max-w-xs rounded-lg border border-white/80 bg-white/80 p-4 text-sm text-[#60717a] shadow-[0_20px_54px_-38px_rgba(31,41,55,0.75)] backdrop-blur"
+      v-if="!selectedDistrict || (selectedDistrict && spotsCount === 0 && !spotsLoading)"
+      class="pointer-events-none absolute left-14 right-3 top-6 z-10 w-fit max-w-[calc(100%-4.25rem)] rounded-lg border border-white/80 bg-white/80 px-3 py-2.5 text-sm leading-6 text-[#60717a] shadow-[0_20px_54px_-38px_rgba(31,41,55,0.75)] backdrop-blur lg:top-7"
     >
-      {{ pageText.emptyDistrict }}
-    </div>
-
-    <div
-      v-if="selectedDistrict && spotsCount === 0 && !spotsLoading"
-      class="absolute left-10 top-20 z-10 max-w-xs rounded-lg border border-white/80 bg-white/80 p-4 text-sm text-[#60717a] shadow-[0_20px_54px_-38px_rgba(31,41,55,0.75)] backdrop-blur"
-    >
-      {{ pageText.emptySpot }}
+      {{ selectedDistrict ? pageText.emptySpot : pageText.emptyDistrict }}
     </div>
 
     <div class="absolute bottom-4 left-4 right-4 z-10 flex min-w-0 items-center gap-2 text-xs">

@@ -467,13 +467,13 @@ function updateAreaDockPin() {
   }
 
   const inset = areaDockHorizontalInset()
-  const workspaceRect = frame.closest('.pilgrimage-workspace')?.getBoundingClientRect()
   const viewportLeft = frameRect.left + inset
+  const availableWidth = window.innerWidth - viewportLeft - inset
   areaDockPinned.value = true
   areaDockFixedStyle.value = {
-    left: `${Math.max(0, viewportLeft - (workspaceRect?.left || 0))}px`,
-    top: `${top - (workspaceRect?.top || 0)}px`,
-    width: `${Math.max(0, frameRect.width - inset * 2)}px`,
+    left: `${Math.max(0, viewportLeft)}px`,
+    top: `${top}px`,
+    width: `${Math.max(0, Math.min(frameRect.width - inset * 2, availableWidth))}px`,
   }
 }
 
