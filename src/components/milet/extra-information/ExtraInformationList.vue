@@ -282,8 +282,8 @@ const rootClass = computed(() => {
   if (props.variant === 'chip') {
     return 'relative inline-flex min-w-0 max-w-full flex-col items-stretch'
   }
-  if (props.variant === 'timeline') return 'relative mt-3 min-w-0 max-w-full'
-  return 'relative min-w-0 max-w-full'
+  if (props.variant === 'timeline') return 'relative mt-3 w-full min-w-0'
+  return 'relative w-full min-w-0'
 })
 
 const triggerClass = computed(() => {
@@ -384,9 +384,13 @@ function updatePopoverPosition() {
   if (!trigger || typeof window === 'undefined') return
   const rect = trigger.getBoundingClientRect()
   const viewportPadding = 12
+  const availableWidth = window.innerWidth - viewportPadding * 2
+  const maximumWidth = props.variant === 'modal' || props.variant === 'live' ? 480 : 432
+  const minimumReadableWidth = Math.min(360, availableWidth)
   const width = Math.min(
-    props.variant === 'modal' || props.variant === 'live' ? 480 : 432,
-    window.innerWidth - viewportPadding * 2,
+    maximumWidth,
+    availableWidth,
+    Math.max(minimumReadableWidth, rect.width),
   )
   const left = Math.min(
     Math.max(viewportPadding, rect.left),
@@ -402,7 +406,7 @@ function updatePopoverPosition() {
     belowTop + popoverHeight > window.innerHeight - viewportPadding
       ? Math.max(viewportPadding, rect.top - popoverHeight - 8)
       : belowTop
-  popoverStyle.value = { left: `${left}px`, top: `${top}px` }
+  popoverStyle.value = { left: `${left}px`, top: `${top}px`, width: `${width}px` }
 }
 
 function addPositionListeners() {

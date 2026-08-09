@@ -175,7 +175,10 @@
             </div>
 
             <div class="grid grid-cols-1 md:grid-cols-2 md:gap-x-16">
-              <div class="ml-10 md:ml-0" :class="cardWrapClass(i)">
+              <div
+                class="ml-10 w-[calc(100%-2.5rem)] min-w-0 max-w-[21.5rem] md:ml-0 md:w-full"
+                :class="cardWrapClass(i)"
+              >
                 <component
                   :is="hasItemLink(it.link_url) ? 'button' : 'div'"
                   :type="hasItemLink(it.link_url) ? 'button' : undefined"
