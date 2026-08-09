@@ -179,40 +179,8 @@
                 class="ml-10 w-[calc(100%-2.5rem)] min-w-0 max-w-[21.5rem] md:ml-0 md:w-full"
                 :class="cardWrapClass(i)"
               >
-                <component
-                  :is="hasItemLink(it.link_url) ? 'button' : 'div'"
-                  :type="hasItemLink(it.link_url) ? 'button' : undefined"
-                  :class="cardClass(i, hasItemLink(it.link_url))"
-                  :aria-label="
-                    hasItemLink(it.link_url)
-                      ? `Open timeline detail: ${it.timeline_title}`
-                      : undefined
-                  "
-                  @click="handleItemClick(it.link_url)"
-                >
-                  <span
-                    v-if="hasItemLink(it.link_url)"
-                    class="absolute inset-y-0 left-0 w-[3px] rounded-l-lg bg-[#317f8d]"
-                  ></span>
-
-                  <span
-                    v-if="hasItemLink(it.link_url)"
-                    class="absolute right-4 top-4 flex h-8 w-8 items-center justify-center rounded-md border border-[#317f8d]/20 bg-white/82 text-[#317f8d] transition group-hover:border-[#317f8d]/50 group-hover:bg-sky-50"
-                    aria-hidden="true"
-                  >
-                    <svg
-                      viewBox="0 0 24 24"
-                      class="h-4 w-4"
-                      fill="none"
-                      stroke="currentColor"
-                      stroke-width="2"
-                    >
-                      <path d="M7 17 17 7" stroke-linecap="round" stroke-linejoin="round" />
-                      <path d="M9 7h8v8" stroke-linecap="round" stroke-linejoin="round" />
-                    </svg>
-                  </span>
-
-                  <div class="pr-10">
+                <div :class="cardClass(i)">
+                  <div>
                     <div
                       class="font-montserrat text-xs font-semibold tracking-[0.08em] text-[#317f8d] md:hidden"
                     >
@@ -227,14 +195,7 @@
                     />
                   </div>
 
-                  <div
-                    v-if="hasItemLink(it.link_url)"
-                    class="mt-4 flex items-center gap-2 text-xs font-semibold text-[#317f8d]"
-                  >
-                    <span>View detail</span>
-                    <span class="h-px flex-1 bg-[#317f8d]/18"></span>
-                  </div>
-                </component>
+                </div>
                 <ExtraInformationList
                   v-if="it.extraInfo?.items?.length || it.articles?.items?.length"
                   class="w-full max-w-[21.5rem] md:min-h-0"
@@ -274,7 +235,7 @@ import {
   watch,
 } from 'vue'
 import axiosInstance from '@/AxiosUtil'
-import { apiRoutes, getBackendOrigin } from '@/config/api'
+import { apiRoutes } from '@/config/api'
 import FormattedPlainText from '@/components/FormattedPlainText.vue'
 import ExtraInformationList from '@/components/milet/extra-information/ExtraInformationList.vue'
 import EchoAsyncState from '@/components/interaction/EchoAsyncState.vue'
@@ -402,37 +363,6 @@ const axisPosClass = 'left-6 -translate-x-1/2 md:left-1/2'
 const ornamentPosClass = 'left-6 md:left-1/2'
 const dotPosClass = 'left-6 md:left-1/2'
 
-function getItemHref(link: string | undefined | null) {
-  const value = (link || '').trim()
-  if (!value) return ''
-
-  if (/^[a-z][a-z\d+\-.]*:\/\//i.test(value)) return value
-
-  const hasDomain = /^(?:www\.)?[a-z0-9-]+(?:\.[a-z0-9-]+)+(?::\d+)?(?:\/|$|\?)/i.test(value)
-  if (hasDomain) {
-    return `https://${value.replace(/^https?:\/\//i, '')}`
-  }
-
-  const baseOrigin =
-    (typeof window !== 'undefined' && window.location?.origin) || getBackendOrigin() || ''
-
-  try {
-    return new URL(value, baseOrigin).toString()
-  } catch {
-    return ''
-  }
-}
-
-function handleItemClick(link: string | undefined | null) {
-  const href = getItemHref(link)
-  if (!href) return
-  window.open(href, '_blank', 'noopener,noreferrer')
-}
-
-function hasItemLink(link: string | undefined | null) {
-  return Boolean(getItemHref(link))
-}
-
 function timelineAnchorId(item: TimeLineResItem, index: number) {
   return `timeline-${item.timeline_id ?? `${item.event_date}-${index}`}`
 }
@@ -478,18 +408,16 @@ function dateRailClass(i: number) {
   return 'right-1/2 flex-row-reverse pr-7 text-right'
 }
 
-function cardClass(i: number, isClickable = false) {
+function cardClass(i: number) {
   const base =
     'group relative w-full max-w-[21.5rem] rounded-lg border bg-white/82 px-5 py-5 text-left shadow-[0_18px_45px_-36px_rgba(15,23,42,0.74)] backdrop-blur transition-all duration-300 md:min-h-[10rem]'
   const quiet = 'border-slate-200/80'
-  const clickable =
-    'cursor-pointer border-[#317f8d]/28 hover:-translate-y-0.5 hover:border-[#317f8d]/48 hover:bg-white/92 hover:shadow-[0_24px_52px_-34px_rgba(20,61,99,0.82)] focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-sky-200/70'
   const active =
     i === activeIndex.value
       ? 'scale-[1.018] border-[#317f8d]/48 bg-white/94 shadow-[0_26px_58px_-34px_rgba(20,61,99,0.92)] ring-4 ring-sky-100/80'
       : ''
 
-  return `${base} ${isClickable ? clickable : quiet} ${active}`
+  return `${base} ${quiet} ${active}`
 }
 
 onMounted(async () => {
