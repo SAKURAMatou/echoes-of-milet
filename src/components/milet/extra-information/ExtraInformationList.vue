@@ -53,12 +53,12 @@
       </svg>
     </button>
 
-    <Teleport to="body" :disabled="inlineMode">
+    <Teleport to="body">
       <div
         v-if="listOpen"
         :id="popoverId"
         ref="popoverEl"
-        :style="inlineMode ? undefined : popoverStyle"
+        :style="popoverStyle"
         :class="popoverClass"
         role="region"
         :aria-label="sectionLabel"
@@ -203,7 +203,6 @@ const props = withDefaults(
     variant?: 'timeline' | 'release' | 'modal' | 'chip' | 'live'
     lang?: SupportedLang | 'ja'
     triggerLabel?: string
-    floating?: boolean
   }>(),
   {
     extraInfo: null,
@@ -212,14 +211,11 @@ const props = withDefaults(
     variant: 'timeline',
     lang: 'zh',
     triggerLabel: '',
-    floating: false,
   },
 )
 
 const listOpen = ref(false)
 const popoverId = `extra-information-${useId()}`
-const mobileInline = ref(false)
-const inlineMode = computed(() => mobileInline.value && !props.floating)
 const reminderActive = ref(false)
 const hovered = ref(false)
 const focused = ref(false)
@@ -231,7 +227,6 @@ const closeEl = ref<HTMLButtonElement | null>(null)
 const popoverStyle = ref<CSSProperties>({})
 
 let intersectionObserver: IntersectionObserver | null = null
-let mobileMediaQuery: MediaQueryList | null = null
 let reminderTimer: ReturnType<typeof setTimeout> | null = null
 let reminderEndTimer: ReturnType<typeof setTimeout> | null = null
 
@@ -302,7 +297,6 @@ const triggerClass = computed(() => {
 const popoverClass = computed(() => {
   const base =
     'z-[1200] overflow-hidden rounded-xl border border-[#d9b77c]/45 bg-white/96 shadow-[0_30px_90px_-38px_rgba(15,23,42,0.52)] ring-1 ring-white/80 backdrop-blur-xl'
-  if (inlineMode.value) return `${base} relative mt-2 w-full max-w-full`
   if (props.variant === 'modal' || props.variant === 'live') {
     return `${base} fixed w-[min(30rem,calc(100vw-1.5rem))]`
   }
@@ -411,32 +405,21 @@ function updatePopoverPosition() {
   popoverStyle.value = { left: `${left}px`, top: `${top}px` }
 }
 
-function addDesktopPositionListeners() {
-  if (inlineMode.value) return
+function addPositionListeners() {
   updatePopoverPosition()
   window.addEventListener('resize', updatePopoverPosition)
   window.addEventListener('scroll', updatePopoverPosition, true)
 }
 
-function removeDesktopPositionListeners() {
+function removePositionListeners() {
   window.removeEventListener('resize', updatePopoverPosition)
   window.removeEventListener('scroll', updatePopoverPosition, true)
-}
-
-function handleMobileMediaChange(event: MediaQueryListEvent | MediaQueryList) {
-  mobileInline.value = event.matches
-  popoverStyle.value = {}
-  if (!listOpen.value) return
-  removeDesktopPositionListeners()
-  if (!inlineMode.value) {
-    void nextTick(addDesktopPositionListeners)
-  }
 }
 
 async function openList() {
   listOpen.value = true
   await nextTick()
-  addDesktopPositionListeners()
+  addPositionListeners()
   document.addEventListener('pointerdown', handleOutsidePointer, true)
   document.addEventListener('keydown', handleKeydown)
   closeEl.value?.focus()
@@ -445,7 +428,7 @@ async function openList() {
 function closeList(restoreFocus = false) {
   listOpen.value = false
   if (typeof window !== 'undefined') {
-    removeDesktopPositionListeners()
+    removePositionListeners()
     document.removeEventListener('pointerdown', handleOutsidePointer, true)
     document.removeEventListener('keydown', handleKeydown)
   }
@@ -489,9 +472,6 @@ watch(canRemind, scheduleReminder)
 onMounted(() => {
   pageVisible.value = document.visibilityState === 'visible'
   document.addEventListener('visibilitychange', handleVisibilityChange)
-  mobileMediaQuery = window.matchMedia('(max-width: 767px)')
-  handleMobileMediaChange(mobileMediaQuery)
-  mobileMediaQuery.addEventListener('change', handleMobileMediaChange)
   if ('IntersectionObserver' in window && triggerEl.value) {
     intersectionObserver = new IntersectionObserver(
       ([entry]) => {
@@ -509,7 +489,6 @@ onBeforeUnmount(() => {
   closeList()
   clearReminderTimers()
   intersectionObserver?.disconnect()
-  mobileMediaQuery?.removeEventListener('change', handleMobileMediaChange)
   document.removeEventListener('visibilitychange', handleVisibilityChange)
 })
 </script>

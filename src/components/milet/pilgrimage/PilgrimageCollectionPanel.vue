@@ -93,7 +93,6 @@
                 :legacy-articles="collection.articles"
                 variant="release"
                 :lang="lang"
-                floating
               />
             </div>
           </div>
@@ -133,7 +132,6 @@
               :legacy-articles="activeCollection.articles"
               variant="release"
               :lang="lang"
-              floating
             />
 
             <div class="mt-4 min-h-0 flex-1 overflow-y-auto pr-1">

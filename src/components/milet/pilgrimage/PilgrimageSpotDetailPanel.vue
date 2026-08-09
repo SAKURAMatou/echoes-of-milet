@@ -84,7 +84,6 @@
                 variant="chip"
                 :lang="lang"
                 :trigger-label="pageText.extraInformation"
-                floating
               />
             </div>
 
