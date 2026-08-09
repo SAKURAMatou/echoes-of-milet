@@ -31,11 +31,18 @@
               >
                 {{ item.dateLabel }}
               </time>
-              <div>
+              <div class="min-w-0 flex-1">
                 <h3 class="mt-1 text-base font-bold" :class="timelineColor(item.color).title">
                   {{ item.title }}
                 </h3>
                 <p class="mt-3 text-sm leading-7 text-black/70">{{ item.body }}</p>
+                <ExtraInformationList
+                  v-if="item.extraInfo?.items?.length"
+                  class="w-full max-w-[24rem]"
+                  :extra-info="item.extraInfo"
+                  variant="timeline"
+                  :lang="lang"
+                />
               </div>
             </div>
           </div>
@@ -56,6 +63,7 @@
 
 <script setup lang="ts">
 import { RouterLink } from 'vue-router'
+import ExtraInformationList from '@/components/milet/extra-information/ExtraInformationList.vue'
 import MiletHomeSectionTitle from './MiletHomeSectionTitle.vue'
 import type {
   MiletHomeSectionTitleView,
@@ -67,6 +75,7 @@ withDefaults(
   defineProps<{
     title: MiletHomeSectionTitleView
     timeline: MiletHomeTimelineViewSection
+    lang: SupportedLang | 'ja'
     sectionId?: string | null
   }>(),
   {

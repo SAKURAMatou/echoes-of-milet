@@ -25,6 +25,7 @@
         <MiletHomeTimelinePreview
           :title="sectionTitles.timeline"
           :timeline="timeline"
+          :lang="currentLang"
           :section-id="null"
         />
       </LazyHomeSection>

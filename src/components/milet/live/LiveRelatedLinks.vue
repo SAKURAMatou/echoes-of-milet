@@ -39,6 +39,9 @@
               <span class="mt-1 line-clamp-2 block text-xs leading-5 text-[#91a9ba]">
                 {{ resourceDescription(item) }}
               </span>
+              <span class="mt-1 block truncate text-[10px] text-[#718a9d]" :title="item.url">
+                {{ item.url }}
+              </span>
             </span>
 
             <span class="text-[#d9b77c] transition group-hover/card:translate-x-0.5" aria-hidden="true">
@@ -144,7 +147,9 @@ function linkTag(item: ExtraInformationItem) {
 }
 
 function linkBindings(item: ExtraInformationItem) {
-  if (item.linkScope === 'internal') return { to: item.url }
+  if (item.linkScope === 'internal') {
+    return { to: item.url, target: '_blank', rel: 'noopener noreferrer' }
+  }
   return { href: item.url, target: '_blank', rel: 'noopener noreferrer' }
 }
 

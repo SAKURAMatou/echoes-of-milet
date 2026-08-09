@@ -53,12 +53,12 @@
       </svg>
     </button>
 
-    <Teleport to="body" :disabled="mobileInline">
+    <Teleport to="body" :disabled="inlineMode">
       <div
         v-if="listOpen"
         :id="popoverId"
         ref="popoverEl"
-        :style="mobileInline ? undefined : popoverStyle"
+        :style="inlineMode ? undefined : popoverStyle"
         :class="popoverClass"
         role="region"
         :aria-label="sectionLabel"
@@ -136,8 +136,11 @@
               >
                 {{ item.summary }}
               </span>
-              <span v-else class="mt-1 block text-[11px] font-medium text-slate-400">
-                {{ item.linkScope === 'external' ? sourceHost(item.url) : internalLabel }}
+              <span
+                class="mt-1 block truncate text-[10px] font-medium text-slate-400"
+                :title="item.url"
+              >
+                {{ item.url }}
               </span>
             </span>
 
@@ -200,6 +203,8 @@ const props = withDefaults(
     variant?: 'timeline' | 'release' | 'modal' | 'chip' | 'live'
     lang?: SupportedLang | 'ja'
     triggerLabel?: string
+    inline?: boolean
+    inlineFullRow?: boolean
   }>(),
   {
     extraInfo: null,
@@ -208,12 +213,15 @@ const props = withDefaults(
     variant: 'timeline',
     lang: 'zh',
     triggerLabel: '',
+    inline: false,
+    inlineFullRow: false,
   },
 )
 
 const listOpen = ref(false)
 const popoverId = `extra-information-${useId()}`
 const mobileInline = ref(false)
+const inlineMode = computed(() => props.inline || mobileInline.value)
 const reminderActive = ref(false)
 const hovered = ref(false)
 const focused = ref(false)
@@ -270,7 +278,6 @@ const countTitle = computed(() =>
 )
 const sectionLabel = computed(() => (isJapanese.value ? '関連情報' : '额外信息'))
 const closeLabel = computed(() => (isJapanese.value ? '関連情報を閉じる' : '关闭额外信息'))
-const internalLabel = computed(() => (isJapanese.value ? 'サイト内コンテンツ' : '站内内容'))
 const triggerAriaLabel = computed(() => {
   const title = props.triggerLabel || items.value[0]?.title || sectionLabel.value
   return isJapanese.value
@@ -279,9 +286,12 @@ const triggerAriaLabel = computed(() => {
 })
 
 const rootClass = computed(() => {
-  if (props.variant === 'chip') return 'relative inline-flex'
-  if (props.variant === 'timeline') return 'relative mt-3'
-  return 'relative'
+  if (props.inlineFullRow) return 'contents'
+  if (props.variant === 'chip') {
+    return 'relative inline-flex min-w-0 max-w-full flex-col items-stretch'
+  }
+  if (props.variant === 'timeline') return 'relative mt-3 min-w-0 max-w-full'
+  return 'relative min-w-0 max-w-full'
 })
 
 const triggerClass = computed(() => {
@@ -295,7 +305,8 @@ const triggerClass = computed(() => {
 const popoverClass = computed(() => {
   const base =
     'z-[1200] overflow-hidden rounded-xl border border-[#d9b77c]/45 bg-white/96 shadow-[0_30px_90px_-38px_rgba(15,23,42,0.52)] ring-1 ring-white/80 backdrop-blur-xl'
-  if (mobileInline.value) return `${base} relative mt-2 w-full`
+  if (props.inlineFullRow) return `${base} relative col-span-full mt-2 w-full max-w-full`
+  if (inlineMode.value) return `${base} relative mt-2 w-full max-w-full`
   if (props.variant === 'modal' || props.variant === 'live') {
     return `${base} fixed w-[min(30rem,calc(100vw-1.5rem))]`
   }
@@ -348,16 +359,10 @@ function badgeClass(type: ExtraInformationResourceType) {
   return 'text-[#317f8d]'
 }
 
-function sourceHost(url: string) {
-  try {
-    return new URL(url).hostname
-  } catch {
-    return url
-  }
-}
-
 function linkBindings(item: ExtraInformationItem) {
-  if (item.linkScope === 'internal') return { to: item.url }
+  if (item.linkScope === 'internal') {
+    return { to: item.url, target: '_blank', rel: 'noopener noreferrer' }
+  }
   return { href: item.url, target: '_blank', rel: 'noopener noreferrer' }
 }
 
@@ -407,7 +412,7 @@ function updatePopoverPosition() {
 }
 
 function addDesktopPositionListeners() {
-  if (mobileInline.value) return
+  if (inlineMode.value) return
   updatePopoverPosition()
   window.addEventListener('resize', updatePopoverPosition)
   window.addEventListener('scroll', updatePopoverPosition, true)
@@ -423,7 +428,7 @@ function handleMobileMediaChange(event: MediaQueryListEvent | MediaQueryList) {
   popoverStyle.value = {}
   if (!listOpen.value) return
   removeDesktopPositionListeners()
-  if (!mobileInline.value) {
+  if (!inlineMode.value) {
     void nextTick(addDesktopPositionListeners)
   }
 }

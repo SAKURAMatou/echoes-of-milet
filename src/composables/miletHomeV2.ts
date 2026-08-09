@@ -10,6 +10,7 @@ import type {
   MiletLegacyOfficialSite,
   MiletHomeOfficialViewSection,
   MiletHomeSectionTitleView,
+  MiletHomeTimelineItem,
   MiletHomeTimelineViewSection,
   MiletHomeV2Data,
   MiletHomeWhyViewItem,
@@ -409,6 +410,7 @@ function mapLegacyTimeline(
         },
         color: colors[index % colors.length],
         bloglink: item.bloglink || item.link_url,
+        extraInfo: item.extraInfo,
         route: { name: 'miletTimeLine' },
         priority: (index + 1) * 10,
       }))
@@ -573,9 +575,19 @@ export function timelineViewSection(
           body: textOf(item.body, lang),
           color: item.color,
           to: routeToLocation(item.route, routeLang) || blogTo || moreTo,
+          extraInfo: localizedTimelineExtraInfo(item.extraInfo, lang),
         }
       }),
   }
+}
+
+function localizedTimelineExtraInfo(
+  value: MiletHomeTimelineItem['extraInfo'],
+  lang: MiletLang,
+) {
+  if (!value) return undefined
+  if ('items' in value) return value
+  return value[lang] || (lang === 'ja' ? value.jp : undefined)
 }
 
 export function galleryViewSection(

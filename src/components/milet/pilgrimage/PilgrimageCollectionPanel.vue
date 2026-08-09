@@ -38,60 +38,64 @@
       <div class="relative mt-4 min-h-0 flex-1 overflow-hidden">
         <div class="h-full overflow-y-auto pr-1">
           <div class="grid gap-2 sm:grid-cols-1 xl:grid-cols-2">
-            <button
+            <div
               v-for="(collection, index) in collections"
               :key="collection.id"
-              type="button"
-              class="pilgrimage-collection-card group flex flex-col min-h-28 rounded-lg border p-3 text-left transition focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-teal-100"
+              class="pilgrimage-collection-card group flex min-h-28 w-full min-w-0 max-w-full flex-col rounded-lg border p-3 text-left transition"
               :class="
                 activeCollection?.id === collection.id
                   ? 'shadow-[0_18px_42px_-34px_rgba(47,143,131,0.7)]'
                   : 'hover:bg-white/82'
               "
               :style="collectionCardStyle(index, activeCollection?.id === collection.id)"
-              @click="openCollection(collection)"
             >
-              <div class="grid grid-cols-[5rem_minmax(0,1fr)] gap-3">
-                <img
-                  v-if="collection.coverImageUrl"
-                  :src="buildStaticAssetUrl(collection.coverImageUrl)"
-                  :alt="collection.title"
-                  class="h-20 w-20 rounded-md object-cover shadow-[0_10px_24px_-18px_rgba(31,41,55,0.8)]"
-                  loading="lazy"
-                  decoding="async"
-                />
-                <span
-                  v-else
-                  class="grid h-20 w-20 place-items-center rounded-md bg-[#edf7f5] font-serif text-2xl text-[#7b68a8]"
-                  :style="collectionCoverFallbackStyle(index)"
-                >
-                  m
-                </span>
-                <span class="min-w-0 self-center">
-                  <span class="block truncate text-base font-bold text-[#34444b]">
-                    {{ collection.title }}
-                  </span>
-                  <span class="mt-1 block line-clamp-2 text-sm leading-6 text-[#60717a]">
-                    {{ collection.description || text.noDescription }}
-                  </span>
+              <button
+                type="button"
+                class="w-full min-w-0 rounded-md text-left focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-teal-100"
+                @click="openCollection(collection)"
+              >
+                <span class="grid grid-cols-[5rem_minmax(0,1fr)] gap-3">
+                  <img
+                    v-if="collection.coverImageUrl"
+                    :src="buildStaticAssetUrl(collection.coverImageUrl)"
+                    :alt="collection.title"
+                    class="h-20 w-20 rounded-md object-cover shadow-[0_10px_24px_-18px_rgba(31,41,55,0.8)]"
+                    loading="lazy"
+                    decoding="async"
+                  />
                   <span
-                    class="mt-2 block text-xs font-semibold"
-                    :style="{ color: collectionTone(index).accent }"
+                    v-else
+                    class="grid h-20 w-20 place-items-center rounded-md bg-[#edf7f5] font-serif text-2xl text-[#7b68a8]"
+                    :style="collectionCoverFallbackStyle(index)"
                   >
-                    {{ collection.spots.length }} spots
+                    m
+                  </span>
+                  <span class="min-w-0 self-center">
+                    <span class="block truncate text-base font-bold text-[#34444b]">
+                      {{ collection.title }}
+                    </span>
+                    <span class="mt-1 block line-clamp-2 text-sm leading-6 text-[#60717a]">
+                      {{ collection.description || text.noDescription }}
+                    </span>
+                    <span
+                      class="mt-2 block text-xs font-semibold"
+                      :style="{ color: collectionTone(index).accent }"
+                    >
+                      {{ collection.spots.length }} spots
+                    </span>
                   </span>
                 </span>
-              </div>
+              </button>
               <ExtraInformationList
                 v-if="collection.extraInfo?.items?.length || collection.articles?.items?.length"
-                class="mt-3"
+                class="mt-3 w-full min-w-0 max-w-full"
                 :extra-info="collection.extraInfo"
                 :legacy-articles="collection.articles"
                 variant="release"
                 :lang="lang"
-                @click.stop
+                inline
               />
-            </button>
+            </div>
           </div>
         </div>
 
@@ -124,11 +128,12 @@
                 activeCollection.extraInfo?.items?.length ||
                 activeCollection.articles?.items?.length
               "
-              class="mt-3"
+              class="mt-3 w-full min-w-0 max-w-full"
               :extra-info="activeCollection.extraInfo"
               :legacy-articles="activeCollection.articles"
               variant="release"
               :lang="lang"
+              inline
             />
 
             <div class="mt-4 min-h-0 flex-1 overflow-y-auto pr-1">

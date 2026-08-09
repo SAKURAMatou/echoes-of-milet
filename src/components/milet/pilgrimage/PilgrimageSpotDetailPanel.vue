@@ -64,36 +64,38 @@
               </h2>
             </div>
 
-            <div class="mt-4 flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-              <div class="min-w-0">
-                <p class="text-xs font-semibold uppercase tracking-[0.14em] text-[#82939a]">
-                  {{ pageText.works }}
-                </p>
-                <p class="mt-1 break-words text-sm text-[#34444b]">
-                  {{ selectedSpotDetail.workTitle }}
-                </p>
-              </div>
-              <div class="flex shrink-0 flex-wrap gap-2 sm:justify-end">
-                <a
-                  :href="navigationUrl"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  class="rounded-lg border border-[#8bbddd] bg-[#eaf6fb] px-3 py-2 text-center text-sm font-semibold text-[#356f98] shadow-[0_10px_22px_-18px_rgba(58,91,119,0.58)] transition hover:border-[#6da4ca] hover:bg-white focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-sky-100"
-                >
-                  {{ pageText.navigation }}
-                </a>
-                <ExtraInformationList
-                  v-if="
-                    selectedSpotDetail.extraInfo?.items?.length ||
-                    selectedSpotDetail.articles?.items?.length
-                  "
-                  :extra-info="selectedSpotDetail.extraInfo"
-                  :legacy-articles="selectedSpotDetail.articles"
-                  variant="chip"
-                  :lang="lang"
-                  :trigger-label="pageText.extraInformation"
-                />
-              </div>
+            <div class="mt-3 grid min-w-0 grid-cols-[auto_minmax(0,1fr)] items-start gap-2">
+              <a
+                :href="navigationUrl"
+                target="_blank"
+                rel="noopener noreferrer"
+                class="inline-flex min-h-11 items-center justify-center rounded-lg border border-[#8bbddd] bg-[#eaf6fb] px-3 py-2 text-center text-sm font-semibold text-[#356f98] shadow-[0_10px_22px_-18px_rgba(58,91,119,0.58)] transition hover:border-[#6da4ca] hover:bg-white focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-sky-100"
+              >
+                {{ pageText.navigation }}
+              </a>
+              <ExtraInformationList
+                v-if="
+                  selectedSpotDetail.extraInfo?.items?.length ||
+                  selectedSpotDetail.articles?.items?.length
+                "
+                class="w-full min-w-0 max-w-full"
+                :extra-info="selectedSpotDetail.extraInfo"
+                :legacy-articles="selectedSpotDetail.articles"
+                variant="chip"
+                :lang="lang"
+                :trigger-label="pageText.extraInformation"
+                inline
+                inline-full-row
+              />
+            </div>
+
+            <div class="mt-4 min-w-0">
+              <p class="text-xs font-semibold uppercase tracking-[0.14em] text-[#82939a]">
+                {{ pageText.works }}
+              </p>
+              <p class="mt-1 break-words text-sm text-[#34444b]">
+                {{ selectedSpotDetail.workTitle }}
+              </p>
             </div>
 
             <dl class="mt-3 space-y-3 text-sm">

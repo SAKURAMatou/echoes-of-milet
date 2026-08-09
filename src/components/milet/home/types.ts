@@ -1,4 +1,5 @@
 import type { RouteLocationRaw } from 'vue-router'
+import type { ExtraInformationGroup } from '@/composables/extraInformation'
 
 export type MiletLang = 'zh' | 'ja'
 export type SectionKey = 'highlight' | 'timeline' | 'gallery'
@@ -71,6 +72,7 @@ export interface MiletHomeTimelineItem {
   color: TimelineColor
   route?: RouteTarget
   bloglink?: string
+  extraInfo?: ExtraInformationGroup | Partial<Record<MiletLang | 'jp', ExtraInformationGroup>>
   priority: number
 }
 
@@ -194,6 +196,7 @@ export interface MiletHomeTimelineViewItem {
   body: string
   color: TimelineColor
   to?: RouteLocationRaw
+  extraInfo?: ExtraInformationGroup
 }
 
 export interface MiletHomeTimelineViewSection {
