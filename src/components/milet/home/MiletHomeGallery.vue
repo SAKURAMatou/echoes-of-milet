@@ -2,10 +2,10 @@
   <section :id="sectionId || undefined" class="mt-16 scroll-mt-24">
     <MiletHomeSectionTitle :kicker="title.kicker" :title="title.title" :subtitle="title.subtitle" />
     <div class="mt-7 columns-1 gap-4 sm:columns-2">
-      <!-- :is="item.href ? 'a' : RouterLink" -->
+      <!-- :is="item.href ? 'a' : RouterLink"  is="div"-->
       <component
-        is="div"
         v-for="item in gallery.items"
+        :is="galleryItemComponent(item)"
         :key="item.id"
         v-bind="linkProps(item)"
         class="group mb-4 block break-inside-avoid overflow-hidden rounded-lg border border-white/70 bg-white/70 shadow-[0_18px_54px_-42px_rgba(31,41,55,0.82)]"
@@ -29,14 +29,14 @@
         </div>
       </component>
     </div>
-    <!-- <div class="mt-5 text-center">
+    <div class="mt-5 text-center">
       <RouterLink
         :to="gallery.moreTo"
         class="inline-flex min-h-10 w-full items-center justify-center rounded-lg border border-white/70 bg-white/75 px-5 text-sm font-semibold text-[#317f8d] shadow-sm transition hover:-translate-y-0.5 hover:bg-white sm:w-auto"
       >
         {{ gallery.moreLabel }}
       </RouterLink>
-    </div> -->
+    </div>
   </section>
 </template>
 
@@ -85,5 +85,10 @@ function linkProps(item: MiletHomeGalleryViewItem) {
   return {
     to: item.to || '#',
   }
+}
+const galleryItemComponent = (item: MiletHomeGalleryViewItem) => {
+  console.log('fysda', item)
+
+  return item.href ? 'a' : RouterLink
 }
 </script>
