@@ -192,6 +192,7 @@
                     <FormattedPlainText
                       class="mt-3 text-sm leading-7 text-slate-600"
                       :text="it.timeline_body"
+                      restricted-markdown
                     />
                   </div>
 
