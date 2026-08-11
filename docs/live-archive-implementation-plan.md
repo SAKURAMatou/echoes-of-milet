@@ -606,7 +606,7 @@ updatedAt
 
 - 第一阶段只支持 `blueprint + themePreset`。
 - `blueprint` 用于选择不同详情页面布局，当前支持 `one-man-compact-related`、`one-man-visual-cards`、`tour-balanced-stops`、`tour-serpentine-route`。
-- `themePreset` 用于选择不同详情页主题，当前支持 `default`、`echo-blue`、`stairs-colors`。其中 `default` 是 Midnight Gold，`echo-blue` 使用网站整体天空蓝风格，`stairs-colors` 参考 stairs 2024 周边图的粉橙晚霞背景。
+- `themePreset` 用于选择不同详情页主题，当前支持 `default`、`echo-blue`、`stairs-colors`、`green-lights`。其中 `default` 是 Midnight Gold，`echo-blue` 使用网站整体天空蓝风格，`stairs-colors` 参考 stairs 2024 周边图的粉橙晚霞背景，`green-lights` 参考 Green Lights 官方视觉的深林墨绿、暖白文字与荧光绿色轮廓光。
 - 管理端可选 `blueprint / themePreset` 不写死在页面中，统一从现有 `system_config` 功能读取。
 - 组件级启用/隐藏、组件顺序和局部参数不进入当前落地范围，文档中标记为 Phase 5 deferred。
 - 页面组件组合由 blueprint 固定决定，降低管理端和 SSR 复杂度。
@@ -1239,6 +1239,10 @@ cvalue: {"label":"One Man Compact Related","group":"one-man","supportedTypes":["
 code: live_detail_themes
 ckey: echo-blue
 cvalue: {"label":"Echo Blue","enabled":true}
+
+code: live_detail_themes
+ckey: green-lights
+cvalue: {"label":"Green Lights","enabled":true}
 ```
 
 真实预览通过公开端 preview 路由完成：

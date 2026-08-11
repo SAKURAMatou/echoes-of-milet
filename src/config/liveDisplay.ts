@@ -8,7 +8,7 @@ export type LiveDetailBlueprintId =
   | 'tour-balanced-stops'
   | 'tour-serpentine-route'
 
-export type LiveDetailThemePreset = 'default' | 'echo-blue' | 'stairs-colors'
+export type LiveDetailThemePreset = 'default' | 'echo-blue' | 'stairs-colors' | 'green-lights'
 
 export type LiveDetailThemeTokens = {
   colorScheme: 'dark' | 'light'
@@ -182,6 +182,41 @@ export const liveDetailThemes: Record<LiveDetailThemePreset, {
       venueLineArtBlendMode: 'multiply',
     },
   },
+  'green-lights': {
+    label: 'Green Lights',
+    description: '深密植物夜色、暖银白标题与克制的黄绿色霓虹，呈现沉浸式舞台余光。',
+    tokens: {
+      colorScheme: 'dark',
+      shell: '#020806',
+      headerBg: 'rgba(2, 10, 7, 0.92)',
+      headerBorder: 'rgba(199, 244, 58, 0.24)',
+      pageBg:
+        'linear-gradient(118deg, rgba(112, 145, 43, 0.11) 0%, transparent 36%), linear-gradient(242deg, rgba(31, 86, 49, 0.16) 0%, transparent 42%), linear-gradient(180deg, #020806 0%, #07140c 48%, #020906 100%)',
+      title: '#f5f4ea',
+      titleSoft: '#dce1d8',
+      text: '#e2e7dd',
+      muted: '#b7c3b3',
+      subtle: '#879783',
+      accent: '#c7f43a',
+      accentStrong: '#e6ff72',
+      accentBorder: 'rgba(199, 244, 58, 0.34)',
+      panelBg: 'rgba(5, 20, 12, 0.88)',
+      surfaceBg: 'rgba(10, 31, 18, 0.7)',
+      linkHover: '#f1ffd0',
+      line: 'rgba(178, 218, 127, 0.24)',
+      glow: 'rgba(199, 244, 58, 0.42)',
+      route: '#b9e93a',
+      venueLineArtBg:
+        'linear-gradient(140deg, rgba(229, 255, 175, 0.055), rgba(12, 43, 24, 0.26))',
+      venueLineArtBorder: 'rgba(199, 244, 58, 0.25)',
+      venueLineArtFilter:
+        'brightness(0) saturate(100%) invert(91%) sepia(92%) saturate(898%) hue-rotate(26deg) brightness(104%) contrast(96%) drop-shadow(0 0 12px rgba(199, 244, 58, 0.3))',
+      venueLineArtOpacity: '0.88',
+      venueLineArtShadow:
+        'inset 0 0 0 1px rgba(235,255,206,0.025), 0 18px 48px -36px rgba(199, 244, 58, 0.72)',
+      venueLineArtBlendMode: 'screen',
+    },
+  },
 }
 
 export function isTourEventType(type?: string | null) {
@@ -205,7 +240,13 @@ export function normalizeLiveDetailBlueprint(
 }
 
 export function normalizeLiveDetailTheme(themePreset?: string | null): LiveDetailThemePreset {
-  if (themePreset === 'echo-blue' || themePreset === 'stairs-colors') return themePreset
+  if (
+    themePreset === 'echo-blue' ||
+    themePreset === 'stairs-colors' ||
+    themePreset === 'green-lights'
+  ) {
+    return themePreset
+  }
   return 'default'
 }
 

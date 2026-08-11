@@ -228,4 +228,81 @@ const jaRoute = computed(() => ({
 .live-detail-shell :deep(.live-venue-line-art-frame--bare)::before {
   display: none;
 }
+
+.live-detail-shell--green-lights header {
+  box-shadow:
+    inset 0 -1px 0 rgba(230, 255, 114, 0.035),
+    0 14px 42px -34px rgba(199, 244, 58, 0.42);
+}
+
+.live-detail-shell--green-lights main::before,
+.live-detail-shell--green-lights main::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+}
+
+.live-detail-shell--green-lights main::before {
+  background:
+    repeating-linear-gradient(118deg, transparent 0 3.25rem, rgba(154, 194, 69, 0.075) 3.3rem 3.38rem, transparent 3.43rem 7.5rem),
+    repeating-linear-gradient(62deg, transparent 0 4.4rem, rgba(45, 103, 55, 0.09) 4.45rem 4.58rem, transparent 4.63rem 9rem);
+  opacity: 0.78;
+  -webkit-mask-image: linear-gradient(90deg, #000 0%, transparent 23%, transparent 77%, #000 100%);
+  mask-image: linear-gradient(90deg, #000 0%, transparent 23%, transparent 77%, #000 100%);
+}
+
+.live-detail-shell--green-lights main::after {
+  background:
+    linear-gradient(90deg, rgba(194, 239, 55, 0.055), transparent 12%, transparent 88%, rgba(194, 239, 55, 0.045)),
+    linear-gradient(180deg, rgba(230, 255, 114, 0.025), transparent 18%);
+}
+
+.live-detail-shell--green-lights main > [aria-hidden='true'] {
+  display: none;
+}
+
+.live-detail-shell--green-lights :deep(.live-venue-line-art-frame) {
+  box-shadow:
+    inset 0 0 0 1px rgba(230, 255, 114, 0.03),
+    inset 0 -24px 48px -42px rgba(199, 244, 58, 0.42),
+    0 18px 48px -36px rgba(199, 244, 58, 0.72);
+}
+
+.live-detail-shell--green-lights :deep(.live-venue-line-art-frame)::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(120deg, rgba(230, 255, 114, 0.075), transparent 34%);
+}
+
+.live-detail-shell--green-lights :deep(h1) {
+  text-shadow:
+    0 1px 0 rgba(230, 255, 114, 0.14),
+    0 0 28px rgba(199, 244, 58, 0.09);
+}
+
+.live-detail-shell--green-lights :deep(a),
+.live-detail-shell--green-lights :deep(button) {
+  transition-duration: 200ms;
+}
+
+.live-detail-shell--green-lights :deep(a:focus-visible),
+.live-detail-shell--green-lights :deep(button:focus-visible) {
+  outline: 2px solid var(--live-detail-accent-strong);
+  outline-offset: 3px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .live-detail-shell--green-lights :deep(*),
+  .live-detail-shell--green-lights :deep(*::before),
+  .live-detail-shell--green-lights :deep(*::after) {
+    scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
 </style>
