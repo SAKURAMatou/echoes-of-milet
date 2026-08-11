@@ -98,7 +98,7 @@
             v-for="item in items"
             :key="`${item.type}:${item.id}`"
             v-bind="linkBindings(item)"
-            class="extra-information-card group grid min-w-0 grid-cols-[5.5rem_minmax(0,1fr)_auto] items-center gap-3 rounded-lg border bg-white p-2.5 text-left shadow-[0_16px_38px_-32px_rgba(15,23,42,0.48)] transition hover:-translate-y-px focus-visible:outline-none focus-visible:ring-4"
+            class="extra-information-card group grid h-[5.75rem] min-w-0 grid-cols-[5.5rem_minmax(0,1fr)_auto] items-center gap-3 overflow-hidden rounded-lg border bg-white p-2.5 text-left shadow-[0_16px_38px_-32px_rgba(15,23,42,0.48)] transition hover:-translate-y-px focus-visible:outline-none focus-visible:ring-4"
             :class="cardClass(item.type)"
             @click="closeList(false)"
           >
@@ -126,18 +126,22 @@
               </span>
             </span>
 
-            <span class="min-w-0">
-              <span class="block line-clamp-2 text-sm font-semibold leading-5 text-[#143d63]">
+            <span class="flex h-[4.25rem] min-w-0 flex-col overflow-hidden">
+              <span
+                class="block line-clamp-2 text-sm font-semibold leading-[1.125rem] text-[#143d63]"
+                :title="item.title"
+              >
                 {{ item.title }}
               </span>
               <span
                 v-if="item.summary"
-                class="mt-1 block line-clamp-2 text-xs leading-5 text-slate-500"
+                class="mt-0.5 block line-clamp-1 text-xs leading-4 text-slate-500"
+                :title="item.summary"
               >
                 {{ item.summary }}
               </span>
               <span
-                class="mt-1 block truncate text-[10px] font-medium text-slate-400"
+                class="mt-auto block truncate text-[10px] font-medium leading-3 text-slate-400"
                 :title="item.url"
               >
                 {{ item.url }}
