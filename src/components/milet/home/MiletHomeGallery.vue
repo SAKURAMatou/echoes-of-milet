@@ -87,8 +87,6 @@ function linkProps(item: MiletHomeGalleryViewItem) {
   }
 }
 const galleryItemComponent = (item: MiletHomeGalleryViewItem) => {
-  console.log('fysda', item)
-
   return item.href ? 'a' : RouterLink
 }
 </script>
