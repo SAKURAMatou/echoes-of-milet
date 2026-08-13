@@ -19,6 +19,12 @@
       </div>
     </section>
 
+    <MiletImageSearchPanel
+      :lang="global.$lang.lang"
+      @update:active="searchActive = $event"
+    />
+
+    <div v-show="!searchActive">
     <!-- 置顶相册列表 -->
     <div
       id="pick-gallery"
@@ -222,6 +228,8 @@
       </button>
     </div>
 
+    </div>
+
     <Teleport v-if="clientMounted" to="body">
       <Transition name="gallery-notice">
         <div
@@ -295,6 +303,7 @@ import {
 } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import EchoAsyncState from '@/components/interaction/EchoAsyncState.vue'
+import MiletImageSearchPanel from '@/components/milet/gallery/MiletImageSearchPanel.vue'
 import axiosInstance from '@/AxiosUtil'
 import { withLangParam } from '@/composables/useLangRoute'
 import { apiRoutes, buildStaticAssetUrl } from '@/config/api'
@@ -314,6 +323,7 @@ const appState = useAppState()
 const pageScroll = usePageScroll()
 const { markScrollContentPending } = usePageScrollPage()
 const galleryRoot = ref(null)
+const searchActive = ref(false)
 const GALLERY_LIST_CACHE_KEY = 'milet-gallery-list:v1'
 const cachedGalleryList =
   appState.miletGalleryListData?.key === GALLERY_LIST_CACHE_KEY

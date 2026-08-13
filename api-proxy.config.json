@@ -19,6 +19,7 @@
     "miletReleaseDetail": "/api/milet/release/worker/detail/",
     "miletSongGuess": "/api/milet/interactive/song-guess",
     "miletGallery": "/api/milet/gallery",
+    "miletImageSearch": "/api/milet/images/search",
     "miletAnniversary": "/api/milet/anniversary",
     "miletLive": "/api/milet/live",
     "miletPilgrimageRegionTree": "/api/milet/pilgrimage/region-tree",
