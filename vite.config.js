@@ -39,12 +39,13 @@ export default defineConfig(({ mode }) => {
   const apiOrigin = runtimeConfig.backend
   const publicSiteOrigin = runtimeConfig.site
   const env = loadEnv(mode, process.cwd(), '')
-  const imageProxyMode = env.MILET_DEV_IMAGE_PROXY_MODE === 'worker' ? 'worker' : 'site'
-  const imageTarget =
-    env.MILET_DEV_IMAGE_TARGET ||
-    (imageProxyMode === 'worker'
-      ? runtimeConfig.backend
-      : apiProxyConfig.origins.production.site)
+  // const imageProxyMode = env.MILET_DEV_IMAGE_PROXY_MODE === 'worker' ? 'worker' : 'site'
+  // const imageTarget =
+  //   env.MILET_DEV_IMAGE_TARGET ||
+  //   (imageProxyMode === 'worker'
+  //     ? runtimeConfig.backend
+  //     : apiProxyConfig.origins.production.site)
+  const imageTarget = apiProxyConfig.origins.production.backend
   return {
     plugins: [
       vue(),
@@ -106,12 +107,11 @@ export default defineConfig(({ mode }) => {
         '^/static/(?:milet|blog)/(?:img|img-preview)/': {
           target: imageTarget,
           changeOrigin: true,
-          headers:
-            imageProxyMode === 'worker' && env.MILET_SOURCE_GUARD_TOKEN
-              ? {
-                  'X-Milet-Source-Token': env.MILET_SOURCE_GUARD_TOKEN,
-                }
-              : undefined,
+          headers: env.MILET_SOURCE_GUARD_TOKEN
+            ? {
+                'X-Milet-Source-Token': env.MILET_SOURCE_GUARD_TOKEN,
+              }
+            : undefined,
         },
       },
     },
