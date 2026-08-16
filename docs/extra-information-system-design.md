@@ -229,7 +229,7 @@ News 和额外信息链接共同调用该服务，不允许新功能通过 HTTP 
 - 识别 `/zh/`、`/ja/` 前缀并保存 `detected_lang`。
 - 只有命中已知可本地化路由时才设置 `localization_mode=path_prefix`，公开端再按当前语言生成地址。
 - 不能确认路由可本地化时保留原地址，不做盲目字符串替换。
-- 站内域名从 `system_config` 的 `public_site_origin / echoes-of-milet` 读取，不在 Worker env 或业务代码中重复配置；用于生成完整资源地址的 `PUBLIC_ASSET_ORIGIN` 仍由 Worker 环境提供。
+- 站内域名从 `system_config` 的 `public_site_origin / echoes-of-milet` 读取，不在 Worker env 或业务代码中重复配置；内部图片资源统一输出 `/static/*` 同源路径，由公开端代理访问。
 
 如果粘贴的站内 URL 可以解析成系统资源，应优先建议转换资源类型：
 

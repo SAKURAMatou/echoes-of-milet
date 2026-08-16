@@ -357,11 +357,7 @@ function toAbsoluteUrl(value?: string | null) {
   return buildStaticAssetAbsoluteUrl(url)
 }
 
-/**
- * 后端的文章中使用的图片需要使用后端域名进行发访问
- * @param article
- * @returns
- */
+/** 文章分享图使用公开端绝对地址，由公开端的静态资源代理访问图片。 */
 function resolveArticleImage(article?: PublicArticleDetail | null) {
   const image = article?.coverImage
   if (!image) return undefined

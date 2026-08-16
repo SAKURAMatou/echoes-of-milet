@@ -108,7 +108,7 @@ Worker 发布文章时，`miletAlbumEmbed` 节点不渲染照片列表，只输�
   data-show-tip="false"
 >
   <a class="milet-album-embed-fallback" href="/zh/milet/galleryDetail/gallery_123">
-    <img src="https://api.miles-dml.org/static/milet/img/example-preview.webp" alt="相册标题" loading="lazy" decoding="async" />
+    <img src="/static/milet/img/example-preview.webp" alt="相册标题" loading="lazy" decoding="async" />
     <span class="milet-album-embed-fallback__body">
       <strong>相册标题</strong>
       <span>相册描述</span>
@@ -139,7 +139,7 @@ type MiletAlbumEmbedFallback = {
 }
 ```
 
-封面 URL 建议由 Worker 在 metadata 组装阶段统一处理为绝对静态资源 URL，例如通过 `PUBLIC_ASSET_ORIGIN + /static/milet/img/...` 输出。不要在公开端文章页里硬编码 Worker origin，也不要为了 fallback 封面新增公开端 `/static/*` 代理；公开端现有 Pages Function 代理边界仍只负责声明过的 API 路径。
+封面 URL 由 Worker 在 metadata 组装阶段统一输出为 `/static/milet/img/...` 同源路径，由公开端已有的 `/static/*` 代理访问图片资源；页面逻辑不拼接 Worker origin。
 
 Worker 查询 metadata 时不要在渲染每个节点时逐个查库。推荐流程：
 

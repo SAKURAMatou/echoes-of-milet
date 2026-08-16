@@ -21,41 +21,40 @@ export function getSiteOrigin() {
   return getRuntimeConfig().site
 }
 
-function staticAssetPath(assetPath: string) {
+export function buildStaticAssetUrl(assetPath: string, baseType = 'milet') {
   const value = assetPath.trim()
   if (!value) return ''
-
-  if (!/^https?:\/\//i.test(value)) {
-    return value.startsWith('/static/') ? value : ''
-  }
-
-  try {
-    const url = new URL(value)
-    const backendOrigin = apiProxyConfig.origins.production.backend.replace(/\/+$/, '')
-    const siteOrigin = apiProxyConfig.origins.production.site.replace(/\/+$/, '')
-    if ((url.origin === backendOrigin || url.origin === siteOrigin) && url.pathname.startsWith('/static/')) {
-      return `${url.pathname}${url.search}${url.hash}`
-    }
-  } catch {
-    return ''
-  }
-
-  return ''
-}
-
-export function buildStaticAssetUrl(assetPath: string, baseType = 'milet') {
-  if (!assetPath) return ''
-  const proxiedPath = staticAssetPath(assetPath)
-  if (proxiedPath) return proxiedPath
-  if (/^https?:\/\//i.test(assetPath)) return assetPath
+  if (/^https?:\/\//i.test(value) || value.startsWith('/')) return value
   const baseRoute = baseType === 'milet' ? staticRoutes.miletImage : staticRoutes.blogImage
-  return `${baseRoute}${assetPath.replace(/^\/+/, '')}`
+  return `${baseRoute}${value}`
 }
 
 export function buildStaticAssetAbsoluteUrl(assetPath: string, baseType = 'milet') {
   const url = buildStaticAssetUrl(assetPath, baseType)
-  if (!url || /^https?:\/\//i.test(url)) return url
-  return `${getSiteOrigin().replace(/\/+$/, '')}${url.startsWith('/') ? url : `/${url}`}`
+  if (!url) return ''
+
+  const siteOrigin = getSiteOrigin().replace(/\/+$/, '')
+  if (!/^https?:\/\//i.test(url)) {
+    const staticPath = url.replace(/^\/(?:apihost|imagehost)(?=\/static\/)/, '')
+    return `${siteOrigin}${staticPath.startsWith('/') ? staticPath : `/${staticPath}`}`
+  }
+
+  try {
+    const parsed = new URL(url)
+    const backendOrigins = new Set(
+      Object.values(apiProxyConfig.origins).map((config) => new URL(config.backend).origin),
+    )
+    const isStaticAsset = Object.values(staticRoutes).some((route) =>
+      parsed.pathname.startsWith(route),
+    )
+    if (backendOrigins.has(parsed.origin) && isStaticAsset) {
+      return `${siteOrigin}${parsed.pathname}${parsed.search}${parsed.hash}`
+    }
+  } catch {
+    return url
+  }
+
+  return url
 }
 
 export function buildStaticAssetPreviewUrl(assetPath: string, baseType = 'milet') {
