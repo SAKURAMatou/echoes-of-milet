@@ -21,7 +21,7 @@
           >
             <img
               v-if="item.coverImage"
-              :src="item.coverImage"
+              :src="resolveLiveImageUrl(item.coverImage)"
               :alt="item.title"
               class="h-16 w-20 rounded object-cover"
               loading="lazy"
@@ -91,7 +91,12 @@ const normalizedRouteLang = computed(() => (props.routeLang === 'jp' ? 'ja' : pr
 const isJapanese = computed(() => props.lang === 'ja')
 
 const items = computed<ExtraInformationItem[]>(() => {
-  if (props.extraInfo?.items?.length) return props.extraInfo.items
+  if (props.extraInfo?.items?.length) {
+    return props.extraInfo.items.map((item) => ({
+      ...item,
+      coverImage: resolveLiveImageUrl(item.coverImage),
+    }))
+  }
 
   const articles = props.legacyArticles.map((article) => ({
     type: 'article' as const,

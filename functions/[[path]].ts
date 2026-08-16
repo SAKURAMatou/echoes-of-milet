@@ -24,6 +24,7 @@ const baiduVerificationPaths = new Set([
   '/baidu_verify_codeva-HqQ4QBPDlh',
 ])
 const allowedApiPrefixes = Object.values(apiProxyConfig.routes) as string[]
+const allowedStaticPrefixes = Object.values(apiProxyConfig.staticRoutes) as string[]
 const allowedOtherPaths = new Set(
   Object.keys(apiProxyConfig.otherRquests || {}).map((key) => `/other/${key}`),
 )
@@ -204,6 +205,10 @@ function isAllowedApiPath(pathname: string) {
   return allowedApiPrefixes.some((prefix) => isPathUnder(pathname, prefix))
 }
 
+function isAllowedStaticPath(pathname: string) {
+  return allowedStaticPrefixes.some((prefix) => isPathUnder(pathname, prefix))
+}
+
 async function proxyApiRequest(request: Request, env: PagesFunctionEnv) {
   const url = new URL(request.url)
   if (!isAllowedApiPath(url.pathname)) {
@@ -227,6 +232,30 @@ async function proxyApiRequest(request: Request, env: PagesFunctionEnv) {
     headers: stripProxyResponseHeaders(response.headers),
   })
 }
+
+async function proxyStaticRequest(request: Request, env: PagesFunctionEnv) {
+  const url = new URL(request.url)
+  if (!['GET', 'HEAD'].includes(request.method) || !isAllowedStaticPath(url.pathname)) {
+    return new Response('Forbidden', {
+      status: 403,
+      headers: {
+        'content-type': 'text/plain; charset=utf-8',
+      },
+    })
+  }
+
+  const targetUrl = new URL(url.pathname + url.search, upstreamOrigin)
+  const response = await fetch(targetUrl.toString(), {
+    method: request.method,
+    headers: buildProxyHeaders(request, env),
+  })
+
+  return new Response(response.body, {
+    status: response.status,
+    headers: stripProxyResponseHeaders(response.headers),
+  })
+}
+
 async function proxyOtherRequest(request: Request, env: PagesFunctionEnv) {
   const url = new URL(request.url)
   if (!allowedOtherPaths.has(url.pathname)) {
@@ -320,6 +349,10 @@ export const onRequest = async (context: FunctionContext) => {
 
     const url = new URL(request.url)
     const pathname = normalizeUrl(url.pathname)
+
+    if (isAllowedStaticPath(pathname)) {
+      return proxyStaticRequest(request, env)
+    }
 
     if (baiduVerificationPaths.has(pathname)) {
       return new Response(baiduVerificationContent, {

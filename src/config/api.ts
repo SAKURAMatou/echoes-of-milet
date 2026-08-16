@@ -16,20 +16,46 @@ export function getRuntimeConfig(runtime = resolveRuntime()) {
 export function getBackendOrigin() {
   return getRuntimeConfig().backend
 }
-export function getImginOrigin() {
-  return apiProxyConfig.origins.production.backend.replace(/\/+$/, '')
-}
 
 export function getSiteOrigin() {
   return getRuntimeConfig().site
 }
 
+function staticAssetPath(assetPath: string) {
+  const value = assetPath.trim()
+  if (!value) return ''
+
+  if (!/^https?:\/\//i.test(value)) {
+    return value.startsWith('/static/') ? value : ''
+  }
+
+  try {
+    const url = new URL(value)
+    const backendOrigin = apiProxyConfig.origins.production.backend.replace(/\/+$/, '')
+    const siteOrigin = apiProxyConfig.origins.production.site.replace(/\/+$/, '')
+    if ((url.origin === backendOrigin || url.origin === siteOrigin) && url.pathname.startsWith('/static/')) {
+      return `${url.pathname}${url.search}${url.hash}`
+    }
+  } catch {
+    return ''
+  }
+
+  return ''
+}
+
 export function buildStaticAssetUrl(assetPath: string, baseType = 'milet') {
   if (!assetPath) return ''
+  const proxiedPath = staticAssetPath(assetPath)
+  if (proxiedPath) return proxiedPath
   if (/^https?:\/\//i.test(assetPath)) return assetPath
-  if (assetPath.startsWith('/static/')) return `${getImginOrigin()}${assetPath}`
   const baseRoute = baseType === 'milet' ? staticRoutes.miletImage : staticRoutes.blogImage
-  return `${getImginOrigin()}${baseRoute}${assetPath}`
+  return `${baseRoute}${assetPath.replace(/^\/+/, '')}`
+}
+
+export function buildStaticAssetAbsoluteUrl(assetPath: string, baseType = 'milet') {
+  const url = buildStaticAssetUrl(assetPath, baseType)
+  if (!url || /^https?:\/\//i.test(url)) return url
+  return `${getSiteOrigin().replace(/\/+$/, '')}${url.startsWith('/') ? url : `/${url}`}`
 }
 
 export function buildStaticAssetPreviewUrl(assetPath: string, baseType = 'milet') {
@@ -41,10 +67,11 @@ export function buildStaticAssetPreviewUrl(assetPath: string, baseType = 'milet'
     baseType === 'milet' ? staticRoutes.miletImagePreview : staticRoutes.blogImagePreview
 
   try {
-    const url = new URL(rawUrl)
+    const isAbsolute = /^https?:\/\//i.test(rawUrl)
+    const url = new URL(rawUrl, getSiteOrigin())
     if (!url.pathname.startsWith(imageRoute)) return rawUrl
     url.pathname = `${previewRoute}${url.pathname.slice(imageRoute.length)}`
-    return url.toString()
+    return isAbsolute ? url.toString() : `${url.pathname}${url.search}${url.hash}`
   } catch {
     return rawUrl
   }

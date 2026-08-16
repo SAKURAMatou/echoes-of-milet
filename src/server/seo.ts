@@ -1,5 +1,5 @@
 import { stripLangPrefix, toUrlLang } from '@/composables/useLangRoute'
-import { getSiteOrigin, getImginOrigin } from '@/config/api'
+import { buildStaticAssetAbsoluteUrl, getSiteOrigin } from '@/config/api'
 import type { PublicArticleDetail } from '@/composables/articleType'
 import { resolveLiveImageUrl, type LiveEventDetailPayload } from '@/composables/liveArchive'
 
@@ -354,8 +354,7 @@ function escapeJsonForHtml(value: string) {
 function toAbsoluteUrl(value?: string | null) {
   const url = (value || '').trim()
   if (!url) return undefined
-  if (/^https?:\/\//i.test(url)) return url
-  return `${getImginOrigin()}${url.startsWith('/') ? url : `/${url}`}`
+  return buildStaticAssetAbsoluteUrl(url)
 }
 
 /**

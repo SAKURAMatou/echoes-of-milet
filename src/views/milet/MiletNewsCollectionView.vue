@@ -232,7 +232,7 @@
             >
               <img
                 v-if="item.coverImage"
-                :src="item.coverImage"
+                :src="buildStaticAssetUrl(item.coverImage)"
                 :alt="item.title"
                 class="h-full w-full object-cover transition duration-300 group-hover:scale-105"
                 loading="lazy"
@@ -320,7 +320,7 @@ import { useRoute } from 'vue-router'
 
 import axiosInstance from '@/AxiosUtil'
 import EchoAsyncState from '@/components/interaction/EchoAsyncState.vue'
-import { apiRoutes } from '@/config/api'
+import { apiRoutes, buildStaticAssetUrl } from '@/config/api'
 import {
   useBusinessAnchorScrollRestoration,
   usePageScroll,

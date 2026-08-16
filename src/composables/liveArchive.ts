@@ -1,7 +1,7 @@
 import { computed, ref } from 'vue'
 
 import axiosInstance from '@/AxiosUtil'
-import { apiRoutes, buildStaticAssetUrl, getImginOrigin } from '@/config/api'
+import { apiRoutes, buildStaticAssetUrl } from '@/config/api'
 
 export type LiveLang = 'zh' | 'ja'
 export type LiveEventType = 'one_man' | 'tour' | 'special_live' | 'festival' | string
@@ -397,7 +397,6 @@ export function formatLiveType(type?: string) {
 export function resolveLiveImageUrl(image?: LiveImage | string | null) {
   if (!image) return ''
   if (typeof image === 'string') {
-    if (/^https?:\/\//i.test(image) || image.startsWith('/')) return image
     return buildStaticAssetUrl(image)
   }
 
@@ -412,9 +411,7 @@ export function resolveLiveImageUrl(image?: LiveImage | string | null) {
     image.accessRoute ||
     ''
   if (!raw) return ''
-  if (/^https?:\/\//i.test(raw)) return raw
-  if (raw.startsWith('/static/')) return `${getImginOrigin()}${raw}`
-  if (raw.startsWith('/')) return raw
+  if (raw.startsWith('/') && !raw.startsWith('/static/')) return raw
   return buildStaticAssetUrl(raw)
 }
 

@@ -105,7 +105,7 @@
             <span class="relative h-[4.25rem] w-[5.5rem] overflow-hidden rounded-md bg-slate-100">
               <img
                 v-if="item.coverImage"
-                :src="item.coverImage"
+                :src="resolveLiveImageUrl(item.coverImage)"
                 :alt="item.title"
                 class="h-full w-full object-cover transition duration-300 group-hover:scale-[1.03]"
                 loading="lazy"
@@ -243,7 +243,12 @@ const legacyArticleItems = computed<LegacyArticle[]>(() => {
 })
 
 const items = computed<ExtraInformationItem[]>(() => {
-  if (props.extraInfo?.items?.length) return props.extraInfo.items
+  if (props.extraInfo?.items?.length) {
+    return props.extraInfo.items.map((item) => ({
+      ...item,
+      coverImage: resolveLiveImageUrl(item.coverImage),
+    }))
+  }
 
   const articles = legacyArticleItems.value.map((article) => ({
     type: 'article' as const,

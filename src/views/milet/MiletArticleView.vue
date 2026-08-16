@@ -173,7 +173,7 @@ import LanguageSelect from '@/components/LanguageSelect.vue'
 import TWUpToTop from '@/components/TWUpToTop.vue'
 import ArticleShareMenu from '@/components/milet/article/ArticleShareMenu.vue'
 import ArticleToc from '@/components/milet/article/ArticleToc.vue'
-import { getImginOrigin, getSiteOrigin } from '@/config/api'
+import { buildStaticAssetAbsoluteUrl, getSiteOrigin } from '@/config/api'
 import { useAppState } from '@/composables/useAppState'
 import { useArticleAlbumEmbeds } from '@/composables/useArticleAlbumEmbeds'
 import { useArticleImageEnhancements } from '@/composables/useArticleImageEnhancements'
@@ -216,8 +216,7 @@ const articleCoverShareUrl = computed(() => {
   const image = article.value?.coverImage
   const url = image?.urlWebp || image?.urlOriginal || image?.prelink || image?.link || ''
   if (!url) return ''
-  if (/^https?:\/\//i.test(url)) return url
-  return `${getImginOrigin()}${url.startsWith('/') ? url : `/${url}`}`
+  return buildStaticAssetAbsoluteUrl(url, image?.storage || 'milet')
 })
 
 function articleEnhancementKey() {
