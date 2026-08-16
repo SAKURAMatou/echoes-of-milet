@@ -4,8 +4,19 @@
   >
     <div class="flex flex-wrap items-start justify-between gap-3 border-b border-white/10 pb-4">
       <div>
-        <h2 class="inline-flex items-center gap-2 font-['Montserrat','sans-serif'] text-sm font-semibold uppercase tracking-[0.18em] text-[#d9b77c]">
-          <svg class="size-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <h2
+          class="inline-flex items-center gap-2 font-['Montserrat','sans-serif'] text-sm font-semibold uppercase tracking-[0.18em] text-[#d9b77c]"
+        >
+          <svg
+            class="size-4 shrink-0"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.8"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            aria-hidden="true"
+          >
             <path d="M9 18V5l10-2v13" />
             <circle cx="6" cy="18" r="3" />
             <circle cx="16" cy="16" r="3" />
@@ -24,7 +35,9 @@
       <div v-for="segment in segments" :key="segment.key">
         <div class="mb-3 flex items-center gap-3 text-[#d9b77c]">
           <span class="h-px flex-1 bg-[#d9b77c]/22"></span>
-          <span class="font-['Montserrat','sans-serif'] text-xs font-semibold uppercase tracking-[0.16em]">
+          <span
+            class="font-['Montserrat','sans-serif'] text-xs font-semibold uppercase tracking-[0.16em]"
+          >
             {{ sectionLabel(segment.section) }}
           </span>
           <span class="h-px flex-1 bg-[#d9b77c]/22"></span>
@@ -45,7 +58,7 @@
               :disabled="!hasLiveTrackDetail(item)"
               @click="$emit('select-track', item)"
             >
-              <span class="truncate">{{ item.displayTitle }}</span>
+              <span class="block truncate">{{ item.displayTitle }}</span>
               <span
                 v-if="item.changed"
                 class="ml-2 rounded border border-[#d9b77c]/35 px-1.5 py-0.5 text-[10px] uppercase tracking-[0.12em] text-[#d9b77c]"
@@ -85,16 +98,19 @@ import {
   type LiveSetlistSegment,
 } from '@/composables/liveArchive'
 
-const props = withDefaults(defineProps<{
-  segments: LiveSetlistSegment[]
-  subtitle?: string
-  lang: LiveLang
-  setlistState?: LiveSetlistState
-  emptyMessage?: string
-}>(), {
-  setlistState: 'published',
-  emptyMessage: '',
-})
+const props = withDefaults(
+  defineProps<{
+    segments: LiveSetlistSegment[]
+    subtitle?: string
+    lang: LiveLang
+    setlistState?: LiveSetlistState
+    emptyMessage?: string
+  }>(),
+  {
+    setlistState: 'published',
+    emptyMessage: '',
+  },
+)
 
 const isPublished = computed(() => props.setlistState === 'published')
 
