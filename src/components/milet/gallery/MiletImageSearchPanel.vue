@@ -1,5 +1,5 @@
 <template>
-  <div class="mx-auto mb-12 max-w-3xl">
+  <div ref="searchPanelRef" class="mx-auto mb-12 max-w-3xl scroll-mt-6">
     <section
       class="relative overflow-hidden rounded-2xl border border-white/80 bg-white/72 p-4 shadow-[0_22px_70px_-54px_rgba(15,61,99,0.68)] backdrop-blur-xl sm:p-5"
       aria-labelledby="milet-image-search-label"
@@ -322,6 +322,7 @@ const active = ref(false)
 const loading = ref(false)
 const hasResponse = ref(false)
 const errorMessage = ref('')
+const searchPanelRef = ref<HTMLElement | null>(null)
 const resultsHeadingRef = ref<HTMLElement | null>(null)
 const useSplitColumns = ref(false)
 const displayMaxPage = computed(() => Math.max(1, maxPage.value))
@@ -560,15 +561,28 @@ function submitSearch() {
 
 async function clearSearch() {
   clearDebounce()
+  const shouldRestoreSearchPosition = active.value
   draftQuery.value = ''
   const nextQuery = { ...route.query }
   delete nextQuery.q
   delete nextQuery.page
   if (route.query.q === undefined && route.query.page === undefined) {
     resetResultState()
+    if (shouldRestoreSearchPosition) await scrollToSearchPanel()
     return
   }
   await router.push({ query: nextQuery })
+  if (shouldRestoreSearchPosition) await scrollToSearchPanel()
+}
+
+async function scrollToSearchPanel() {
+  await nextTick()
+  if (!mounted || !searchPanelRef.value) return
+  const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+  searchPanelRef.value.scrollIntoView({
+    behavior: reduceMotion ? 'auto' : 'smooth',
+    block: 'start',
+  })
 }
 
 function retrySearch() {
