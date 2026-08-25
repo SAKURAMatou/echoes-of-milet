@@ -301,6 +301,7 @@ import {
 } from '@/composables/miletImageSearch'
 import { MILET_GALLERY_TEXT } from '@/composables/lang/miletGallery'
 import { buildStaticAssetPreviewUrl, buildStaticAssetUrl } from '@/config/api'
+import { usePageScroll } from '@/composables/page-scroll'
 import '@fancyapps/ui/dist/fancybox/fancybox.css'
 
 type IndexedSearchImage = MiletImageSearchItem & { originalIndex: number }
@@ -310,6 +311,7 @@ const props = withDefaults(defineProps<{ lang?: 'zh' | 'jp' }>(), { lang: 'zh' }
 const emit = defineEmits<{ 'update:active': [active: boolean] }>()
 const route = useRoute()
 const router = useRouter()
+const pageScroll = usePageScroll()
 
 const text = computed(() => MILET_GALLERY_TEXT[props.lang])
 const draftQuery = ref('')
@@ -571,17 +573,24 @@ async function clearSearch() {
     if (shouldRestoreSearchPosition) await scrollToSearchPanel()
     return
   }
-  await router.push({ query: nextQuery })
+  // 退出搜索时滚动位置由本组件接管，避免滚动治理恢复搜索页的深层滚动位置，
+  // 导致相册列表重新显示后直接跳到页面底部。
+  pageScroll.setNextNavigationIntent({ kind: 'manual' })
+  const failure = await router.push({ query: nextQuery })
+  if (failure) pageScroll.consumeNextNavigationIntent()
   if (shouldRestoreSearchPosition) await scrollToSearchPanel()
 }
 
 async function scrollToSearchPanel() {
   await nextTick()
-  if (!mounted || !searchPanelRef.value) return
+  if (!mounted || !searchPanelRef.value || typeof window === 'undefined') return
+  const panel = searchPanelRef.value
+  const viewportHeight = pageScroll.state.viewportHeight || window.innerHeight
+  const centerOffset = Math.max(0, Math.round((viewportHeight - panel.offsetHeight) / 2))
   const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
-  searchPanelRef.value.scrollIntoView({
+  pageScroll.scrollToAnchor(panel, {
     behavior: reduceMotion ? 'auto' : 'smooth',
-    block: 'start',
+    offset: centerOffset,
   })
 }
 

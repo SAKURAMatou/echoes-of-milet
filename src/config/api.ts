@@ -13,9 +13,9 @@ export function getRuntimeConfig(runtime = resolveRuntime()) {
   return apiProxyConfig.origins[runtime] || apiProxyConfig.origins.production
 }
 
-export function getBackendOrigin() {
-  return getRuntimeConfig().backend
-}
+// export function getBackendOrigin() {
+//   return getRuntimeConfig().backend
+// }
 
 export function getSiteOrigin() {
   return getRuntimeConfig().site
