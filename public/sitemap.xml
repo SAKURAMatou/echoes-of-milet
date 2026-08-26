@@ -16,25 +16,61 @@
     <loc>https://miles-dml.org/zh/milet</loc>
     <xhtml:link rel="alternate" hreflang="zh-CN" href="https://miles-dml.org/zh/milet" />
     <xhtml:link rel="alternate" hreflang="ja-JP" href="https://miles-dml.org/ja/milet" />
-    <xhtml:link rel="alternate" hreflang="x-default" href="https://miles-dml.org/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://miles-dml.org/milet" />
   </url>
   <url>
     <loc>https://miles-dml.org/ja/milet</loc>
     <xhtml:link rel="alternate" hreflang="zh-CN" href="https://miles-dml.org/zh/milet" />
     <xhtml:link rel="alternate" hreflang="ja-JP" href="https://miles-dml.org/ja/milet" />
-    <xhtml:link rel="alternate" hreflang="x-default" href="https://miles-dml.org/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://miles-dml.org/milet" />
   </url>
   <url>
     <loc>https://miles-dml.org/zh/milet/about</loc>
     <xhtml:link rel="alternate" hreflang="zh-CN" href="https://miles-dml.org/zh/milet/about" />
     <xhtml:link rel="alternate" hreflang="ja-JP" href="https://miles-dml.org/ja/milet/about" />
-    <xhtml:link rel="alternate" hreflang="x-default" href="https://miles-dml.org/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://miles-dml.org/milet/about" />
   </url>
   <url>
     <loc>https://miles-dml.org/ja/milet/about</loc>
     <xhtml:link rel="alternate" hreflang="zh-CN" href="https://miles-dml.org/zh/milet/about" />
     <xhtml:link rel="alternate" hreflang="ja-JP" href="https://miles-dml.org/ja/milet/about" />
-    <xhtml:link rel="alternate" hreflang="x-default" href="https://miles-dml.org/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://miles-dml.org/milet/about" />
+  </url>
+  <url>
+    <loc>https://miles-dml.org/zh/milet/anniversary</loc>
+    <xhtml:link rel="alternate" hreflang="zh-CN" href="https://miles-dml.org/zh/milet/anniversary" />
+    <xhtml:link rel="alternate" hreflang="ja-JP" href="https://miles-dml.org/ja/milet/anniversary" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://miles-dml.org/milet/anniversary" />
+  </url>
+  <url>
+    <loc>https://miles-dml.org/ja/milet/anniversary</loc>
+    <xhtml:link rel="alternate" hreflang="zh-CN" href="https://miles-dml.org/zh/milet/anniversary" />
+    <xhtml:link rel="alternate" hreflang="ja-JP" href="https://miles-dml.org/ja/milet/anniversary" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://miles-dml.org/milet/anniversary" />
+  </url>
+  <url>
+    <loc>https://miles-dml.org/zh/milet/galleryList</loc>
+    <xhtml:link rel="alternate" hreflang="zh-CN" href="https://miles-dml.org/zh/milet/galleryList" />
+    <xhtml:link rel="alternate" hreflang="ja-JP" href="https://miles-dml.org/ja/milet/galleryList" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://miles-dml.org/milet/galleryList" />
+  </url>
+  <url>
+    <loc>https://miles-dml.org/ja/milet/galleryList</loc>
+    <xhtml:link rel="alternate" hreflang="zh-CN" href="https://miles-dml.org/zh/milet/galleryList" />
+    <xhtml:link rel="alternate" hreflang="ja-JP" href="https://miles-dml.org/ja/milet/galleryList" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://miles-dml.org/milet/galleryList" />
+  </url>
+  <url>
+    <loc>https://miles-dml.org/zh/milet/live</loc>
+    <xhtml:link rel="alternate" hreflang="zh-CN" href="https://miles-dml.org/zh/milet/live" />
+    <xhtml:link rel="alternate" hreflang="ja-JP" href="https://miles-dml.org/ja/milet/live" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://miles-dml.org/milet/live" />
+  </url>
+  <url>
+    <loc>https://miles-dml.org/ja/milet/live</loc>
+    <xhtml:link rel="alternate" hreflang="zh-CN" href="https://miles-dml.org/zh/milet/live" />
+    <xhtml:link rel="alternate" hreflang="ja-JP" href="https://miles-dml.org/ja/milet/live" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://miles-dml.org/milet/live" />
   </url>
   <url>
     <loc>https://miles-dml.org/zh/milet/pilgrimage</loc>
