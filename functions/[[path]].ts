@@ -321,13 +321,35 @@ async function getTemplate(request: Request, env: PagesFunctionEnv) {
   return template
 }
 
-function createStaticAssetRequest(request: Request, pathname: string) {
-  if (isAssetRequest(pathname)) {
-    return request
+/**
+ * 读取 SSG 预构建 HTML。Pages Assets 对 index.html 可能返回 308 到目录路径
+ * （例如 /ja/index.html -> /ja/），这里手动跟随重定向，避免因 308 导致
+ * SSG 读取失败而不必要地回落到 SSR。
+ */
+async function fetchSsgAsset(request: Request, env: PagesFunctionEnv, pathname: string) {
+  if (!['GET', 'HEAD'].includes(request.method)) {
+    return null
   }
 
-  const assetPath = pathname === '/' ? '/index.html' : `${pathname}/index.html`
-  return new Request(new URL(assetPath, request.url).toString(), request)
+  let assetPath = pathname === '/' ? '/index.html' : `${pathname}/index.html`
+
+  for (let i = 0; i < 4; i += 1) {
+    const assetRequest = new Request(new URL(assetPath, request.url).toString(), request)
+    const response = await env.ASSETS.fetch(assetRequest)
+
+    if (![301, 302, 303, 307, 308].includes(response.status)) {
+      return response
+    }
+
+    const location = response.headers.get('location')
+    if (!location) {
+      return null
+    }
+
+    assetPath = new URL(location, assetRequest.url).pathname
+  }
+
+  return null
 }
 
 function createRedirectResponse(target: string, status: number) {
@@ -364,7 +386,7 @@ export const onRequest = async (context: FunctionContext) => {
     }
 
     if (isAssetRequest(pathname)) {
-      return env.ASSETS.fetch(createStaticAssetRequest(request, pathname))
+      return env.ASSETS.fetch(request)
     }
 
     if (pathname === '/') {
@@ -390,10 +412,8 @@ export const onRequest = async (context: FunctionContext) => {
     }
 
     if (isSsgRoute(pathname)) {
-      const staticAssetResponse = await env.ASSETS.fetch(
-        createStaticAssetRequest(request, pathname),
-      )
-      if (staticAssetResponse.ok) {
+      const staticAssetResponse = await fetchSsgAsset(request, env, pathname)
+      if (staticAssetResponse?.ok) {
         return staticAssetResponse
       }
     }
