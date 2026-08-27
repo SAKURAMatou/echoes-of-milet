@@ -422,13 +422,17 @@ export const onRequest = async (context: FunctionContext) => {
     const rendered = await render(`${pathname}${url.search}`, {
       headers: Object.fromEntries(request.headers.entries()),
     })
+    const status = rendered.status || 200
+    const headers = buildHtmlResponseHeaders(pathname)
+
+    if (request.method === 'HEAD') {
+      return new Response(null, { status, headers })
+    }
+
     const template = await getTemplate(request, env)
     const html = injectHtml(template, rendered)
 
-    return new Response(html, {
-      status: rendered.status || 200,
-      headers: buildHtmlResponseHeaders(pathname),
-    })
+    return new Response(html, { status, headers })
   } catch (error) {
     const errorText = error instanceof Error ? error.stack || error.message : String(error)
     console.error('pages function render failed', {
