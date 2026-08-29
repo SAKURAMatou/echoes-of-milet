@@ -242,7 +242,20 @@
               {{ selectedPerformance?.city || setlistSubtitle }}
             </p>
             <p class="mt-1 text-sm text-[var(--live-detail-muted)]">
-              {{ selectedPerformance?.venueName || '-' }}
+              <a
+                v-if="selectedVenueOfficialUrl"
+                :href="selectedVenueOfficialUrl"
+                target="_blank"
+                rel="noopener noreferrer"
+                class="inline-flex items-center gap-1 underline decoration-[var(--live-detail-accent-border)] underline-offset-4 transition hover:text-[var(--live-detail-link-hover)] hover:decoration-[var(--live-detail-link-hover)]"
+              >
+                <span class="break-words">{{ selectedPerformance?.venueName || '-' }}</span>
+                <svg class="size-[0.82em] shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <path d="M7 7h10v10" />
+                  <path d="M7 17 17 7" />
+                </svg>
+              </a>
+              <template v-else>{{ selectedPerformance?.venueName || '-' }}</template>
             </p>
             <p
               v-if="selectedVenueCapacity"
@@ -286,7 +299,22 @@
           {{ selectedPerformance?.city || setlistSubtitle }}
         </h2>
         <dl class="mt-5 grid gap-3 text-sm text-[var(--live-detail-text)]">
-          <div>{{ selectedPerformance?.venueName || '-' }}</div>
+          <div>
+            <a
+              v-if="selectedVenueOfficialUrl"
+              :href="selectedVenueOfficialUrl"
+              target="_blank"
+              rel="noopener noreferrer"
+              class="inline-flex items-center gap-1 underline decoration-[var(--live-detail-accent-border)] underline-offset-4 transition hover:text-[var(--live-detail-link-hover)] hover:decoration-[var(--live-detail-link-hover)]"
+            >
+              <span class="break-words">{{ selectedPerformance?.venueName || '-' }}</span>
+              <svg class="size-[0.82em] shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M7 7h10v10" />
+                <path d="M7 17 17 7" />
+              </svg>
+            </a>
+            <template v-else>{{ selectedPerformance?.venueName || '-' }}</template>
+          </div>
           <div v-if="selectedVenueCapacity">{{ selectedVenueCapacity }}</div>
           <div>{{ selectedDateLine }}</div>
           <div>
@@ -360,6 +388,7 @@ import {
   formatVenueSeatCapacity,
   liveLangRequestConfig,
   performanceLabel,
+  normalizeExternalUrl,
   resolveLiveSetlistState,
   resolveSetlistEmptyMessage,
   resolveLiveTrackShowId,
@@ -515,6 +544,11 @@ const selectedDateLine = computed(() =>
     : '',
 )
 const selectedVenueLineArtUrl = computed(() => resolveVenueLineArtUrl(selectedPerformance.value))
+const selectedVenueOfficialUrl = computed(() =>
+  selectedPerformance.value?.venueName
+    ? normalizeExternalUrl(selectedPerformance.value.venueOfficialUrl)
+    : '',
+)
 const selectedPerformanceNotesText = computed(() =>
   selectedPerformance.value ? selectedPerformanceNotes(selectedPerformance.value, props.lang) : '',
 )

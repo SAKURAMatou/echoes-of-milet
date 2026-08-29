@@ -177,9 +177,13 @@
                 :href="selectedVenueOfficialUrl"
                 target="_blank"
                 rel="noopener noreferrer"
-                class="underline decoration-[#d9b77c]/45 underline-offset-4 transition hover:text-[#9fd4ff] hover:decoration-[#9fd4ff]"
+                class="inline-flex items-center gap-1 underline decoration-[#d9b77c]/45 underline-offset-4 transition hover:text-[#9fd4ff] hover:decoration-[#9fd4ff]"
               >
-                {{ selectedPerformance?.venueName || '-' }}
+                <span class="break-words">{{ selectedPerformance?.venueName || '-' }}</span>
+                <svg class="size-[0.82em] shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <path d="M7 7h10v10" />
+                  <path d="M7 17 17 7" />
+                </svg>
               </a>
               <template v-else>{{ selectedPerformance?.venueName || '-' }}</template>
             </p>
