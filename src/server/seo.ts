@@ -58,14 +58,28 @@ const seoMap: Record<SeoKey, SeoMeta> = {
         title: 'milet 照片相册 | Echoes of milet',
         description:
           '按主题与时间整理 milet 的照片相册，收录舞台、作品与旅途中的光影片段。那些短暂闪现的表情、风景与记忆，也在一次次翻阅中重新泛起余韵。',
-        keywords: ['Echoes of milet', 'milet', 'milet 相册', 'milet 照片', 'milet gallery'],
+        keywords: [
+          'Echoes of milet',
+          'milet',
+          'milet 相册',
+          'milet 照片',
+          'milet 写真',
+          'milet gallery',
+        ],
         imageAlt: 'Echoes of milet 照片相册',
       },
       jp: {
         title: 'Photo Albums | Echoes of milet',
         description:
           'テーマと時間に沿って、miletにまつわる写真をアルバムとして綴っています。ステージや作品、旅の途中に残された表情や風景、記憶が、ページをめくるたび静かな余韻となってよみがえります。',
-        keywords: ['Echoes of milet', 'milet', 'milet photo', 'milet gallery', 'milet アルバム'],
+        keywords: [
+          'Echoes of milet',
+          'milet',
+          'milet 写真',
+          'milet photo',
+          'milet gallery',
+          'milet アルバム',
+        ],
         imageAlt: 'Echoes of milet Photo Albums',
       },
     },
@@ -79,13 +93,13 @@ const seoMap: Record<SeoKey, SeoMeta> = {
       zh: {
         title: 'Live Event | Echoes of milet',
         description: 'Echoes of milet live event archive.',
-        keywords: ['Echoes of milet', 'milet', 'live', 'setlist'],
+        keywords: ['Echoes of milet', 'milet live', 'live', 'setlist'],
         imageAlt: 'Echoes of milet live event',
       },
       jp: {
         title: 'Live Event | Echoes of milet',
         description: 'Echoes of milet live event archive.',
-        keywords: ['Echoes of milet', 'milet', 'live', 'setlist'],
+        keywords: ['Echoes of milet', 'milet live', 'live', 'setlist'],
         imageAlt: 'Echoes of milet live event',
       },
     },
@@ -561,9 +575,10 @@ export function renderSeoTags(
   }
   const canonicalPath = resolveCanonicalPath(meta, options)
   const canonicalUrl = createLocalizedUrl(canonicalPath, resolvedLang)
-  const robots = seoKey === 'liveEvent' && options.path?.includes('/milet/live-preview/')
-    ? 'noindex,nofollow,noarchive'
-    : 'index,follow,max-image-preview:large'
+  const robots =
+    seoKey === 'liveEvent' && options.path?.includes('/milet/live-preview/')
+      ? 'noindex,nofollow,noarchive'
+      : 'index,follow,max-image-preview:large'
   const imageUrl =
     resolveLiveDetailImage(options.liveDetail) ||
     resolveArticleImage(options.article) ||
