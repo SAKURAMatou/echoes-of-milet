@@ -1,0 +1,276 @@
+window.JEAN_MANIFEST = {
+  "version": 3,
+  "character": "Jean",
+  "status": "motion-study-v3-variable-frames",
+  "notes": "Generated production pose sequences with action-specific frame counts; processed to transparent WebP runtime sheets.",
+  "animations": {
+    "idle": {
+      "src": "assets/idle.sheet.webp?v=5",
+      "staticSrc": "assets/idle.static.webp?v=5",
+      "frameCount": 8,
+      "columns": 4,
+      "rows": 2,
+      "frameWidth": 256,
+      "frameHeight": 256,
+      "fps": 7,
+      "durations": [
+        900,
+        300,
+        110,
+        130,
+        110,
+        300,
+        260,
+        900
+      ],
+      "loop": true,
+      "anchor": {
+        "x": 128,
+        "y": 232
+      },
+      "bytes": 97150
+    },
+    "sit": {
+      "src": "assets/sit.sheet.webp?v=5",
+      "staticSrc": "assets/sit.static.webp?v=5",
+      "frameCount": 12,
+      "columns": 4,
+      "rows": 3,
+      "frameWidth": 256,
+      "frameHeight": 256,
+      "fps": 11,
+      "durations": [
+        100,
+        90,
+        90,
+        90,
+        100,
+        120,
+        170,
+        100,
+        90,
+        90,
+        90,
+        140
+      ],
+      "loop": false,
+      "anchor": {
+        "x": 128,
+        "y": 232
+      },
+      "bytes": 134086
+    },
+    "happy": {
+      "src": "assets/happy.sheet.webp?v=5",
+      "staticSrc": "assets/happy.static.webp?v=5",
+      "frameCount": 12,
+      "columns": 4,
+      "rows": 3,
+      "frameWidth": 256,
+      "frameHeight": 256,
+      "fps": 13,
+      "durations": [
+        110,
+        80,
+        80,
+        80,
+        80,
+        80,
+        80,
+        80,
+        80,
+        80,
+        90,
+        140
+      ],
+      "loop": false,
+      "anchor": {
+        "x": 128,
+        "y": 232
+      },
+      "bytes": 147936
+    },
+    "curious": {
+      "src": "assets/curious.sheet.webp?v=5",
+      "staticSrc": "assets/curious.static.webp?v=5",
+      "frameCount": 12,
+      "columns": 4,
+      "rows": 3,
+      "frameWidth": 256,
+      "frameHeight": 256,
+      "fps": 11,
+      "durations": [
+        100,
+        85,
+        85,
+        85,
+        85,
+        110,
+        180,
+        110,
+        85,
+        85,
+        85,
+        130
+      ],
+      "loop": false,
+      "anchor": {
+        "x": 128,
+        "y": 232
+      },
+      "bytes": 156108
+    },
+    "excited": {
+      "src": "assets/excited.sheet.webp?v=5",
+      "staticSrc": "assets/excited.static.webp?v=5",
+      "frameCount": 16,
+      "columns": 4,
+      "rows": 4,
+      "frameWidth": 256,
+      "frameHeight": 256,
+      "fps": 14,
+      "durations": [
+        90,
+        75,
+        70,
+        75,
+        70,
+        65,
+        65,
+        80,
+        65,
+        70,
+        75,
+        85,
+        75,
+        75,
+        80,
+        110
+      ],
+      "loop": false,
+      "anchor": {
+        "x": 128,
+        "y": 232
+      },
+      "bytes": 199058
+    },
+    "sniff": {
+      "src": "assets/sniff.sheet.webp?v=5",
+      "staticSrc": "assets/sniff.static.webp?v=5",
+      "frameCount": 12,
+      "columns": 4,
+      "rows": 3,
+      "frameWidth": 256,
+      "frameHeight": 256,
+      "fps": 12,
+      "durations": [
+        100,
+        90,
+        90,
+        90,
+        100,
+        140,
+        90,
+        100,
+        140,
+        90,
+        90,
+        130
+      ],
+      "loop": false,
+      "anchor": {
+        "x": 128,
+        "y": 232
+      },
+      "bytes": 139090
+    },
+    "look": {
+      "src": "assets/look.sheet.webp?v=5",
+      "staticSrc": "assets/look.static.webp?v=5",
+      "frameCount": 10,
+      "columns": 5,
+      "rows": 2,
+      "frameWidth": 256,
+      "frameHeight": 256,
+      "fps": 9,
+      "durations": [
+        120,
+        100,
+        100,
+        100,
+        100,
+        180,
+        180,
+        100,
+        100,
+        140
+      ],
+      "loop": false,
+      "anchor": {
+        "x": 128,
+        "y": 232
+      },
+      "bytes": 119226
+    },
+    "drag": {
+      "src": "assets/drag.sheet.webp?v=5",
+      "staticSrc": "assets/drag.static.webp?v=5",
+      "frameCount": 8,
+      "columns": 4,
+      "rows": 2,
+      "frameWidth": 256,
+      "frameHeight": 256,
+      "fps": 9,
+      "durations": [
+        120,
+        100,
+        100,
+        100,
+        100,
+        100,
+        100,
+        120
+      ],
+      "loop": true,
+      "anchor": {
+        "x": 128,
+        "y": 232
+      },
+      "bytes": 89036
+    },
+    "sleep": {
+      "src": "assets/sleep.sheet.webp?v=5",
+      "staticSrc": "assets/sleep.static.webp?v=5",
+      "frameCount": 16,
+      "columns": 4,
+      "rows": 4,
+      "frameWidth": 256,
+      "frameHeight": 256,
+      "fps": 10,
+      "durations": [
+        120,
+        110,
+        110,
+        120,
+        130,
+        140,
+        160,
+        400,
+        650,
+        650,
+        180,
+        140,
+        130,
+        120,
+        110,
+        160
+      ],
+      "loop": false,
+      "anchor": {
+        "x": 128,
+        "y": 232
+      },
+      "bytes": 157170
+    }
+  }
+};

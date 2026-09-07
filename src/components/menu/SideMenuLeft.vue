@@ -100,6 +100,7 @@ import { useRoute } from 'vue-router'
 
 import SideMenuItems from './SideMenuItems.vue'
 import { usePageScroll } from '@/composables/page-scroll'
+import { usePetOverlay } from '@/composables/pet'
 
 const props = defineProps({
   menuOpen: {
@@ -110,6 +111,8 @@ const props = defineProps({
 
 const emit = defineEmits(['closeMenu'])
 const isClient = ref(false)
+const petMenuOverlayVisible = ref(false)
+usePetOverlay(() => petMenuOverlayVisible.value, 'side-menu-left')
 const desktopScrollRef = ref<HTMLElement | null>(null)
 const mobileScrollRef = ref<HTMLElement | null>(null)
 const mobileDialogRef = ref<HTMLElement | null>(null)
@@ -196,6 +199,20 @@ function updateScrollHints() {
   updateMobileHint()
 }
 
+function updatePetMenuOverlayVisibility() {
+  if (!isClient.value || typeof window === 'undefined') {
+    petMenuOverlayVisible.value = false
+    return
+  }
+  petMenuOverlayVisible.value =
+    props.menuOpen && window.matchMedia('(max-width: 767px)').matches
+}
+
+function handleViewportChange() {
+  updateScrollHints()
+  updatePetMenuOverlayVisibility()
+}
+
 function observeScrollContainers() {
   if (!resizeObserver) {
     return
@@ -212,9 +229,10 @@ function observeScrollContainers() {
 
 onMounted(() => {
   isClient.value = true
+  updatePetMenuOverlayVisibility()
   resizeObserver =
     typeof ResizeObserver === 'undefined' ? null : new ResizeObserver(updateScrollHints)
-  window.addEventListener('resize', updateScrollHints)
+  window.addEventListener('resize', handleViewportChange)
   nextTick(() => {
     observeScrollContainers()
     updateScrollHints()
@@ -222,10 +240,11 @@ onMounted(() => {
 })
 
 watch(
-  () => props.menuOpen,
-  async (isOpen) => {
+  () => [props.menuOpen, petMenuOverlayVisible.value] as const,
+  async ([menuOpen, isMobileMenuVisible]) => {
     await nextTick()
-    if (isOpen) {
+    updatePetMenuOverlayVisibility()
+    if (menuOpen && isMobileMenuVisible) {
       releasePageLock?.()
       releasePageLock = pageScroll.lockPageScroll('mobile-menu')
       setBackgroundInert(true)
@@ -252,7 +271,7 @@ onBeforeUnmount(() => {
   releasePageLock = null
   setBackgroundInert(false)
   resizeObserver?.disconnect()
-  window.removeEventListener('resize', updateScrollHints)
+  window.removeEventListener('resize', handleViewportChange)
 })
 </script>
 

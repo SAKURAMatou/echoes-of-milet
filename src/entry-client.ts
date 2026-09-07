@@ -1,5 +1,6 @@
 import { createApp } from './app'
 import { acquireBrowserScrollHistoryLease } from './composables/page-scroll'
+import type { ClientPetHostHandle } from './components/pet/mountPetHost'
 
 declare global {
   interface Window {
@@ -16,14 +17,33 @@ const shouldHydrate = Array.from(appRoot?.childNodes || []).some((node) => {
 
 const historyLease = acquireBrowserScrollHistoryLease()
 let application: ReturnType<typeof createApp> | null = null
+let petHost: ClientPetHostHandle | null = null
 let tornDown = false
 
 function teardown() {
   if (tornDown) return
   tornDown = true
+  petHost?.stop()
+  petHost = null
   application?.app.unmount()
   application?.scrollCoordinator.dispose()
   historyLease.release()
+}
+
+async function bootstrapPetHost() {
+  const petRoot = document.querySelector('[data-pet-client-root]')
+  if (!petRoot || tornDown || !application) return
+
+  try {
+    const { mountPetHost } = await import('./components/pet/mountPetHost')
+    if (tornDown || !application) return
+    petHost = mountPetHost(petRoot, application)
+    await petHost.ready
+  } catch (error) {
+    petHost?.stop()
+    petHost = null
+    console.error('[pet] Client host failed to mount.', error)
+  }
 }
 
 async function bootstrap() {
@@ -35,6 +55,7 @@ async function bootstrap() {
     })
     await application.router.isReady()
     application.app.mount(appRoot || '#app')
+    void bootstrapPetHost()
   } catch (error) {
     teardown()
     throw error

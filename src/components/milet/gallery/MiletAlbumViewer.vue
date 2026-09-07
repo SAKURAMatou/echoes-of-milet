@@ -82,6 +82,7 @@ import { computed, nextTick, onMounted, onUnmounted, ref, watch } from 'vue'
 import axiosInstance from '@/AxiosUtil'
 import { apiRoutes, buildStaticAssetPreviewUrl, buildStaticAssetUrl } from '@/config/api'
 import { MILET_PIC_TEXT } from '@/composables/lang/miletPic'
+import { usePetFancyboxPhotoLifecycle } from '@/composables/pet'
 import '@fancyapps/ui/dist/fancybox/fancybox.css'
 
 type GalleryLang = 'zh' | 'ja' | 'jp'
@@ -130,6 +131,7 @@ const loading = ref(false)
 const error = ref('')
 const useSplitColumns = ref(false)
 const pageText = computed(() => MILET_PIC_TEXT[props.lang === 'ja' ? 'jp' : props.lang])
+const withPetPhotoOptions = usePetFancyboxPhotoLifecycle()
 
 function positiveDimension(value: number | undefined) {
   return Number.isFinite(value) && Number(value) > 0 ? Number(value) : 0
@@ -259,7 +261,7 @@ async function openLightbox(event: MouseEvent, startIndex: number) {
       height: img.h || img.height,
       downloadSrc: img.link,
     }))
-    Fancybox.show(slides, lightboxOptions(startIndex))
+    Fancybox.show(slides, withPetPhotoOptions(lightboxOptions(startIndex)))
   } catch {
     if (componentMounted && requestId === lightboxRequestId && fallbackHref) {
       window.location.assign(fallbackHref)

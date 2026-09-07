@@ -1,5 +1,6 @@
 import { nextTick } from 'vue'
 import loadingImg from '@/assets/loading.gif'
+import { usePetFancyboxPhotoLifecycle } from '@/composables/pet'
 import '@fancyapps/ui/dist/fancybox/fancybox.css'
 
 type EnhancedAnchorRecord = {
@@ -33,6 +34,7 @@ function imageCaption(img: HTMLImageElement) {
 }
 
 export function useArticleImageEnhancements() {
+  const decoratePetPhotoOptions = usePetFancyboxPhotoLifecycle()
   const enhancedAnchors: EnhancedAnchorRecord[] = []
   const wrappedImages: WrappedImageRecord[] = []
   const lazyImages: LazyImageRecord[] = []
@@ -41,8 +43,10 @@ export function useArticleImageEnhancements() {
   let root: HTMLElement | null = null
   let groupName = ''
   let selector = ''
+  let enhancementGeneration = 0
 
   function cleanup() {
+    enhancementGeneration += 1
     if (root && selector) fancyboxApi?.unbind(root, selector)
     lazyObserver?.disconnect()
     lazyObserver = null
@@ -151,16 +155,21 @@ export function useArticleImageEnhancements() {
   async function enhance(container: HTMLElement | null, articleKey: string) {
     cleanup()
     if (!container) return
+    const generation = enhancementGeneration
 
     await nextTick()
+    if (generation !== enhancementGeneration) return
     fancyboxApi = fancyboxApi || (await import('@fancyapps/ui')).Fancybox
+    if (generation !== enhancementGeneration) return
     root = container
     groupName = `article-images-${articleKey.replace(/[^a-z0-9_-]/gi, '-') || 'current'}`
     selector = `[data-fancybox="${groupName}"]`
     setupLazyObserver()
+    if (generation !== enhancementGeneration) return
 
     const images = Array.from(container.querySelectorAll<HTMLImageElement>('img'))
     for (const img of images) {
+      if (generation !== enhancementGeneration) return
       if (img.closest('.milet-album-embed-host,[data-type="milet-album-embed"]')) continue
 
       const imageSrc = applyGifLazyLoading(img)
@@ -192,18 +201,23 @@ export function useArticleImageEnhancements() {
     }
 
     if (wrappedImages.length > 0 || enhancedAnchors.length > 0) {
-      fancyboxApi.bind(container, selector, {
-        Hash: false,
-        Carousel: {
-          Toolbar: {
-            display: {
-              left: ['counter'],
-              middle: [],
-              right: ['download', 'thumbs', 'close'],
+      if (generation !== enhancementGeneration) return
+      fancyboxApi.bind(
+        container,
+        selector,
+        decoratePetPhotoOptions({
+          Hash: false,
+          Carousel: {
+            Toolbar: {
+              display: {
+                left: ['counter'],
+                middle: [],
+                right: ['download', 'thumbs', 'close'],
+              },
             },
           },
-        },
-      })
+        }),
+      )
     }
   }
 

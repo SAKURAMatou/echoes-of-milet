@@ -1,0 +1,197 @@
+/**
+ * Pure geometry helpers for pet pointer thresholds, viewport clamping and
+ * default placement. Deliberately free of Vue/DOM imports for direct testing.
+ */
+
+export interface PetPoint {
+  x: number
+  y: number
+}
+
+export interface PetSize {
+  width: number
+  height: number
+}
+
+export interface PetViewportBox {
+  left: number
+  top: number
+  width: number
+  height: number
+}
+
+export interface PetEdgeInsets {
+  left: number
+  right: number
+  top: number
+  bottom: number
+}
+
+export const PET_DRAG_THRESHOLD_PX = 8
+
+export const PET_MENU_VIEWPORT_MARGIN_PX = 8
+
+export function petPointerDistance(
+  start: PetPoint,
+  current: PetPoint,
+): number {
+  const dx = current.x - start.x
+  const dy = current.y - start.y
+  return Math.sqrt(dx * dx + dy * dy)
+}
+
+export function isPetDragStarted(
+  start: PetPoint,
+  current: PetPoint,
+  threshold = PET_DRAG_THRESHOLD_PX,
+): boolean {
+  const dx = current.x - start.x
+  const dy = current.y - start.y
+  return dx * dx + dy * dy >= threshold * threshold
+}
+
+export function clampPetPosition(
+  point: PetPoint,
+  hostSize: PetSize,
+  box: PetViewportBox,
+  insets: PetEdgeInsets,
+): PetPoint {
+  const minX = box.left + insets.left
+  const maxX = box.left + box.width - insets.right - hostSize.width
+  const minY = box.top + insets.top
+  const maxY = box.top + box.height - insets.bottom - hostSize.height
+
+  const fallbackX = box.left + Math.max(0, insets.left)
+  const fallbackY = box.top + Math.max(0, insets.top)
+
+  return {
+    x: maxX >= minX ? Math.min(maxX, Math.max(minX, point.x)) : fallbackX,
+    y: maxY >= minY ? Math.min(maxY, Math.max(minY, point.y)) : fallbackY,
+  }
+}
+
+export function defaultPetPosition(
+  box: PetViewportBox,
+  hostSize: PetSize,
+  insets: PetEdgeInsets,
+  rightReserved = 0,
+  bottomReserved = 0,
+): PetPoint {
+  const minX = box.left + insets.left
+  const maxX = box.left + box.width - hostSize.width - Math.max(insets.right, rightReserved)
+  const minY = box.top + insets.top
+  const maxY = box.top + box.height - hostSize.height - Math.max(insets.bottom, bottomReserved)
+  return {
+    x: maxX >= minX ? maxX : minX,
+    y: maxY >= minY ? maxY : minY,
+  }
+}
+
+export interface PetLayoutMetricsInput {
+  innerWidth: number
+  innerHeight: number
+  visualViewport: {
+    offsetLeft: number
+    offsetTop: number
+    width: number
+    height: number
+    scale: number
+  } | null
+}
+
+export function resolvePetViewportBox(input: PetLayoutMetricsInput): PetViewportBox {
+  if (!input.visualViewport) {
+    return { left: 0, top: 0, width: input.innerWidth, height: input.innerHeight }
+  }
+
+  return {
+    left: input.visualViewport.offsetLeft,
+    top: input.visualViewport.offsetTop,
+    // visualViewport.width/height are already CSS pixels for the fixed layer.
+    width: input.visualViewport.width,
+    height: input.visualViewport.height,
+  }
+}
+
+export function emptyPetInsets(): PetEdgeInsets {
+  return { left: 0, right: 0, top: 0, bottom: 0 }
+}
+
+export function clampPetNumber(value: number, min: number, max: number): number {
+  return Math.min(max, Math.max(min, value))
+}
+
+export interface PetRadialMenuLayoutInput {
+  viewport: PetViewportBox
+  safeInsets: PetEdgeInsets
+  petX: number
+  petY: number
+  petSize: number
+  itemWidth: number
+  itemHeight: number
+  itemCount: number
+  radius: number
+  spreadDegrees?: number
+  margin?: number
+}
+
+export interface PetRadialMenuItemLayout {
+  left: number
+  top: number
+  originX: number
+  originY: number
+}
+
+/** Places quick actions on an inward-facing arc around the pet. */
+export function resolvePetRadialMenuLayout(
+  input: PetRadialMenuLayoutInput,
+): PetRadialMenuItemLayout[] {
+  if (input.itemCount <= 0) return []
+
+  const margin = input.margin ?? PET_MENU_VIEWPORT_MARGIN_PX
+  const insets = input.safeInsets || emptyPetInsets()
+  const minX = input.viewport.left + Math.max(margin, insets.left)
+  const maxX =
+    input.viewport.left +
+    input.viewport.width -
+    Math.max(margin, insets.right) -
+    input.itemWidth
+  const minY = input.viewport.top + Math.max(margin, insets.top)
+  const maxY =
+    input.viewport.top +
+    input.viewport.height -
+    Math.max(margin, insets.bottom) -
+    input.itemHeight
+  const petCenterX = input.petX + input.petSize / 2
+  const petCenterY = input.petY + input.petSize / 2
+  const viewportCenterX = input.viewport.left + input.viewport.width / 2
+  const viewportCenterY = input.viewport.top + input.viewport.height / 2
+  const centerDx = viewportCenterX - petCenterX
+  const centerDy = viewportCenterY - petCenterY
+  const centerThreshold = input.petSize * 0.35
+  const inwardX = Math.abs(centerDx) <= centerThreshold ? 0 : Math.sign(centerDx)
+  const inwardY = Math.abs(centerDy) <= centerThreshold ? 0 : Math.sign(centerDy)
+  const inwardAngle =
+    inwardX === 0 && inwardY === 0
+      ? -Math.PI / 2
+      : Math.atan2(inwardY, inwardX)
+  const spread = ((input.spreadDegrees ?? 92) * Math.PI) / 180
+
+  return Array.from({ length: input.itemCount }, (_, index) => {
+    const progress = input.itemCount === 1 ? 0.5 : index / (input.itemCount - 1)
+    const angle = inwardAngle - spread / 2 + spread * progress
+    const desiredLeft =
+      petCenterX + Math.cos(angle) * input.radius - input.itemWidth / 2
+    const desiredTop =
+      petCenterY + Math.sin(angle) * input.radius - input.itemHeight / 2
+    const left = clampPetNumber(desiredLeft, minX, Math.max(minX, maxX))
+    const top = clampPetNumber(desiredTop, minY, Math.max(minY, maxY))
+
+    return {
+      left,
+      top,
+      originX: petCenterX - (left + input.itemWidth / 2),
+      originY: petCenterY - (top + input.itemHeight / 2),
+    }
+  })
+}

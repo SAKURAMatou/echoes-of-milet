@@ -315,6 +315,7 @@ import { ABOUT_COPY } from '@/composables/lang/AboutMedata'
 import { apiRoutes } from '@/config/api'
 import { useSiteInteraction } from '@/composables/site-interaction'
 import { usePageScroll } from '@/composables/page-scroll'
+import { usePetOverlay } from '@/composables/pet'
 
 const { appContext } = getCurrentInstance()
 const global = appContext.config.globalProperties
@@ -343,6 +344,7 @@ const toast = reactive({
 const showMessageOwner = ref(true)
 const turnstileRef = ref(null)
 const showConfirm = ref(false)
+usePetOverlay(() => showConfirm.value, 'about-confirm')
 const isSubmitting = ref(false)
 const isClientReady = ref(false)
 const turnstileToken = ref('')

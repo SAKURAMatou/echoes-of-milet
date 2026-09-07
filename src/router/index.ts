@@ -17,6 +17,7 @@ import type {
   SiteInteractionCoordinator,
   SiteNavigationDirection,
 } from '@/composables/site-interaction'
+import type { PetHostApi, PetRouteSnapshot } from '@/composables/pet/petTypes'
 import { resolveInteractionPreset } from '@/composables/site-interaction'
 import { routes } from './routes'
 
@@ -36,6 +37,24 @@ function isLanguageReplace(to: RouteLocationNormalized, from: RouteLocationNorma
     JSON.stringify(to.query) === JSON.stringify(from.query) &&
     to.hash === from.hash
   )
+}
+
+function petRouteSnapshot(to: RouteLocationNormalized): PetRouteSnapshot {
+  const lang =
+    String(Array.isArray(to.params.lang) ? to.params.lang[0] : to.params.lang || '') === 'ja'
+      ? ('ja' as const)
+      : ('zh' as const)
+  return {
+    name: typeof to.name === 'string' ? to.name : null,
+    lang,
+    fullPath: to.fullPath,
+    instanceKey:
+      to.name === 'miletLiveDetail'
+        ? String(
+            Array.isArray(to.params.slug) ? to.params.slug[0] : to.params.slug || '',
+          ) || null
+        : null,
+  }
 }
 
 export function resolveSiteNavigationDirection(options: {
@@ -71,6 +90,7 @@ export function createAppRouter(
   scrollCoordinator: PageScrollCoordinator,
   browserHistoryManager?: BrowserScrollHistoryManager,
   interactionCoordinator?: SiteInteractionCoordinator,
+  petCoordinator?: PetHostApi,
 ) {
   const generationByRoute = new WeakMap<object, number>()
   const historyNavigationByGeneration = new Map<number, boolean>()
@@ -159,6 +179,14 @@ export function createAppRouter(
       historyNavigationByGeneration.delete(generationId)
     })
   }
+
+  // Pet route commits are independent of the optional browser history/scroll
+  // manager. They run on every successful navigation (SSR, CSR fallback and
+  // manager-backed history) and happen before app/business mount notifications.
+  router.afterEach((to, _from, failure) => {
+    if (failure) return
+    petCoordinator?.setRoute(petRouteSnapshot(to))
+  })
 
   return router
 }

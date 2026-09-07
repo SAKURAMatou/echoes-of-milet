@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light">
+  <title>Jean · 动作小样</title>
+  <link rel="stylesheet" href="preview.css?v=5">
+  <!-- 本地素材试验页；沿用公开端 ink/teal/sky/gold。所有资源均在本目录，无持久化、API 或线上路由接入。 -->
+</head>
+<body>
+  <main class="studio" data-screen-label="Jean 动作小样">
+    <header class="masthead">
+      <a class="wordmark" href="#main-stage" aria-label="Jean 动作预览">Jean<span>the little companion</span></a>
+      <span class="edition">ECHOES OF MILET <span class="edition-divider">/</span> MOTION STUDY 01</span>
+    </header>
+
+    <section class="intro">
+      <div><p class="eyebrow">一点呼吸，一点回应。</p><h1>和 Jean 待一会儿。</h1></div>
+      <p class="intro-note">点一下，他会开心。<br>也可以逐个看看九种小动作。</p>
+    </section>
+
+    <div class="workspace">
+      <section class="preview-panel" aria-label="互动预览">
+        <div class="stage-toolbar">
+          <span class="state-pill"><span class="status-dot"></span><span id="state-label">准备素材</span></span>
+          <div class="background-control" role="group" aria-label="预览背景">
+            <button type="button" data-background="paper" aria-label="纸白背景" aria-pressed="true" class="swatch paper"></button>
+            <button type="button" data-background="blue" aria-label="浅蓝背景" aria-pressed="false" class="swatch blue"></button>
+            <button type="button" data-background="night" aria-label="深蓝背景" aria-pressed="false" class="swatch night"></button>
+            <button type="button" data-background="grid" aria-label="透明网格背景" aria-pressed="false" class="swatch grid"></button>
+          </div>
+        </div>
+        <div id="main-stage" class="stage" data-background="paper">
+          <span class="stage-caption">JEAN'S LITTLE CORNER</span>
+          <div class="ground-guide" aria-hidden="true"></div>
+          <button id="pet" class="pet" type="button" aria-label="Jean：点击开心，按住并拖动可以移动" disabled>
+            <span class="sprite" aria-hidden="true"></span>
+          </button>
+          <p id="loading" class="loading" role="status">正在准备 Jean 的动作…</p>
+          <span class="stage-instruction" id="stage-instruction">点击回应 · 拖动互动</span>
+        </div>
+        <div class="stage-footer"><span id="interaction-note" role="status">素材载入后即可互动</span><button type="button" id="reset">回到中间 <span aria-hidden="true">↺</span></button></div>
+      </section>
+
+      <aside class="controls" aria-label="动作与播放控制">
+        <p class="eyebrow">NINE LITTLE MOMENTS</p>
+        <h2>每个动作，都有一点性格。</h2>
+        <div class="action-list" role="group" aria-label="选择动作">
+          <button type="button" data-action="idle" aria-pressed="true"><span class="action-number">01</span><span><strong>Idle <span>待机</span></strong><small>轻轻呼吸，偶尔眨眨眼。</small></span><span class="action-mark" aria-hidden="true">↗</span></button>
+          <button type="button" data-action="sit" aria-pressed="false"><span class="action-number">02</span><span><strong>Sit <span>坐下</span></strong><small>慢慢坐稳，再轻轻站起。</small></span><span class="action-mark" aria-hidden="true">↗</span></button>
+          <button type="button" data-action="happy" aria-pressed="false"><span class="action-number">03</span><span><strong>Happy <span>开心</span></strong><small>摇摇尾巴，回应你的招呼。</small></span><span class="action-mark" aria-hidden="true">↗</span></button>
+          <button type="button" data-action="curious" aria-pressed="false"><span class="action-number">04</span><span><strong>Curious <span>好奇</span></strong><small>竖起耳朵，歪头看一看。</small></span><span class="action-mark" aria-hidden="true">↗</span></button>
+          <button type="button" data-action="excited" aria-pressed="false"><span class="action-number">05</span><span><strong>Excited <span>兴奋</span></strong><small>轻轻蓄力，开心地小跳。</small></span><span class="action-mark" aria-hidden="true">↗</span></button>
+          <button type="button" data-action="sniff" aria-pressed="false"><span class="action-number">06</span><span><strong>Sniff <span>闻嗅</span></strong><small>低下鼻尖，认真闻一闻。</small></span><span class="action-mark" aria-hidden="true">↗</span></button>
+          <button type="button" data-action="look" aria-pressed="false"><span class="action-number">07</span><span><strong>Look <span>观察</span></strong><small>先转眼睛，再望向左上。</small></span><span class="action-mark" aria-hidden="true">↗</span></button>
+          <button type="button" data-action="drag" aria-pressed="false"><span class="action-number">08</span><span><strong>Drag <span>被拖动</span></strong><small>爪子微收，轻轻晃一晃。</small></span><span class="action-mark" aria-hidden="true">↗</span></button>
+          <button type="button" data-action="sleep" aria-pressed="false"><span class="action-number">09</span><span><strong>Sleep <span>小睡</span></strong><small>安静伏下，闭眼休息一会。</small></span><span class="action-mark" aria-hidden="true">↗</span></button>
+        </div>
+        <div class="control-row"><span id="size-label">画布尺寸</span><div class="segmented" role="group" aria-labelledby="size-label"><button type="button" data-size="60" aria-pressed="false">60</button><button type="button" data-size="80" aria-pressed="false">80</button><button type="button" data-size="240" aria-pressed="true">240 px</button></div></div>
+        <div class="control-row"><label for="speed">播放速度</label><select id="speed"><option value="0.5">0.5× · 慢慢看</option><option value="1" selected>1× · 正常</option><option value="1.5">1.5× · 快一点</option></select></div>
+        <div class="play-controls"><button id="play" type="button" class="primary" aria-pressed="true">暂停动画</button><button id="replay" type="button" class="secondary">从头播放</button></div>
+        <div class="scrub-label"><label for="frame">逐帧查看</label><output id="frame-label" for="frame">01 / 08</output></div>
+        <input id="frame" type="range" min="0" max="7" value="0" step="1" aria-label="动画帧">
+        <p id="motion-note" class="motion-note">动作按钮循环预览；点 Jean 播放一次开心，结束后回到待机。</p>
+      </aside>
+    </div>
+
+    <section class="detail-section" aria-labelledby="details-title">
+      <div class="section-heading"><h2 id="details-title">放小，也要看得清。</h2><span>实际尺寸与动作帧</span></div>
+      <div class="detail-grid">
+        <div class="size-proof"><div class="mini-frame"><span class="sprite mini" data-proof-size="60" aria-label="60 像素 Jean"></span></div><div><strong>60 px</strong><span>移动端尺寸</span></div></div>
+        <div class="size-proof"><div class="mini-frame"><span class="sprite mini" data-proof-size="80" aria-label="80 像素 Jean"></span></div><div><strong>80 px</strong><span>桌面端尺寸</span></div></div>
+        <div class="asset-info"><span class="eyebrow">CURRENT CLIP</span><strong id="clip-title">Idle / 待机</strong><span id="clip-spec">8 张关键帧 · 正在载入</span><a id="download" href="assets/idle.sheet.webp" download>下载当前动作图集 ↗</a></div>
+      </div>
+      <div id="filmstrip" class="filmstrip" aria-label="动作关键帧"></div>
+    </section>
+    <footer class="footnote"><span>JEAN · 奶油金毛 / 蜜蜂背心</span><span>九动作素材小样 v3 · <a href="README.md">制作与使用说明</a></span></footer>
+  </main>
+  <script src="assets/manifest.js?v=5"></script>
+  <script src="player.js?v=5"></script>
+  <script src="preview.js?v=5"></script>
+</body>
+</html>

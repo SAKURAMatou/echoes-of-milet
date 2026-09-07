@@ -487,6 +487,7 @@
 import { computed, getCurrentInstance, onBeforeUnmount, ref, watch } from 'vue'
 import type { Track, TrackListenData } from '@/composables/releaseType'
 import { usePageScroll } from '@/composables/page-scroll'
+import { usePetOverlay } from '@/composables/pet'
 import ExtraInformationList from '@/components/milet/extra-information/ExtraInformationList.vue'
 import TrackListenPlatformIcon from './TrackListenPlatformIcon.vue'
 
@@ -527,6 +528,7 @@ const TRACK_MODAL_TEXT = {
 
 const props = defineProps<{ open: boolean; track: Track | null }>()
 const emit = defineEmits<{ (e: 'close'): void }>()
+usePetOverlay(() => props.open, 'track-modal')
 
 const { appContext } = getCurrentInstance()!
 const global = appContext.config.globalProperties

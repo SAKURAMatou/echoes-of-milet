@@ -309,6 +309,7 @@ import { withLangParam } from '@/composables/useLangRoute'
 import { apiRoutes, buildStaticAssetUrl } from '@/config/api'
 import { MILET_GALLERY_TEXT } from '@/composables/lang/miletGallery'
 import { useAppState } from '@/composables/useAppState'
+import { usePetOverlay } from '@/composables/pet'
 import {
   useBusinessAnchorScrollRestoration,
   usePageScroll,
@@ -339,6 +340,7 @@ const GALLERY_NOTICE_DISMISSED_AT_KEY = 'milet-gallery-notice:dismissed-at:v1'
 const GALLERY_NOTICE_REPEAT_MS = 7 * 24 * 60 * 60 * 1000
 const clientMounted = ref(false)
 const noticeOpen = ref(false)
+usePetOverlay(() => noticeOpen.value, 'gallery-notice')
 let noticeTimer = null
 let releaseNoticeLock = null
 

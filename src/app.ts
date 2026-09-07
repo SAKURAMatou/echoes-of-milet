@@ -15,6 +15,7 @@ import {
   createSiteInteractionCoordinator,
   SiteInteractionCoordinatorKey,
 } from './composables/site-interaction'
+import { createPetCoordinator, PetCoordinatorKey } from './composables/pet'
 import { createLangPlugin } from './plugins/LangPlugin'
 import { createAppRouter } from './router'
 import { echoPress } from './directives/echoPress'
@@ -32,17 +33,20 @@ export function createApp(options: CreateAppOptions = {}) {
   const app = shouldHydrate ? createSSRApp(App) : createClientApp(App)
   const scrollCoordinator = createPageScrollCoordinator()
   const interactionCoordinator = createSiteInteractionCoordinator()
+  const petCoordinator = createPetCoordinator()
   const router = createAppRouter(
     import.meta.env.SSR,
     scrollCoordinator,
     options.browserHistoryManager,
     interactionCoordinator,
+    petCoordinator,
   )
   const state = reactive(createInitialState(options.initialState))
 
   app.provide(AppStateKey, state)
   app.provide(PageScrollCoordinatorKey, scrollCoordinator)
   app.provide(SiteInteractionCoordinatorKey, interactionCoordinator)
+  app.provide(PetCoordinatorKey, petCoordinator)
   app.use(router)
   app.directive('echo-press', echoPress)
   app.use(
@@ -67,9 +71,17 @@ export function createApp(options: CreateAppOptions = {}) {
   }
 
   app.onUnmount(() => {
+    petCoordinator.dispose()
     interactionCoordinator.dispose()
     scrollCoordinator.dispose()
   })
 
-  return { app, router, state, scrollCoordinator, interactionCoordinator }
+  return {
+    app,
+    router,
+    state,
+    scrollCoordinator,
+    interactionCoordinator,
+    petCoordinator,
+  }
 }

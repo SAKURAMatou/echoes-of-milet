@@ -211,6 +211,7 @@ import {
 } from '@/composables/miletPilgrimage'
 import { usePilgrimageDataState } from '@/composables/usePilgrimageDataState'
 import { usePilgrimageMapRendering } from '@/composables/usePilgrimageMapRendering'
+import { usePet, usePetFancyboxPhotoLifecycle } from '@/composables/pet'
 
 type LeafletModule = typeof import('leaflet')
 type PilgrimageMapPaneExpose = {
@@ -220,6 +221,8 @@ type PilgrimageMapPaneExpose = {
 const MAP_BOUNDS_PADDING_RATIO = 1
 
 const route = useRoute()
+const pet = usePet()
+const withPetPhotoOptions = usePetFancyboxPhotoLifecycle()
 const mapPaneRef = ref<PilgrimageMapPaneExpose | null>(null)
 const mapFrameRef = ref<HTMLElement | null>(null)
 const areaDockRef = ref<HTMLElement | null>(null)
@@ -234,11 +237,14 @@ const isMobileViewport = ref(false)
 const areaDockPinned = ref(false)
 const areaDockFixedStyle = ref<Record<string, string>>({})
 let districtLoadToken = 0
+let spotSelectionToken = 0
+let fancyboxSetupToken = 0
 let resizeFrame = 0
 let areaDockPinFrame = 0
 let lastViewportWidth = 0
 let suppressDistrictWatch = false
 let fancyboxApi: (typeof import('@fancyapps/ui'))['Fancybox'] | null = null
+let componentMounted = false
 
 const currentLang = computed(() => normalizePilgrimageLang(String(route.params.lang || 'zh')))
 const pageText = computed(() => PILGRIMAGE_TEXT[currentLang.value])
@@ -297,7 +303,7 @@ const {
 } = usePilgrimageDataState({
   currentLang,
   isMobileViewport,
-  autoSelectSpot: selectSpot,
+  autoSelectSpot: (spotId: string) => selectSpotInternal(spotId, 'auto'),
 })
 const { renderMarkers, renderRoutes, startRouteAnimation, stopRouteAnimation } =
   usePilgrimageMapRendering({
@@ -368,11 +374,45 @@ function selectDistrict(districtId: string) {
   syncPilgrimageState()
 }
 
-async function selectSpot(spotId: string) {
+async function selectSpotInternal(spotId: string, origin: 'user' | 'auto') {
+  const selectionToken = ++spotSelectionToken
+  const requestedRouteGeneration = pet.state.route.generation
+  const requestedFullPath = route.fullPath
   selectedSpotId.value = spotId
   applyMapZoomLimits()
   await loadSpotDetail(spotId)
+  if (!componentMounted) return
+  if (!import.meta.env.SSR) {
+    if (
+      selectionToken !== spotSelectionToken ||
+      pet.state.route.generation !== requestedRouteGeneration ||
+      route.fullPath !== requestedFullPath
+    ) {
+      return
+    }
+    const detail = selectedSpotDetail.value
+    const succeeded =
+      Boolean(detail) &&
+      detail?.id === selectedSpotId.value &&
+      String(detail?.id) === spotId &&
+      !spotDetailLoading.value &&
+      !spotDetailError.value
+    if (
+      origin === 'user' &&
+      succeeded &&
+      pet.state.route.mode !== 'hidden'
+    ) {
+      pet.react('location.open', {
+        contentId: String(spotId),
+        routeGeneration: requestedRouteGeneration,
+      })
+    }
+  }
   syncPilgrimageState()
+}
+
+function selectSpot(spotId: string) {
+  void selectSpotInternal(spotId, 'user')
 }
 
 async function setDisplayMode(mode: PilgrimageDisplayMode) {
@@ -757,24 +797,44 @@ async function transitionSelectedArea(districtId: string) {
 }
 
 async function setupFancybox() {
-  if (import.meta.env.SSR) return
-  if (!fancyboxApi) {
-    fancyboxApi = (await import('@fancyapps/ui')).Fancybox
-  }
+  if (import.meta.env.SSR || !componentMounted) return
+  const setupToken = ++fancyboxSetupToken
+  const requestedGallery = galleryName.value
 
+  if (!fancyboxApi) {
+    const imported = await import('@fancyapps/ui')
+    if (
+      setupToken !== fancyboxSetupToken ||
+      !componentMounted ||
+      galleryName.value !== requestedGallery
+    ) {
+      return
+    }
+    fancyboxApi = imported.Fancybox
+  }
   await nextTick()
+  if (
+    setupToken !== fancyboxSetupToken ||
+    !componentMounted ||
+    galleryName.value !== requestedGallery
+  ) {
+    return
+  }
   fancyboxApi.destroy()
-  fancyboxApi.bind(`[data-fancybox='${galleryName.value}']`, {
-    Carousel: {
-      Toolbar: {
-        display: {
-          left: ['counter'],
-          middle: [],
-          right: ['download', 'thumbs', 'close'],
+  fancyboxApi.bind(
+    `[data-fancybox='${requestedGallery}']`,
+    withPetPhotoOptions({
+      Carousel: {
+        Toolbar: {
+          display: {
+            left: ['counter'],
+            middle: [],
+            right: ['download', 'thumbs', 'close'],
+          },
         },
       },
-    },
-  })
+    }),
+  )
 }
 
 watch(
@@ -816,6 +876,7 @@ watch(
 onServerPrefetch(loadInitialPilgrimageData)
 
 onMounted(async () => {
+  componentMounted = true
   updateViewportMode()
   window.addEventListener('resize', updateViewportMode)
   window.addEventListener('scroll', scheduleAreaDockPinUpdate, { passive: true })
@@ -827,6 +888,9 @@ onMounted(async () => {
 })
 
 onBeforeUnmount(() => {
+  componentMounted = false
+  spotSelectionToken += 1
+  fancyboxSetupToken += 1
   window.removeEventListener('resize', updateViewportMode)
   window.removeEventListener('scroll', scheduleAreaDockPinUpdate)
   cancelAnimationFrame(resizeFrame)

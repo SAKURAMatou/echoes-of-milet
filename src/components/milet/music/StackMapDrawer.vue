@@ -56,6 +56,7 @@
 <script setup lang="ts">
 import { getCurrentInstance, computed } from 'vue'
 import { RELEASE_PAGE_TEXT } from '@/composables/lang/ReleaseMetaData'
+import { usePetOverlay } from '@/composables/pet'
 import { usePageAnchorScroll } from '@/composables/usePageAnchorScroll'
 
 const { appContext } = getCurrentInstance()!
@@ -75,10 +76,11 @@ type Chapter = {
   anchorId: string
 }
 
-defineProps<{ open: boolean; chapters: Chapter[] }>()
+const props = defineProps<{ open: boolean; chapters: Chapter[] }>()
 const emit = defineEmits<{
   (e: 'close'): void
 }>()
+usePetOverlay(() => props.open, 'stack-map-drawer')
 
 function onChapterAnchorClick(event: MouseEvent, anchorId: string) {
   event.preventDefault()

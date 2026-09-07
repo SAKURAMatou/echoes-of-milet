@@ -302,6 +302,7 @@ import {
 import { MILET_GALLERY_TEXT } from '@/composables/lang/miletGallery'
 import { buildStaticAssetPreviewUrl, buildStaticAssetUrl } from '@/config/api'
 import { usePageScroll } from '@/composables/page-scroll'
+import { usePetFancyboxPhotoLifecycle } from '@/composables/pet'
 import '@fancyapps/ui/dist/fancybox/fancybox.css'
 
 type IndexedSearchImage = MiletImageSearchItem & { originalIndex: number }
@@ -309,6 +310,7 @@ type TextValues = Record<string, string | number>
 
 const props = withDefaults(defineProps<{ lang?: 'zh' | 'jp' }>(), { lang: 'zh' })
 const emit = defineEmits<{ 'update:active': [active: boolean] }>()
+const withPetPhotoOptions = usePetFancyboxPhotoLifecycle()
 const route = useRoute()
 const router = useRouter()
 const pageScroll = usePageScroll()
@@ -651,7 +653,7 @@ async function openLightbox(event: MouseEvent, startIndex: number) {
       height: positiveDimension(image.height) || undefined,
       downloadSrc: imageOriginalLink(image),
     }))
-    Fancybox.show(slides, lightboxOptions(startIndex))
+    Fancybox.show(slides, withPetPhotoOptions(lightboxOptions(startIndex)))
   } catch {
     if (mounted && currentLightboxRequestId === lightboxRequestId && fallbackHref) {
       window.location.assign(fallbackHref)
