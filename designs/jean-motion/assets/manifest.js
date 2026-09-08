@@ -1,8 +1,8 @@
 window.JEAN_MANIFEST = {
   "version": 3,
   "character": "Jean",
-  "status": "motion-study-v3-variable-frames",
-  "notes": "Generated production pose sequences with action-specific frame counts; processed to transparent WebP runtime sheets.",
+  "status": "motion-study-v3-variable-frames-and-directional-look",
+  "notes": "Generated production pose sequences plus five directional look transitions; processed to transparent WebP runtime sheets.",
   "animations": {
     "idle": {
       "src": "assets/idle.sheet.webp?v=5",
@@ -271,6 +271,126 @@ window.JEAN_MANIFEST = {
         "y": 232
       },
       "bytes": 157170
+    },
+    "lookLeft": {
+      "src": "assets/look-left.sheet.webp?v=8",
+      "staticSrc": "assets/look-left.static.webp?v=8",
+      "frameCount": 6,
+      "columns": 3,
+      "rows": 2,
+      "frameWidth": 256,
+      "frameHeight": 256,
+      "fps": 11,
+      "durations": [
+        90,
+        70,
+        70,
+        80,
+        90,
+        110
+      ],
+      "loop": false,
+      "anchor": {
+        "x": 128,
+        "y": 232
+      },
+      "bytes": 72058
+    },
+    "lookLeftUp": {
+      "src": "assets/look-left-up.sheet.webp?v=8",
+      "staticSrc": "assets/look-left-up.static.webp?v=8",
+      "frameCount": 6,
+      "columns": 3,
+      "rows": 2,
+      "frameWidth": 256,
+      "frameHeight": 256,
+      "fps": 11,
+      "durations": [
+        90,
+        70,
+        70,
+        80,
+        90,
+        110
+      ],
+      "loop": false,
+      "anchor": {
+        "x": 128,
+        "y": 232
+      },
+      "bytes": 76212
+    },
+    "lookUp": {
+      "src": "assets/look-up.sheet.webp?v=8",
+      "staticSrc": "assets/look-up.static.webp?v=8",
+      "frameCount": 6,
+      "columns": 3,
+      "rows": 2,
+      "frameWidth": 256,
+      "frameHeight": 256,
+      "fps": 11,
+      "durations": [
+        90,
+        70,
+        70,
+        80,
+        90,
+        110
+      ],
+      "loop": false,
+      "anchor": {
+        "x": 128,
+        "y": 232
+      },
+      "bytes": 75128
+    },
+    "lookRightUp": {
+      "src": "assets/look-right-up.sheet.webp?v=8",
+      "staticSrc": "assets/look-right-up.static.webp?v=8",
+      "frameCount": 6,
+      "columns": 3,
+      "rows": 2,
+      "frameWidth": 256,
+      "frameHeight": 256,
+      "fps": 11,
+      "durations": [
+        90,
+        70,
+        70,
+        80,
+        90,
+        110
+      ],
+      "loop": false,
+      "anchor": {
+        "x": 128,
+        "y": 232
+      },
+      "bytes": 70868
+    },
+    "lookRight": {
+      "src": "assets/look-right.sheet.webp?v=8",
+      "staticSrc": "assets/look-right.static.webp?v=8",
+      "frameCount": 6,
+      "columns": 3,
+      "rows": 2,
+      "frameWidth": 256,
+      "frameHeight": 256,
+      "fps": 11,
+      "durations": [
+        90,
+        70,
+        70,
+        80,
+        90,
+        110
+      ],
+      "loop": false,
+      "anchor": {
+        "x": 128,
+        "y": 232
+      },
+      "bytes": 72374
     }
   }
 };

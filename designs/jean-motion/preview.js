@@ -10,8 +10,12 @@
   const actionNames = {
     idle: ['Idle', '待机'], sit: ['Sit', '坐下'], happy: ['Happy', '开心'],
     curious: ['Curious', '好奇'], excited: ['Excited', '兴奋'], sniff: ['Sniff', '闻嗅'],
-    look: ['Look', '观察'], drag: ['Drag', '被拖动'], sleep: ['Sleep', '小睡']
+    look: ['Look', '观察'], drag: ['Drag', '被拖动'], sleep: ['Sleep', '小睡'],
+    lookLeft: ['Look left', '左侧'], lookLeftUp: ['Look left-up', '左上'],
+    lookUp: ['Look up', '上方'], lookRightUp: ['Look right-up', '右上'],
+    lookRight: ['Look right', '右侧']
   };
+  const directionalActions = new Set(['lookLeft', 'lookLeftUp', 'lookUp', 'lookRightUp', 'lookRight']);
   let size = 240, position = { x: 0, y: 0 }, bounds = { width: 0, height: 0 };
   let ready = false, pointer = null, raf = null, previousTime = null, rendered = '', lastAction = '';
   let hasMoved = false, suppressClick = false;
@@ -55,7 +59,9 @@
       $('#state-label').textContent = `${english} / ${chinese}`;
       $('#clip-title').textContent = `${english} / ${chinese}`;
       const duration = clip.durations.reduce((sum, value) => sum + value, 0);
-      $('#clip-spec').textContent = `${clip.frameCount} 张关键帧 · ${(duration / 1000).toFixed(1)} 秒 / 轮`;
+      $('#clip-spec').textContent = directionalActions.has(state.action)
+        ? `${clip.frameCount} 张关键帧 · 正向 ${(duration / 1000).toFixed(1)} 秒 · 停留后反向`
+        : `${clip.frameCount} 张关键帧 · ${(duration / 1000).toFixed(1)} 秒 / 轮`;
       $('#download').href = clip.src;
       $('#frame').max = clip.frameCount - 1;
       $$('.action-list button[data-action]').forEach((button) => button.setAttribute('aria-pressed', String(button.dataset.action === state.action)));
@@ -85,10 +91,11 @@
   function startLoop() { if (ready && player.playing && !document.hidden && raf === null) { previousTime = null; raf = requestAnimationFrame(animate); } }
   function selectAction(action, loop = true, source = 'control') {
     if (!ready) return;
-    player.select(action, loop);
+    const mode = source === 'control' && directionalActions.has(action) ? 'direction-preview' : loop;
+    player.select(action, mode);
     player.playing = !reduced.matches;
     stopLoop(); render(true); updatePlayControl(); startLoop();
-    $('#interaction-note').textContent = source === 'pointer' ? '松开后开心一下，再回到待机' : source === 'click' ? 'Jean 收到你的招呼了' : `${actionNames[action][0]} 循环预览`;
+    $('#interaction-note').textContent = source === 'pointer' ? '松开后开心一下，再回到待机' : source === 'click' ? 'Jean 收到你的招呼了' : directionalActions.has(action) ? '进入方向、停留，再沿原路径回到待机' : `${actionNames[action][0]} 循环预览`;
   }
   function seek(frame) { if (!ready) return; player.seek(frame); stopLoop(); render(); updatePlayControl(); }
 
@@ -178,7 +185,7 @@
   const observer = new ResizeObserver(() => { cancelPointer(); measure(); });
   observer.observe(stage);
   function updateMotionNote() {
-    $('#motion-note').textContent = reduced.matches ? '已遵循系统减少动画设置。仍可逐帧查看，或主动点击「播放动画」预览。' : '动作按钮循环预览；点 Jean 播放一次开心，结束后回到待机。';
+    $('#motion-note').textContent = reduced.matches ? '已遵循系统减少动画设置。仍可逐帧查看，或主动点击「播放动画」预览。' : '方向动作按“进入—停留—反向回待机”预览；点 Jean 播放一次开心。';
   }
   $$('.mini').forEach((element) => { element.style.width = element.style.height = `${element.dataset.proofSize}px`; });
   const loads = Object.values(manifest.animations).map((clip) => new Promise((resolve, reject) => {

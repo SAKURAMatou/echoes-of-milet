@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="color-scheme" content="light">
   <title>Jean · 动作小样</title>
-  <link rel="stylesheet" href="preview.css?v=5">
+  <link rel="stylesheet" href="preview.css?v=8">
   <!-- 本地素材试验页；沿用公开端 ink/teal/sky/gold。所有资源均在本目录，无持久化、API 或线上路由接入。 -->
 </head>
 <body>
@@ -17,7 +17,7 @@
 
     <section class="intro">
       <div><p class="eyebrow">一点呼吸，一点回应。</p><h1>和 Jean 待一会儿。</h1></div>
-      <p class="intro-note">点一下，他会开心。<br>也可以逐个看看九种小动作。</p>
+      <p class="intro-note">点一下，他会开心。<br>也可以逐个查看基础动作与五向注视。</p>
     </section>
 
     <div class="workspace">
@@ -44,7 +44,7 @@
       </section>
 
       <aside class="controls" aria-label="动作与播放控制">
-        <p class="eyebrow">NINE LITTLE MOMENTS</p>
+        <p class="eyebrow">FOURTEEN LITTLE MOMENTS</p>
         <h2>每个动作，都有一点性格。</h2>
         <div class="action-list" role="group" aria-label="选择动作">
           <button type="button" data-action="idle" aria-pressed="true"><span class="action-number">01</span><span><strong>Idle <span>待机</span></strong><small>轻轻呼吸，偶尔眨眨眼。</small></span><span class="action-mark" aria-hidden="true">↗</span></button>
@@ -56,13 +56,18 @@
           <button type="button" data-action="look" aria-pressed="false"><span class="action-number">07</span><span><strong>Look <span>观察</span></strong><small>先转眼睛，再望向左上。</small></span><span class="action-mark" aria-hidden="true">↗</span></button>
           <button type="button" data-action="drag" aria-pressed="false"><span class="action-number">08</span><span><strong>Drag <span>被拖动</span></strong><small>爪子微收，轻轻晃一晃。</small></span><span class="action-mark" aria-hidden="true">↗</span></button>
           <button type="button" data-action="sleep" aria-pressed="false"><span class="action-number">09</span><span><strong>Sleep <span>小睡</span></strong><small>安静伏下，闭眼休息一会。</small></span><span class="action-mark" aria-hidden="true">↗</span></button>
+          <button type="button" data-action="lookLeft" aria-pressed="false"><span class="action-number">10</span><span><strong>Left <span>左侧</span></strong><small>鼠标从左侧靠近时轻轻跟随。</small></span><span class="action-mark" aria-hidden="true">↗</span></button>
+          <button type="button" data-action="lookLeftUp" aria-pressed="false"><span class="action-number">11</span><span><strong>Left-up <span>左上</span></strong><small>视线和鼻尖逐步抬向左上。</small></span><span class="action-mark" aria-hidden="true">↗</span></button>
+          <button type="button" data-action="lookUp" aria-pressed="false"><span class="action-number">12</span><span><strong>Up <span>上方</span></strong><small>抬头看向宠物正上方。</small></span><span class="action-mark" aria-hidden="true">↗</span></button>
+          <button type="button" data-action="lookRightUp" aria-pressed="false"><span class="action-number">13</span><span><strong>Right-up <span>右上</span></strong><small>转头并抬眼追随右上方。</small></span><span class="action-mark" aria-hidden="true">↗</span></button>
+          <button type="button" data-action="lookRight" aria-pressed="false"><span class="action-number">14</span><span><strong>Right <span>右侧</span></strong><small>越过肩侧看向右边。</small></span><span class="action-mark" aria-hidden="true">↗</span></button>
         </div>
         <div class="control-row"><span id="size-label">画布尺寸</span><div class="segmented" role="group" aria-labelledby="size-label"><button type="button" data-size="60" aria-pressed="false">60</button><button type="button" data-size="80" aria-pressed="false">80</button><button type="button" data-size="240" aria-pressed="true">240 px</button></div></div>
         <div class="control-row"><label for="speed">播放速度</label><select id="speed"><option value="0.5">0.5× · 慢慢看</option><option value="1" selected>1× · 正常</option><option value="1.5">1.5× · 快一点</option></select></div>
         <div class="play-controls"><button id="play" type="button" class="primary" aria-pressed="true">暂停动画</button><button id="replay" type="button" class="secondary">从头播放</button></div>
         <div class="scrub-label"><label for="frame">逐帧查看</label><output id="frame-label" for="frame">01 / 08</output></div>
         <input id="frame" type="range" min="0" max="7" value="0" step="1" aria-label="动画帧">
-        <p id="motion-note" class="motion-note">动作按钮循环预览；点 Jean 播放一次开心，结束后回到待机。</p>
+        <p id="motion-note" class="motion-note">方向动作按“进入—停留—反向回待机”预览；点 Jean 播放一次开心。</p>
       </aside>
     </div>
 
@@ -75,10 +80,10 @@
       </div>
       <div id="filmstrip" class="filmstrip" aria-label="动作关键帧"></div>
     </section>
-    <footer class="footnote"><span>JEAN · 奶油金毛 / 蜜蜂背心</span><span>九动作素材小样 v3 · <a href="README.md">制作与使用说明</a></span></footer>
+    <footer class="footnote"><span>JEAN · 奶油金毛 / 蜜蜂背心</span><span>十四动作素材小样 v4 · <a href="prompts.md">母图与动作提示词</a></span></footer>
   </main>
-  <script src="assets/manifest.js?v=5"></script>
-  <script src="player.js?v=5"></script>
-  <script src="preview.js?v=5"></script>
+  <script src="assets/manifest.js?v=8"></script>
+  <script src="player.js?v=8"></script>
+  <script src="preview.js?v=8"></script>
 </body>
 </html>
