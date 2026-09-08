@@ -6,6 +6,7 @@ Requires Pillow and numpy. No network or model calls.
 """
 from collections import deque
 from pathlib import Path
+import argparse
 import json
 
 import numpy as np
@@ -18,7 +19,7 @@ SOURCE = ASSETS / 'source'
 FRAME = 256
 ANCHOR_X = 128
 BASELINE_Y = 232
-ASSET_VERSION = 5
+ASSET_VERSION = 8
 
 ACTION_SPECS = {
     'idle': {
@@ -49,6 +50,26 @@ ACTION_SPECS = {
         'columns': 5, 'rows': 2, 'fps': 9, 'loop': False,
         'durations': [120, 100, 100, 100, 100, 180, 180, 100, 100, 140],
     },
+    'lookLeft': {
+        'slug': 'look-left', 'columns': 3, 'rows': 2, 'fps': 11, 'loop': False,
+        'durations': [90, 70, 70, 80, 90, 110], 'staticFrame': -1,
+    },
+    'lookLeftUp': {
+        'slug': 'look-left-up', 'columns': 3, 'rows': 2, 'fps': 11, 'loop': False,
+        'durations': [90, 70, 70, 80, 90, 110], 'staticFrame': -1,
+    },
+    'lookUp': {
+        'slug': 'look-up', 'columns': 3, 'rows': 2, 'fps': 11, 'loop': False,
+        'durations': [90, 70, 70, 80, 90, 110], 'staticFrame': -1,
+    },
+    'lookRightUp': {
+        'slug': 'look-right-up', 'columns': 3, 'rows': 2, 'fps': 11, 'loop': False,
+        'durations': [90, 70, 70, 80, 90, 110], 'staticFrame': -1,
+    },
+    'lookRight': {
+        'slug': 'look-right', 'columns': 3, 'rows': 2, 'fps': 11, 'loop': False,
+        'durations': [90, 70, 70, 80, 90, 110], 'staticFrame': -1,
+    },
     'drag': {
         'columns': 4, 'rows': 2, 'fps': 9, 'loop': True,
         'durations': [120, 100, 100, 100, 100, 100, 100, 120],
@@ -69,15 +90,29 @@ ACTION_SPECS = {
 EXCITED_Y_OFFSETS = [0, 0, 0, 0, -2, -14, -30, -44, -34, -18, 0, 0, -8, -2, 0, 0]
 
 
-def neutral_matte(image):
+def neutral_matte(image, matte=None):
     """Convert a neutral bright matte to a soft, dematted alpha channel."""
     rgb = np.asarray(image.convert('RGB'), dtype=np.float32)
     border = np.concatenate((rgb[0], rgb[-1], rgb[:, 0], rgb[:, -1]))
     pure_white_source = float(border.mean()) > 248 and float(border.std()) < 2.5
+    border_chroma = border.max(axis=1) - border.min(axis=1)
+    neutral_checker_source = matte == 'checker' or float(np.median(border_chroma)) < 4
     if pure_white_source:
         background = np.median(border, axis=0)
         distance = np.linalg.norm(rgb - background, axis=2)
         alpha = np.clip((distance - 1.5) / 16, 0, 1)
+    elif neutral_checker_source:
+        # Image generators sometimes draw a grey checkerboard instead of
+        # returning real alpha. Its pixels are neutral while every Jean color,
+        # including the navy details, has measurable chroma. Dematte against
+        # the local grey value so antialiased fur edges remain warm.
+        chroma = rgb.max(axis=2) - rgb.min(axis=2)
+        # Generated checkerboards sometimes pick up small coloured ripples near
+        # the subject. Start alpha above that noise floor; the largest-component
+        # pass below then preserves Jean while dropping detached remnants.
+        alpha = np.clip((chroma - 6) / 20, 0, 1)
+        local_grey = rgb.mean(axis=2, keepdims=True)
+        background = np.repeat(local_grey, 3, axis=2)
     else:
         # Kept for rebuilding the older neutral-checkerboard studies.
         chroma = rgb.max(axis=2) - rgb.min(axis=2)
@@ -86,7 +121,8 @@ def neutral_matte(image):
         background = np.full(3, 245, dtype=np.float32)
     rim = (alpha > 0) & (alpha < 1)
     safe_alpha = np.maximum(alpha[rim, None], .25)
-    rgb[rim] = np.clip((rgb[rim] - (1 - safe_alpha) * background) / safe_alpha, 0, 255)
+    rim_background = background[rim] if background.ndim == 3 else background
+    rgb[rim] = np.clip((rgb[rim] - (1 - safe_alpha) * rim_background) / safe_alpha, 0, 255)
     rgba = np.dstack((rgb.astype(np.uint8), np.round(alpha * 255).astype(np.uint8)))
     rgba[alpha == 0, :3] = 0
     return Image.fromarray(rgba)
@@ -150,14 +186,14 @@ def garment_anchor(image):
     return float(np.median(xs)), float(np.median(ys))
 
 
-def extract_frames(image, columns, rows, frame_count, top_overscan=None):
+def extract_frames(image, columns, rows, frame_count, top_overscan=None, matte=None):
     expected_ratio = columns / rows
     actual_ratio = image.width / image.height
     if abs(actual_ratio / expected_ratio - 1) > .015:
         raise ValueError(
             f'Unexpected source ratio {image.width}x{image.height} for {columns}x{rows}'
         )
-    clean = neutral_matte(image)
+    clean = neutral_matte(image, matte)
     frames = []
     for index in range(frame_count):
         col, row = index % columns, index // columns
@@ -220,19 +256,48 @@ def normalize_frames(name, records):
     return normalized
 
 
-def find_source(name):
+def find_source(name, spec):
+    slug = spec.get('slug', name)
     for suffix in ('png', 'webp'):
-        path = SOURCE / f'{name}-generated.{suffix}'
+        path = SOURCE / f'{slug}-generated.{suffix}'
         if path.exists():
             return path
-    raise FileNotFoundError(f'Missing {name}-generated.png/webp in {SOURCE}')
+    raise FileNotFoundError(f'Missing {slug}-generated.png/webp in {SOURCE}')
 
 
 def main():
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument(
+        'actions', nargs='*', choices=ACTION_SPECS,
+        help='Only rebuild these actions. With no names, rebuild every source currently present.',
+    )
+    args = parser.parse_args()
     ASSETS.mkdir(exist_ok=True)
-    animations, report = {}, {}
+    manifest_path = ASSETS / 'manifest.json'
+    if manifest_path.exists():
+        animations = json.loads(manifest_path.read_text(encoding='utf-8')).get('animations', {})
+    else:
+        animations = {}
+    requested = set(args.actions)
+    selected = []
     for name, spec in ACTION_SPECS.items():
-        source_path = find_source(name)
+        if requested:
+            if name in requested:
+                selected.append((name, spec))
+        else:
+            slug = spec.get('slug', name)
+            if any((SOURCE / f'{slug}-generated.{suffix}').exists() for suffix in ('png', 'webp')):
+                selected.append((name, spec))
+    if requested - {name for name, _ in selected}:
+        raise ValueError('Unknown requested action')
+    if not selected:
+        raise FileNotFoundError(f'No generated PNG/WebP sources found in {SOURCE}')
+
+    idle_reference_path = ASSETS / 'idle.static.webp'
+    idle_reference = Image.open(idle_reference_path).convert('RGBA') if idle_reference_path.exists() else None
+    report = {}
+    for name, spec in selected:
+        source_path = find_source(name, spec)
         original = Image.open(source_path)
         frame_count = len(spec['durations'])
         records = extract_frames(
@@ -241,21 +306,25 @@ def main():
             spec['rows'],
             frame_count,
             spec.get('topOverscan'),
+            spec.get('matte'),
         )
         normalized = normalize_frames(name, records)
+        if name.startswith('look') and name != 'look' and idle_reference is not None:
+            normalized[0] = idle_reference.copy()
 
         sheet = Image.new('RGBA', (FRAME * spec['columns'], FRAME * spec['rows']))
         for index, frame in enumerate(normalized):
             sheet.alpha_composite(frame, ((index % spec['columns']) * FRAME,
                                           (index // spec['columns']) * FRAME))
-        sheet_path = ASSETS / f'{name}.sheet.webp'
-        static_path = ASSETS / f'{name}.static.webp'
+        slug = spec.get('slug', name)
+        sheet_path = ASSETS / f'{slug}.sheet.webp'
+        static_path = ASSETS / f'{slug}.static.webp'
         sheet.save(sheet_path, 'WEBP', quality=88, method=6, exact=True)
-        normalized[0].save(static_path, 'WEBP', quality=88, method=6, exact=True)
+        normalized[spec.get('staticFrame', 0)].save(static_path, 'WEBP', quality=88, method=6, exact=True)
 
         animations[name] = {
-            'src': f'assets/{name}.sheet.webp?v={ASSET_VERSION}',
-            'staticSrc': f'assets/{name}.static.webp?v={ASSET_VERSION}',
+            'src': f'assets/{slug}.sheet.webp?v={ASSET_VERSION}',
+            'staticSrc': f'assets/{slug}.static.webp?v={ASSET_VERSION}',
             'frameCount': frame_count,
             'columns': spec['columns'],
             'rows': spec['rows'],
@@ -283,8 +352,8 @@ def main():
     manifest = {
         'version': 3,
         'character': 'Jean',
-        'status': 'motion-study-v3-variable-frames',
-        'notes': 'Generated production pose sequences with action-specific frame counts; processed to transparent WebP runtime sheets.',
+        'status': 'motion-study-v3-variable-frames-and-directional-look',
+        'notes': 'Generated production pose sequences plus five directional look transitions; processed to transparent WebP runtime sheets.',
         'animations': animations,
     }
     data = json.dumps(manifest, ensure_ascii=False, indent=2)

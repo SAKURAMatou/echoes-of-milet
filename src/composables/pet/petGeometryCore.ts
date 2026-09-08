@@ -31,10 +31,9 @@ export const PET_DRAG_THRESHOLD_PX = 8
 
 export const PET_MENU_VIEWPORT_MARGIN_PX = 8
 
-export function petPointerDistance(
-  start: PetPoint,
-  current: PetPoint,
-): number {
+export const PET_SPEECH_VIEWPORT_MARGIN_PX = 10
+
+export function petPointerDistance(start: PetPoint, current: PetPoint): number {
   const dx = current.x - start.x
   const dy = current.y - start.y
   return Math.sqrt(dx * dx + dy * dy)
@@ -121,6 +120,94 @@ export function clampPetNumber(value: number, min: number, max: number): number 
   return Math.min(max, Math.max(min, value))
 }
 
+export type PetSpeechBubbleHorizontal = 'left' | 'right'
+export type PetSpeechBubbleVertical = 'above' | 'below'
+
+export interface PetSpeechBubbleLayoutInput {
+  viewport: PetViewportBox
+  safeInsets: PetEdgeInsets
+  petX: number
+  petY: number
+  petSize: number
+  bubbleWidth: number
+  bubbleHeight: number
+  margin?: number
+}
+
+export interface PetSpeechBubbleLayout {
+  left: number
+  top: number
+  horizontal: PetSpeechBubbleHorizontal
+  vertical: PetSpeechBubbleVertical
+}
+
+/**
+ * Places Jean's speech bubble toward the open side of the viewport, then
+ * flips it when that side cannot fit. The final clamp keeps the whole bubble
+ * inside the visual viewport and its safe-area insets.
+ */
+export function resolvePetSpeechBubbleLayout(
+  input: PetSpeechBubbleLayoutInput,
+): PetSpeechBubbleLayout {
+  const margin = input.margin ?? PET_SPEECH_VIEWPORT_MARGIN_PX
+  const insets = input.safeInsets || emptyPetInsets()
+  const minX = input.viewport.left + Math.max(margin, insets.left)
+  const maxX =
+    input.viewport.left + input.viewport.width - Math.max(margin, insets.right) - input.bubbleWidth
+  const minY = input.viewport.top + Math.max(margin, insets.top)
+  const maxY =
+    input.viewport.top +
+    input.viewport.height -
+    Math.max(margin, insets.bottom) -
+    input.bubbleHeight
+  const petCenterX = input.petX + input.petSize / 2
+  const petCenterY = input.petY + input.petSize / 2
+  const viewportCenterX = input.viewport.left + input.viewport.width / 2
+
+  const horizontalCandidates: Record<PetSpeechBubbleHorizontal, number> = {
+    left: input.petX - input.bubbleWidth + input.petSize * 0.34,
+    right: input.petX + input.petSize * 0.66,
+  }
+  const preferredHorizontal: PetSpeechBubbleHorizontal =
+    petCenterX >= viewportCenterX ? 'left' : 'right'
+  const alternateHorizontal: PetSpeechBubbleHorizontal =
+    preferredHorizontal === 'left' ? 'right' : 'left'
+  const fitsHorizontally = (side: PetSpeechBubbleHorizontal) => {
+    const value = horizontalCandidates[side]
+    return value >= minX && value <= maxX
+  }
+  const horizontal = fitsHorizontally(preferredHorizontal)
+    ? preferredHorizontal
+    : fitsHorizontally(alternateHorizontal)
+      ? alternateHorizontal
+      : preferredHorizontal
+
+  const verticalCandidates: Record<PetSpeechBubbleVertical, number> = {
+    above: input.petY - input.bubbleHeight + input.petSize * 0.18,
+    below: input.petY + input.petSize * 0.82,
+  }
+  const preferredVertical: PetSpeechBubbleVertical =
+    petCenterY >= input.viewport.top + input.viewport.height / 2 ? 'above' : 'below'
+  const alternateVertical: PetSpeechBubbleVertical =
+    preferredVertical === 'above' ? 'below' : 'above'
+  const fitsVertically = (side: PetSpeechBubbleVertical) => {
+    const value = verticalCandidates[side]
+    return value >= minY && value <= maxY
+  }
+  const vertical = fitsVertically(preferredVertical)
+    ? preferredVertical
+    : fitsVertically(alternateVertical)
+      ? alternateVertical
+      : preferredVertical
+
+  return {
+    left: clampPetNumber(horizontalCandidates[horizontal], minX, Math.max(minX, maxX)),
+    top: clampPetNumber(verticalCandidates[vertical], minY, Math.max(minY, maxY)),
+    horizontal,
+    vertical,
+  }
+}
+
 export interface PetRadialMenuLayoutInput {
   viewport: PetViewportBox
   safeInsets: PetEdgeInsets
@@ -161,16 +248,10 @@ export function resolvePetRadialMenuLayout(
   const insets = input.safeInsets || emptyPetInsets()
   const minX = input.viewport.left + Math.max(margin, insets.left)
   const maxX =
-    input.viewport.left +
-    input.viewport.width -
-    Math.max(margin, insets.right) -
-    input.itemWidth
+    input.viewport.left + input.viewport.width - Math.max(margin, insets.right) - input.itemWidth
   const minY = input.viewport.top + Math.max(margin, insets.top)
   const maxY =
-    input.viewport.top +
-    input.viewport.height -
-    Math.max(margin, insets.bottom) -
-    input.itemHeight
+    input.viewport.top + input.viewport.height - Math.max(margin, insets.bottom) - input.itemHeight
   const petCenterX = input.petX + input.petSize / 2
   const petCenterY = input.petY + input.petSize / 2
   const viewportCenterX = input.viewport.left + input.viewport.width / 2
@@ -204,9 +285,7 @@ export function resolvePetRadialMenuLayout(
       offsetY = (index - (input.itemCount - 1) / 2) * verticalStep
     } else {
       const verticalDirection = inwardY || -1
-      offsetY =
-        verticalDirection *
-        (minimumVerticalRadius + index * verticalStep)
+      offsetY = verticalDirection * (minimumVerticalRadius + index * verticalStep)
     }
 
     const desiredLeft = petCenterX + offsetX - input.itemWidth / 2

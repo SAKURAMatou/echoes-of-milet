@@ -15,11 +15,30 @@ export const PET_ACTIONS = [
   'look',
   'drag',
   'sleep',
+  'lookLeft',
+  'lookLeftUp',
+  'lookUp',
+  'lookRightUp',
+  'lookRight',
 ] as const
 
 export type PetAction = (typeof PET_ACTIONS)[number]
 
-export type PetAnimationPriority = 0 | 1 | 2 | 3 | 4
+export type PetAnimationPriority = 0 | 1 | 2 | 3 | 4 | 5
+export type PetPlayback = 'loop' | 'once' | 'forwardHold' | 'reverseOnce'
+export type PetLookDirection = 'left' | 'leftUp' | 'up' | 'rightUp' | 'right'
+export type PetDirectReaction = 'single' | 'double' | 'longPress'
+export type PetAttentionPhase = 'inactive' | 'entering' | 'holding' | 'leaving'
+
+export const PET_SPEECH_KEYS = [
+  'gentleTouch',
+  'doubleWag',
+  'stayClose',
+  'cozySpot',
+  'nearbyPresence',
+] as const
+
+export type PetSpeechKey = (typeof PET_SPEECH_KEYS)[number]
 
 export type PetEvent =
   | 'timeline.enter'
@@ -50,6 +69,7 @@ export type PetAssetStatuses = Record<PetAction, PetAssetStatus>
 export interface PetAnimationRuntimeState {
   action: PetAction
   priority: PetAnimationPriority
+  playback: PetPlayback
   generation: number
   requestedAt: number
   /**
@@ -57,6 +77,18 @@ export interface PetAnimationRuntimeState {
    * displayed without an active animation lock or an expected completion.
    */
   settled?: boolean
+}
+
+export interface PetAttentionState {
+  direction: PetLookDirection | null
+  pendingDirection: PetLookDirection | null
+  phase: PetAttentionPhase
+}
+
+export interface PetSpeechState {
+  visible: boolean
+  messageKey: PetSpeechKey | null
+  generation: number
 }
 
 export interface PetRouteState {
@@ -81,6 +113,8 @@ export interface PetState {
   menuOpen: boolean
   dragging: boolean
   animation: PetAnimationRuntimeState
+  attention: PetAttentionState
+  speech: PetSpeechState
   route: PetRouteState
   position: PetPositionState
   assets: PetAssetStatuses
@@ -113,6 +147,10 @@ export interface PetHostApi extends PetBusinessApi {
   setStaticReady(ready: boolean): void
   setAssetStatus(action: PetAction, status: Partial<PetAssetStatus>): void
   playUserHappy(): void
+  playDirectReaction(trigger: PetDirectReaction): void
+  beginAttention(direction: PetLookDirection): void
+  updateAttention(direction: PetLookDirection): void
+  endAttention(): void
   openMenu(): void
   closeMenu(): void
   setPosition(position: PetPositionState): void

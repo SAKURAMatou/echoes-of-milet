@@ -7,14 +7,12 @@
     :aria-hidden="!petVisible"
   >
     <template v-if="petVisible && currentMeta">
-      <div
-        class="pet-host-spot absolute"
-        :style="spotStyle"
-      >
+      <div class="pet-host-spot absolute" :style="spotStyle">
         <PetAvatar
           ref="avatarCompRef"
           :action="currentAction"
           :animation-generation="state.animation.generation"
+          :playback="state.animation.playback"
           :aria-controls="menuId"
           :aria-expanded="state.menuOpen"
           :meta="currentMeta"
@@ -28,6 +26,18 @@
           @complete="pet.completeAnimation"
         />
       </div>
+      <PetSpeechBubble
+        :visible="state.speech.visible"
+        :message="speechText"
+        :generation="state.speech.generation"
+        :lang="urlLang"
+        :pet-x="petPosition.x"
+        :pet-y="petPosition.y"
+        :pet-size="hostSizePx"
+        :viewport="viewportBox"
+        :safe-insets="safeInsets"
+        :is-mobile="isMobileViewport"
+      />
       <PetQuickMenu
         :open="state.menuOpen"
         :menu-id="menuId"
@@ -46,23 +56,17 @@
 </template>
 
 <script setup lang="ts">
-import {
-  computed,
-  nextTick,
-  onBeforeUnmount,
-  onMounted,
-  ref,
-  useId,
-  watch,
-} from 'vue'
+import { computed, nextTick, onBeforeUnmount, onMounted, ref, useId, watch } from 'vue'
 import { useRoute } from 'vue-router'
 
 import PetAvatar from './PetAvatar.vue'
 import PetQuickMenu from './PetQuickMenu.vue'
+import PetSpeechBubble from './PetSpeechBubble.vue'
 
 import { PET_ANIMATION_ASSETS } from '@/assets/pet'
 import {
   PET_CORE_PRELOAD_ACTIONS,
+  PET_ATTENTION_RESUME_SUPPRESS_MS,
   PET_DEFAULT_BOTTOM_PX,
   PET_DEFAULT_EDGE_PX,
   PET_DEFAULT_RIGHT_DESKTOP_PX,
@@ -71,6 +75,7 @@ import {
   PET_HOST_SIZE_MOBILE_PX,
   PET_MENU_DELAY_MS,
   PET_MOBILE_MAX_WIDTH_PX,
+  PET_LOOK_ACTION_BY_DIRECTION,
 } from '@/config/pet'
 import { PET_TEXT } from '@/composables/lang/pet'
 import {
@@ -84,7 +89,13 @@ import {
 } from '@/composables/pet/petGeometryCore'
 import { usePetHostControls } from '@/composables/pet/petInjection'
 import { createPetPointerController } from '@/composables/pet/usePetPointer'
-import type { PetAction, PetAssetStatus, PetUrlLang } from '@/composables/pet/petTypes'
+import { createPetProximityController } from '@/composables/pet/usePetProximity'
+import type {
+  PetAction,
+  PetAssetStatus,
+  PetLookDirection,
+  PetUrlLang,
+} from '@/composables/pet/petTypes'
 import { useSiteInteraction } from '@/composables/site-interaction'
 import { toSupportedLang } from '@/composables/useLangRoute'
 
@@ -115,6 +126,10 @@ const urlLang = computed<PetUrlLang>(() =>
 const copyLang = computed(() => (toSupportedLang(urlLang.value) === 'jp' ? 'jp' : 'zh'))
 const petText = computed(() => PET_TEXT[copyLang.value])
 const petButtonLabel = computed(() => petText.value.petButtonLabel)
+const speechText = computed(() => {
+  const key = state.speech.messageKey
+  return key ? petText.value.speech[key] : ''
+})
 const menuText = computed(() => ({
   menuLabel: petText.value.menuLabel,
   items: petText.value.items,
@@ -153,6 +168,7 @@ const staticSrcForAction = computed(() => {
 })
 
 let pointerController: ReturnType<typeof createPetPointerController> | null = null
+let proximityController: ReturnType<typeof createPetProximityController> | null = null
 let pointerElement: HTMLElement | null = null
 let pointerGrabOffset: PetPoint | null = null
 let menuTimer: ReturnType<typeof setTimeout> | null = null
@@ -219,9 +235,7 @@ function clampInsets(): PetEdgeInsets {
 
 function measureViewport() {
   if (typeof window === 'undefined' || disposed.value) return
-  isMobileViewport.value = window.matchMedia(
-    `(max-width: ${PET_MOBILE_MAX_WIDTH_PX}px)`,
-  ).matches
+  isMobileViewport.value = window.matchMedia(`(max-width: ${PET_MOBILE_MAX_WIDTH_PX}px)`).matches
   viewportBox.value = resolvePetViewportBox({
     innerWidth: window.innerWidth,
     innerHeight: window.innerHeight,
@@ -237,9 +251,8 @@ function measureViewport() {
   })
   safeInsets.value = readSafeInsets()
   const rightReserved =
-    (isMobileViewport.value
-      ? PET_DEFAULT_RIGHT_MOBILE_PX
-      : PET_DEFAULT_RIGHT_DESKTOP_PX) + safeInsets.value.right
+    (isMobileViewport.value ? PET_DEFAULT_RIGHT_MOBILE_PX : PET_DEFAULT_RIGHT_DESKTOP_PX) +
+    safeInsets.value.right
   const bottomReserved = PET_DEFAULT_BOTTOM_PX + safeInsets.value.bottom
   const insets = clampInsets()
 
@@ -254,9 +267,7 @@ function measureViewport() {
     pet.setPosition(next)
     placed.value = true
   } else {
-    pet.setPosition(
-      clampPetPosition(petPosition.value, hostSize.value, viewportBox.value, insets),
-    )
+    pet.setPosition(clampPetPosition(petPosition.value, hostSize.value, viewportBox.value, insets))
   }
 }
 
@@ -290,65 +301,122 @@ function detachPointer() {
   pointerGrabOffset = null
 }
 
+const adjacentLookDirections: Record<PetLookDirection, readonly PetLookDirection[]> = {
+  left: ['leftUp'],
+  leftUp: ['left', 'up'],
+  up: ['leftUp', 'rightUp'],
+  rightUp: ['up', 'right'],
+  right: ['rightUp'],
+}
+
+async function ensureAttentionAssets(direction: PetLookDirection) {
+  const directions = [direction, ...adjacentLookDirections[direction]]
+  await Promise.allSettled(
+    directions.map((item) => ensureAsset(PET_LOOK_ACTION_BY_DIRECTION[item], ['sheet', 'static'])),
+  )
+  proximityController?.reevaluate()
+}
+
+function suppressAttention() {
+  proximityController?.suppress(PET_ATTENTION_RESUME_SUPPRESS_MS)
+  pet.endAttention()
+}
+
 function syncPointerAttachment() {
   const button = petButtonElement()
-  if (
-    !mounted.value ||
-    !petVisible.value ||
-    !button ||
-    disposed.value
-  ) {
+  if (!mounted.value || !petVisible.value || !button || disposed.value) {
     detachPointer()
     return
   }
   if (pointerController && pointerElement === button) return
   detachPointer()
   pointerElement = button
-  pointerController = createPetPointerController({
-    onPointerDown(point) {
-      const current = petPosition.value
-      pointerGrabOffset = {
-        x: point.x - current.x,
-        y: point.y - current.y,
-      }
-    },
-    onActivate() {
-      const wasOpen = pet.state.menuOpen
-      pet.playUserHappy()
-      if (!wasOpen) scheduleMenuOpenAfterActivation()
-    },
-    onDragStart(point) {
-      clearMenuTimer()
-      if (!pointerGrabOffset) {
+  pointerController = createPetPointerController(
+    {
+      onPointerDown(point) {
+        suppressAttention()
+        const current = petPosition.value
         pointerGrabOffset = {
-          x: hostSizePx.value / 2,
-          y: hostSizePx.value / 2,
+          x: point.x - current.x,
+          y: point.y - current.y,
         }
-      }
-      pet.beginDrag(
-        currentClampedPoint({
-          x: point.x - pointerGrabOffset.x,
-          y: point.y - pointerGrabOffset.y,
-        }),
-      )
+      },
+      onSingleActivate() {
+        const wasOpen = pet.state.menuOpen
+        pet.playDirectReaction('single')
+        if (!wasOpen) scheduleMenuOpenAfterActivation()
+      },
+      onDoubleActivate() {
+        clearMenuTimer()
+        suppressAttention()
+        pet.playDirectReaction('double')
+      },
+      onLongPress() {
+        clearMenuTimer()
+        suppressAttention()
+        pet.playDirectReaction('longPress')
+      },
+      onDragStart(point) {
+        clearMenuTimer()
+        suppressAttention()
+        if (!pointerGrabOffset) {
+          pointerGrabOffset = {
+            x: hostSizePx.value / 2,
+            y: hostSizePx.value / 2,
+          }
+        }
+        pet.beginDrag(
+          currentClampedPoint({
+            x: point.x - pointerGrabOffset.x,
+            y: point.y - pointerGrabOffset.y,
+          }),
+        )
+      },
+      onDragMove(point) {
+        clearMenuTimer()
+        if (!pointerGrabOffset) return
+        pet.updateDragPosition(
+          currentClampedPoint({
+            x: point.x - pointerGrabOffset.x,
+            y: point.y - pointerGrabOffset.y,
+          }),
+        )
+      },
+      onDragEnd(commit) {
+        clearMenuTimer()
+        proximityController?.suppress(PET_ATTENTION_RESUME_SUPPRESS_MS)
+        pointerGrabOffset = null
+        pet.endDrag(commit)
+      },
     },
-    onDragMove(point) {
-      clearMenuTimer()
-      if (!pointerGrabOffset) return
-      pet.updateDragPosition(
-        currentClampedPoint({
-          x: point.x - pointerGrabOffset.x,
-          y: point.y - pointerGrabOffset.y,
-        }),
-      )
+    {
+      doubleClickEnabled: () => window.matchMedia('(hover: hover) and (pointer: fine)').matches,
     },
-    onDragEnd(commit) {
-      clearMenuTimer()
-      pointerGrabOffset = null
-      pet.endDrag(commit)
-    },
-  })
+  )
   pointerController.attach(button)
+}
+
+function setupProximity() {
+  if (typeof window === 'undefined' || proximityController) return
+  proximityController = createPetProximityController({
+    getPetPosition: () => ({ ...petPosition.value }),
+    getPetSize: () => hostSizePx.value,
+    enabled: () =>
+      mounted.value &&
+      petVisible.value &&
+      motionEnabled.value &&
+      !state.paused &&
+      !state.menuOpen &&
+      !state.dragging,
+    canBeginAttention: () =>
+      state.animation.action === 'idle' && state.attention.phase === 'inactive',
+    isAttentionActive: () => state.attention.phase !== 'inactive',
+    onBegin: (direction) => pet.beginAttention(direction),
+    onUpdate: (direction) => pet.updateAttention(direction),
+    onEnd: () => pet.endAttention(),
+    onPreload: (direction) => void ensureAttentionAssets(direction),
+  })
+  proximityController.attach()
 }
 
 function onDocumentPointerDown(event: PointerEvent) {
@@ -381,8 +449,7 @@ function onDocumentKeyDown(event: KeyboardEvent) {
 
 function updateFullscreenState() {
   if (disposed.value) return
-  const fullscreenElement =
-    typeof document !== 'undefined' ? document.fullscreenElement : null
+  const fullscreenElement = typeof document !== 'undefined' ? document.fullscreenElement : null
   if (fullscreenElement && !fullscreenRelease) {
     fullscreenRelease = pet.suspend('native-fullscreen')
   } else if (!fullscreenElement && fullscreenRelease) {
@@ -431,11 +498,13 @@ function ensureAsset(action: PetAction, kinds: Array<keyof PetAssetStatus> = ['s
     const jobKey = `${action}:${kind}`
     const existing = assetJobs.get(jobKey)
     if (existing) return existing
-    const job = loadAssetUrl(PET_ANIMATION_ASSETS[action][kind === 'sheet' ? 'src' : 'staticSrc'], action, kind).finally(
-      () => {
-        assetJobs.delete(jobKey)
-      },
-    )
+    const job = loadAssetUrl(
+      PET_ANIMATION_ASSETS[action][kind === 'sheet' ? 'src' : 'staticSrc'],
+      action,
+      kind,
+    ).finally(() => {
+      assetJobs.delete(jobKey)
+    })
     assetJobs.set(jobKey, job)
     return job
   })
@@ -445,8 +514,7 @@ function ensureAsset(action: PetAction, kinds: Array<keyof PetAssetStatus> = ['s
 async function loadIdleAndPreloads() {
   if (disposed.value || !mounted.value || state.route.mode === 'hidden') return
   const idle = PET_ANIMATION_ASSETS.idle
-  let idleVisualReady =
-    state.assets.idle.static === 'ready' || state.assets.idle.sheet === 'ready'
+  let idleVisualReady = state.assets.idle.static === 'ready' || state.assets.idle.sheet === 'ready'
 
   if (state.assets.idle.static === 'none') {
     const staticReady = await loadAssetUrl(idle.staticSrc, 'idle', 'static')
@@ -473,10 +541,7 @@ async function loadIdleAndPreloads() {
   const preloads = PET_CORE_PRELOAD_ACTIONS.filter((action) => action !== 'idle')
   await Promise.allSettled(
     preloads.map((action) =>
-      ensureAsset(
-        action,
-        motionEnabled.value ? ['sheet', 'static'] : ['static'],
-      ),
+      ensureAsset(action, motionEnabled.value ? ['sheet', 'static'] : ['static']),
     ),
   )
 }
@@ -532,6 +597,8 @@ function disconnectPetHost() {
   }
   clearMenuTimer()
   detachPointer()
+  proximityController?.detach()
+  proximityController = null
   fullscreenRelease?.()
   fullscreenRelease = null
   cleanupListeners.splice(0).forEach((cleanup) => cleanup())
@@ -541,11 +608,13 @@ function disconnectPetHost() {
 watch(petVisible, () => syncPointerAttachment(), { flush: 'post' })
 
 watch(
-  () => state.animation.action,
-  (action) => {
+  () => [state.animation.action, state.attention.phase] as const,
+  ([action]) => {
     if (!mounted.value || disposed.value) return
-    if (action === 'idle') return
-    void ensureAsset(action, motionEnabled.value ? ['sheet', 'static'] : ['static'])
+    if (action !== 'idle') {
+      void ensureAsset(action, motionEnabled.value ? ['sheet', 'static'] : ['static'])
+    }
+    proximityController?.reevaluate()
   },
 )
 
@@ -556,6 +625,7 @@ watch(
     if (state.paused || state.route.mode === 'hidden') {
       detachPointer()
     }
+    proximityController?.reevaluate()
     maybeLoadInitialAssets()
   },
 )
@@ -586,6 +656,7 @@ watch(
     if (visible && !state.paused && state.route.mode !== 'hidden') {
       maybeLoadInitialAssets()
     }
+    proximityController?.reevaluate()
   },
 )
 
@@ -595,6 +666,7 @@ onMounted(() => {
   measureViewport()
   setupViewportListeners()
   setupInteractionListeners()
+  setupProximity()
   pet.syncEnvironment(interaction.state.motionEnabled, interaction.state.documentVisible)
   const disconnect = pet.connect()
   cleanupListeners.push(disconnect)

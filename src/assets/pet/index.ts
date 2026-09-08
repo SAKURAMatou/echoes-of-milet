@@ -13,6 +13,16 @@ import idleSheet from './idle.sheet.webp'
 import idleStatic from './idle.static.webp'
 import lookSheet from './look.sheet.webp'
 import lookStatic from './look.static.webp'
+import lookLeftSheet from './look-left.sheet.webp'
+import lookLeftStatic from './look-left.static.webp'
+import lookLeftUpSheet from './look-left-up.sheet.webp'
+import lookLeftUpStatic from './look-left-up.static.webp'
+import lookRightSheet from './look-right.sheet.webp'
+import lookRightStatic from './look-right.static.webp'
+import lookRightUpSheet from './look-right-up.sheet.webp'
+import lookRightUpStatic from './look-right-up.static.webp'
+import lookUpSheet from './look-up.sheet.webp'
+import lookUpStatic from './look-up.static.webp'
 import sitSheet from './sit.sheet.webp'
 import sitStatic from './sit.static.webp'
 import sleepSheet from './sleep.sheet.webp'
@@ -33,6 +43,11 @@ const imageUrls: Record<
   look: { sheet: lookSheet, static: lookStatic },
   drag: { sheet: dragSheet, static: dragStatic },
   sleep: { sheet: sleepSheet, static: sleepStatic },
+  lookLeft: { sheet: lookLeftSheet, static: lookLeftStatic },
+  lookLeftUp: { sheet: lookLeftUpSheet, static: lookLeftUpStatic },
+  lookUp: { sheet: lookUpSheet, static: lookUpStatic },
+  lookRightUp: { sheet: lookRightUpSheet, static: lookRightUpStatic },
+  lookRight: { sheet: lookRightSheet, static: lookRightStatic },
 }
 
 export interface ResolvedPetAnimationAsset {

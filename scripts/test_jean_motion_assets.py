@@ -1,4 +1,5 @@
 """Regression checks for Jean's processed runtime assets."""
+import hashlib
 import json
 from pathlib import Path
 import unittest
@@ -6,10 +7,11 @@ import unittest
 import numpy as np
 from PIL import Image, ImageDraw
 
-from build_jean_motion_assets import isolate_subject
+from build_jean_motion_assets import garment_anchor, isolate_subject
 
 
 ROOT = Path(__file__).resolve().parents[1] / 'designs' / 'jean-motion'
+RUNTIME_ROOT = Path(__file__).resolve().parents[1] / 'src' / 'assets' / 'pet'
 EXPECTED = {
     'idle': (8, 4, 2),
     'sit': (12, 4, 3),
@@ -18,6 +20,11 @@ EXPECTED = {
     'excited': (16, 4, 4),
     'sniff': (12, 4, 3),
     'look': (10, 5, 2),
+    'lookLeft': (6, 3, 2),
+    'lookLeftUp': (6, 3, 2),
+    'lookUp': (6, 3, 2),
+    'lookRightUp': (6, 3, 2),
+    'lookRight': (6, 3, 2),
     'drag': (8, 4, 2),
     'sleep': (16, 4, 4),
 }
@@ -69,12 +76,63 @@ class AssetsTest(unittest.TestCase):
 
     def test_only_runtime_image_files_remain(self):
         images = sorted(path.name for path in (ROOT / 'assets').glob('*.webp'))
+        manifest = json.loads((ROOT / 'assets/manifest.json').read_text(encoding='utf-8'))
         expected = sorted(
-            f'{name}.{kind}.webp'
-            for name in EXPECTED
-            for kind in ('sheet', 'static')
+            Path(clip[key].split('?', 1)[0]).name
+            for clip in manifest['animations'].values()
+            for key in ('src', 'staticSrc')
         )
         self.assertEqual(images, expected)
+
+    def test_directional_clips_start_from_idle_and_keep_master_identity(self):
+        manifest = json.loads((ROOT / 'assets/manifest.json').read_text(encoding='utf-8'))
+        idle = np.asarray(Image.open(ROOT / 'assets/idle.static.webp').convert('RGBA')).astype(np.int16)
+        idle_anchor = garment_anchor(Image.fromarray(idle.astype(np.uint8)))
+        yy, xx = np.mgrid[:256, :256]
+        for action in ('lookLeft', 'lookLeftUp', 'lookUp', 'lookRightUp', 'lookRight'):
+            clip = manifest['animations'][action]
+            sheet = Image.open(asset_path(clip['src'])).convert('RGBA')
+            first = np.asarray(sheet.crop((0, 0, 256, 256))).astype(np.int16)
+            self.assertLess(float(np.mean(np.abs(first - idle))), 2.5, f'{action} idle entry')
+            for index in range(1, clip['frameCount']):
+                x, y = index % clip['columns'] * 256, index // clip['columns'] * 256
+                frame_image = sheet.crop((x, y, x + 256, y + 256)).convert('RGBA')
+                frame = np.asarray(frame_image)
+                anchor = garment_anchor(frame_image)
+                self.assertLessEqual(abs(anchor[0] - idle_anchor[0]), 3, f'{action} shirt x')
+                self.assertLessEqual(abs(anchor[1] - idle_anchor[1]), 7, f'{action} shirt y')
+                dark_face = (
+                    (frame[:, :, 3] > 96)
+                    & (frame[:, :, :3].max(axis=2) < 100)
+                    & (yy < 125)
+                    & (xx < 175)
+                )
+                self.assertGreaterEqual(
+                    int(np.count_nonzero(dark_face)),
+                    8,
+                    f'{action} frame {index + 1} lost the dark eye/nose details',
+                )
+
+    def test_directional_runtime_assets_match_approved_design_assets(self):
+        """The site must ship the exact directional sheets approved in the preview."""
+        design_manifest = json.loads((ROOT / 'assets/manifest.json').read_text(encoding='utf-8'))
+        runtime_manifest = json.loads((RUNTIME_ROOT / 'manifest.json').read_text(encoding='utf-8'))
+        actions = ('lookLeft', 'lookLeftUp', 'lookUp', 'lookRightUp', 'lookRight')
+        for action in actions:
+            design_clip = design_manifest['animations'][action]
+            runtime_clip = runtime_manifest['animations'][action]
+            for key in ('frameWidth', 'frameHeight', 'columns', 'rows', 'frameCount',
+                        'fps', 'durations', 'loop', 'anchor', 'bytes'):
+                self.assertEqual(runtime_clip[key], design_clip[key], f'{action} {key}')
+            for key in ('src', 'staticSrc'):
+                design_file = asset_path(design_clip[key])
+                runtime_file = RUNTIME_ROOT / Path(runtime_clip[key].split('?', 1)[0]).name
+                self.assertTrue(runtime_file.is_file(), str(runtime_file))
+                self.assertEqual(
+                    hashlib.sha256(runtime_file.read_bytes()).digest(),
+                    hashlib.sha256(design_file.read_bytes()).digest(),
+                    f'{action} {key}',
+                )
 
     def test_sleep_final_frames_have_natural_head_contours(self):
         """A grid-boundary cut creates an unnaturally wide flat alpha top."""

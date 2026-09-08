@@ -2,6 +2,7 @@ import test from 'node:test'
 import assert from 'node:assert/strict'
 
 import { createPetCoordinator } from '../../src/composables/pet/createPetCoordinator.ts'
+import { PET_SPEECH_DURATION_MS } from '../../src/config/pet.ts'
 import type { PetRouteSnapshot } from '../../src/composables/pet/petTypes.ts'
 
 class FakePetScheduler {
@@ -40,11 +41,7 @@ class FakePetScheduler {
   }
 }
 
-function route(
-  name: string,
-  fullPath: string,
-  instanceKey?: string | null,
-): PetRouteSnapshot {
+function route(name: string, fullPath: string, instanceKey?: string | null): PetRouteSnapshot {
   return { name, lang: 'zh', fullPath, instanceKey }
 }
 
@@ -64,17 +61,17 @@ test('endDrag(true) finishes the drag animation before playing user-happy', () =
   pet.beginDrag({ x: 120, y: 300 })
   const dragGeneration = pet.state.animation.generation
   assert.equal(pet.state.dragging, true)
-  assert.equal(pet.state.animation.priority, 4)
+  assert.equal(pet.state.animation.priority, 5)
 
   pet.endDrag(true)
   assert.equal(pet.state.dragging, false)
   assert.equal(pet.state.animation.action, 'happy')
-  assert.equal(pet.state.animation.priority, 3)
+  assert.equal(pet.state.animation.priority, 4)
 
   // A stale completion from the old drag must never reset the happy reaction.
   pet.completeAnimation(dragGeneration)
   assert.equal(pet.state.animation.action, 'happy')
-  assert.equal(pet.state.animation.priority, 3)
+  assert.equal(pet.state.animation.priority, 4)
 
   pet.completeAnimation(pet.state.animation.generation)
   assert.equal(pet.state.animation.action, 'idle')
@@ -176,7 +173,7 @@ test('pre-ready current live event starts only for the current route generation'
   pet.connect()
 
   assert.equal(pet.state.animation.action, 'happy')
-  assert.equal(pet.state.animation.priority, 2)
+  assert.equal(pet.state.animation.priority, 3)
 })
 
 test('hidden tab drops page events, photo deferral and menu, then resumes idle', () => {
@@ -221,7 +218,7 @@ test('reduced motion settles postures without priority locks or random timers', 
 
 test('quiet routes play a random non-idle action after the idle delay', () => {
   const scheduler = new FakePetScheduler()
-  const pet = createPetCoordinator({ scheduler, random: () => 0.99 })
+  const pet = createPetCoordinator({ scheduler, random: () => 0.86 })
   pet.syncEnvironment(true, true)
   pet.setRoute(route('home', '/zh'))
   pet.setAssetStatus('idle', { static: 'ready' })
@@ -232,6 +229,41 @@ test('quiet routes play a random non-idle action after the idle delay', () => {
   assert.equal(pet.state.animation.action, 'sleep')
   assert.equal(pet.state.animation.priority, 1)
   assert.notEqual(pet.state.animation.action, 'idle')
+})
+
+test('random speech uses the idle cycle, auto-hides and yields to the menu', () => {
+  const scheduler = new FakePetScheduler()
+  const pet = createPetCoordinator({ scheduler, random: () => 0.999 })
+  pet.syncEnvironment(true, true)
+  pet.setRoute(route('home', '/zh'))
+  pet.setAssetStatus('idle', { static: 'ready' })
+  pet.setStaticReady(true)
+  pet.connect()
+
+  scheduler.runUntil(scheduler.time + 29_980)
+  assert.equal(pet.state.speech.visible, true)
+  assert.equal(pet.state.speech.messageKey, 'nearbyPresence')
+  assert.equal(pet.state.animation.action, 'idle')
+  const firstGeneration = pet.state.speech.generation
+
+  scheduler.runUntil(scheduler.time + PET_SPEECH_DURATION_MS - 1)
+  assert.equal(pet.state.speech.visible, true)
+  scheduler.runUntil(scheduler.time + 1)
+  assert.equal(pet.state.speech.visible, false)
+  assert.equal(scheduler.pendingCount, 1)
+
+  scheduler.runUntil(scheduler.time + 29_980)
+  assert.equal(pet.state.speech.visible, true)
+  assert.equal(pet.state.speech.messageKey, 'cozySpot')
+  assert.ok(pet.state.speech.generation > firstGeneration)
+
+  pet.openMenu()
+  assert.equal(pet.state.speech.visible, false)
+  assert.equal(pet.state.menuOpen, true)
+  assert.equal(scheduler.pendingCount, 0)
+
+  pet.closeMenu()
+  assert.equal(scheduler.pendingCount, 1)
 })
 
 test('clicking the pet restarts the random-action wait', () => {
@@ -395,4 +427,81 @@ test('live.open is deduped across locale while different slugs reset it', () => 
     routeFullPath: '/zh/milet/live/event-a',
   })
   assert.equal(pet.state.animation.action, 'happy')
+})
+
+test('attention enters, holds, reverses and switches only to the latest direction', () => {
+  const { pet } = readyPet()
+  pet.setAssetStatus('lookLeft', { sheet: 'ready' })
+  pet.setAssetStatus('lookRight', { sheet: 'ready' })
+
+  pet.beginAttention('left')
+  assert.equal(pet.state.animation.action, 'lookLeft')
+  assert.equal(pet.state.animation.priority, 2)
+  assert.equal(pet.state.animation.playback, 'forwardHold')
+  assert.equal(pet.state.attention.phase, 'entering')
+
+  pet.completeAnimation(pet.state.animation.generation)
+  assert.equal(pet.state.attention.phase, 'holding')
+  assert.equal(pet.state.animation.action, 'lookLeft')
+
+  pet.updateAttention('right')
+  assert.equal(pet.state.attention.phase, 'leaving')
+  assert.equal(pet.state.attention.pendingDirection, 'right')
+  assert.equal(pet.state.animation.playback, 'reverseOnce')
+  pet.completeAnimation(pet.state.animation.generation)
+
+  assert.equal(pet.state.attention.direction, 'right')
+  assert.equal(pet.state.attention.phase, 'entering')
+  assert.equal(pet.state.animation.action, 'lookRight')
+})
+
+test('page and direct reactions interrupt attention while menu and reduced motion block it', () => {
+  const { pet } = readyPet()
+  pet.setAssetStatus('lookUp', { sheet: 'ready' })
+  pet.beginAttention('up')
+  pet.react('news.enter')
+  assert.equal(pet.state.attention.phase, 'inactive')
+  assert.equal(pet.state.animation.action, 'sit')
+  assert.equal(pet.state.animation.priority, 3)
+
+  pet.completeAnimation(pet.state.animation.generation)
+  pet.openMenu()
+  pet.beginAttention('up')
+  assert.equal(pet.state.attention.phase, 'inactive')
+  pet.playDirectReaction('double')
+  assert.equal(pet.state.menuOpen, false)
+  assert.equal(pet.state.animation.priority, 4)
+
+  pet.completeAnimation(pet.state.animation.generation)
+  pet.syncEnvironment(false, true)
+  pet.beginAttention('up')
+  assert.equal(pet.state.attention.phase, 'inactive')
+})
+
+test('direct reaction pools avoid immediately repeating an available action', () => {
+  const scheduler = new FakePetScheduler()
+  const pet = createPetCoordinator({ scheduler, random: () => 0 })
+  pet.syncEnvironment(true, true)
+  pet.setRoute(route('home', '/zh'))
+  pet.setAssetStatus('idle', { static: 'ready' })
+  pet.setStaticReady(true)
+  pet.connect()
+
+  pet.playDirectReaction('double')
+  assert.equal(pet.state.animation.action, 'happy')
+  pet.completeAnimation(pet.state.animation.generation)
+  pet.playDirectReaction('double')
+  assert.equal(pet.state.animation.action, 'curious')
+})
+
+test('a failed attention asset clears the attention state and returns to idle', () => {
+  const { pet } = readyPet()
+  pet.setAssetStatus('lookLeft', { sheet: 'ready' })
+  pet.beginAttention('left')
+  assert.equal(pet.state.attention.phase, 'entering')
+
+  pet.setAssetStatus('lookLeft', { sheet: 'error', static: 'error' })
+  assert.equal(pet.state.animation.action, 'idle')
+  assert.equal(pet.state.attention.phase, 'inactive')
+  assert.equal(pet.state.attention.direction, null)
 })

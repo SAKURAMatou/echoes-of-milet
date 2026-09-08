@@ -7,6 +7,7 @@ import {
   isPetDragStarted,
   petPointerDistance,
   resolvePetRadialMenuLayout,
+  resolvePetSpeechBubbleLayout,
   resolvePetViewportBox,
 } from '../../src/composables/pet/petGeometryCore.ts'
 
@@ -102,9 +103,7 @@ test('radial menu distributes four actions evenly and close to a bottom-right pe
 
   assert.equal(items.length, 4)
   assert.ok(items.every((item) => item.left < 1088 + 80))
-  const verticalGaps = items.slice(1).map((item, index) =>
-    Math.abs(item.top - items[index].top),
-  )
+  const verticalGaps = items.slice(1).map((item, index) => Math.abs(item.top - items[index].top))
   assert.ok(verticalGaps.every((gap) => Math.abs(gap - verticalGaps[0]) < 0.001))
   assert.equal(1088 - (items[0].left + 144), 8)
 })
@@ -141,9 +140,7 @@ test('radial menu keeps four evenly-spaced actions inside a small mobile viewpor
     assert.equal(overlaps, false)
   }
 
-  const verticalGaps = items.slice(1).map((item, index) =>
-    Math.abs(item.top - items[index].top),
-  )
+  const verticalGaps = items.slice(1).map((item, index) => Math.abs(item.top - items[index].top))
   assert.ok(verticalGaps.every((gap) => Math.abs(gap - verticalGaps[0]) < 0.001))
 })
 
@@ -163,4 +160,57 @@ test('radial menu derives enough vertical span for additional configured actions
   for (let index = 1; index < items.length; index += 1) {
     assert.ok(Math.abs(items[index].top - items[index - 1].top) >= 58)
   }
+})
+
+test('speech bubble opens above-left of the default bottom-right desktop pet', () => {
+  const bubble = resolvePetSpeechBubbleLayout({
+    viewport: { left: 0, top: 0, width: 1280, height: 720 },
+    safeInsets: noInsets,
+    petX: 1088,
+    petY: 472,
+    petSize: 160,
+    bubbleWidth: 224,
+    bubbleHeight: 86,
+  })
+
+  assert.equal(bubble.horizontal, 'left')
+  assert.equal(bubble.vertical, 'above')
+  assert.ok(bubble.left >= 10)
+  assert.ok(bubble.left + 224 <= 1270)
+  assert.ok(bubble.top >= 10)
+  assert.ok(bubble.top + 86 <= 710)
+})
+
+test('speech bubble flips below-right near the top-left corner', () => {
+  const bubble = resolvePetSpeechBubbleLayout({
+    viewport: { left: 0, top: 0, width: 1024, height: 768 },
+    safeInsets: noInsets,
+    petX: 12,
+    petY: 12,
+    petSize: 160,
+    bubbleWidth: 224,
+    bubbleHeight: 86,
+  })
+
+  assert.equal(bubble.horizontal, 'right')
+  assert.equal(bubble.vertical, 'below')
+  assert.ok(bubble.left > 12)
+  assert.ok(bubble.top > 12)
+})
+
+test('speech bubble remains inside a safe-area constrained mobile viewport', () => {
+  const bubble = resolvePetSpeechBubbleLayout({
+    viewport: { left: 4, top: 6, width: 320, height: 480 },
+    safeInsets: { left: 12, right: 16, top: 20, bottom: 14 },
+    petX: 190,
+    petY: 320,
+    petSize: 120,
+    bubbleWidth: 190,
+    bubbleHeight: 82,
+  })
+
+  assert.ok(bubble.left >= 16)
+  assert.ok(bubble.left + 190 <= 4 + 320 - 16)
+  assert.ok(bubble.top >= 26)
+  assert.ok(bubble.top + 82 <= 6 + 480 - 14)
 })

@@ -1,8 +1,12 @@
 import { reactive, readonly } from 'vue'
 
 import {
+  PET_ACTION_POOLS,
+  PET_DIRECT_REACTION_POOLS,
+  PET_LOOK_ACTION_BY_DIRECTION,
   PET_PHOTO_LOOK_WINDOW_MS,
   PET_ROUTE_MODULE_ANIMATION,
+  PET_SPEECH_DURATION_MS,
   resolvePetEventAction,
   resolvePetPageEvent,
   resolvePetRouteMode,
@@ -13,7 +17,9 @@ import {
   PET_PAGE_PENDING_TTL_MS,
   PET_PRIORITY,
   PetPageGate,
-  pickRandomAction,
+  pickPetSpeechKey,
+  pickRandomBehavior,
+  pickWeightedPetAction,
   randomDelayMs,
   type PetPendingPageEvent,
 } from './petSchedulingCore'
@@ -25,9 +31,13 @@ import type {
   PetEvent,
   PetEventContext,
   PetHostApi,
+  PetDirectReaction,
+  PetLookDirection,
   PetModuleKey,
+  PetPlayback,
   PetPositionState,
   PetRouteSnapshot,
+  PetSpeechKey,
   PetState,
 } from './petTypes'
 import { PET_ACTIONS } from './petTypes'
@@ -35,6 +45,7 @@ import { PET_ACTIONS } from './petTypes'
 const PAGE_PRIORITY = PET_PRIORITY.page
 const USER_PRIORITY = PET_PRIORITY.user
 const RANDOM_PRIORITY = PET_PRIORITY.random
+const ATTENTION_PRIORITY = PET_PRIORITY.attention
 const DRAG_PRIORITY = PET_PRIORITY.drag
 const IDLE_PRIORITY = PET_PRIORITY.idle
 
@@ -83,9 +94,7 @@ function createInitialAssetStatuses(): PetAssetStatuses {
   return statuses
 }
 
-export function createPetCoordinator(
-  options: CreatePetCoordinatorOptions = {},
-): PetHostApi {
+export function createPetCoordinator(options: CreatePetCoordinatorOptions = {}): PetHostApi {
   const scheduler = options.scheduler ?? browserPetCoordinatorScheduler
   const random = options.random ?? Math.random
   const pageGate = new PetPageGate({
@@ -102,9 +111,12 @@ export function createPetCoordinator(
   let lastRouteName: string | null = null
   let lastRouteInstanceKey: string | null = null
   let randomTimer: number | null = null
+  let speechTimer: number | null = null
   let pagePendingTimer: number | null = null
   let pendingPreReady: PendingStartEvent | null = null
   let photoLookCandidate: PhotoLookCandidate | null = null
+  let lastSpeechKey: PetSpeechKey | null = null
+  const lastDirectActions: Partial<Record<PetDirectReaction, PetAction>> = {}
 
   const state = reactive<PetState>({
     hostConnected: false,
@@ -116,8 +128,19 @@ export function createPetCoordinator(
     animation: {
       action: 'idle',
       priority: IDLE_PRIORITY,
+      playback: 'loop',
       generation: 0,
       requestedAt: 0,
+    },
+    attention: {
+      direction: null,
+      pendingDirection: null,
+      phase: 'inactive',
+    },
+    speech: {
+      visible: false,
+      messageKey: null,
+      generation: 0,
     },
     route: {
       name: null,
@@ -154,9 +177,21 @@ export function createPetCoordinator(
     pagePendingTimer = null
   }
 
+  function clearSpeechTimer() {
+    if (speechTimer !== null) scheduler.cancel(speechTimer)
+    speechTimer = null
+  }
+
+  function hideSpeech(clearMessage = false) {
+    clearSpeechTimer()
+    state.speech.visible = false
+    if (clearMessage) state.speech.messageKey = null
+  }
+
   function clearAllTimers() {
     clearRandomTimer()
     clearPagePendingTimer()
+    clearSpeechTimer()
   }
 
   function updatePaused(nextPaused: boolean) {
@@ -168,9 +203,20 @@ export function createPetCoordinator(
     state.animation = {
       action: 'idle',
       priority: IDLE_PRIORITY,
+      playback: 'loop',
       generation: ++animationGeneration,
       requestedAt: now(),
     }
+  }
+
+  function clearAttentionState() {
+    state.attention.direction = null
+    state.attention.pendingDirection = null
+    state.attention.phase = 'inactive'
+  }
+
+  function defaultPlayback(action: PetAction): PetPlayback {
+    return action === 'idle' || (action === 'drag' && state.dragging) ? 'loop' : 'once'
   }
 
   function closeMenuInternal() {
@@ -189,9 +235,11 @@ export function createPetCoordinator(
 
   function cancelActiveAnimation() {
     clearRandomTimer()
+    hideSpeech()
     if (state.animation.action === 'idle' && state.animation.priority === IDLE_PRIORITY) {
       return
     }
+    if (state.animation.priority === ATTENTION_PRIORITY) clearAttentionState()
     resetToIdle()
   }
 
@@ -216,6 +264,7 @@ export function createPetCoordinator(
         !state.paused &&
         !state.menuOpen &&
         !state.dragging &&
+        !state.speech.visible &&
         state.environment.motionEnabled &&
         state.environment.documentVisible &&
         randomAllowedOnRoute() &&
@@ -225,8 +274,8 @@ export function createPetCoordinator(
     )
   }
 
-  function excludedRandomActions(): PetAction[] {
-    return PET_ACTIONS.filter((action) => {
+  function excludedActions(actions: readonly PetAction[]): PetAction[] {
+    return actions.filter((action) => {
       const status = state.assets[action]
       return status.sheet === 'error' && status.static === 'error'
     })
@@ -239,14 +288,34 @@ export function createPetCoordinator(
     randomTimer = setTimer(() => {
       randomTimer = null
       if (!randomEligible()) return
-      const action = pickRandomAction(random, excludedRandomActions())
-      if (action) {
-        startAction(action, RANDOM_PRIORITY)
+      const behavior = pickRandomBehavior(random, excludedActions(PET_ACTION_POOLS.idleRandom))
+      if (behavior === 'speech') {
+        showSpeech()
+      } else if (behavior) {
+        startAction(behavior, RANDOM_PRIORITY)
       }
     }, delay)
   }
 
-  function startAction(action: PetAction, priority: PetAnimationPriority): boolean {
+  function showSpeech() {
+    if (!randomEligible()) return
+    const messageKey = pickPetSpeechKey(random, lastSpeechKey)
+    lastSpeechKey = messageKey
+    state.speech.messageKey = messageKey
+    state.speech.visible = true
+    state.speech.generation += 1
+    speechTimer = setTimer(() => {
+      speechTimer = null
+      state.speech.visible = false
+      scheduleRandom()
+    }, PET_SPEECH_DURATION_MS)
+  }
+
+  function startAction(
+    action: PetAction,
+    priority: PetAnimationPriority,
+    playback: PetPlayback = defaultPlayback(action),
+  ): boolean {
     if (disposed || state.paused || state.route.mode === 'hidden') return false
     if (!state.environment.documentVisible) return false
     if (!PET_ACTIONS.includes(action)) return false
@@ -254,16 +323,21 @@ export function createPetCoordinator(
     const current = state.animation
     const currentIsSettled = current.settled === true
     const isInterruptible =
-      current.action === 'idle' ||
-      currentIsSettled ||
-      priority >= current.priority
+      current.action === 'idle' || currentIsSettled || priority >= current.priority
     if (!isInterruptible) return false
 
     if (state.dragging && priority < DRAG_PRIORITY) return false
 
+    if (priority >= RANDOM_PRIORITY) hideSpeech()
+
+    if (priority > ATTENTION_PRIORITY && state.attention.phase !== 'inactive') {
+      clearAttentionState()
+    }
+
     state.animation = {
       action,
       priority,
+      playback,
       generation: ++animationGeneration,
       requestedAt: now(),
       settled: !state.environment.motionEnabled,
@@ -364,22 +438,75 @@ export function createPetCoordinator(
     }
   }
 
-  function playUserHappyInternal() {
+  function attentionCanStart(direction: PetLookDirection): boolean {
+    const action = PET_LOOK_ACTION_BY_DIRECTION[direction]
+    return Boolean(
+      !disposed &&
+        hostConnected &&
+        state.staticReady &&
+        !state.paused &&
+        !state.menuOpen &&
+        !state.dragging &&
+        state.environment.motionEnabled &&
+        state.environment.documentVisible &&
+        state.route.mode !== 'hidden' &&
+        state.animation.action === 'idle' &&
+        state.animation.priority === IDLE_PRIORITY &&
+        state.assets[action].sheet === 'ready',
+    )
+  }
+
+  function beginAttentionInternal(direction: PetLookDirection) {
+    if (!attentionCanStart(direction)) return
+    const action = PET_LOOK_ACTION_BY_DIRECTION[direction]
+    clearRandomTimer()
+    state.attention.direction = direction
+    state.attention.pendingDirection = null
+    state.attention.phase = 'entering'
+    startAction(action, ATTENTION_PRIORITY, 'forwardHold')
+  }
+
+  function leaveAttentionInternal(pendingDirection: PetLookDirection | null) {
+    if (state.attention.phase === 'inactive' || !state.attention.direction) return
+    state.attention.pendingDirection = pendingDirection
+    if (state.attention.phase === 'leaving') return
+    state.attention.phase = 'leaving'
+    state.animation = {
+      ...state.animation,
+      playback: 'reverseOnce',
+      generation: ++animationGeneration,
+      requestedAt: now(),
+      settled: false,
+    }
+  }
+
+  function playDirectReactionInternal(trigger: PetDirectReaction) {
     if (disposed || state.paused || state.route.mode === 'hidden') return
     if (!state.environment.documentVisible) return
     if (state.dragging) return
-    if (state.menuOpen) {
-      closeMenuInternal()
-      clearPhotoLookCandidate()
-      restartIdleWait()
-      return
-    }
     closeMenuInternal()
     clearPageWork()
     clearPhotoLookCandidate()
-    if (startAction('happy', USER_PRIORITY)) {
+    const interruptedAttention = state.animation.priority === ATTENTION_PRIORITY
+    clearAttentionState()
+    const pool = PET_DIRECT_REACTION_POOLS[trigger]
+    const action = pickWeightedPetAction(
+      pool,
+      random,
+      lastDirectActions[trigger] ?? null,
+      excludedActions(pool.map((entry) => entry.action)),
+    )
+    if (action && startAction(action, USER_PRIORITY, 'once')) {
+      lastDirectActions[trigger] = action
+      restartIdleWait()
+    } else if (interruptedAttention) {
+      resetToIdle()
       restartIdleWait()
     }
+  }
+
+  function playUserHappyInternal() {
+    playDirectReactionInternal('single')
   }
 
   function maybeDeferredPhotoLook() {
@@ -410,10 +537,7 @@ export function createPetCoordinator(
     if (!state.environment.documentVisible || state.route.mode === 'hidden') return
     const generation = state.route.generation
     if (context?.routeGeneration !== undefined && context.routeGeneration !== generation) return
-    if (
-      context?.routeFullPath !== undefined &&
-      context.routeFullPath !== state.route.fullPath
-    ) {
+    if (context?.routeFullPath !== undefined && context.routeFullPath !== state.route.fullPath) {
       return
     }
     photoLookCandidate = {
@@ -442,10 +566,7 @@ export function createPetCoordinator(
     ) {
       return false
     }
-    if (
-      context?.routeFullPath !== undefined &&
-      context.routeFullPath !== state.route.fullPath
-    ) {
+    if (context?.routeFullPath !== undefined && context.routeFullPath !== state.route.fullPath) {
       return false
     }
     return true
@@ -499,6 +620,7 @@ export function createPetCoordinator(
       updatePaused(true)
       if (suspensions.size === 1) {
         closeMenuInternal()
+        clearAttentionState()
         if (state.dragging) {
           state.dragging = false
         }
@@ -540,6 +662,7 @@ export function createPetCoordinator(
         hostConnected = false
         state.hostConnected = false
         clearAllTimers()
+        hideSpeech()
         clearPageWork()
         disconnectHost = null
       }
@@ -574,6 +697,7 @@ export function createPetCoordinator(
       state.route.generation += 1
 
       closeMenuInternal()
+      clearAttentionState()
       clearPhotoLookCandidate()
       clearAllTimers()
       clearPageWork()
@@ -612,6 +736,8 @@ export function createPetCoordinator(
 
       if (!nextVisible) {
         state.dragging = false
+        clearAttentionState()
+        hideSpeech()
         closeMenuInternal()
         pendingPreReady = null
         clearPhotoLookCandidate()
@@ -625,7 +751,13 @@ export function createPetCoordinator(
 
       if (!nextMotion) {
         clearAllTimers()
-        if (!state.dragging) settleCurrentAnimation()
+        hideSpeech()
+        if (state.animation.priority === ATTENTION_PRIORITY) {
+          clearAttentionState()
+          resetToIdle()
+        } else if (!state.dragging) {
+          settleCurrentAnimation()
+        }
         return
       }
 
@@ -643,6 +775,7 @@ export function createPetCoordinator(
     setStaticReady(ready: boolean) {
       if (disposed) return
       state.staticReady = Boolean(ready)
+      if (!state.staticReady) hideSpeech()
       if (state.staticReady) {
         flushPendingPreReady()
         scheduleRandom()
@@ -662,12 +795,32 @@ export function createPetCoordinator(
         state.animation.priority !== IDLE_PRIORITY &&
         next.static === 'error'
       ) {
+        if (state.animation.priority === ATTENTION_PRIORITY) clearAttentionState()
         resetToIdle()
         scheduleRandom()
       }
     },
 
     playUserHappy: playUserHappyInternal,
+
+    playDirectReaction: playDirectReactionInternal,
+
+    beginAttention(direction: PetLookDirection) {
+      beginAttentionInternal(direction)
+    },
+
+    updateAttention(direction: PetLookDirection) {
+      if (disposed || state.attention.phase === 'inactive') {
+        beginAttentionInternal(direction)
+        return
+      }
+      if (state.attention.direction === direction && state.attention.phase !== 'leaving') return
+      leaveAttentionInternal(direction)
+    },
+
+    endAttention() {
+      leaveAttentionInternal(null)
+    },
 
     openMenu() {
       if (
@@ -679,6 +832,9 @@ export function createPetCoordinator(
         return
       }
       state.menuOpen = true
+      hideSpeech()
+      clearAttentionState()
+      if (state.animation.priority === ATTENTION_PRIORITY) resetToIdle()
       clearRandomTimer()
       clearPagePendingTimer()
       pageGate.clearPending()
@@ -699,6 +855,7 @@ export function createPetCoordinator(
       if (disposed || state.paused || state.route.mode === 'hidden') return
       if (!state.environment.documentVisible) return
       if (state.menuOpen) closeMenuInternal()
+      clearAttentionState()
       state.dragging = true
       state.position = { x: position.x, y: position.y }
       clearAllTimers()
@@ -717,8 +874,8 @@ export function createPetCoordinator(
       if (disposed || !state.dragging) return
       state.dragging = false
       // The drag animation itself is an intentional active lock. Reset it
-      // before the user-happy response so priority 3 is no longer rejected by
-      // the still-current drag (priority 4) animation.
+      // before the user-happy response so user priority is no longer rejected
+      // by the still-current higher-priority drag animation.
       resetToIdle()
       if (commit) {
         playUserHappyInternal()
@@ -737,6 +894,21 @@ export function createPetCoordinator(
     completeAnimation(generation: number) {
       if (disposed || generation !== state.animation.generation) return
       const completedPriority = state.animation.priority
+      if (completedPriority === ATTENTION_PRIORITY) {
+        if (state.attention.phase === 'entering') {
+          state.attention.phase = 'holding'
+          state.animation = { ...state.animation, settled: true }
+          return
+        }
+        if (state.attention.phase === 'leaving') {
+          const pendingDirection = state.attention.pendingDirection
+          clearAttentionState()
+          resetToIdle()
+          if (pendingDirection) beginAttentionInternal(pendingDirection)
+          else scheduleRandom()
+          return
+        }
+      }
       resetToIdle()
       if (completedPriority === PAGE_PRIORITY) {
         drainPageGate()
@@ -754,6 +926,7 @@ export function createPetCoordinator(
         state.animation.priority !== DRAG_PRIORITY &&
         state.animation.priority !== IDLE_PRIORITY
       ) {
+        if (state.animation.priority === ATTENTION_PRIORITY) clearAttentionState()
         resetToIdle()
         scheduleRandom()
       }
@@ -771,6 +944,8 @@ export function createPetCoordinator(
       state.suspensionCount = 0
       state.menuOpen = false
       state.dragging = false
+      hideSpeech(true)
+      clearAttentionState()
       clearPhotoLookCandidate()
       suspensions.clear()
       pendingPreReady = null

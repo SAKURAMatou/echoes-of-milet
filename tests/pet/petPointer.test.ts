@@ -67,6 +67,38 @@ class FakeDocument extends FakeEventListenerHost {
   hidden = false
 }
 
+class FakeTimers {
+  time = 0
+  private nextId = 1
+  private timers = new Map<number, { callback: () => void; at: number }>()
+
+  schedule(callback: () => void, delayMs: number) {
+    const id = this.nextId++
+    this.timers.set(id, { callback, at: this.time + delayMs })
+    return id
+  }
+
+  cancel(id: number) {
+    this.timers.delete(id)
+  }
+
+  advance(ms: number) {
+    const end = this.time + ms
+    while (true) {
+      const next = Array.from(this.timers.entries()).sort((a, b) => a[1].at - b[1].at)[0]
+      if (!next || next[1].at > end) break
+      this.timers.delete(next[0])
+      this.time = next[1].at
+      next[1].callback()
+    }
+    this.time = end
+  }
+
+  get pendingCount() {
+    return this.timers.size
+  }
+}
+
 function setupGlobalDom() {
   const window = new FakeWindow()
   const document = new FakeDocument()
@@ -103,9 +135,12 @@ function mouseEvent(detail: number, overrides: Record<string, unknown> = {}) {
 }
 
 function controllerWithLogs() {
+  const timers = new FakeTimers()
   const log = {
     downs: [] as Array<{ x: number; y: number }>,
-    activates: 0,
+    singles: [] as string[],
+    doubles: 0,
+    longPresses: 0,
     dragStarts: [] as Array<{ x: number; y: number }>,
     dragMoves: [] as Array<{ x: number; y: number }>,
     dragEnds: [] as boolean[],
@@ -114,8 +149,14 @@ function controllerWithLogs() {
     onPointerDown(point) {
       log.downs.push(point)
     },
-    onActivate() {
-      log.activates += 1
+    onSingleActivate(input) {
+      log.singles.push(input)
+    },
+    onDoubleActivate() {
+      log.doubles += 1
+    },
+    onLongPress() {
+      log.longPresses += 1
     },
     onDragStart(point) {
       log.dragStarts.push(point)
@@ -126,8 +167,8 @@ function controllerWithLogs() {
     onDragEnd(commit) {
       log.dragEnds.push(commit)
     },
-  })
-  return { controller, log }
+  }, { timers })
+  return { controller, log, timers }
 }
 
 test('threshold crossing move is delivered instead of being dropped', () => {
@@ -173,7 +214,7 @@ test('pointerup flushes the queued final coordinates before ending', () => {
   const click = mouseEvent(1)
   element.dispatch('click', click)
   assert.equal(click.defaultPrevented, true, 'pointer-derived click must be suppressed')
-  assert.equal(log.activates, 0)
+  assert.equal(log.singles.length, 0)
 })
 
 test('pointercancel/lost capture/blur cancel drag and suppress derived click', () => {
@@ -190,7 +231,7 @@ test('pointercancel/lost capture/blur cancel drag and suppress derived click', (
   const click = mouseEvent(1)
   element.dispatch('click', click)
   assert.equal(click.defaultPrevented, true)
-  assert.equal(log.activates, 0)
+  assert.equal(log.singles.length, 0)
 
   element.dispatch('pointerdown', pointerEvent({ pointerId: 1, clientX: 0, clientY: 0 }))
   element.dispatch('pointermove', pointerEvent({ pointerId: 1, clientX: 60, clientY: 0 }))
@@ -213,7 +254,7 @@ test('keyboard detail=0 click still activates after a pointer cancel', () => {
   const click = mouseEvent(0)
   element.dispatch('click', click)
   assert.equal(click.defaultPrevented, false)
-  assert.equal(log.activates, 1)
+  assert.deepEqual(log.singles, ['keyboard'])
 })
 
 test('detach and cancel finish an in-progress drag without commit', () => {
@@ -235,20 +276,97 @@ test('detach and cancel finish an in-progress drag without commit', () => {
   assert.deepEqual(log.dragEnds, [false, false])
 })
 
-test('micro move pointerup activates once and mouse click is suppressed', () => {
+test('micro move pointerup settles one delayed mouse activation and suppresses click', () => {
   setupGlobalDom()
   const element = new FakeElement()
-  const { controller, log } = controllerWithLogs()
+  const { controller, log, timers } = controllerWithLogs()
   controller.attach(element)
 
   element.dispatch('pointerdown', pointerEvent({ pointerId: 1, clientX: 100, clientY: 100 }))
   element.dispatch('pointermove', pointerEvent({ pointerId: 1, clientX: 104, clientY: 103 }))
   element.dispatch('pointerup', pointerEvent({ pointerId: 1, clientX: 104, clientY: 103 }))
   assert.equal(log.dragStarts.length, 0)
-  assert.equal(log.activates, 1)
+  assert.equal(log.singles.length, 0)
+  timers.advance(239)
+  assert.equal(log.singles.length, 0)
+  timers.advance(1)
+  assert.deepEqual(log.singles, ['mouse'])
 
   const click = mouseEvent(1)
   element.dispatch('click', click)
   assert.equal(click.defaultPrevented, true)
-  assert.equal(log.activates, 1)
+  assert.deepEqual(log.singles, ['mouse'])
+})
+
+test('two nearby mouse activations within 240ms produce only one double reaction', () => {
+  setupGlobalDom()
+  const element = new FakeElement()
+  const { controller, log, timers } = controllerWithLogs()
+  controller.attach(element)
+
+  element.dispatch('pointerdown', pointerEvent({ pointerType: 'mouse', clientX: 40, clientY: 50 }))
+  element.dispatch('pointerup', pointerEvent({ pointerType: 'mouse', clientX: 40, clientY: 50 }))
+  timers.advance(120)
+  element.dispatch('pointerdown', pointerEvent({ pointerType: 'mouse', clientX: 48, clientY: 55 }))
+  element.dispatch('pointerup', pointerEvent({ pointerType: 'mouse', clientX: 48, clientY: 55 }))
+
+  assert.equal(log.doubles, 1)
+  assert.deepEqual(log.singles, [])
+  timers.advance(300)
+  assert.deepEqual(log.singles, [])
+})
+
+test('a distant second mouse activation settles two independent singles', () => {
+  setupGlobalDom()
+  const element = new FakeElement()
+  const { controller, log, timers } = controllerWithLogs()
+  controller.attach(element)
+
+  element.dispatch('pointerdown', pointerEvent({ pointerType: 'mouse', clientX: 0, clientY: 0 }))
+  element.dispatch('pointerup', pointerEvent({ pointerType: 'mouse', clientX: 0, clientY: 0 }))
+  timers.advance(100)
+  element.dispatch('pointerdown', pointerEvent({ pointerType: 'mouse', clientX: 30, clientY: 0 }))
+  element.dispatch('pointerup', pointerEvent({ pointerType: 'mouse', clientX: 30, clientY: 0 }))
+
+  assert.deepEqual(log.singles, ['mouse'])
+  timers.advance(240)
+  assert.deepEqual(log.singles, ['mouse', 'mouse'])
+  assert.equal(log.doubles, 0)
+})
+
+test('touch short press is immediate while a 550ms long press fires once', () => {
+  setupGlobalDom()
+  const element = new FakeElement()
+  const { controller, log, timers } = controllerWithLogs()
+  controller.attach(element)
+
+  element.dispatch('pointerdown', pointerEvent({ pointerType: 'touch' }))
+  timers.advance(200)
+  element.dispatch('pointerup', pointerEvent({ pointerType: 'touch' }))
+  assert.deepEqual(log.singles, ['touch'])
+
+  element.dispatch('pointerdown', pointerEvent({ pointerType: 'touch', pointerId: 2 }))
+  timers.advance(550)
+  timers.advance(500)
+  assert.equal(log.longPresses, 1)
+  element.dispatch('pointerup', pointerEvent({ pointerType: 'touch', pointerId: 2 }))
+  assert.deepEqual(log.singles, ['touch'])
+})
+
+test('touch movement over the threshold cancels long press and gives drag priority', () => {
+  setupGlobalDom()
+  const element = new FakeElement()
+  const { controller, log, timers } = controllerWithLogs()
+  controller.attach(element)
+
+  element.dispatch('pointerdown', pointerEvent({ pointerType: 'touch', clientX: 0, clientY: 0 }))
+  timers.advance(300)
+  element.dispatch('pointermove', pointerEvent({ pointerType: 'touch', clientX: 12, clientY: 0 }))
+  timers.advance(400)
+  element.dispatch('pointerup', pointerEvent({ pointerType: 'touch', clientX: 12, clientY: 0 }))
+
+  assert.equal(log.longPresses, 0)
+  assert.deepEqual(log.singles, [])
+  assert.deepEqual(log.dragEnds, [true])
+  assert.equal(timers.pendingCount, 0)
 })

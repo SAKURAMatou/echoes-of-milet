@@ -1,3 +1,8 @@
+import {
+  PET_DOUBLE_CLICK_DISTANCE_PX,
+  PET_DOUBLE_CLICK_MS,
+  PET_LONG_PRESS_MS,
+} from '@/config/pet'
 import { isPetDragStarted, PET_DRAG_THRESHOLD_PX } from './petGeometryCore'
 
 export interface PetPointerClientPoint {
@@ -5,12 +10,30 @@ export interface PetPointerClientPoint {
   y: number
 }
 
+export type PetActivationInput = 'mouse' | 'touch' | 'keyboard'
+
 export interface PetPointerHandlers {
   onPointerDown?(point: PetPointerClientPoint): void
-  onActivate(): void
+  onSingleActivate(input: PetActivationInput): void
+  onDoubleActivate(): void
+  onLongPress(): void
   onDragStart(point: PetPointerClientPoint): void
   onDragMove(point: PetPointerClientPoint): void
   onDragEnd(commit: boolean): void
+}
+
+export interface PetPointerTimerScheduler {
+  schedule(callback: () => void, delayMs: number): number
+  cancel(timerId: number): void
+}
+
+export interface PetPointerOptions {
+  dragThreshold?: number
+  doubleClickMs?: number
+  doubleClickDistance?: number
+  longPressMs?: number
+  doubleClickEnabled?: boolean | (() => boolean)
+  timers?: PetPointerTimerScheduler
 }
 
 export interface PetPointerController {
@@ -19,44 +42,77 @@ export interface PetPointerController {
   cancel(): void
 }
 
+const browserTimers: PetPointerTimerScheduler = {
+  schedule(callback, delayMs) {
+    return window.setTimeout(callback, delayMs)
+  },
+  cancel(timerId) {
+    window.clearTimeout(timerId)
+  },
+}
+
 export function createPetPointerController(
   handlers: PetPointerHandlers,
-  dragThreshold = PET_DRAG_THRESHOLD_PX,
+  options: PetPointerOptions | number = {},
 ): PetPointerController {
+  const resolvedOptions = typeof options === 'number' ? { dragThreshold: options } : options
+  const dragThreshold = resolvedOptions.dragThreshold ?? PET_DRAG_THRESHOLD_PX
+  const doubleClickMs = resolvedOptions.doubleClickMs ?? PET_DOUBLE_CLICK_MS
+  const doubleClickDistance =
+    resolvedOptions.doubleClickDistance ?? PET_DOUBLE_CLICK_DISTANCE_PX
+  const longPressMs = resolvedOptions.longPressMs ?? PET_LONG_PRESS_MS
+  const timers = resolvedOptions.timers ?? browserTimers
+  const doubleClickEnabled = () =>
+    typeof resolvedOptions.doubleClickEnabled === 'function'
+      ? resolvedOptions.doubleClickEnabled()
+      : resolvedOptions.doubleClickEnabled !== false
   let element: HTMLElement | null = null
   let pointerId: number | null = null
+  let pointerType = ''
   let dragging = false
+  let longPressed = false
   let suppressNextClick = false
   let startPoint: PetPointerClientPoint | null = null
   let latestPoint: PetPointerClientPoint | null = null
   let moveFrame = 0
+  let longPressTimer: number | null = null
+  let pendingMouseClick: { point: PetPointerClientPoint; timer: number } | null = null
 
   function clearMoveFrame() {
-    if (moveFrame && typeof window !== 'undefined') {
-      window.cancelAnimationFrame(moveFrame)
-    }
+    if (moveFrame && typeof window !== 'undefined') window.cancelAnimationFrame(moveFrame)
     moveFrame = 0
   }
 
-  function releasePointerCapture() {
-    if (!element || pointerId === null) return
+  function clearLongPressTimer() {
+    if (longPressTimer !== null) timers.cancel(longPressTimer)
+    longPressTimer = null
+  }
+
+  function clearPendingMouseClick() {
+    if (pendingMouseClick) timers.cancel(pendingMouseClick.timer)
+    pendingMouseClick = null
+  }
+
+  function releasePointerCapture(capturedPointerId: number | null) {
+    if (!element || capturedPointerId === null) return
     try {
-      if (element.hasPointerCapture?.(pointerId)) {
-        element.releasePointerCapture(pointerId)
+      if (element.hasPointerCapture?.(capturedPointerId)) {
+        element.releasePointerCapture(capturedPointerId)
       }
     } catch {
-      // Pointer capture can already be gone after pointerup or a route change.
+      // Capture can already be gone after pointerup or navigation.
     }
   }
 
-  function resetPointer() {
+  function resetActivePointer() {
     clearMoveFrame()
+    clearLongPressTimer()
     const capturedPointerId = pointerId
-    // Drop the local pointer id before releasing capture: browsers can emit
-    // lostpointercapture synchronously and it must not cancel twice.
     pointerId = null
-    if (capturedPointerId !== null) releasePointerCapture()
+    releasePointerCapture(capturedPointerId)
+    pointerType = ''
     dragging = false
+    longPressed = false
     startPoint = null
     latestPoint = null
   }
@@ -68,10 +124,6 @@ export function createPetPointerController(
       latestPoint = null
       handlers.onDragMove(point)
     }
-  }
-
-  function suppressPointerClick() {
-    suppressNextClick = true
   }
 
   function requestMoveFrame(): number {
@@ -86,32 +138,76 @@ export function createPetPointerController(
     })
   }
 
-  function onPointerDown(event: PointerEvent) {
-    if (!element || event.button !== 0 || !event.isPrimary) return
-    suppressNextClick = false
-    if (pointerId !== null) return
+  function armMouseClick(point: PetPointerClientPoint) {
+    const timer = timers.schedule(() => {
+      if (pendingMouseClick?.timer !== timer) return
+      pendingMouseClick = null
+      handlers.onSingleActivate('mouse')
+    }, doubleClickMs)
+    pendingMouseClick = { point, timer }
+  }
 
+  function handleMouseActivation(point: PetPointerClientPoint) {
+    if (!doubleClickEnabled()) {
+      clearPendingMouseClick()
+      handlers.onSingleActivate('mouse')
+      return
+    }
+    const first = pendingMouseClick
+    if (!first) {
+      armMouseClick(point)
+      return
+    }
+    const closeEnough =
+      Math.hypot(point.x - first.point.x, point.y - first.point.y) <= doubleClickDistance
+    clearPendingMouseClick()
+    if (closeEnough) {
+      handlers.onDoubleActivate()
+      return
+    }
+    handlers.onSingleActivate('mouse')
+    armMouseClick(point)
+  }
+
+  function onPointerDown(event: PointerEvent) {
+    if (!element || event.button !== 0 || !event.isPrimary || pointerId !== null) return
+    suppressNextClick = false
     pointerId = event.pointerId
+    pointerType = event.pointerType || 'mouse'
     startPoint = { x: event.clientX, y: event.clientY }
     latestPoint = startPoint
     dragging = false
+    longPressed = false
     handlers.onPointerDown?.(startPoint)
+
+    if (pointerType === 'touch') {
+      longPressTimer = timers.schedule(() => {
+        longPressTimer = null
+        if (pointerId !== event.pointerId || dragging || longPressed) return
+        longPressed = true
+        clearPendingMouseClick()
+        handlers.onLongPress()
+      }, longPressMs)
+    }
+
     try {
       element.setPointerCapture(event.pointerId)
     } catch {
-      // Capturing is best-effort; normal pointer events still work.
+      // Best effort; normal pointer events remain usable.
     }
   }
 
   function onPointerMove(event: PointerEvent) {
     if (!element || !event.isPrimary || pointerId !== event.pointerId || !startPoint) return
     const nextPoint = { x: event.clientX, y: event.clientY }
+    if (longPressed) return
 
     if (!dragging) {
       if (!isPetDragStarted(startPoint, nextPoint, dragThreshold)) return
+      clearLongPressTimer()
+      clearPendingMouseClick()
       dragging = true
       handlers.onDragStart(startPoint)
-      // The move that crossed the threshold is also the first drag coordinate.
       latestPoint = nextPoint
       moveFrame = requestMoveFrame()
       return
@@ -124,68 +220,67 @@ export function createPetPointerController(
   function onPointerEnd(event: PointerEvent) {
     if (!element || pointerId !== event.pointerId) return
     const wasDragging = dragging
-    // Flush the last queued coordinate before ending so pointerup cannot drop
-    // the final drag position.
+    const wasLongPressed = longPressed
+    const completedPointerType = pointerType
+    const point = { x: event.clientX, y: event.clientY }
     flushLatestMove()
-    resetPointer()
+    resetActivePointer()
 
     if (wasDragging) {
       handlers.onDragEnd(true)
-    } else {
-      handlers.onActivate()
+    } else if (!wasLongPressed && completedPointerType === 'mouse') {
+      handleMouseActivation(point)
+    } else if (!wasLongPressed) {
+      handlers.onSingleActivate('touch')
     }
-    suppressPointerClick()
+    suppressNextClick = true
   }
 
   function finishWithoutCommit() {
     const wasDragging = dragging
     flushLatestMove()
-    resetPointer()
+    resetActivePointer()
+    clearPendingMouseClick()
     if (wasDragging) handlers.onDragEnd(false)
-    suppressPointerClick()
+    suppressNextClick = true
   }
 
   function onPointerCancel(event: PointerEvent) {
-    if (pointerId !== event.pointerId) return
-    finishWithoutCommit()
+    if (pointerId === event.pointerId) finishWithoutCommit()
   }
 
   function onLostPointerCapture(event: PointerEvent) {
-    if (pointerId !== event.pointerId) return
-    finishWithoutCommit()
+    if (pointerId === event.pointerId) finishWithoutCommit()
   }
 
   function onWindowBlur() {
-    if (pointerId === null && !dragging) return
-    finishWithoutCommit()
+    if (pointerId !== null || pendingMouseClick) finishWithoutCommit()
   }
 
   function onVisibilityChange() {
-    if (typeof document === 'undefined' || !document.hidden) return
-    if (pointerId === null && !dragging) return
-    finishWithoutCommit()
+    if (typeof document !== 'undefined' && document.hidden) finishWithoutCommit()
   }
 
   function onClick(event: MouseEvent) {
     if (event.detail === 0) {
-      // Keyboard activation (Enter/Space) must never be swallowed by a stale
-      // pointer suppression flag.
       suppressNextClick = false
-      handlers.onActivate()
+      clearPendingMouseClick()
+      handlers.onSingleActivate('keyboard')
       return
     }
-    if (!suppressNextClick) {
-      handlers.onActivate()
-      return
+    if (suppressNextClick) {
+      suppressNextClick = false
+      event.preventDefault()
+      event.stopPropagation()
     }
-    suppressNextClick = false
+  }
+
+  function onDoubleClick(event: MouseEvent) {
     event.preventDefault()
     event.stopPropagation()
   }
 
   function onKeyDown() {
-    // A prior pointer path that never produced a click event must not swallow
-    // the next keyboard-generated activation.
     suppressNextClick = false
   }
 
@@ -198,19 +293,14 @@ export function createPetPointerController(
     element.addEventListener('pointercancel', onPointerCancel)
     element.addEventListener('lostpointercapture', onLostPointerCapture)
     element.addEventListener('click', onClick)
+    element.addEventListener('dblclick', onDoubleClick)
     element.addEventListener('keydown', onKeyDown)
-    if (typeof window !== 'undefined') {
-      window.addEventListener('blur', onWindowBlur)
-    }
-    if (typeof document !== 'undefined') {
-      document.addEventListener('visibilitychange', onVisibilityChange)
-    }
+    window.addEventListener('blur', onWindowBlur)
+    document.addEventListener('visibilitychange', onVisibilityChange)
   }
 
   function detach() {
-    if (pointerId !== null || dragging) {
-      finishWithoutCommit()
-    }
+    if (pointerId !== null || dragging || pendingMouseClick) finishWithoutCommit()
     if (!element) return
     element.removeEventListener('pointerdown', onPointerDown)
     element.removeEventListener('pointermove', onPointerMove)
@@ -218,14 +308,12 @@ export function createPetPointerController(
     element.removeEventListener('pointercancel', onPointerCancel)
     element.removeEventListener('lostpointercapture', onLostPointerCapture)
     element.removeEventListener('click', onClick)
+    element.removeEventListener('dblclick', onDoubleClick)
     element.removeEventListener('keydown', onKeyDown)
-    if (typeof window !== 'undefined') {
-      window.removeEventListener('blur', onWindowBlur)
-    }
-    if (typeof document !== 'undefined') {
-      document.removeEventListener('visibilitychange', onVisibilityChange)
-    }
-    resetPointer()
+    window.removeEventListener('blur', onWindowBlur)
+    document.removeEventListener('visibilitychange', onVisibilityChange)
+    resetActivePointer()
+    clearPendingMouseClick()
     suppressNextClick = false
     element = null
   }
