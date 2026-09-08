@@ -48,9 +48,8 @@
       </span>
     </button>
 
-    <Teleport to="body">
+    <Teleport v-if="listOpen" to="body">
       <div
-        v-if="listOpen"
         ref="popoverEl"
         :style="popoverStyle"
         :class="popoverClass"

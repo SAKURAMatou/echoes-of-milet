@@ -53,9 +53,8 @@
       </svg>
     </button>
 
-    <Teleport to="body">
+    <Teleport v-if="listOpen" to="body">
       <div
-        v-if="listOpen"
         :id="popoverId"
         ref="popoverEl"
         :style="popoverStyle"

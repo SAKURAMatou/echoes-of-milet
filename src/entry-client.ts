@@ -62,7 +62,9 @@ async function bootstrap() {
   }
 }
 
-void bootstrap()
+void bootstrap().catch((error) => {
+  console.error('[app] Client bootstrap failed.', error)
+})
 
 if (import.meta.hot) {
   import.meta.hot.dispose(teardown)

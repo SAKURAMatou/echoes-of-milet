@@ -118,6 +118,32 @@ function resolveRequestLang(req, requestUrl) {
   return normalizeLang(req.headers['accept-language']) ?? 'zh'
 }
 
+function toUrlLang(lang) {
+  return lang === 'jp' ? 'ja' : 'zh'
+}
+
+function buildBarePathRedirect(pathname, req, requestUrl) {
+  const cleanPath = normalizeUrl(pathname)
+  if (cleanPath === '/' || cleanPath.startsWith('/zh') || cleanPath.startsWith('/ja')) {
+    return null
+  }
+
+  if (
+    isAssetRequest(cleanPath) ||
+    cleanPath.startsWith('/api/') ||
+    cleanPath.startsWith('/other/')
+  ) {
+    return null
+  }
+
+  return `/${toUrlLang(resolveRequestLang(req, requestUrl))}${cleanPath}`
+}
+
+function redirect(res, location) {
+  res.writeHead(302, { Location: location })
+  res.end()
+}
+
 function injectHtml(template, payload) {
   return template
     .replace('__HTML_LANG__', payload.htmlLang)
@@ -540,12 +566,23 @@ const server = http.createServer(async (req, res) => {
       return
     }
 
+    const requestUrl = new URL(url, publicSiteOrigin)
+
+    if (normalizeUrl(url) === '/') {
+      redirect(res, `/${toUrlLang(resolveRequestLang(req, requestUrl))}`)
+      return
+    }
+
+    const barePathRedirect = buildBarePathRedirect(requestUrl.pathname, req, requestUrl)
+    if (barePathRedirect) {
+      redirect(res, `${barePathRedirect}${requestUrl.search}`)
+      return
+    }
+
     if (url.startsWith('/api/') || url.startsWith('/other/')) {
       await proxyApiRequest(req, res)
       return
     }
-
-    const requestUrl = new URL(url, publicSiteOrigin)
 
     if (isAllowedStaticPath(requestUrl.pathname)) {
       await proxyStaticRequest(req, res)
