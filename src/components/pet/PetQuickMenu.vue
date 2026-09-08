@@ -84,16 +84,6 @@ const colorMap = {
 
 const itemWidth = computed(() => (props.isMobile ? 132 : 144))
 const itemHeight = computed(() => (props.isMobile ? 42 : 46))
-const extraItemCount = computed(() => Math.max(0, PET_QUICK_MENU_ROUTES.length - 3))
-const radius = computed(() => {
-  const base = props.isMobile
-    ? Math.max(186, props.petSize * 1.55)
-    : Math.max(218, props.petSize * 1.35)
-  return base + extraItemCount.value * (props.isMobile ? 36 : 42)
-})
-const spreadDegrees = computed(() =>
-  Math.min(150, (props.isMobile ? 90 : 96) + extraItemCount.value * 18),
-)
 
 const menuEntries = computed(() =>
   PET_QUICK_MENU_ROUTES.map((meta) => {
@@ -121,8 +111,8 @@ const positionedEntries = computed(() => {
     itemWidth: itemWidth.value,
     itemHeight: itemHeight.value,
     itemCount: menuEntries.value.length,
-    radius: radius.value,
-    spreadDegrees: spreadDegrees.value,
+    horizontalGap: props.isMobile ? 6 : 8,
+    itemGap: props.isMobile ? 10 : 12,
   })
 
   return menuEntries.value.map((entry, index) => {

@@ -105,6 +105,7 @@ async function loadDetail() {
 
   loading.value = true
   error.value = ''
+  let loadedCurrentPayload = false
   try {
     const nextPayload = await fetchLiveEventDetail(slug.value, lang.value)
     if (
@@ -120,6 +121,7 @@ async function loadDetail() {
     }
     payload.value = nextPayload
     appState.miletLiveDetailData = { key: detailKey.value, payload: nextPayload }
+    loadedCurrentPayload = true
   } catch (err) {
     if (
       !requestStillCurrent(
@@ -137,6 +139,9 @@ async function loadDetail() {
   } finally {
     if (requestId === liveDetailRequestId) {
       loading.value = false
+      if (loadedCurrentPayload) {
+        notifyLiveOpenIfValid(requestedRouteGeneration)
+      }
     }
   }
 }

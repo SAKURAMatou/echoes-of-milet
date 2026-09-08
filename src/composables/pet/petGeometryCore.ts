@@ -130,8 +130,10 @@ export interface PetRadialMenuLayoutInput {
   itemWidth: number
   itemHeight: number
   itemCount: number
-  radius: number
-  spreadDegrees?: number
+  /** Horizontal air gap between a side menu item and the pet canvas. */
+  horizontalGap?: number
+  /** Minimum vertical gap used to distribute menu items evenly. */
+  itemGap?: number
   margin?: number
 }
 
@@ -142,7 +144,14 @@ export interface PetRadialMenuItemLayout {
   originY: number
 }
 
-/** Places quick actions on an inward-facing arc around the pet. */
+/**
+ * Places quick actions on an inward-facing quarter ellipse around the pet.
+ *
+ * Corner layouts use equal vertical slots so adding an entry cannot leave one
+ * item with a visibly different gap. Side/centre layouts use the same slot
+ * size in a straight fan. The horizontal radius is derived from the pet and
+ * pill widths, keeping the closest edges separated by one small gap.
+ */
 export function resolvePetRadialMenuLayout(
   input: PetRadialMenuLayoutInput,
 ): PetRadialMenuItemLayout[] {
@@ -171,19 +180,37 @@ export function resolvePetRadialMenuLayout(
   const centerThreshold = input.petSize * 0.35
   const inwardX = Math.abs(centerDx) <= centerThreshold ? 0 : Math.sign(centerDx)
   const inwardY = Math.abs(centerDy) <= centerThreshold ? 0 : Math.sign(centerDy)
-  const inwardAngle =
-    inwardX === 0 && inwardY === 0
-      ? -Math.PI / 2
-      : Math.atan2(inwardY, inwardX)
-  const spread = ((input.spreadDegrees ?? 92) * Math.PI) / 180
+  const horizontalGap = Math.max(0, input.horizontalGap ?? 8)
+  const itemGap = Math.max(0, input.itemGap ?? 12)
+  const horizontalRadius = input.petSize / 2 + input.itemWidth / 2 + horizontalGap
+  const verticalStep = input.itemHeight + itemGap
+  const minimumVerticalRadius = input.petSize / 2 + input.itemHeight / 2 + itemGap
+  const verticalRadius = Math.max(
+    minimumVerticalRadius,
+    verticalStep * Math.max(1, input.itemCount - 1),
+  )
 
   return Array.from({ length: input.itemCount }, (_, index) => {
-    const progress = input.itemCount === 1 ? 0.5 : index / (input.itemCount - 1)
-    const angle = inwardAngle - spread / 2 + spread * progress
-    const desiredLeft =
-      petCenterX + Math.cos(angle) * input.radius - input.itemWidth / 2
-    const desiredTop =
-      petCenterY + Math.sin(angle) * input.radius - input.itemHeight / 2
+    const progress = input.itemCount === 1 ? 0 : index / (input.itemCount - 1)
+    let offsetX = 0
+    let offsetY = 0
+
+    if (inwardX !== 0 && inwardY !== 0) {
+      // Equal progress produces equal vertical gaps; x follows the ellipse.
+      offsetX = inwardX * horizontalRadius * Math.sqrt(Math.max(0, 1 - progress ** 2))
+      offsetY = inwardY * verticalRadius * progress
+    } else if (inwardX !== 0) {
+      offsetX = inwardX * horizontalRadius
+      offsetY = (index - (input.itemCount - 1) / 2) * verticalStep
+    } else {
+      const verticalDirection = inwardY || -1
+      offsetY =
+        verticalDirection *
+        (minimumVerticalRadius + index * verticalStep)
+    }
+
+    const desiredLeft = petCenterX + offsetX - input.itemWidth / 2
+    const desiredTop = petCenterY + offsetY - input.itemHeight / 2
     const left = clampPetNumber(desiredLeft, minX, Math.max(minX, maxX))
     const top = clampPetNumber(desiredTop, minY, Math.max(minY, maxY))
 

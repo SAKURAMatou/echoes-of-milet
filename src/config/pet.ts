@@ -1,14 +1,11 @@
 import type {
   PetAction,
-  PetAnimationPriority,
   PetEvent,
   PetModuleKey,
   PetRouteMode,
 } from '@/composables/pet/petTypes'
 
-export const PET_LAYER_Z_INDEX = 40
 export const PET_MENU_DELAY_MS = 80
-export const PET_MENU_COMPLETE_MS = 280
 export const PET_PHOTO_LOOK_WINDOW_MS = 30000
 export const PET_DEFAULT_BOTTOM_PX = 88
 export const PET_DEFAULT_RIGHT_DESKTOP_PX = 32
@@ -17,10 +14,6 @@ export const PET_DEFAULT_EDGE_PX = 8
 export const PET_HOST_SIZE_DESKTOP_PX = 160
 export const PET_HOST_SIZE_MOBILE_PX = 120
 export const PET_MOBILE_MAX_WIDTH_PX = 767
-export const PET_EVENT_PRIORITY = { page: 2, user: 3 } as const satisfies Record<
-  string,
-  PetAnimationPriority
->
 export const PET_ROUTE_MODULE_ANIMATION = {
   timeline: 'curious',
   release: 'sniff',
@@ -29,7 +22,7 @@ export const PET_ROUTE_MODULE_ANIMATION = {
   news: 'sit',
   album: 'curious',
 } as const satisfies Record<PetModuleKey, PetAction>
-export const PET_MODULE_ROUTES: Record<string, PetModuleKey> = {
+export const PET_MODULE_ROUTES = {
   miletTimeLine: 'timeline',
   miletRelease: 'release',
   miletLiveArchive: 'live',
@@ -37,7 +30,9 @@ export const PET_MODULE_ROUTES: Record<string, PetModuleKey> = {
   miletNews: 'news',
   miletPicAlbum: 'album',
   galleryDetail: 'album',
-}
+} as const satisfies Record<string, PetModuleKey>
+
+export type PetModuleRouteName = keyof typeof PET_MODULE_ROUTES
 export const PET_QUIET_ROUTES = new Set<string>([
   'home',
   'milet',
@@ -53,7 +48,7 @@ export const PET_HIDDEN_ROUTES = new Set<string>(['miletSongGuessPlay', 'miletLi
 
 export function resolvePetRouteMode(name: string | null | undefined): PetRouteMode {
   const routeName = typeof name === 'string' ? name : ''
-  if (PET_MODULE_ROUTES[routeName]) return 'reactive'
+  if (resolvePetRouteModule(routeName)) return 'reactive'
   if (PET_QUIET_ROUTES.has(routeName)) return 'quiet'
   if (PET_HIDDEN_ROUTES.has(routeName)) return 'hidden'
   return 'hidden'
@@ -61,7 +56,7 @@ export function resolvePetRouteMode(name: string | null | undefined): PetRouteMo
 
 export function resolvePetRouteModule(name: string | null | undefined): PetModuleKey | null {
   const routeName = typeof name === 'string' ? name : ''
-  return PET_MODULE_ROUTES[routeName] ?? null
+  return PET_MODULE_ROUTES[routeName as PetModuleRouteName] ?? null
 }
 
 export function resolvePetPageEvent(moduleKey: PetModuleKey): PetEvent {
@@ -106,7 +101,7 @@ export function resolvePetEventAction(event: PetEvent): PetAction | null {
 
 export interface PetQuickMenuRouteMeta {
   key: PetModuleKey
-  routeName: string
+  routeName: PetModuleRouteName
   color: 'amber' | 'violet' | 'sky'
 }
 

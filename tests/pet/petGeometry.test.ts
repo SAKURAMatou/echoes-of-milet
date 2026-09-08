@@ -88,7 +88,7 @@ test('layout viewport fallback is used when visualViewport is absent', () => {
   assert.deepEqual(box, { left: 0, top: 0, width: 375, height: 812 })
 })
 
-test('radial menu fans inward from the default bottom-right pet position', () => {
+test('radial menu distributes four actions evenly and close to a bottom-right pet', () => {
   const items = resolvePetRadialMenuLayout({
     viewport: { left: 0, top: 0, width: 1280, height: 720 },
     safeInsets: noInsets,
@@ -97,16 +97,19 @@ test('radial menu fans inward from the default bottom-right pet position', () =>
     petSize: 160,
     itemWidth: 144,
     itemHeight: 46,
-    itemCount: 3,
-    radius: 218,
+    itemCount: 4,
   })
 
-  assert.equal(items.length, 3)
+  assert.equal(items.length, 4)
   assert.ok(items.every((item) => item.left < 1088 + 80))
-  assert.ok(items.filter((item) => item.top < 472 + 80).length >= 2)
+  const verticalGaps = items.slice(1).map((item, index) =>
+    Math.abs(item.top - items[index].top),
+  )
+  assert.ok(verticalGaps.every((gap) => Math.abs(gap - verticalGaps[0]) < 0.001))
+  assert.equal(1088 - (items[0].left + 144), 8)
 })
 
-test('radial menu keeps every action inside a small mobile viewport', () => {
+test('radial menu keeps four evenly-spaced actions inside a small mobile viewport', () => {
   const items = resolvePetRadialMenuLayout({
     viewport: { left: 0, top: 0, width: 320, height: 480 },
     safeInsets: { left: 0, right: 6, top: 12, bottom: 8 },
@@ -115,8 +118,9 @@ test('radial menu keeps every action inside a small mobile viewport', () => {
     petSize: 120,
     itemWidth: 132,
     itemHeight: 42,
-    itemCount: 3,
-    radius: 186,
+    itemCount: 4,
+    horizontalGap: 6,
+    itemGap: 10,
   })
 
   for (const item of items) {
@@ -135,5 +139,28 @@ test('radial menu keeps every action inside a small mobile viewport', () => {
       previous.top < current.top + 42 &&
       previous.top + 42 > current.top
     assert.equal(overlaps, false)
+  }
+
+  const verticalGaps = items.slice(1).map((item, index) =>
+    Math.abs(item.top - items[index].top),
+  )
+  assert.ok(verticalGaps.every((gap) => Math.abs(gap - verticalGaps[0]) < 0.001))
+})
+
+test('radial menu derives enough vertical span for additional configured actions', () => {
+  const items = resolvePetRadialMenuLayout({
+    viewport: { left: 0, top: 0, width: 1440, height: 900 },
+    safeInsets: noInsets,
+    petX: 1248,
+    petY: 652,
+    petSize: 160,
+    itemWidth: 144,
+    itemHeight: 46,
+    itemCount: 6,
+  })
+
+  assert.equal(items.length, 6)
+  for (let index = 1; index < items.length; index += 1) {
+    assert.ok(Math.abs(items[index].top - items[index - 1].top) >= 58)
   }
 })

@@ -4,6 +4,7 @@ import assert from 'node:assert/strict'
 import {
   PetFramePlayer,
   resolvePetFrame,
+  shouldPetAnimationLoop,
 } from '../../src/composables/pet/petFramePlayer.ts'
 
 const twoFrameClip = {
@@ -32,4 +33,11 @@ test('player tick selects a new clip per instance and returns stale-agnostic fra
   assert.equal(player.tick(50).frame, 1)
   const ended = player.tick(300)
   assert.equal(ended.ended, true)
+})
+
+test('drag loops only during a real pointer drag', () => {
+  assert.equal(shouldPetAnimationLoop('drag', true, true), true)
+  assert.equal(shouldPetAnimationLoop('drag', true, false), false)
+  assert.equal(shouldPetAnimationLoop('idle', true, false), true)
+  assert.equal(shouldPetAnimationLoop('happy', false, false), false)
 })

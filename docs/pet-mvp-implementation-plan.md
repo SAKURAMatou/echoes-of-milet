@@ -1,17 +1,17 @@
 # 页面互动宠物 MVP 实现方案
 
-日期：2026-09-06。依据：桌面《Pet 互动宠物 MVP 方案.md》及当前公开端源码。
+日期：2026-09-08。依据：桌面《Pet 互动宠物 MVP 方案.md》、`designs/jean-motion` 动画示例及当前公开端源码。
 
-本文件是实施设计，不代表功能已经接入。素材准备见 [pet-asset-production-brief.md](./pet-asset-production-brief.md)。当前实际工程目录为 `echoes of milet`，与工作区说明中的 `echoes-of-milet` 同指公开端。
+本文件同时记录实施方案、最终代码结构与验收结果。功能已在 `feat/desktop-pet` 分支接入；素材准备规范见 [pet-asset-production-brief.md](./pet-asset-production-brief.md)。当前实际工程目录为 `echoes of milet`，与工作区说明中的 `echoes-of-milet` 同指公开端。
 
 ## 1. 结论与边界
 
 可直接基于现有 Vue 3、TypeScript、Tailwind 实现，无需新增游戏引擎、状态管理框架、后端 API 或数据库。宠物是 App 级客户端辅助交互，使用独立工厂和 provide/inject，页面发送业务事件，不直接选择动画。
 
-- 保留需求的六模块反应、三项导航、点击/拖拽、10–30 秒无操作随机行为。
+- 保留需求的六模块反应、四项导航、点击/拖拽、10–30 秒无操作随机行为。
 - “当前页面生命周期”解释为本次浏览器文档生命周期：SPA 路由切换保留位置，刷新恢复默认；不写入 AppState、Cookie、LocalStorage 或服务端。
-- 先实现完整事件和交互闭环，再替换最终动画。占位图只用于开发，不作为九个动作的验收交付。
-- 本轮仅新增方案与素材制作规范，不修改产品代码、不安装依赖、不制作不确定的角色成品。
+- 已把动画示例中的九组动作转为 WebP 图集、静态降级图和 manifest，并完成事件、交互、弹层暂停及 SSR 隔离。
+- 未新增运行时依赖、后端 API、数据库或持久化配置。
 
 ## 2. 代码依据与必要调整
 
@@ -22,7 +22,7 @@
 | `src/views/LayoutApp.vue` | 桌面内容区内部滚动，右下角 fixed 返回顶部 | 宠物不能只监听 window scroll；预留返回顶部区域 |
 | `src/router/routes.ts` | Live 详情、文章、周年页不在 LayoutApp 内 | 不把宿主放进 LayoutApp；用路由策略控制显示 |
 | `src/composables/site-interaction/*` | 已有 motionEnabled、documentVisible、导航阶段；没有 overlay 管理接口 | 读取其状态，不重复创建媒体查询；另加宠物暂停令牌 |
-| `src/composables/SideMenueData.ts` | timeline/release/live-archive 已有 routeName 和 amber/violet/sky 配色 | 三项入口复用目标与配色；不把完整菜单复制进宠物 |
+| `src/composables/SideMenueData.ts` | timeline/release/live-archive/pilgrimage 已有命名路由和现有配色语义 | 四项入口复用目标；不把完整侧栏菜单复制进宠物 |
 | `src/composables/useLangRoute.ts` | URL 使用 ja，内部语言存在 jp 映射 | 使用 withLangParam/toUrlLang，禁止生成 /jp 路径 |
 | `src/plugins/event-bus.ts` | events 是模块级对象 | 宠物不使用该总线，避免跨请求共享状态 |
 | `src/views/milet/MiletNewsCollectionView.vue` | 当前是整理新闻链接，外链新窗口打开；没有访客收藏操作 | news.favorite 仅保留契约，MVP 当前代码接入验收标记 N/A，不为宠物另做收藏业务 |
@@ -32,7 +32,7 @@
 
 ### 需求中需要明确的冲突
 
-1. **照片反应与 Lightbox 隐藏**：Lightbox 打开优先，不能为了 look 延迟打开。实例打开记录一次 photo.open 并隐藏；关闭后，同一路由且距打开不超过 30 秒时补一次 look，否则回 idle。连续翻图不发事件。此为建议对原验收语义的调整，需按该规则确认结果，不能声称打开时已可见播放。
+1. **照片反应与 Lightbox 隐藏**：Lightbox 打开优先，不能为了 look 延迟打开。实例打开记录一次 photo.open 并隐藏；关闭后，同一路由且距打开不超过 30 秒时补一次 look，否则回 idle。连续翻图不发事件。实现与验收均按此规则执行，不能声称打开时已可见播放。
 
    
 
@@ -44,24 +44,29 @@
 
 ## 3. 组件与逻辑组织
 
-建议增量目录（不是必须逐一拆成极小文件）：
+最终增量目录如下：
 
 ```text
 src/components/pet/
   PetHost.vue                 # 客户端挂载、显示策略、组合与资源就绪
   PetAvatar.vue               # 动画/静态渲染、语义按钮，不处理页面数据
-  PetQuickMenu.vue            # 三项导航、定位、键盘和关闭行为
+  PetQuickMenu.vue            # 四项导航、均匀定位、键盘和关闭行为
+  mountPetHost.ts             # hydration 完成后创建和卸载独立客户端根
 src/composables/pet/
-  createPetCoordinator.ts    # 状态、优先级、去重、暂停、清理
-  petTypes.ts                # 事件、动画、状态、注入 API
-  petInjection.ts            # InjectionKey、usePet
-  usePetPointer.ts           # 指针与边界约束
-  usePetRoute.ts             # 模块映射、导航关闭与失效代数
-  usePetOverlay.ts           # 组件持有暂停令牌，卸载自动释放
+  createPetCoordinator.ts     # 状态、优先级、去重、暂停、清理
+  petTypes.ts                 # 事件、动作注册表、状态、注入 API
+  petInjection.ts             # InjectionKey、usePet
+  petSchedulingCore.ts        # 待机候选、随机延时与可调度条件
+  petGeometryCore.ts          # 拖拽约束与菜单几何
+  petFramePlayer.ts           # 图集播放、循环语义和完成回调
+  usePetPointer.ts            # Pointer Events 与拖拽状态
+  usePetOverlay.ts            # 响应式弹层暂停令牌
+  usePetFancybox.ts           # Fancybox 实例级暂停和照片事件
   index.ts
-src/config/pet.ts            # 路由策略、映射、阈值、功能开关
-src/composables/lang/pet.ts  # 遵循现有 zh/jp 文案结构
-src/assets/pet/              # 静态降级图、动作图集、manifest
+src/config/pet.ts             # 路由策略、菜单记录、事件映射、阈值
+src/composables/lang/pet.ts   # zh/jp 稳定键文案
+src/assets/pet/               # 九组图集、静态降级图、manifest 与入口
+tests/pet/                    # 协调器、调度、几何、指针、弹层和配置测试
 ```
 
 不要为了文件名机械搬用需求中的 PetEngine/PetInteraction 类层次。纯决策逻辑在协调器，DOM 与 Vue 生命周期在 composable，动画表现留在组件。空间与配色优先 Tailwind，图集逐帧、坐标变量和 reduced-motion 等用局部 CSS。
@@ -167,7 +172,7 @@ Live 详情是内容事件：在 `MiletLiveDetailView.vue` 的有效 payload 对
 
 ### 视口与返回顶部
 
-PC 宠物容器 160px，移动 120px；默认 right=32/16px，bottom=88px + safe-area（预留返回顶部 48px、间距和边缘）。素材同时在容器内放大 1.25 倍并按透明边距微调，提高角色主体占比；拖拽边界和菜单半径按放大后的容器计算。
+PC 宠物容器 160px，移动 120px；默认 right=32/16px，bottom=88px + safe-area（预留返回顶部 48px、间距和边缘）。素材同时在容器内放大 1.25 倍并按透明边距微调，提高角色主体占比；拖拽边界和菜单定位按放大后的容器计算。
 
 坐标统一按同一个 fixed 容器计算；移动端读取 visualViewport 的尺寸和偏移，把软键盘/缩放后可见区域转换到该坐标系后 clamp。安全区、角色完整画布和边距都在计算内。屏幕旋转仅把越界位置约束到最近有效点，不吸附、不自动回默认。
 
@@ -180,10 +185,11 @@ PC 宠物容器 160px，移动 120px；默认 right=32/16px，bottom=88px + safe
 | Timeline / 时间线 / タイムライン | miletTimeLine | amber |
 | Music Releases / 音乐作品 / 音楽作品 | miletRelease | violet |
 | Live / 演出记录 / ライブ | miletLiveArchive | sky |
+| Pilgrimage / 朝圣之旅 / 巡礼の旅 | miletPilgrimage | amber |
 
-使用 RouterLink + withLangParam；入口保留完整可访问名称。胶囊入口从宠物中心向视口内侧呈扇形展开，按宠物所在象限自动翻转方向，并逐项约束在安全区内；桌面与移动端均保持环绕关系，不再使用列表弹窗。
+使用 RouterLink + withLangParam；入口保留完整可访问名称。胶囊入口从宠物中心向视口内侧沿四分之一椭圆展开，按宠物所在象限自动翻转方向，并逐项约束在安全区内；桌面与移动端均保持环绕关系，不再使用列表弹窗。
 
-菜单项集中配置在 `PET_QUICK_MENU_ROUTES`，顺序、命名路由与颜色由一条记录定义；中日文文案使用相同的稳定 `key` 组成 Record，避免按数组下标错配。新增入口时添加路由记录及两种语言的同名文案，TypeScript 会检查遗漏；半径和扇形角度会随超过三项的数量递增。
+菜单项集中配置在 `PET_QUICK_MENU_ROUTES`，顺序、命名路由与颜色由一条记录定义；中日文文案使用相同的稳定 `key` 组成 Record，避免按数组下标错配。新增入口时添加路由记录及两种语言的同名文案，TypeScript 会检查遗漏。位置函数按菜单数量均分垂直槽位，桌面项间距 58px、移动端 52px；胶囊边缘与宠物容器的水平间距分别为 8px 和 6px。增加菜单项时无需手工补角度或坐标。
 
 再次点宠物、点外部、Escape、离开焦点区域、成功导航、开启其他 overlay 均关闭。菜单外点击采用非阻断监听，不吞掉页面原操作。选择导航即时收起，不等待新页面接口。
 
@@ -208,25 +214,47 @@ Pet 层级建议 40，低于 Header/TrackModal 等 50 层；它位于 App 根级
 
 ## 9. 动画资源
 
-\designs\jean-motion目录下是事先准备好的动画效果静态演示页面，把这个静态页面的动画资源，实现转移到工程内即可。
+`designs/jean-motion` 是动画效果静态示例。实现已把 idle、sit、happy、curious、excited、sniff、look、drag、sleep 九组资源转移到 `src/assets/pet`：每组包含逐帧 WebP 图集和静态降级图，`manifest.json` 保存帧数、帧宽、帧高、帧时长和循环声明。
 
-## 10. 分阶段实施与改动范围
+素材在 160px/120px 容器内按 1.25 倍显示并微调透明边距，扩大角色主体但不改变拖拽命中容器。`drag` 在真实拖拽期间循环；它被待机随机选中时只播放一轮，避免 manifest 的循环声明让随机状态永久占用。
+
+## 10. 扩展约定
+
+### 新增快捷菜单
+
+1. 在 `PET_QUICK_MENU_ROUTES` 增加稳定 `key`、命名路由和色彩；`routeName` 受 `PET_MODULE_ROUTES` 的命名路由联合类型约束。
+2. 在 `src/composables/lang/pet.ts` 的 zh/jp Record 中增加同名 key。缺失任一语言会在 TypeScript 校验时报错。
+3. 几何函数根据最终数量自动均匀分配位置；只有需要改变视觉密度时才调整 `horizontalGap` 或 `itemGap`。
+
+### 新增动作
+
+1. 在 `PET_ACTIONS` 注册动作名。`PetAction`、协调器合法动作集合、素材映射遍历和随机池均由该注册表派生；所有非 idle 动作会自动进入待机候选。
+2. 为动作补充 `.sheet.webp`、`.static.webp`、`manifest.json` 项和 `src/assets/pet/index.ts` 显式导入。素材 Record 会在类型检查时阻止遗漏。
+3. 若动作在交互中应持续循环、在随机待机中应单轮播放，在 `shouldPetAnimationLoop` 中声明上下文语义，不能只依赖 manifest。
+
+### 新增业务反应或弹层
+
+- 新业务反应先扩展 `PetEvent`，再在事件映射或页面成功状态中调用 `pet.react`。异步页面必须携带并校验内容 ID、路由代数和最新请求标识，迟到结果不能触发动作。
+- 普通 Dialog/Drawer 用 `usePetOverlay`；Fancybox 照片用 `usePetFancyboxPhotoLifecycle`。两者都按实例持有幂等 release，并在卸载或异常路径释放。
+- 路由显示策略集中在 `PET_MODULE_ROUTES`、`PET_QUIET_ROUTES` 和 `PET_HIDDEN_ROUTES`，不要在页面组件里按 URL 字符串判断。
+
+## 11. 分阶段实施与改动范围
 
 | 阶段 | 交付 | 完成门槛 |
 | --- | --- | --- |
-| P0 前期准备（本轮） | 代码映射、方案、动作与资产规格 | 差异和默认决策可供审阅 |
-| P1 交互骨架 | app 注入、Host、静态角色、三项导航、指针逻辑 | PC/Mobile 可点可拖、无 hydration mismatch |
-| P2 调度与页面事件 | 优先级、route/content 接线、活动计时、暂停令牌 | 竞态、清理、菜单/弹层互斥正确 |
-| P3 动画制作接入 | 定稿角色、三动作小样、九动作图集与静态图 | 小尺寸清晰、锚点稳定、切换无闪烁 |
-| P4 集成验收 | 桌面/移动/中文/日文/SSR 回归 | 验收矩阵通过且预算实测有记录 |
+| P0 前期准备 | 代码映射、方案、动作与资产规格 | 已完成 |
+| P1 交互骨架 | app 注入、Host、静态角色、四项导航、指针逻辑 | 已完成；PC/Mobile 可点可拖 |
+| P2 调度与页面事件 | 优先级、route/content 接线、待机计时、暂停令牌 | 已完成；竞态、清理、菜单/弹层互斥有单测 |
+| P3 动画制作接入 | 九动作图集、静态图、manifest 与逐帧播放器 | 已完成；静态降级和资源错误路径可用 |
+| P4 集成验收 | 桌面/移动/中文/日文/SSR 回归 | 已完成宠物范围验收；默认分支已有 hydration 警告另行记录 |
 
-主要改动：App.vue、app.ts、新 pet 目录和配置、内容事件页面、上述 overlay 组件。路由判断优先集中 route.name 映射，无需为没有新页面的宠物更改 SEO/render.config。
+主要改动：`index.html`、`src/app.ts`、`src/entry-client.ts`、新增 pet 目录和配置、内容事件页面、上述 overlay 组件，以及本地 SSR 验证脚本。路由判断集中在 route.name 映射，无需为没有新页面的宠物更改 SEO/render.config。
 
 管理端 `data-admin` 不承担宠物配置或素材上传，本期不改。Worker `milet-worker-ts` 没有新增数据或接口，本期不改。两个代理白名单、权限、D1 migrations 均无需同步。
 
-## 11. 验证计划
+## 12. 验证与结果
 
-实施时运行 `npm run type-check`、`npm run test:pet`、`npm run build:ssr`、`npm run verify:ssr:local`（最后一个会重复 build，可正式验收只运行 type-check + test:pet + verify:ssr:local）。调度纯逻辑使用 Node 内置 test runner 验证，不额外引入测试框架。
+最终校验运行 `npm run type-check`、`npm run test:pet`、`npm run build:ssr` 和素材检查脚本。调度纯逻辑使用 Node 内置 test runner，不额外引入测试框架。`verify-ssr-local.mjs` 已补齐 `/static/milet|blog/(img|img-preview)` 白名单代理，使本地验证与 Vite、Pages Function 的静态资源路径一致，图片请求不会再误入 Vue SSR 路由。
 
 | 场景 | 预期 |
 | --- | --- |
@@ -246,3 +274,13 @@ Pet 层级建议 40，低于 Header/TrackModal 等 50 层；它位于 App 根级
 | 卸载后推进计时/动画完成回调 | 没有过期状态写入、悬空监听与资源增长 |
 
 浏览器验收直接使用工程真实路由，不保留单独的宠物浏览器临时页面。
+
+### 2026-09-08 验收记录
+
+- `npm run type-check` 通过；`npm run test:pet` 共 50 项通过；`npm run build:ssr` 的客户端构建、服务端构建和预渲染均通过；`scripts/test_jean_motion_assets.py` 共 5 项通过。
+- SSR 返回的宠物根保持为 `<div id="pet-host-root" data-pet-client-root></div>`，服务端不输出 PetHost 内容；客户端挂载后页面只有一个 `data-pet-host` 实例。
+- 1280×720 桌面视口中宠物容器为 160×160，四个菜单项垂直间距均为 58px，最外侧胶囊与宠物容器水平边缘相距 8px。移动视口中容器为 120×120，四项垂直间距均为 52px，水平边缘间距为 6px。
+- 真实页面完成单击开关菜单、菜单导航、拖拽移动、拖后不误点、视口约束和待机随机动作检查。待机实测从 idle 进入非默认 look；候选池单测覆盖全部八个非 idle 动作。
+- `VM163 ... reportAllChanges ... requestIdleCallback` 无法在宠物待机切换中复现。工程源码和依赖中没有 `reportAllChanges`，宠物只使用 `window.setTimeout`；该堆栈来自匿名注入脚本或浏览器扩展，而非随机动作调度器。
+- `/zh/milet` 的 `Hydration completed but contains mismatches.` 在默认分支 `origin/ssr-cf-dev` 同样稳定复现。静态图片代理遗漏已经修正，浏览器通过本地 SSR 地址访问示例图片返回 2048×1536 的有效图片；hydration 警告仍存在，因此它是既有页面问题，不是图片代理、独立 PetHost 或本次随机动作引入。后续若专项排查，应在开发构建中捕获 Vue 给出的具体节点差异。
+- 遗留项复查发现 `MiletLiveDetailView.vue` 仅在复用 SSR/缓存 payload 时发送 `live.open`；首次客户端请求成功路径没有发送。现已在最新请求成功落盘且路由仍有效时补发，并保留 requestId、slug、lang、路由代数和 fullPath 校验。

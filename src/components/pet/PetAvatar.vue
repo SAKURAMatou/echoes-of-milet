@@ -39,7 +39,7 @@
 import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 
 import type { ResolvedPetAnimationAsset } from '@/assets/pet'
-import { PetFramePlayer } from '@/composables/pet/petFramePlayer'
+import { PetFramePlayer, shouldPetAnimationLoop } from '@/composables/pet/petFramePlayer'
 import type { PetAction } from '@/composables/pet/petTypes'
 
 const props = defineProps<{
@@ -111,9 +111,10 @@ function startFrameLoop() {
 function resetPlayer() {
   const meta = props.meta
   if (!meta) return
-  player.select(props.action, meta, meta.loop)
+  const loop = shouldPetAnimationLoop(props.action, meta.loop, props.dragging)
+  player.select(props.action, meta, loop)
   currentFrame.value = 0
-  staticPose.value = !meta.loop
+  staticPose.value = !loop
   completionSentFor = -1
   lastAction = props.action
   lastGeneration = props.animationGeneration
@@ -138,25 +139,21 @@ function tick(timestamp: number) {
   animationFrame = requestAnimationFrame(tick)
   const result = player.tick(delta)
   currentFrame.value = result.frame
-  if (props.meta.loop) {
+  if (!result.ended) {
     staticPose.value = false
     return
   }
 
-  if (result.ended) {
-    staticPose.value = true
-    if (completionSentFor !== props.animationGeneration) {
-      completionSentFor = props.animationGeneration
-      emit('complete', props.animationGeneration)
-    }
-    stopFrameLoop()
-    return
+  staticPose.value = true
+  if (completionSentFor !== props.animationGeneration) {
+    completionSentFor = props.animationGeneration
+    emit('complete', props.animationGeneration)
   }
-  staticPose.value = false
+  stopFrameLoop()
 }
 
 watch(
-  () => [props.action, props.animationGeneration, props.meta] as const,
+  () => [props.action, props.animationGeneration, props.meta, props.dragging] as const,
   () => {
     const meta = props.meta
     if (

@@ -1,4 +1,4 @@
-import type { PetAction } from '@/composables/pet/petTypes'
+import { PET_ACTIONS, type PetAction } from '@/composables/pet/petTypes'
 
 import manifest from './manifest.json'
 import curiousSheet from './curious.sheet.webp'
@@ -19,18 +19,6 @@ import sleepSheet from './sleep.sheet.webp'
 import sleepStatic from './sleep.static.webp'
 import sniffSheet from './sniff.sheet.webp'
 import sniffStatic from './sniff.static.webp'
-
-const actionIds = [
-  'idle',
-  'sit',
-  'happy',
-  'curious',
-  'excited',
-  'sniff',
-  'look',
-  'drag',
-  'sleep',
-] as const satisfies readonly PetAction[]
 
 const imageUrls: Record<
   PetAction,
@@ -65,7 +53,7 @@ export interface ResolvedPetAnimationAsset {
 
 const resolved = {} as Record<PetAction, ResolvedPetAnimationAsset>
 
-for (const id of actionIds) {
+for (const id of PET_ACTIONS) {
   const meta = manifest.animations[id]
   if (!meta) {
     throw new Error(`Pet manifest is missing animation "${id}"`)

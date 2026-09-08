@@ -1,8 +1,6 @@
 import { reactive, readonly } from 'vue'
 
 import {
-  PET_CORE_PRELOAD_ACTIONS,
-  PET_MENU_DELAY_MS,
   PET_PHOTO_LOOK_WINDOW_MS,
   PET_ROUTE_MODULE_ANIMATION,
   resolvePetEventAction,
@@ -17,7 +15,6 @@ import {
   PetPageGate,
   pickRandomAction,
   randomDelayMs,
-  type PetActionName,
   type PetPendingPageEvent,
 } from './petSchedulingCore'
 import type {
@@ -33,18 +30,7 @@ import type {
   PetRouteSnapshot,
   PetState,
 } from './petTypes'
-
-const PET_ACTIONS: PetAction[] = [
-  'idle',
-  'sit',
-  'happy',
-  'curious',
-  'excited',
-  'sniff',
-  'look',
-  'drag',
-  'sleep',
-]
+import { PET_ACTIONS } from './petTypes'
 
 const PAGE_PRIORITY = PET_PRIORITY.page
 const USER_PRIORITY = PET_PRIORITY.user
@@ -95,10 +81,6 @@ function createInitialAssetStatuses(): PetAssetStatuses {
     statuses[action] = { sheet: 'none', static: 'none' }
   }
   return statuses
-}
-
-function actionName(action: PetAction): PetActionName {
-  return action as PetActionName
 }
 
 export function createPetCoordinator(
@@ -243,11 +225,11 @@ export function createPetCoordinator(
     )
   }
 
-  function excludedRandomActions(): PetActionName[] {
+  function excludedRandomActions(): PetAction[] {
     return PET_ACTIONS.filter((action) => {
       const status = state.assets[action]
       return status.sheet === 'error' && status.static === 'error'
-    }) as PetActionName[]
+    })
   }
 
   function scheduleRandom() {
@@ -257,12 +239,9 @@ export function createPetCoordinator(
     randomTimer = setTimer(() => {
       randomTimer = null
       if (!randomEligible()) return
-      const action = pickRandomAction(
-        random,
-        excludedRandomActions(),
-      )
-      if (action && action !== 'idle') {
-        startAction(action as PetAction, RANDOM_PRIORITY)
+      const action = pickRandomAction(random, excludedRandomActions())
+      if (action) {
+        startAction(action, RANDOM_PRIORITY)
       }
     }, delay)
   }
@@ -324,7 +303,7 @@ export function createPetCoordinator(
 
     const event: PetPendingPageEvent = {
       key,
-      action: actionName(action),
+      action,
       priority: PAGE_PRIORITY,
     }
     const decision = pageGate.submit(event, now(), false)
@@ -353,7 +332,7 @@ export function createPetCoordinator(
       scheduleRandom()
       return
     }
-    startPageAction(pending.action as PetAction, pending.key, true)
+    startPageAction(pending.action, pending.key, true)
   }
 
   function flushPendingPreReady() {

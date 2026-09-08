@@ -22,6 +22,7 @@ const proxyPublicSiteOrigin = productionConfig.site
 const upstreamOrigin = productionConfig.backend
 const localizedSsgRoutes = new Set(renderConfig.ssgRoutes)
 const allowedApiPrefixes = Object.values(apiProxyConfig.routes)
+const allowedStaticPrefixes = Object.values(apiProxyConfig.staticRoutes)
 const sourceGuardToken = loadSourceGuardToken()
 
 const mimeTypes = {
@@ -241,6 +242,10 @@ function isAllowedApiPath(pathname = '/') {
   return allowedApiPrefixes.some((prefix) => isPathUnder(pathname, prefix))
 }
 
+function isAllowedStaticPath(pathname = '/') {
+  return allowedStaticPrefixes.some((prefix) => isPathUnder(pathname, prefix))
+}
+
 function resolveOtherTargetPath(pathname) {
   const key = pathname.replace(/^\/other\//, '')
   return apiProxyConfig.otherRquests?.[key] || null
@@ -277,6 +282,33 @@ async function proxyApiRequest(req, res) {
     headers: buildProxyHeaders(req, targetUrl),
     body: bodyAllowed ? req : undefined,
     duplex: bodyAllowed ? 'half' : undefined,
+  })
+
+  res.writeHead(response.status, buildProxyResponseHeaders(response))
+
+  if (response.body) {
+    for await (const chunk of response.body) {
+      res.write(chunk)
+    }
+  }
+
+  res.end()
+}
+
+async function proxyStaticRequest(req, res) {
+  const requestUrl = new URL(req.url || '/', publicSiteOrigin)
+  if (!['GET', 'HEAD'].includes(req.method || 'GET') || !isAllowedStaticPath(requestUrl.pathname)) {
+    res.writeHead(403, {
+      'Content-Type': 'text/plain; charset=utf-8',
+    })
+    res.end('Forbidden')
+    return
+  }
+
+  const targetUrl = new URL(requestUrl.pathname + requestUrl.search, upstreamOrigin)
+  const response = await fetch(targetUrl, {
+    method: req.method,
+    headers: buildProxyHeaders(req, targetUrl),
   })
 
   res.writeHead(response.status, buildProxyResponseHeaders(response))
@@ -514,6 +546,11 @@ const server = http.createServer(async (req, res) => {
     }
 
     const requestUrl = new URL(url, publicSiteOrigin)
+
+    if (isAllowedStaticPath(requestUrl.pathname)) {
+      await proxyStaticRequest(req, res)
+      return
+    }
 
     if (isSsgRoute(url)) {
       const localizedSsgFile = await resolveLocalizedSsgFile(

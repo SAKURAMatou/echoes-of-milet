@@ -5,6 +5,8 @@
  * are read or written, and per-frame manifest durations are authoritative.
  */
 
+import type { PetAction } from './petTypes'
+
 export interface PetClipRuntime {
   frameCount: number
   durations?: number[]
@@ -15,6 +17,14 @@ export interface PetClipRuntime {
 export interface PetFrameResult {
   frame: number
   ended: boolean
+}
+
+export function shouldPetAnimationLoop(
+  action: PetAction,
+  assetLoops: boolean,
+  dragging: boolean,
+): boolean {
+  return assetLoops && (action !== 'drag' || dragging)
 }
 
 export function resolvePetFrame(

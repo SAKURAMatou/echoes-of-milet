@@ -4,16 +4,20 @@ export type PetUrlLang = 'zh' | 'ja'
 export type PetRouteMode = 'reactive' | 'quiet' | 'hidden'
 export type PetModuleKey = 'timeline' | 'release' | 'live' | 'pilgrimage' | 'news' | 'album'
 
-export type PetAction =
-  | 'idle'
-  | 'sit'
-  | 'happy'
-  | 'curious'
-  | 'excited'
-  | 'sniff'
-  | 'look'
-  | 'drag'
-  | 'sleep'
+/** Canonical action registry shared by scheduling, runtime state and assets. */
+export const PET_ACTIONS = [
+  'idle',
+  'sit',
+  'happy',
+  'curious',
+  'excited',
+  'sniff',
+  'look',
+  'drag',
+  'sleep',
+] as const
+
+export type PetAction = (typeof PET_ACTIONS)[number]
 
 export type PetAnimationPriority = 0 | 1 | 2 | 3 | 4
 

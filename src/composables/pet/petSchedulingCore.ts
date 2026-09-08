@@ -5,16 +5,7 @@
  * unit-tested directly with Node's built-in TypeScript type-stripping runner.
  */
 
-export type PetActionName =
-  | 'idle'
-  | 'sit'
-  | 'happy'
-  | 'curious'
-  | 'excited'
-  | 'sniff'
-  | 'look'
-  | 'drag'
-  | 'sleep'
+import { PET_ACTIONS, type PetAction } from './petTypes'
 
 export type PetPriority = 0 | 1 | 2 | 3 | 4
 
@@ -31,20 +22,16 @@ export const PET_PAGE_PENDING_TTL_MS = 2000
 export const PET_RANDOM_MIN_MS = 10000
 export const PET_RANDOM_MAX_MS = 30000
 
-/** Every authored action except the default idle loop can be used while waiting. */
-export const PET_RANDOM_ACTIONS: readonly PetActionName[] = [
-  'sit',
-  'happy',
-  'curious',
-  'excited',
-  'sniff',
-  'look',
-  'sleep',
-]
+export type PetRandomAction = Exclude<PetAction, 'idle'>
+
+/** Automatically includes every action registered after the default idle loop. */
+export const PET_RANDOM_ACTIONS: readonly PetRandomAction[] = PET_ACTIONS.filter(
+  (action): action is PetRandomAction => action !== 'idle',
+)
 
 export interface PetPendingPageEvent {
   key: string
-  action: PetActionName
+  action: PetAction
   priority: PetPriority
 }
 
@@ -137,15 +124,15 @@ export function randomDelayMs(random: () => number = Math.random): number {
   return PET_RANDOM_MIN_MS + Math.round((PET_RANDOM_MAX_MS - PET_RANDOM_MIN_MS) * ratio)
 }
 
-export function eligibleRandomActions(excluded: PetActionName[] = []): PetActionName[] {
+export function eligibleRandomActions(excluded: PetAction[] = []): PetRandomAction[] {
   const excludedSet = new Set(excluded)
   return PET_RANDOM_ACTIONS.filter((action) => !excludedSet.has(action))
 }
 
 export function pickRandomAction(
   random: () => number = Math.random,
-  excluded: PetActionName[] = [],
-): PetActionName | null {
+  excluded: PetAction[] = [],
+): PetRandomAction | null {
   const pool = eligibleRandomActions(excluded)
   if (pool.length === 0) return null
   const index = Math.min(pool.length - 1, Math.floor(random() * pool.length))
