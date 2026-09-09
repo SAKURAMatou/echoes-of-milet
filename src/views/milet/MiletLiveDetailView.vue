@@ -73,7 +73,7 @@ function requestStillCurrent(
 ) {
   return Boolean(
     requestId === liveDetailRequestId &&
-      componentMounted &&
+      (import.meta.env.SSR || componentMounted) &&
       slug.value === requestedSlug &&
       lang.value === requestedLang &&
       pet.state.route.generation === requestedRouteGeneration &&
@@ -146,19 +146,13 @@ async function loadDetail() {
   }
 }
 
-function syncDocumentTitle() {
-  if (typeof document === 'undefined') return
-  document.title = payload.value?.event.title
-    ? `${payload.value.event.title} | Echoes of milet`
-    : 'Live Archive | Echoes of milet'
-}
+
 
 onServerPrefetch(loadDetail)
 
 onMounted(() => {
   componentMounted = true
   void loadDetail()
-  syncDocumentTitle()
 })
 
 watch([slug, routeLang], () => {
@@ -170,8 +164,4 @@ onBeforeUnmount(() => {
   liveDetailRequestId += 1
 })
 
-watch(
-  () => payload.value?.event.title,
-  () => syncDocumentTitle(),
-)
 </script>

@@ -301,7 +301,7 @@
     </div>
   </article>
 
-  <Teleport to="body">
+  <Teleport v-if="drawerOpen" to="body">
     <StackMapDrawer :open="drawerOpen" :chapters="chapters" @close="drawerOpen = false" />
   </Teleport>
 </template>
@@ -561,7 +561,6 @@ onMounted(async () => {
   calendarYears.value = Array.from({ length: Math.max(0, currentYear - 2018 + 1) }, (_, index) =>
     String(currentYear - index),
   )
-  document.title = pageText.value.metaTitle
   try {
     await Promise.all([
       albumsData.initialize(),

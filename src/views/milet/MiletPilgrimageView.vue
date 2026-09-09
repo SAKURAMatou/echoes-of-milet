@@ -861,17 +861,6 @@ watch(
   },
 )
 
-watch(
-  () => currentLang.value,
-  () => {
-    if (typeof document === 'undefined') return
-    document.title =
-      currentLang.value === 'jp'
-        ? 'milet 聖地巡礼マップとルート | Echoes of milet'
-        : 'milet 圣地巡礼地图与路线 | Echoes of milet'
-  },
-  { immediate: true },
-)
 
 onServerPrefetch(loadInitialPilgrimageData)
 

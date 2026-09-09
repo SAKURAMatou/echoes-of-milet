@@ -37,7 +37,7 @@
           >
             <img
               v-lazy="img.prelink || img.link"
-              :alt="img.comment || `Image ${img.originalIndex + 1}`"
+              :alt="imageAlt(img, img.originalIndex)"
               class="block w-full rounded-lg object-contain shadow-[0_24px_70px_-48px_rgba(15,23,42,0.7)]"
               loading="lazy"
               decoding="async"
@@ -78,7 +78,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, nextTick, onMounted, onUnmounted, ref, watch } from 'vue'
+import { computed, nextTick, onMounted, onServerPrefetch, onUnmounted, ref, watch } from 'vue'
 import axiosInstance from '@/AxiosUtil'
 import { apiRoutes, buildStaticAssetPreviewUrl, buildStaticAssetUrl } from '@/config/api'
 import { MILET_PIC_TEXT } from '@/composables/lang/miletPic'
@@ -87,18 +87,8 @@ import '@fancyapps/ui/dist/fancybox/fancybox.css'
 
 type GalleryLang = 'zh' | 'ja' | 'jp'
 
-type GalleryImage = {
-  link: string
-  previewLink?: string
-  prelink: string
-  url_original?: string
-  url_webp?: string
-  w?: number
-  h?: number
-  weight?: number
-  height?: number
-  comment?: string
-}
+import type { GalleryImage } from '@/composables/publicPageData'
+import { useAppState } from '@/composables/useAppState'
 
 type IndexedGalleryImage = GalleryImage & {
   originalIndex: number
@@ -107,6 +97,7 @@ type IndexedGalleryImage = GalleryImage & {
 const props = withDefaults(
   defineProps<{
     galleryId: string
+    albumTitle?: string
     embedded?: boolean
     layout?: 'detail' | 'compact'
     showTip?: boolean
@@ -120,18 +111,25 @@ const props = withDefaults(
   },
 )
 
+const appState = useAppState()
+const cachedPage = appState.miletGalleryPageData?.key === props.galleryId
+  ? appState.miletGalleryPageData.payload : null
 const rootRef = ref<HTMLElement | null>(null)
 const observerTarget = ref<HTMLElement | null>(null)
 const observer = ref<IntersectionObserver | null>(null)
-const imgList = ref<GalleryImage[]>([])
+const imgList = ref<GalleryImage[]>([...(cachedPage?.images || [])])
 const currentPage = ref(1)
-const totalPages = ref(1)
-const isLastPage = ref(true)
+const totalPages = ref(cachedPage?.maxPage || 1)
+const isLastPage = ref((cachedPage?.maxPage || 1) <= 1)
 const loading = ref(false)
-const error = ref('')
+const error = ref(cachedPage?.error || '')
 const useSplitColumns = ref(false)
 const pageText = computed(() => MILET_PIC_TEXT[props.lang === 'ja' ? 'jp' : props.lang])
 const withPetPhotoOptions = usePetFancyboxPhotoLifecycle()
+
+function imageAlt(image: GalleryImage, index: number) {
+  return image.comment?.trim() || `${props.albumTitle || `milet ${props.galleryId}`} · ${props.lang === 'zh' ? '照片' : '写真'} ${index + 1}`
+}
 
 function positiveDimension(value: number | undefined) {
   return Number.isFinite(value) && Number(value) > 0 ? Number(value) : 0
@@ -165,6 +163,7 @@ let columnMediaQuery: MediaQueryList | null = null
 let fancyboxApi: typeof import('@fancyapps/ui')['Fancybox'] | null = null
 let lightboxRequestId = 0
 let componentMounted = false
+let pageRequestGeneration = 0
 
 function updateColumnMode() {
   useSplitColumns.value = Boolean(columnMediaQuery?.matches)
@@ -192,12 +191,16 @@ async function loadPage() {
     return
   }
 
+  const generation = ++pageRequestGeneration
+  const requestedGalleryId = props.galleryId
+  const requestedPage = currentPage.value
   loading.value = true
   error.value = ''
   try {
     const resData = await axiosInstance.get<{ code: number; data?: GalleryImage[]; maxPage?: number }>(
-      `${apiRoutes.miletPiclist}/${currentPage.value}/${props.galleryId}`,
+      `${apiRoutes.miletPiclist}/${requestedPage}/${requestedGalleryId}`,
     )
+    if (generation !== pageRequestGeneration || requestedGalleryId !== props.galleryId) return
     if (resData.code === 200) {
       const resImgList = Array.isArray(resData.data) ? resData.data : []
       totalPages.value = resData.maxPage || 1
@@ -210,13 +213,21 @@ async function loadPage() {
         })),
       )
     }
+    if (resData.code !== 200) throw new Error('Album load failed.')
+    if (currentPage.value === 1 && !props.embedded) {
+      appState.miletGalleryPageData = { key: props.galleryId, payload: { images: [...imgList.value], maxPage: totalPages.value } }
+    }
     isLastPage.value = currentPage.value >= totalPages.value
     await nextTick()
     setupObserver()
   } catch (err) {
+    if (generation !== pageRequestGeneration || requestedGalleryId !== props.galleryId) return
     error.value = err instanceof Error ? err.message : 'Album load failed.'
+    if (currentPage.value === 1 && !props.embedded) {
+      appState.miletGalleryPageData = { key: props.galleryId, payload: { images: [], maxPage: 1, error: error.value } }
+    }
   } finally {
-    loading.value = false
+    if (generation === pageRequestGeneration) loading.value = false
   }
 }
 
@@ -255,7 +266,7 @@ async function openLightbox(event: MouseEvent, startIndex: number) {
     const slides = imgList.value.map((img, index) => ({
       src: img.link,
       thumbSrc: img.prelink || img.link,
-      alt: img.comment || `Image ${index + 1}`,
+      alt: imageAlt(img, index),
       caption: img.comment || `Image ${index + 1}`,
       width: img.w || img.weight,
       height: img.h || img.height,
@@ -272,7 +283,7 @@ async function openLightbox(event: MouseEvent, startIndex: number) {
 function setupObserver() {
   observer.value?.disconnect()
   observer.value = null
-  if (isLastPage.value || !observerTarget.value) return
+  if (typeof IntersectionObserver === 'undefined' || isLastPage.value || !observerTarget.value) return
 
   observer.value = new IntersectionObserver((entries) => {
     if (entries[0]?.isIntersecting) delayFetchData()
@@ -318,10 +329,13 @@ function resetAndLoad() {
   loadPage()
 }
 
+onServerPrefetch(() => props.embedded ? Promise.resolve() : loadPage())
+
 onMounted(() => {
   componentMounted = true
   setupColumnMediaQuery()
-  resetAndLoad()
+  if (cachedPage && !cachedPage.error) setupObserver()
+  else resetAndLoad()
 })
 
 watch(
@@ -330,6 +344,7 @@ watch(
 )
 
 onUnmounted(() => {
+  pageRequestGeneration += 1
   componentMounted = false
   lightboxRequestId += 1
   observer.value?.disconnect()

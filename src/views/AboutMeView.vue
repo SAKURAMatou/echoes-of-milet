@@ -643,10 +643,6 @@ async function renderTurnstile() {
 
 onMounted(() => {
   isClientReady.value = true
-  document.title =
-    activeLang.value === 'jp'
-      ? 'このサイトと miles DML について | Echoes of milet'
-      : '关于本站与 miles DML | Echoes of milet'
 })
 
 watch(

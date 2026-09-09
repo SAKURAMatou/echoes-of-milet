@@ -1,4 +1,5 @@
 import { inject, type InjectionKey } from 'vue'
+import type { GalleryPageData, NewsPageData, ReleasePageData } from './publicPageData'
 
 import type { AnniversaryApiPayload } from '@/composables/miletAnniversary'
 import type { PublicArticleDetail } from '@/composables/articleType'
@@ -11,6 +12,9 @@ export interface CachedPayload<T> {
 }
 
 export interface AppState {
+  miletGalleryPageData: CachedPayload<GalleryPageData> | null
+  miletNewsPageData: CachedPayload<NewsPageData> | null
+  miletReleasePageData: Record<string, ReleasePageData>
   lang: SupportedLang
   miletHomeData: Record<string, any> | null
   miletArticleData: PublicArticleDetail | null
@@ -26,6 +30,9 @@ export const AppStateKey: InjectionKey<AppState> = Symbol('app-state')
 
 export function createInitialState(initialState?: Partial<AppState>): AppState {
   return {
+    miletGalleryPageData: initialState?.miletGalleryPageData ?? null,
+    miletNewsPageData: initialState?.miletNewsPageData ?? null,
+    miletReleasePageData: initialState?.miletReleasePageData ?? {},
     lang: initialState?.lang === 'jp' ? 'jp' : 'zh',
     miletHomeData: initialState?.miletHomeData ?? null,
     miletArticleData: initialState?.miletArticleData ?? null,

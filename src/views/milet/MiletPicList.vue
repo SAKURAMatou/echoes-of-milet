@@ -27,21 +27,29 @@
       </button>
     </div>
 
-    <MiletAlbumViewer :gallery-id="galleryId" :lang="routeLang" />
+    <header class="mx-auto max-w-3xl px-4 pb-4 sm:px-0">
+      <h1 class="text-xl font-semibold text-[#143d63] sm:text-2xl">{{ albumTitle }}</h1>
+    </header>
+    <MiletAlbumViewer :gallery-id="galleryId" :lang="routeLang" :album-title="albumTitle" />
   </section>
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted } from 'vue'
+import { computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import MiletAlbumViewer from '@/components/milet/gallery/MiletAlbumViewer.vue'
 import { MILET_PIC_TEXT } from '@/composables/lang/miletPic'
+import { useAppState } from '@/composables/useAppState'
+import { pageSeoOptions } from '@/server/page-seo'
 
 const route = useRoute()
 const router = useRouter()
+const appState = useAppState()
 const galleryId = computed(() => String(route.params.galleryId || ''))
 const routeLang = computed(() => (String(route.params.lang) === 'ja' ? 'ja' : 'zh'))
 const pageText = computed(() => MILET_PIC_TEXT[routeLang.value === 'ja' ? 'jp' : 'zh'])
+const albumTitle = computed(() => pageSeoOptions(route.fullPath, appState).galleryTitle ||
+  `${routeLang.value === 'ja' ? 'milet フォトアルバム' : 'milet 照片相册'} ${galleryId.value}`)
 
 function returnToAlbumList() {
   const previousLocation = router.options.history.state.back
@@ -56,7 +64,5 @@ function returnToAlbumList() {
   router.push({ name: 'miletPicAlbum', params: { lang: routeLang.value } })
 }
 
-onMounted(() => {
-  document.title = 'milet photo album'
-})
+
 </script>

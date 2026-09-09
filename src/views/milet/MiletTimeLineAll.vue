@@ -422,7 +422,6 @@ function cardClass(i: number) {
 }
 
 onMounted(async () => {
-  document.title = 'milet activities timeline'
   const releasePending = markScrollContentPending('timeline-initial-data')
   isLoading.value = true
   try {

@@ -409,12 +409,6 @@ const content = computed(() => getAnniversaryRecordContent(record.value, lang.va
 const anniversaryNo = computed(() => record.value.anniversaryNo)
 const activeMoment = computed(() => content.value.timeline[activeMomentIndex.value] ?? null)
 const activeRelease = computed(() => content.value.releases[activeReleaseIndex.value] ?? null)
-const pageRecordYear = computed(() => Number(routeYear.value) || record.value.year)
-const pageTitle = computed(() =>
-  lang.value === 'ja'
-    ? `milet anniversary ${pageRecordYear.value} | Echoes of milet`
-    : `milet 周年记录 ${pageRecordYear.value} | Echoes of milet`,
-)
 const dataStateCopy = computed(() =>
   lang.value === 'ja'
     ? {
@@ -537,7 +531,6 @@ async function loadAnniversaryData(force = false) {
     reconcileContentState(previousMomentId, previousReleaseId)
     pendingRestoredMomentId = null
     pendingRestoredReleaseId = null
-    if (typeof document !== 'undefined') document.title = pageTitle.value
   } catch (error) {
     if (!controller.signal.aborted && generation === anniversaryRequestGeneration) {
       anniversaryDataStatus.value = 'error'
@@ -1376,13 +1369,6 @@ watch(
   { flush: 'sync' },
 )
 
-watch(
-  pageTitle,
-  (value) => {
-    if (typeof document !== 'undefined') document.title = value
-  },
-  { immediate: true },
-)
 
 watch(
   () =>
@@ -1414,7 +1400,6 @@ onServerPrefetch(() => loadAnniversaryData())
 
 onMounted(() => {
   anniversaryMounted = true
-  document.title = pageTitle.value
   void loadAnniversaryData()
   pageVisible.value = !document.hidden
   reducedMotionQuery = window.matchMedia('(prefers-reduced-motion: reduce)')

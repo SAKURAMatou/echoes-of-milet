@@ -349,7 +349,6 @@ onMounted(() => {
   if (!data.value || appState.miletLiveListData?.key !== queryKey.value) {
     void loadList(1)
   }
-  document.title = 'Live Archive | Echoes of milet'
 })
 
 watch(routeLang, () => {

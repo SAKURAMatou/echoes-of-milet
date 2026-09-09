@@ -7,16 +7,7 @@ import type { SiteInteractionPreset } from '@/composables/site-interaction'
 declare module 'vue-router' {
   interface RouteMeta {
     renderMode?: 'ssg' | 'ssr' | 'csr'
-    seoKey?:
-      | 'home'
-      | 'milet'
-      | 'about'
-      | 'anniversary'
-      | 'pilgrimage'
-      | 'gallery'
-      | 'article'
-      | 'liveArchive'
-      | 'liveEvent'
+    seoKey?: import('@/server/seo').SeoKey
     widePage?: boolean
     scrollPolicy?: 'top' | 'restore' | 'preserve' | 'manual'
     interactionPreset?: SiteInteractionPreset
@@ -154,7 +145,7 @@ export const routes: RouteRecordRaw[] = [
           {
             path: 'galleryDetail/:galleryId',
             name: 'galleryDetail',
-            meta: { renderMode: 'csr', interactionPreset: 'archive', showEchoProgress: true },
+            meta: { renderMode: 'ssr', seoKey: 'galleryDetail', interactionPreset: 'archive', showEchoProgress: true },
             component: () => import('@/views/milet/MiletPicList.vue'),
           },
           {
@@ -162,6 +153,7 @@ export const routes: RouteRecordRaw[] = [
             name: 'miletTimeLine',
             meta: {
               renderMode: 'csr',
+              seoKey: 'timeline',
               scrollPolicy: 'restore',
               interactionPreset: 'archive',
               showEchoProgress: true,
@@ -172,7 +164,8 @@ export const routes: RouteRecordRaw[] = [
             path: 'news',
             name: 'miletNews',
             meta: {
-              renderMode: 'csr',
+              renderMode: 'ssr',
+              seoKey: 'news',
               scrollPolicy: 'restore',
               interactionPreset: 'archive',
               showEchoProgress: true,
@@ -183,7 +176,8 @@ export const routes: RouteRecordRaw[] = [
             path: 'release',
             name: 'miletRelease',
             meta: {
-              renderMode: 'csr',
+              renderMode: 'ssr',
+              seoKey: 'release',
               widePage: true,
               scrollPolicy: 'restore',
               interactionPreset: 'archive',

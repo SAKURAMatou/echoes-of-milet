@@ -227,9 +227,11 @@ async function proxyApiRequest(request: Request, env: PagesFunctionEnv) {
     body: ['GET', 'HEAD'].includes(request.method) ? undefined : request.body,
   })
 
+  const headers = stripProxyResponseHeaders(response.headers)
+  headers.set('x-robots-tag', 'noindex')
   return new Response(response.body, {
     status: response.status,
-    headers: stripProxyResponseHeaders(response.headers),
+    headers,
   })
 }
 

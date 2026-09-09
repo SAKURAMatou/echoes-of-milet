@@ -94,7 +94,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, getCurrentInstance, watchEffect } from 'vue'
+import { computed, getCurrentInstance } from 'vue'
 import { useRoute } from 'vue-router'
 
 import Header from '@/components/TWHeader.vue'
@@ -199,16 +199,6 @@ const copy = computed(() => ({
 
 const homeCopy = computed(() => (global?.$lang?.lang === 'jp' ? copy.value.jp : copy.value.zh))
 
-watchEffect(() => {
-  if (typeof document === 'undefined') {
-    return
-  }
-
-  document.title =
-    global?.$lang?.lang === 'jp'
-      ? 'Echoes of milet | milet 日本語ファンサイト'
-      : 'Echoes of milet | milet 中文站'
-})
 </script>
 
 <style>

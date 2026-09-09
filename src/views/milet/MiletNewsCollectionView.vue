@@ -315,7 +315,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, getCurrentInstance, nextTick, onBeforeUnmount, onMounted, ref } from 'vue'
+import { computed, getCurrentInstance, nextTick, onBeforeUnmount, onMounted, onServerPrefetch, ref } from 'vue'
 import { useRoute } from 'vue-router'
 
 import axiosInstance from '@/AxiosUtil'
@@ -328,17 +328,8 @@ import {
 } from '@/composables/page-scroll'
 import { useSiteInteraction } from '@/composables/site-interaction'
 
-type PublicNewsItem = {
-  id: number
-  lang: 'zh-CN' | 'ja-JP' | 'en-US'
-  title: string
-  url: string
-  publishDate: string
-  summary: string
-  coverImage: string
-  sourceHost: string
-  topic: string
-}
+import type { PublicNewsItem, PublicNewsTopic } from '@/composables/publicPageData'
+import { useAppState } from '@/composables/useAppState'
 
 type PublicNewsResponse = {
   success?: boolean
@@ -348,12 +339,6 @@ type PublicNewsResponse = {
   pageSize?: number
   totalPages?: number
   message?: string
-}
-
-type PublicNewsTopic = {
-  topic: string
-  count: number
-  sortOrder?: number
 }
 
 type PublicNewsTopicsResponse = {
@@ -370,14 +355,17 @@ const newsRoot = ref<HTMLElement | null>(null)
 const instance = getCurrentInstance()
 const global = instance?.appContext.config.globalProperties as any
 
-const items = ref<PublicNewsItem[]>([])
-const topicTags = ref<PublicNewsTopic[]>([])
-const page = ref(1)
+const appState = useAppState()
+const cachedNews = appState.miletNewsPageData?.key === appState.lang
+  ? appState.miletNewsPageData.payload : null
+const items = ref<PublicNewsItem[]>(cachedNews?.items || [])
+const topicTags = ref<PublicNewsTopic[]>(cachedNews?.topics || [])
+const page = ref(cachedNews && !cachedNews.error ? 2 : 1)
 const pageSize = ref(12)
-const hasMore = ref(true)
+const hasMore = ref(cachedNews?.hasMore ?? true)
 const loading = ref(false)
-const hasLoadedOnce = ref(false)
-const loadError = ref('')
+const hasLoadedOnce = ref(Boolean(cachedNews))
+const loadError = ref(cachedNews?.error || '')
 const loadMoreEl = ref<HTMLElement | null>(null)
 const topicRailEl = ref<HTMLElement | null>(null)
 const selectedTag = ref('')
@@ -679,11 +667,20 @@ function setupObserver() {
   observer.observe(loadMoreEl.value)
 }
 
+async function initializeNews() {
+  await Promise.all([loadNewsTopics(), loadNews()])
+  appState.miletNewsPageData = {
+    key: appState.lang,
+    payload: { items: [...items.value], topics: [...topicTags.value], hasMore: hasMore.value, error: loadError.value },
+  }
+}
+
+onServerPrefetch(initializeNews)
+
 onMounted(async () => {
   const releasePending = markScrollContentPending('news-initial-data')
-  document.title = 'milet news collection'
   try {
-    await Promise.all([loadNewsTopics(), loadNews()])
+    if (!cachedNews) await initializeNews()
     await nextTick()
     setupTopicRailObserver()
     updateTopicRailHint()

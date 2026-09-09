@@ -58,7 +58,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, defineAsyncComponent, onMounted, onServerPrefetch, ref, watchEffect } from 'vue'
+import { computed, defineAsyncComponent, onMounted, onServerPrefetch, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 
 import axiosInstance from '@/AxiosUtil'
@@ -293,14 +293,6 @@ function closeTrackModal() {
   }, 320)
 }
 
-watchEffect(() => {
-  if (typeof document === 'undefined') {
-    return
-  }
-
-  document.title =
-    currentLang.value === 'ja' ? 'Echoes of milet | milet ホーム' : 'Echoes of milet | milet 首页'
-})
 
 onMounted(async () => {
   if (!miletDatas.value) {

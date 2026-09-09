@@ -4,6 +4,10 @@ import type { PublicArticleDetail } from '@/composables/articleType'
 import { resolveLiveImageUrl, type LiveEventDetailPayload } from '@/composables/liveArchive'
 
 export type SeoKey =
+  | 'galleryDetail'
+  | 'news'
+  | 'release'
+  | 'timeline'
   | 'home'
   | 'milet'
   | 'about'
@@ -30,7 +34,11 @@ interface SeoMeta {
   allowDynamicPath?: boolean
 }
 
-interface RenderSeoOptions {
+export interface RenderSeoOptions {
+  galleryTitle?: string
+  galleryDescription?: string
+  galleryImages?: import('@/composables/publicPageData').GalleryImage[]
+  noindex?: boolean
   path?: string
   pilgrimageSpots?: PilgrimageSeoSpot[]
   article?: PublicArticleDetail | null
@@ -51,7 +59,66 @@ export interface PilgrimageSeoSpot {
 
 const siteUrl = getSiteOrigin()
 
+function collectionMeta(
+  path: string,
+  zhTitle: string,
+  jaTitle: string,
+  zhDescription: string,
+  jaDescription: string,
+): SeoMeta {
+  return {
+    content: {
+      zh: {
+        title: `${zhTitle} | Echoes of milet`,
+        description: zhDescription,
+        keywords: ['milet', zhTitle],
+        imageAlt: zhTitle,
+      },
+      jp: {
+        title: `${jaTitle} | Echoes of milet`,
+        description: jaDescription,
+        keywords: ['milet', jaTitle],
+        imageAlt: jaTitle,
+      },
+    },
+    image: '/echoes-of-milet-OG.webp',
+    canonicalPath: path,
+    schemaType: 'CollectionPage',
+  }
+}
+
 const seoMap: Record<SeoKey, SeoMeta> = {
+  galleryDetail: {
+    ...collectionMeta(
+      '/milet/galleryDetail',
+      'milet 照片相册',
+      'milet フォトアルバム',
+      '浏览 milet 照片与图片说明，查看大图，并通过相册目录继续发现舞台、作品与日常中的影像记录。',
+      'milet の写真とキャプションをまとめたフォトアルバムです。写真を拡大して楽しみながら、アルバム一覧からステージや作品にまつわる記録をたどれます。',
+    ),
+    allowDynamicPath: true,
+  },
+  news: collectionMeta(
+    '/milet/news',
+    'milet 新闻与采访索引',
+    'milet ニュース・インタビュー一覧',
+    '按主题整理 milet 相关新闻、采访与媒体报道，查看发布时间、内容摘要和来源链接，继续前往原文阅读，追踪作品与演出相关动态。',
+    'milet に関するニュース、インタビュー、メディア掲載情報をテーマ別にまとめています。公開日や記事の概要、出典を確認し、リンク先の原文で作品や公演の話題を読むことができます。',
+  ),
+  release: collectionMeta(
+    '/milet/release',
+    'milet 专辑、单曲与影像发行目录',
+    'milet ディスコグラフィー・作品一覧',
+    '整理 milet 的专辑、EP、单曲与现场影像发行记录，浏览作品封面、发行日期与曲目信息，并按作品类型、年份和关键词查找感兴趣的发行内容。',
+    'milet のアルバム、EP、シングル、ライブ映像作品をまとめたディスコグラフィーです。ジャケット、発売日、収録曲を確認し、作品の種類や年、キーワードでリリース情報を探せます。',
+  ),
+  timeline: collectionMeta(
+    '/milet/timeline',
+    'milet 活动时间线',
+    'milet 活動年表',
+    '沿时间线浏览 milet 的作品发布、演出与活动记录，回顾不同阶段的重要节点，并通过相关内容了解每段音乐旅程。',
+    'milet の作品リリース、公演、活動の記録を時系列でたどる年表です。それぞれの時期の出来事と関連情報を通して、音楽の歩みを振り返ることができます。',
+  ),
   gallery: {
     content: {
       zh: {
@@ -112,14 +179,16 @@ const seoMap: Record<SeoKey, SeoMeta> = {
   liveArchive: {
     content: {
       zh: {
-        title: 'Live Archive | Echoes of milet',
-        description: '整理 milet 演出的日期、场馆、setlist 与关联内容。',
+        title: 'milet 演出档案与歌单 | Echoes of milet',
+        description:
+          '按年份浏览 milet 的演出与巡演档案，查看公演日期、城市、场馆与已整理的歌单，结合相关照片、文章和作品记录，回顾每场演出的音乐现场。',
         keywords: ['Echoes of milet', 'milet', 'live archive', 'milet live', 'setlist'],
         imageAlt: 'Echoes of milet Live Archive',
       },
       jp: {
-        title: 'Live Archive | Echoes of milet',
-        description: 'milet の公演日、会場、setlist、関連コンテンツを整理する Live Archive です。',
+        title: 'milet 公演記録・セットリスト | Echoes of milet',
+        description:
+          'milet のライブとツアーを年ごとにたどる公演アーカイブです。公演日、都市、会場、記録されたセットリストを確認し、関連する写真や記事とともにステージの記憶を振り返ることができます。',
         keywords: ['Echoes of milet', 'milet', 'live archive', 'milet live', 'setlist'],
         imageAlt: 'Echoes of milet Live Archive',
       },
@@ -191,7 +260,7 @@ const seoMap: Record<SeoKey, SeoMeta> = {
       zh: {
         title: 'milet 首页 | Echoes of milet',
         description:
-          'Echoes of milet 的 milet 首页，快速进入 milet 魅力介绍、精选内容、活动时间线、照片图集、小互动游戏、mielt官方SNS入口与官方链接。',
+          '从 Echoes of milet 开始了解 milet 的音乐与魅力，浏览精选作品、演出档案、活动时间线和照片相册，发现巡礼地图与互动内容，并通过官方 SNS 和站点链接继续追踪她的动态。',
         keywords: [
           'Echoes milet',
           'milet',
@@ -284,7 +353,7 @@ const seoMap: Record<SeoKey, SeoMeta> = {
       zh: {
         title: 'milet 周年记录 | Echoes of milet',
         description:
-          '查看 Echoes of milet 的 milet 周年模块，给milet的周年祝福、作品节点、milet の日照片与回顾记录。并且按年份进行数据整理。',
+          '回顾这一年与 milet 共同留下的音乐记忆，浏览周年祝福、作品发布节点、milet の日照片和年度故事，从时间线与影像中重温重要时刻，并继续探索其他年份的周年记录。',
         keywords: [
           'Echoes milet',
           'milet',
@@ -302,7 +371,7 @@ const seoMap: Record<SeoKey, SeoMeta> = {
       jp: {
         title: 'milet anniversary archive | Echoes of milet',
         description:
-          'Echoes of milet の milet 周年モジュールです。milet への周年メッセージ、作品の節目、milet の日フォト、振り返り記録を年ごとに整理しています。',
+          'milet とともに重ねた一年の音楽の記憶を振り返る周年ページです。周年メッセージ、作品の節目、milet の日フォトや一年の物語をたどり、ほかの年のアーカイブにも進めます。',
         keywords: [
           'Echoes milet',
           'milet',
@@ -329,7 +398,7 @@ const seoMap: Record<SeoKey, SeoMeta> = {
       zh: {
         title: '关于本站与 miles DML | Echoes of milet',
         description:
-          '了解 Echoes of milet 的建站背景、miles DML 的维护信息、内容整理方式，以及与站点相关的留言反馈入口。',
+          '了解非官方粉丝站 Echoes of milet 的建站故事、miles DML 的维护信息与内容整理方式，看看音乐和现场记忆如何汇集在这里，也可以通过留言反馈分享使用感受、建议和想法。',
         keywords: ['Echoes of milet 关于', 'miles DML', 'milet 中文站反馈', 'milet fan site'],
         imageAlt: 'Echoes of milet 关于页面封面',
       },
@@ -351,6 +420,24 @@ const seoMap: Record<SeoKey, SeoMeta> = {
     type: 'website',
     schemaType: 'AboutPage',
   },
+}
+
+export function seoPlainText(value = '') {
+  return value
+    .replace(/<script\b[^>]*>[\s\S]*?<\/script>/gi, '')
+    .replace(/<style\b[^>]*>[\s\S]*?<\/style>/gi, '')
+    .replace(/<[^>]+>/g, ' ')
+    .replace(/&nbsp;|&#160;/gi, ' ')
+    .replace(/&amp;/gi, '&')
+    .replace(/\s+/g, ' ')
+    .trim()
+}
+
+function summarize(primary: string | undefined, fallback: string) {
+  const text = seoPlainText(primary)
+  const description =
+    text.length >= 60 ? text : [text, seoPlainText(fallback)].filter(Boolean).join(' ')
+  return Array.from(description).slice(0, 170).join('')
 }
 
 function escapeHtml(value: string) {
@@ -384,7 +471,7 @@ function resolveLiveDetailImage(liveDetail?: LiveEventDetailPayload | null) {
 }
 
 function resolveLang(lang?: string | null): SupportedLang {
-  return lang === 'jp' ? 'jp' : 'zh'
+  return lang === 'jp' || lang === 'ja' ? 'jp' : 'zh'
 }
 
 export function toHtmlLang(lang?: string | null) {
@@ -409,14 +496,18 @@ function resolveCanonicalPath(meta: SeoMeta, options: RenderSeoOptions) {
   }
 
   const path = normalizeCanonicalPath(options.path)
-  return path.startsWith(meta.canonicalPath) ? path : meta.canonicalPath
+  return path === meta.canonicalPath || path.startsWith(`${meta.canonicalPath}/`)
+    ? path
+    : meta.canonicalPath
 }
 
 function createLocalizedUrl(pathname: string, lang: SupportedLang) {
   return `${siteUrl}/${toUrlLang(lang)}${pathname === '/' ? '' : pathname}`
 }
 
-function renderAlternateLinks(pathname: string) {
+function renderAlternateLinks(pathname: string, article?: PublicArticleDetail | null) {
+  // A fallback is not a translation. Do not advertise an unverified language pair.
+  if (article && (!article.i18nEnabled || article.fallbackLang)) return ''
   return [
     `<link rel="alternate" hreflang="zh-CN" href="${createLocalizedUrl(pathname, 'zh')}">`,
     `<link rel="alternate" hreflang="ja-JP" href="${createLocalizedUrl(pathname, 'jp')}">`,
@@ -559,7 +650,10 @@ export function renderSeoTags(
     localized = {
       ...localized,
       title: `${options.article.title} | Echoes of milet`,
-      description: options.article.summary || localized.description,
+      description: summarize(
+        options.article.summary,
+        `${options.article.title}。${seoPlainText(options.article.html) || localized.description}`,
+      ),
       keywords: ['Echoes of milet', 'milet', options.article.title],
       imageAlt: options.article.title,
     }
@@ -567,28 +661,88 @@ export function renderSeoTags(
   if (seoKey === 'liveEvent' && options.liveDetail?.event) {
     localized = {
       ...localized,
-      title: `${options.liveDetail.event.title} | Echoes of milet`,
-      description: options.liveDetail.event.summary || localized.description,
+      title: `${options.liveDetail.event.title} ${resolvedLang === 'jp' ? '公演記録' : '演出记录'} | Echoes of milet`,
+      description: summarize(
+        options.liveDetail.event.summary,
+        [
+          options.liveDetail.event.title,
+          options.liveDetail.event.dateStart,
+          options.liveDetail.event.venueSummary,
+          resolvedLang === 'jp'
+            ? '公演日、会場と関連情報をまとめた milet の公演記録。掲載されたセットリストや写真、記事からステージの記憶をたどれます。'
+            : '整理 milet 演出的日期、场馆与相关信息，通过已收录的歌单、照片和文章回顾演出记录。',
+        ]
+          .filter(Boolean)
+          .join('。'),
+      ),
       keywords: ['Echoes of milet', 'milet', 'live', options.liveDetail.event.title],
       imageAlt: options.liveDetail.event.title,
     }
   }
-  const canonicalPath = resolveCanonicalPath(meta, options)
-  const canonicalUrl = createLocalizedUrl(canonicalPath, resolvedLang)
+  if (seoKey === 'anniversary') {
+    const year = normalizeCanonicalPath(options.path || '').match(/anniversary\/(\d{4})$/)?.[1]
+    localized = {
+      ...localized,
+      title: year
+        ? resolvedLang === 'jp'
+          ? `milet ${year} 年の周年記録 | Echoes of milet`
+          : `milet ${year} 年周年记录 | Echoes of milet`
+        : resolvedLang === 'jp'
+          ? 'milet 周年アーカイブ・年別一覧 | Echoes of milet'
+          : 'milet 历年周年记录目录 | Echoes of milet',
+      description: year
+        ? `${year} ${localized.description}`
+        : resolvedLang === 'jp'
+          ? 'milet の周年記録を年ごとにたどるアーカイブです。各年のページから、作品の節目、周年メッセージ、写真と振り返りを読み、音楽とともに重ねてきた記憶を探せます。'
+          : '按年份浏览 milet 的历年周年记录，从目录进入每一年的专属页面，回顾作品节点、周年祝福、照片与年度故事，重温音乐陪伴下积累的记忆。',
+    }
+  }
+  if (seoKey === 'galleryDetail') {
+    const id =
+      normalizeCanonicalPath(options.path || '')
+        .split('/')
+        .pop() || ''
+    const name =
+      options.galleryTitle ||
+      (resolvedLang === 'jp' ? `milet フォトアルバム ${id}` : `milet 照片相册 ${id}`)
+    localized = {
+      ...localized,
+      title: `${name} | Echoes of milet`,
+      imageAlt: name,
+      description: summarize(
+        options.galleryDescription ||
+          options.galleryImages
+            ?.map((image) => image.comment || '')
+            .filter(Boolean)
+            .join('。'),
+        `${name}。${localized.description}`,
+      ),
+    }
+  }
+  const canonicalPath =
+    !seoKey && options.path
+      ? normalizeCanonicalPath(options.path)
+      : resolveCanonicalPath(meta, options)
+  const canonicalLang =
+    seoKey === 'article' && options.article ? resolveLang(options.article.lang) : resolvedLang
+  const canonicalUrl = createLocalizedUrl(canonicalPath, canonicalLang)
   const robots =
-    seoKey === 'liveEvent' && options.path?.includes('/milet/live-preview/')
+    !seoKey ||
+    options.noindex ||
+    (seoKey === 'liveEvent' && options.path?.includes('/milet/live-preview/'))
       ? 'noindex,nofollow,noarchive'
       : 'index,follow,max-image-preview:large'
   const imageUrl =
     resolveLiveDetailImage(options.liveDetail) ||
     resolveArticleImage(options.article) ||
+    toAbsoluteUrl(options.galleryImages?.[0]?.prelink || options.galleryImages?.[0]?.link) ||
     toAbsoluteUrl(meta.image) ||
     `${siteUrl}/echoes-of-milet-OG.webp`
   const escapedTitle = escapeHtml(localized.title)
   const escapedDescription = escapeHtml(localized.description)
   const escapedImageAlt = escapeHtml(localized.imageAlt)
   const structuredDataScripts = [
-    `<script type="application/ld+json">${escapeJsonForHtml(renderStructuredData(meta, localized, canonicalUrl, imageUrl, resolvedLang, options.article))}</script>`,
+    `<script type="application/ld+json">${escapeJsonForHtml(renderStructuredData(meta, localized, canonicalUrl, imageUrl, canonicalLang, options.article))}</script>`,
   ]
 
   if (seoKey === 'pilgrimage' && options.pilgrimageSpots?.length) {
@@ -609,7 +763,7 @@ export function renderSeoTags(
     `<meta name="description" content="${escapedDescription}">`,
     `<meta name="keywords" content="${escapeHtml(localized.keywords.join(', '))}">`,
     `<link rel="canonical" href="${canonicalUrl}">`,
-    renderAlternateLinks(canonicalPath),
+    renderAlternateLinks(canonicalPath, seoKey === 'article' ? options.article : undefined),
     `<meta name="robots" content="${robots}">`,
     `<meta property="og:title" content="${escapedTitle}">`,
     `<meta property="og:description" content="${escapedDescription}">`,
@@ -618,12 +772,15 @@ export function renderSeoTags(
     `<meta property="og:image" content="${imageUrl}">`,
     `<meta property="og:image:alt" content="${escapedImageAlt}">`,
     `<meta property="og:site_name" content="Echoes of milet">`,
-    `<meta property="og:locale" content="${toOgLocale(resolvedLang)}">`,
+    `<meta property="og:locale" content="${toOgLocale(canonicalLang)}">`,
     `<meta name="twitter:card" content="summary_large_image">`,
     `<meta name="twitter:title" content="${escapedTitle}">`,
     `<meta name="twitter:description" content="${escapedDescription}">`,
     `<meta name="twitter:image" content="${imageUrl}">`,
     `<meta name="twitter:image:alt" content="${escapedImageAlt}">`,
     ...structuredDataScripts,
-  ].join('\n')
+  ]
+    .filter(Boolean)
+    .map((tag) => tag.replace(/^<(title|meta|link|script)\b/gm, '<$1 data-milet-seo'))
+    .join('\n')
 }

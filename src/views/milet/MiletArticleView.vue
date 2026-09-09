@@ -330,7 +330,6 @@ onMounted(() => {
   } else {
     setupArticleEnhancements()
   }
-  if (article.value?.title) document.title = `${article.value.title} | Echoes of milet`
 })
 
 watch(

@@ -81,12 +81,7 @@ async function loadPreview() {
   }
 }
 
-function syncDocumentTitle() {
-  if (typeof document === 'undefined') return
-  document.title = payload.value?.event.title
-    ? `${payload.value.event.title} preview | Echoes of milet`
-    : 'Live Archive preview | Echoes of milet'
-}
+
 
 onServerPrefetch(loadPreview)
 
@@ -95,15 +90,10 @@ onMounted(() => {
   if (!payload.value && appState.miletLivePreviewData?.key !== previewKey.value) {
     void loadPreview()
   }
-  syncDocumentTitle()
 })
 
 watch([previewId, token, routeLang], () => {
   if (!import.meta.env.SSR) void loadPreview()
 })
 
-watch(
-  () => payload.value?.event.title,
-  () => syncDocumentTitle(),
-)
 </script>

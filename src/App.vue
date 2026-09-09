@@ -8,6 +8,7 @@
 
 <script setup lang="ts">
 import { onBeforeUnmount, onMounted } from 'vue'
+import { usePageSeo } from '@/composables/usePageSeo'
 
 import { usePageScroll } from '@/composables/page-scroll'
 import { useSiteInteraction } from '@/composables/site-interaction'
@@ -16,6 +17,7 @@ import EchoStatusAnnouncer from '@/components/interaction/EchoStatusAnnouncer.vu
 import SiteEchoLayer from '@/components/interaction/SiteEchoLayer.vue'
 
 const pageScroll = usePageScroll()
+usePageSeo()
 const interaction = useSiteInteraction()
 let disconnectInteraction: (() => void) | null = null
 

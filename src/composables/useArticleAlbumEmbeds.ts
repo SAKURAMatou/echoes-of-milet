@@ -1,6 +1,7 @@
 import { createApp, inject, nextTick, onScopeDispose, type App } from 'vue'
 import VueLazyLoad from 'vue3-lazyload'
 import loadingImg from '@/assets/loading.gif'
+import { AppStateKey } from '@/composables/useAppState'
 import { PetCoordinatorKey } from '@/composables/pet/petInjection'
 
 type MountedAlbumApp = {
@@ -21,6 +22,7 @@ function normalizeLayout(value: string | null): 'detail' | 'compact' {
 export function useArticleAlbumEmbeds() {
   // Embedded apps are separate Vue roots, so pass down the host app's pet
   // coordinator instead of letting them create their own.
+  const parentAppState = inject(AppStateKey)
   const parentPetCoordinator = inject(PetCoordinatorKey)
   const mountedApps: MountedAlbumApp[] = []
   let generation = 0
@@ -43,11 +45,15 @@ export function useArticleAlbumEmbeds() {
     await nextTick()
     if (mountGeneration !== generation || !container.isConnected) return
 
-    const { default: MiletAlbumViewer } = await import('@/components/milet/gallery/MiletAlbumViewer.vue')
+    const { default: MiletAlbumViewer } = await import(
+      '@/components/milet/gallery/MiletAlbumViewer.vue'
+    )
     if (mountGeneration !== generation || !container.isConnected) return
 
     const hosts = Array.from(
-      container.querySelectorAll<HTMLElement>('.milet-album-embed-host[data-type="milet-album-embed"]'),
+      container.querySelectorAll<HTMLElement>(
+        '.milet-album-embed-host[data-type="milet-album-embed"]',
+      ),
     )
     if (hosts.length === 0) return
 
@@ -65,6 +71,9 @@ export function useArticleAlbumEmbeds() {
         showTip: normalizeBoolean(host.dataset.showTip || null, false),
         lang,
       })
+      if (parentAppState) {
+        app.provide(AppStateKey, parentAppState)
+      }
       if (parentPetCoordinator) {
         app.provide(PetCoordinatorKey, parentPetCoordinator)
       }

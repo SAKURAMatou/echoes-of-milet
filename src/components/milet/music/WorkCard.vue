@@ -320,7 +320,9 @@ const activeCover = computed(() => {
   const cover = activeEdition.value?.coverUrl || props.work.coverUrl || ''
   return cover ? initImgUrl(cover) : ''
 })
-const activeCoverAlt = computed(() => activeEdition.value?.editionName || props.work.title)
+const activeCoverAlt = computed(() =>
+  [props.work.title, activeEdition.value?.editionName].filter(Boolean).join(' — '),
+)
 const activeReleaseDate = computed(() => activeEdition.value?.releaseDate || props.work.releaseDate)
 const activeDiscs = computed(() => activeEdition.value?.discs || [])
 const activeDisc = computed(

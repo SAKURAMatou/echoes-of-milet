@@ -1,4 +1,5 @@
-import { onBeforeUnmount, ref } from 'vue'
+import { onBeforeUnmount, onServerPrefetch, ref, watch } from 'vue'
+import { useAppState } from './useAppState'
 
 import axiosInstance from '@/AxiosUtil'
 import { apiRoutes } from '@/config/api'
@@ -42,13 +43,16 @@ function transactionId(prefix: string) {
 }
 
 export function useReleaseData(options: ReleaseDataOptions) {
-  const data = ref<Work[]>([])
+  const appState = useAppState()
+  const cacheKey = `${appState.lang}:${options.type}`
+  const cached = appState.miletReleasePageData[cacheKey]
+  const data = ref<Work[]>(cached?.items || [])
   const loading = ref(false)
-  const error = ref<string | null>(null)
-  const currentPage = ref(0)
-  const hasMore = ref(true)
-  const total = ref(0)
-  const isInitialized = ref(false)
+  const error = ref<string | null>(cached?.error || null)
+  const currentPage = ref(cached && !cached.error ? 1 : 0)
+  const hasMore = ref(cached && !cached.error ? cached.total > cached.items.length : true)
+  const total = ref(cached?.total || 0)
+  const isInitialized = ref(Boolean(cached && !cached.error))
   const consumedTransactions = new Set<string>()
 
   let activeFilters: ReleaseQueryFilters = {}
@@ -88,7 +92,7 @@ export function useReleaseData(options: ReleaseDataOptions) {
     error.value = null
 
     try {
-      const lang = window.location.pathname.startsWith('/ja') ? 'ja' : 'zh'
+      const lang = appState.lang === 'jp' ? 'ja' : 'zh'
       const response = await axiosInstance.get<{ data: Work[]; total: number }>(
         `${apiBaseUrl}${options.type}`,
         {
@@ -179,7 +183,17 @@ export function useReleaseData(options: ReleaseDataOptions) {
   async function initialize() {
     if (isInitialized.value) return null
     isInitialized.value = true
-    return runSimpleNextPage()
+    const result = await runSimpleNextPage()
+    if (result?.status === 'aborted') return result
+    if (result?.status === 'rejected') error.value = 'Incomplete release data'
+    if (!error.value) {
+      appState.miletReleasePageData[cacheKey] = { items: [...data.value], total: total.value }
+      if (currentPage.value === 0) currentPage.value = 1
+    } else {
+      appState.miletReleasePageData[cacheKey] = { items: [], total: 0, error: error.value }
+      isInitialized.value = false
+    }
+    return result
   }
 
   async function refresh(filters: ReleaseQueryFilters = {}) {
@@ -197,6 +211,13 @@ export function useReleaseData(options: ReleaseDataOptions) {
     return runSimpleNextPage()
   }
 
+  onServerPrefetch(initialize)
+  watch(
+    () => appState.lang,
+    () => {
+      if (!import.meta.env.SSR) void refresh(activeFilters)
+    },
+  )
   onBeforeUnmount(invalidateActiveTransaction)
 
   return {

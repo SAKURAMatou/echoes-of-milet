@@ -84,4 +84,28 @@
     <xhtml:link rel="alternate" hreflang="ja-JP" href="https://miles-dml.org/ja/milet/pilgrimage" />
     <xhtml:link rel="alternate" hreflang="x-default" href="https://miles-dml.org/milet/pilgrimage" />
   </url>
+  <url>
+    <loc>https://miles-dml.org/zh/milet/news</loc>
+    <xhtml:link rel="alternate" hreflang="zh-CN" href="https://miles-dml.org/zh/milet/news" />
+    <xhtml:link rel="alternate" hreflang="ja-JP" href="https://miles-dml.org/ja/milet/news" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://miles-dml.org/milet/news" />
+  </url>
+  <url>
+    <loc>https://miles-dml.org/ja/milet/news</loc>
+    <xhtml:link rel="alternate" hreflang="zh-CN" href="https://miles-dml.org/zh/milet/news" />
+    <xhtml:link rel="alternate" hreflang="ja-JP" href="https://miles-dml.org/ja/milet/news" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://miles-dml.org/milet/news" />
+  </url>
+  <url>
+    <loc>https://miles-dml.org/zh/milet/release</loc>
+    <xhtml:link rel="alternate" hreflang="zh-CN" href="https://miles-dml.org/zh/milet/release" />
+    <xhtml:link rel="alternate" hreflang="ja-JP" href="https://miles-dml.org/ja/milet/release" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://miles-dml.org/milet/release" />
+  </url>
+  <url>
+    <loc>https://miles-dml.org/ja/milet/release</loc>
+    <xhtml:link rel="alternate" hreflang="zh-CN" href="https://miles-dml.org/zh/milet/release" />
+    <xhtml:link rel="alternate" hreflang="ja-JP" href="https://miles-dml.org/ja/milet/release" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://miles-dml.org/milet/release" />
+  </url>
 </urlset>

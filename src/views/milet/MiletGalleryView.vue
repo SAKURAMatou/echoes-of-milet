@@ -41,15 +41,15 @@
         ></div>
       </div>
       <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <button
+        <a
           v-for="album in topAlbumList"
           :key="album.galleryId"
           v-echo-press
-          type="button"
+          :href="router.resolve(withLangParam({ name: 'galleryDetail', params: { galleryId: album.galleryId } }, String(route.params.lang || 'zh'))).href"
           :data-page-scroll-anchor="`gallery-${album.galleryId}`"
           class="album-card group w-full cursor-pointer text-left"
           :aria-label="getAlbumTitle(album.description)"
-          @click="goToGallery(album.galleryId)"
+          @click="onGalleryClick($event, album.galleryId)"
         >
           <div
             class="relative overflow-hidden rounded-xl shadow-md transition-shadow duration-300 hover:shadow-xl"
@@ -103,7 +103,7 @@
               </p>
             </div>
           </div>
-        </button>
+        </a>
       </div>
     </div>
 
@@ -119,15 +119,15 @@
         ></div>
       </div>
       <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-4">
-        <button
+        <a
           v-for="album in normalAlbumList"
           :key="album.galleryId"
           v-echo-press
-          type="button"
+          :href="router.resolve(withLangParam({ name: 'galleryDetail', params: { galleryId: album.galleryId } }, String(route.params.lang || 'zh'))).href"
           :data-page-scroll-anchor="`gallery-${album.galleryId}`"
           class="album-card group w-full cursor-pointer text-left"
           :aria-label="getAlbumTitle(album.description)"
-          @click="goToGallery(album.galleryId)"
+          @click="onGalleryClick($event, album.galleryId)"
         >
           <div
             class="relative overflow-hidden rounded-xl shadow-md transition-shadow duration-300 hover:shadow-xl"
@@ -177,7 +177,7 @@
               </p>
             </div>
           </div>
-        </button>
+        </a>
       </div>
 
       <!-- 自动翻页的锚点元素 -->
@@ -542,6 +542,12 @@ const isRecentlyUpdated = (updatedAt) => {
 /**
  * 跳转到相册详情页
  */
+function onGalleryClick(event, galleryId) {
+  if (event.button !== 0 || event.ctrlKey || event.metaKey || event.shiftKey || event.altKey) return
+  event.preventDefault()
+  goToGallery(galleryId)
+}
+
 const goToGallery = (galleryId) => {
   const target = withLangParam(
     { name: 'galleryDetail', params: { galleryId: galleryId } },
@@ -626,7 +632,6 @@ onServerPrefetch(initLoad)
 onMounted(async () => {
   const releasePending = markScrollContentPending('gallery-initial-data')
   clientMounted.value = true
-  document.title = pageText.value.metaTitle
   window.addEventListener('keydown', handleNoticeKeydown)
   scheduleNoticeFromStorage()
   if (cachedGalleryList) {
