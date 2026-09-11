@@ -5,6 +5,8 @@ import { apiRoutes, buildStaticAssetUrl } from '@/config/api'
 
 export type LiveLang = 'zh' | 'ja'
 export type LiveEventType = 'one_man' | 'tour' | 'special_live' | 'festival' | string
+export type LiveEventListType = 'one_man' | 'tour' | 'special_live'
+export type LiveEventListTypeFilter = 'all' | LiveEventListType
 export type LiveSetlistSection = 'main' | 'encore' | 'double_encore' | string
 export type LiveSetlistOverrideOperation = 'add' | 'remove' | 'replace' | 'move' | 'note' | string
 export type LiveSetlistState = 'upcoming_hidden' | 'not_announced' | 'not_recorded' | 'published'
@@ -205,8 +207,16 @@ export const liveTypeOptions = [
   { value: 'one_man', label: 'ONE MAN' },
   { value: 'tour', label: 'TOUR' },
   { value: 'special_live', label: 'SPECIAL' },
-  { value: 'festival', label: 'FESTIVAL' },
-]
+] satisfies Array<{ value: LiveEventListTypeFilter; label: string }>
+
+const liveEventListTypes = new Set<LiveEventListType>(['one_man', 'tour', 'special_live'])
+
+export function normalizeLiveEventListType(value: unknown): LiveEventListTypeFilter {
+  const normalized = typeof value === 'string' ? value.trim() : ''
+  return liveEventListTypes.has(normalized as LiveEventListType)
+    ? (normalized as LiveEventListType)
+    : 'all'
+}
 
 const listFallback: LiveEventListResponse = {
   items: [],
@@ -284,9 +294,9 @@ export function liveLangRequestConfig(lang: LiveLang) {
 
 export function liveEventListUrl(query: LiveEventListQuery) {
   return appendQuery(`${apiRoutes.miletLive}/events`, {
-    type: query.type,
+    type: normalizeLiveEventListType(query.type),
     year: query.year,
-    keyword: query.keyword?.trim(),
+    keyword: typeof query.keyword === 'string' ? query.keyword.trim() : undefined,
     page: query.page || 1,
     pageSize: query.pageSize || 12,
   })

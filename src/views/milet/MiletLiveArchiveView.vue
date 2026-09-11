@@ -249,6 +249,7 @@ import {
   formatLiveType,
   liveEventListCacheKey,
   liveTypeOptions,
+  normalizeLiveEventListType,
   normalizeLiveLang,
   resolveLiveImageUrl,
   type LiveEventListResponse,
@@ -262,7 +263,7 @@ const appState = useAppState()
 const interaction = useSiteInteraction()
 const routeLang = computed(() => (String(route.params.lang) === 'ja' ? 'ja' : 'zh'))
 const lang = computed(() => normalizeLiveLang(routeLang.value))
-const selectedType = ref(String(route.query.type || 'all'))
+const selectedType = ref(normalizeLiveEventListType(route.query.type))
 const selectedYear = ref(String(route.query.year || ''))
 const keywordDraft = ref(String(route.query.keyword || ''))
 const loading = ref(false)
@@ -270,7 +271,7 @@ const error = ref('')
 const pageSize = 12
 const currentYear = new Date().getFullYear()
 const normalizedYear = computed(() => {
-  const value = selectedYear.value.trim()
+  const value = String(selectedYear.value ?? '').trim()
   return /^\d{4}$/.test(value) ? value : ''
 })
 const queryKey = computed(() =>
