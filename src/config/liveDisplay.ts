@@ -8,7 +8,14 @@ export type LiveDetailBlueprintId =
   | 'tour-balanced-stops'
   | 'tour-serpentine-route'
 
-export type LiveDetailThemePreset = 'default' | 'echo-blue' | 'stairs-colors' | 'green-lights'
+export type LiveDetailThemePreset =
+  | 'default'
+  | 'echo-blue'
+  | 'stairs-colors'
+  | 'green-lights'
+  | 'miles301'
+  | '5am2023'
+  | 'unzepp2022'
 
 export type LiveDetailThemeTokens = {
   colorScheme: 'dark' | 'light'
@@ -217,6 +224,111 @@ export const liveDetailThemes: Record<LiveDetailThemePreset, {
       venueLineArtBlendMode: 'screen',
     },
   },
+  miles301: {
+    label: 'miles301',
+    description: '参考 Room #301 周边目录的暖白纸张、蓝橙套色、打字机排版与手绘双线框。',
+    tokens: {
+      colorScheme: 'light',
+      shell: '#fffdf8',
+      headerBg: 'rgba(255, 253, 248, 0.94)',
+      headerBorder: 'rgba(243, 107, 43, 0.82)',
+      pageBg:
+        'radial-gradient(circle at 8% 18%, rgba(33, 169, 223, 0.06), transparent 22rem), radial-gradient(circle at 92% 74%, rgba(243, 107, 43, 0.055), transparent 24rem), linear-gradient(180deg, #fffefb 0%, #fffdf8 100%)',
+      title: '#171b1e',
+      titleSoft: '#168fc5',
+      text: '#28343b',
+      muted: '#5b6870',
+      subtle: '#7f8b91',
+      accent: '#f36b2b',
+      accentStrong: '#21a9df',
+      accentBorder: 'rgba(243, 107, 43, 0.52)',
+      panelBg: 'rgba(255, 254, 250, 0.96)',
+      surfaceBg: 'rgba(247, 251, 252, 0.92)',
+      linkHover: '#087fad',
+      line: 'rgba(33, 169, 223, 0.38)',
+      glow: 'rgba(33, 169, 223, 0.3)',
+      route: '#f36b2b',
+      venueLineArtBg:
+        'linear-gradient(145deg, rgba(255, 254, 250, 0.96), rgba(230, 247, 252, 0.72))',
+      venueLineArtBorder: 'rgba(33, 169, 223, 0.48)',
+      venueLineArtFilter:
+        'brightness(0) saturate(100%) invert(48%) sepia(88%) saturate(916%) hue-rotate(155deg) brightness(94%) contrast(86%)',
+      venueLineArtOpacity: '0.78',
+      venueLineArtShadow:
+        'inset 3px 3px 0 rgba(243, 107, 43, 0.12), 4px 4px 0 rgba(33, 169, 223, 0.14)',
+      venueLineArtBlendMode: 'multiply',
+    },
+  },
+  '5am2023': {
+    label: '5AM 2023',
+    description: '参考 5AM 2023 周边目录的雾薄荷晨色、象牙纸层、古典衬线字与轨道时钟线稿。',
+    tokens: {
+      colorScheme: 'light',
+      shell: '#dce9e5',
+      headerBg: 'rgba(220, 233, 229, 0.94)',
+      headerBorder: 'rgba(45, 58, 56, 0.44)',
+      pageBg:
+        'radial-gradient(circle at 78% 8%, rgba(255, 251, 230, 0.82), transparent 24rem), radial-gradient(circle at 18% 76%, rgba(193, 213, 207, 0.72), transparent 30rem), linear-gradient(154deg, #d7e5e1 0%, #edf1e9 48%, #d9e6e2 100%)',
+      title: '#252d2c',
+      titleSoft: '#465b57',
+      text: '#303b39',
+      muted: '#5f716d',
+      subtle: '#7f918d',
+      accent: '#526d67',
+      accentStrong: '#1d2927',
+      accentBorder: 'rgba(55, 74, 70, 0.42)',
+      panelBg: 'rgba(246, 247, 239, 0.9)',
+      surfaceBg: 'rgba(225, 235, 230, 0.86)',
+      linkHover: '#1d2927',
+      line: 'rgba(71, 92, 87, 0.32)',
+      glow: 'rgba(255, 248, 210, 0.42)',
+      route: '#405e58',
+      venueLineArtBg:
+        'linear-gradient(145deg, rgba(249, 248, 237, 0.9), rgba(210, 226, 220, 0.74))',
+      venueLineArtBorder: 'rgba(58, 78, 73, 0.42)',
+      venueLineArtFilter:
+        'brightness(0) saturate(100%) invert(31%) sepia(11%) saturate(724%) hue-rotate(118deg) brightness(92%) contrast(88%)',
+      venueLineArtOpacity: '0.72',
+      venueLineArtShadow:
+        'inset 0 0 0 5px rgba(246, 247, 239, 0.72), 0 18px 46px -36px rgba(35, 53, 49, 0.52)',
+      venueLineArtBlendMode: 'multiply',
+    },
+  },
+  unzepp2022: {
+    label: 'UNZEPP 2022',
+    description: '参考 UNZEPP 2022 周边目录的猩红与洋红分区、珊瑚粉底、白色等高线和硬朗票券排版。',
+    tokens: {
+      colorScheme: 'light',
+      shell: '#d50b45',
+      headerBg: 'rgba(198, 8, 48, 0.95)',
+      headerBorder: 'rgba(255, 244, 241, 0.72)',
+      pageBg:
+        'linear-gradient(180deg, #ce0b35 0%, #e24c64 8rem, #eeb1aa 22rem, #eda9ae 72%, #d80661 100%)',
+      title: '#27191c',
+      titleSoft: '#fff8f4',
+      text: '#3a2027',
+      muted: '#704650',
+      subtle: '#956c74',
+      accent: '#c5003c',
+      accentStrong: '#f11863',
+      accentBorder: 'rgba(148, 0, 43, 0.52)',
+      panelBg: 'rgba(255, 239, 232, 0.9)',
+      surfaceBg: 'rgba(249, 207, 204, 0.82)',
+      linkHover: '#8e002c',
+      line: 'rgba(86, 36, 49, 0.34)',
+      glow: 'rgba(255, 242, 232, 0.52)',
+      route: '#fff8f4',
+      venueLineArtBg:
+        'linear-gradient(145deg, rgba(255, 236, 229, 0.92), rgba(240, 161, 168, 0.78))',
+      venueLineArtBorder: 'rgba(112, 20, 47, 0.48)',
+      venueLineArtFilter:
+        'brightness(0) saturate(100%) invert(14%) sepia(15%) saturate(1287%) hue-rotate(291deg) brightness(89%) contrast(91%)',
+      venueLineArtOpacity: '0.76',
+      venueLineArtShadow:
+        'inset 0 0 0 3px rgba(255, 246, 240, 0.34), 7px 7px 0 rgba(139, 0, 42, 0.18)',
+      venueLineArtBlendMode: 'multiply',
+    },
+  },
 }
 
 export function isTourEventType(type?: string | null) {
@@ -243,7 +355,10 @@ export function normalizeLiveDetailTheme(themePreset?: string | null): LiveDetai
   if (
     themePreset === 'echo-blue' ||
     themePreset === 'stairs-colors' ||
-    themePreset === 'green-lights'
+    themePreset === 'green-lights' ||
+    themePreset === 'miles301' ||
+    themePreset === '5am2023' ||
+    themePreset === 'unzepp2022'
   ) {
     return themePreset
   }

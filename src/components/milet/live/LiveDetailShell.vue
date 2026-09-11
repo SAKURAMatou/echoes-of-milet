@@ -229,6 +229,270 @@ const jaRoute = computed(() => ({
   display: none;
 }
 
+.live-detail-shell--miles301 {
+  font-family:
+    ui-monospace, 'SFMono-Regular', 'Cascadia Mono', 'Yu Gothic UI', 'PingFang SC',
+    'Noto Sans CJK SC', monospace;
+}
+
+.live-detail-shell--miles301 header {
+  position: sticky;
+  box-shadow:
+    inset 0 -1px 0 rgba(243, 107, 43, 0.26),
+    0 4px 0 rgba(33, 169, 223, 0.72);
+}
+
+.live-detail-shell--miles301 main::before,
+.live-detail-shell--miles301 main::after {
+  content: '';
+  position: absolute;
+  z-index: 1;
+  pointer-events: none;
+}
+
+.live-detail-shell--miles301 main::before {
+  inset: 1rem;
+  border: 2px solid rgba(243, 107, 43, 0.78);
+}
+
+.live-detail-shell--miles301 main::after {
+  inset: 1.45rem;
+  border: 2px solid rgba(33, 169, 223, 0.78);
+}
+
+.live-detail-shell--miles301 main > [aria-hidden='true'] {
+  background-image:
+    radial-gradient(circle, rgba(23, 27, 30, 0.085) 0.7px, transparent 0.8px),
+    linear-gradient(115deg, transparent 0 73%, rgba(33, 169, 223, 0.035) 73% 73.15%, transparent 73.15%),
+    linear-gradient(65deg, transparent 0 21%, rgba(243, 107, 43, 0.03) 21% 21.15%, transparent 21.15%) !important;
+  background-size: 6px 6px, 100% 100%, 100% 100% !important;
+  opacity: 0.38 !important;
+  -webkit-mask-image: linear-gradient(90deg, #000, transparent 28%, transparent 72%, #000);
+  mask-image: linear-gradient(90deg, #000, transparent 28%, transparent 72%, #000);
+}
+
+.live-detail-shell--miles301 :deep([class*='font-serif']) {
+  font-family:
+    ui-monospace, 'SFMono-Regular', 'Cascadia Mono', 'Yu Gothic UI', 'PingFang SC',
+    'Noto Sans CJK SC', monospace !important;
+}
+
+.live-detail-shell--miles301 :deep(h1) {
+  letter-spacing: -0.055em;
+  text-shadow:
+    2px 1px 0 rgba(243, 107, 43, 0.72),
+    -2px -1px 0 rgba(33, 169, 223, 0.72);
+}
+
+.live-detail-shell--miles301 :deep(section[class*='rounded-lg']),
+.live-detail-shell--miles301 :deep(div[class*='rounded-lg']) {
+  border-radius: 0.125rem !important;
+}
+
+.live-detail-shell--miles301 :deep(section[class*='border'][class*='rounded-lg']) {
+  box-shadow:
+    3px 3px 0 rgba(33, 169, 223, 0.14),
+    -2px -2px 0 rgba(243, 107, 43, 0.08) !important;
+}
+
+.live-detail-shell--miles301 :deep([class*='rounded-md']) {
+  border-radius: 0.125rem !important;
+}
+
+.live-detail-shell--miles301 :deep([class*='rounded-full'][class*='px-3']) {
+  border-radius: 0 !important;
+  background: rgba(255, 254, 250, 0.82);
+  box-shadow: 2px 2px 0 rgba(33, 169, 223, 0.16);
+}
+
+.live-detail-shell--miles301 :deep(img[class*='rounded']) {
+  border-radius: 0.125rem !important;
+}
+
+.live-detail-shell--miles301 :deep([class~='text-white']) {
+  color: var(--live-detail-title) !important;
+}
+
+.live-detail-shell--miles301 :deep(.live-venue-line-art-frame) {
+  border-radius: 0.125rem;
+}
+
+.live-detail-shell--miles301 :deep(a),
+.live-detail-shell--miles301 :deep(button) {
+  transition-duration: 160ms;
+}
+
+.live-detail-shell--miles301 :deep(a:focus-visible),
+.live-detail-shell--miles301 :deep(button:focus-visible) {
+  outline: 2px solid var(--live-detail-accent-strong);
+  outline-offset: 3px;
+  box-shadow: 3px 3px 0 rgba(243, 107, 43, 0.46);
+}
+
+.live-detail-shell--5am2023 {
+  font-family:
+    'Iowan Old Style', 'Palatino Linotype', 'Yu Mincho', 'Hiragino Mincho ProN',
+    'Songti SC', serif;
+}
+
+.live-detail-shell--5am2023 header {
+  box-shadow:
+    inset 0 -1px 0 rgba(247, 248, 239, 0.72),
+    0 8px 24px -22px rgba(29, 41, 39, 0.72);
+}
+
+.live-detail-shell--5am2023 main::before {
+  content: '';
+  position: absolute;
+  inset: 1rem;
+  z-index: 1;
+  pointer-events: none;
+  border: 6px double rgba(62, 82, 77, 0.5);
+}
+
+.live-detail-shell--5am2023 main > [aria-hidden='true'] {
+  background-image:
+    repeating-radial-gradient(ellipse at 72% 14%, transparent 0 3.6rem, rgba(70, 91, 87, 0.11) 3.66rem 3.72rem, transparent 3.78rem 7.4rem),
+    radial-gradient(circle at 72% 14%, rgba(255, 250, 219, 0.74), transparent 13rem),
+    linear-gradient(98deg, transparent 0 68%, rgba(178, 153, 103, 0.12) 68.1% 68.2%, transparent 68.3%) !important;
+  background-size: 100% 100% !important;
+  opacity: 0.74 !important;
+  -webkit-mask-image: linear-gradient(90deg, transparent, #000 42%, #000);
+  mask-image: linear-gradient(90deg, transparent, #000 42%, #000);
+}
+
+.live-detail-shell--5am2023 :deep([class*='font-serif']) {
+  font-family:
+    'Iowan Old Style', 'Palatino Linotype', 'Yu Mincho', 'Hiragino Mincho ProN',
+    'Songti SC', serif !important;
+}
+
+.live-detail-shell--5am2023 :deep(h1) {
+  font-weight: 400;
+  letter-spacing: -0.045em;
+  text-shadow: 0 1px 0 rgba(255, 255, 246, 0.92);
+}
+
+.live-detail-shell--5am2023 :deep(section[class*='rounded-lg']),
+.live-detail-shell--5am2023 :deep(div[class*='rounded-lg']) {
+  border-radius: 0.2rem !important;
+}
+
+.live-detail-shell--5am2023 :deep(section[class*='border'][class*='rounded-lg']) {
+  box-shadow:
+    inset 0 0 0 4px rgba(249, 248, 237, 0.46),
+    0 16px 34px -30px rgba(35, 53, 49, 0.62) !important;
+}
+
+.live-detail-shell--5am2023 :deep([class*='rounded-md']),
+.live-detail-shell--5am2023 :deep([class*='rounded-full'][class*='px-3']),
+.live-detail-shell--5am2023 :deep(img[class*='rounded']),
+.live-detail-shell--5am2023 :deep(.live-venue-line-art-frame) {
+  border-radius: 0.2rem !important;
+}
+
+.live-detail-shell--5am2023 :deep([class*='rounded-full'][class*='px-3']) {
+  border: 1px solid rgba(62, 82, 77, 0.36);
+  background: rgba(239, 243, 234, 0.84);
+}
+
+.live-detail-shell--5am2023 :deep([class~='text-white']) {
+  color: var(--live-detail-title) !important;
+}
+
+.live-detail-shell--5am2023 :deep(a:focus-visible),
+.live-detail-shell--5am2023 :deep(button:focus-visible) {
+  outline: 2px solid var(--live-detail-accent-strong);
+  outline-offset: 3px;
+}
+
+.live-detail-shell--unzepp2022 {
+  font-family:
+    'Arial Narrow', 'Avenir Next Condensed', 'Yu Gothic UI', 'Hiragino Kaku Gothic ProN',
+    'PingFang SC', sans-serif;
+}
+
+.live-detail-shell--unzepp2022 header {
+  box-shadow:
+    inset 0 -2px 0 rgba(255, 248, 244, 0.72),
+    0 7px 0 rgba(137, 0, 39, 0.32);
+}
+
+.live-detail-shell--unzepp2022 header :deep(a),
+.live-detail-shell--unzepp2022 header :deep(span) {
+  color: #fff8f4 !important;
+}
+
+.live-detail-shell--unzepp2022 main::before {
+  content: '';
+  position: absolute;
+  inset: 1rem;
+  z-index: 1;
+  pointer-events: none;
+  border: 2px solid rgba(255, 248, 244, 0.72);
+  box-shadow: 6px 6px 0 rgba(134, 0, 42, 0.2);
+}
+
+.live-detail-shell--unzepp2022 main > [aria-hidden='true'] {
+  background-image:
+    repeating-radial-gradient(ellipse at 38% 18%, transparent 0 2.1rem, rgba(255, 248, 244, 0.26) 2.16rem 2.22rem, transparent 2.28rem 4.4rem),
+    repeating-radial-gradient(ellipse at 82% 70%, transparent 0 2.7rem, rgba(255, 248, 244, 0.2) 2.76rem 2.82rem, transparent 2.88rem 5.6rem) !important;
+  background-size: 100% 100% !important;
+  opacity: 0.72 !important;
+}
+
+.live-detail-shell--unzepp2022 :deep([class*='font-serif']) {
+  font-family:
+    'Arial Narrow', 'Avenir Next Condensed', 'Yu Gothic UI', 'Hiragino Kaku Gothic ProN',
+    'PingFang SC', sans-serif !important;
+}
+
+.live-detail-shell--unzepp2022 :deep(h1) {
+  font-family:
+    Impact, Haettenschweiler, 'Arial Narrow Bold', 'Yu Gothic UI', 'PingFang SC',
+    sans-serif;
+  font-weight: 700;
+  letter-spacing: -0.025em;
+  text-transform: uppercase;
+  text-shadow: 2px 2px 0 rgba(255, 248, 244, 0.58);
+}
+
+.live-detail-shell--unzepp2022 :deep(section[class*='rounded-lg']),
+.live-detail-shell--unzepp2022 :deep(div[class*='rounded-lg']),
+.live-detail-shell--unzepp2022 :deep([class*='rounded-md']),
+.live-detail-shell--unzepp2022 :deep(img[class*='rounded']),
+.live-detail-shell--unzepp2022 :deep(.live-venue-line-art-frame) {
+  border-radius: 0 !important;
+}
+
+.live-detail-shell--unzepp2022 :deep(section[class*='border'][class*='rounded-lg']) {
+  border-color: rgba(73, 29, 40, 0.48) !important;
+  box-shadow: 6px 6px 0 rgba(139, 0, 42, 0.16) !important;
+}
+
+.live-detail-shell--unzepp2022 :deep([class*='rounded-full'][class*='px-3']) {
+  border-radius: 0 !important;
+  border: 1px solid rgba(73, 29, 40, 0.54);
+  background: rgba(255, 244, 238, 0.86);
+  box-shadow: 3px 3px 0 rgba(139, 0, 42, 0.18);
+}
+
+.live-detail-shell--unzepp2022 :deep([class~='text-white']) {
+  color: var(--live-detail-title) !important;
+}
+
+.live-detail-shell--unzepp2022 :deep(a),
+.live-detail-shell--unzepp2022 :deep(button) {
+  transition-duration: 140ms;
+}
+
+.live-detail-shell--unzepp2022 :deep(a:focus-visible),
+.live-detail-shell--unzepp2022 :deep(button:focus-visible) {
+  outline: 2px solid #fff8f4;
+  outline-offset: 3px;
+  box-shadow: 4px 4px 0 rgba(139, 0, 42, 0.48);
+}
+
 .live-detail-shell--green-lights header {
   box-shadow:
     inset 0 -1px 0 rgba(230, 255, 114, 0.035),
@@ -296,6 +560,15 @@ const jaRoute = computed(() => ({
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .live-detail-shell--miles301 :deep(*),
+  .live-detail-shell--miles301 :deep(*::before),
+  .live-detail-shell--miles301 :deep(*::after),
+  .live-detail-shell--5am2023 :deep(*),
+  .live-detail-shell--5am2023 :deep(*::before),
+  .live-detail-shell--5am2023 :deep(*::after),
+  .live-detail-shell--unzepp2022 :deep(*),
+  .live-detail-shell--unzepp2022 :deep(*::before),
+  .live-detail-shell--unzepp2022 :deep(*::after),
   .live-detail-shell--green-lights :deep(*),
   .live-detail-shell--green-lights :deep(*::before),
   .live-detail-shell--green-lights :deep(*::after) {
@@ -303,6 +576,31 @@ const jaRoute = computed(() => ({
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
+  }
+}
+
+@media (max-width: 639px) {
+  .live-detail-shell--miles301 main::before {
+    inset: 0.4rem;
+  }
+
+  .live-detail-shell--miles301 main::after {
+    inset: 0.75rem;
+  }
+
+  .live-detail-shell--miles301 :deep(h1) {
+    text-shadow:
+      1.5px 1px 0 rgba(243, 107, 43, 0.68),
+      -1.5px -1px 0 rgba(33, 169, 223, 0.68);
+  }
+
+  .live-detail-shell--5am2023 main::before,
+  .live-detail-shell--unzepp2022 main::before {
+    inset: 0.45rem;
+  }
+
+  .live-detail-shell--unzepp2022 :deep(h1) {
+    text-shadow: 1.5px 1.5px 0 rgba(255, 248, 244, 0.52);
   }
 }
 </style>
