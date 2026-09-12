@@ -103,7 +103,7 @@
       </dl>
     </section>
 
-    <section class="relative overflow-hidden rounded-lg border border-transparent py-2">
+    <section class="live-tour-route-panel relative overflow-hidden rounded-lg border border-transparent py-2">
       <div class="mb-4 flex flex-wrap justify-end gap-2 text-sm">
         <div
           class="inline-flex overflow-hidden rounded-md border border-[var(--live-detail-accent-border)]"

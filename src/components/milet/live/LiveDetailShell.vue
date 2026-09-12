@@ -794,6 +794,16 @@ const jaRoute = computed(() => ({
   box-shadow: inset 1px 1px 0 rgba(255,255,255,0.8), inset -1px -1px 0 rgba(50,66,56,0.1), 0 18px 42px -30px rgba(34,47,39,0.45) !important;
 }
 
+.live-detail-shell--madaOfGlass :deep(section.live-tour-route-panel) {
+  background: linear-gradient(128deg, rgba(255,255,250,0.08), transparent 48%, rgba(255,255,250,0.04)) !important;
+  -webkit-backdrop-filter: none !important;
+  backdrop-filter: none !important;
+}
+
+.live-detail-shell--madaOfGlass :deep(.live-tour-route-panel) {
+  --live-detail-panel-bg: rgba(244, 246, 240, 0.94);
+}
+
 .live-detail-shell--madaOfGlass :deep([class~='text-white']) {
   color: var(--live-detail-title) !important;
 }
