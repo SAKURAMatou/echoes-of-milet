@@ -493,6 +493,211 @@ const jaRoute = computed(() => ({
   box-shadow: 4px 4px 0 rgba(139, 0, 42, 0.48);
 }
 
+.live-detail-shell--into-the-mirror {
+  font-family:
+    'Iowan Old Style', 'Palatino Linotype', 'Yu Mincho', 'Hiragino Mincho ProN',
+    'Songti SC', serif;
+}
+
+.live-detail-shell--into-the-mirror header {
+  box-shadow:
+    inset 0 -3px 0 rgba(255, 255, 255, 0.54),
+    0 10px 28px -24px rgba(42, 98, 126, 0.64);
+}
+
+.live-detail-shell--into-the-mirror main::before {
+  content: '';
+  position: absolute;
+  inset: 0.9rem;
+  z-index: 1;
+  pointer-events: none;
+  border: 3px dotted rgba(255, 255, 255, 0.9);
+}
+
+.live-detail-shell--into-the-mirror main::after {
+  content: '';
+  position: absolute;
+  top: 5rem;
+  right: 7vw;
+  z-index: 0;
+  width: min(34vw, 30rem);
+  aspect-ratio: 1.15;
+  pointer-events: none;
+  background:
+    linear-gradient(90deg, transparent 49.2%, rgba(34, 90, 120, 0.32) 49.4% 50.6%, transparent 50.8%),
+    linear-gradient(61deg, transparent 0 40%, rgba(255, 255, 255, 0.72) 40.2% 40.8%, transparent 41%),
+    linear-gradient(-61deg, transparent 0 40%, rgba(255, 255, 255, 0.72) 40.2% 40.8%, transparent 41%);
+  clip-path: polygon(50% 0, 100% 34%, 100% 100%, 0 100%, 0 34%);
+  opacity: 0.42;
+}
+
+.live-detail-shell--into-the-mirror main > [aria-hidden='true'] {
+  background-image:
+    radial-gradient(ellipse at 12% 18%, rgba(255, 255, 255, 0.8) 0 4rem, transparent 9rem),
+    radial-gradient(ellipse at 82% 34%, rgba(255, 229, 210, 0.7) 0 5rem, transparent 12rem),
+    radial-gradient(ellipse at 38% 78%, rgba(255, 247, 230, 0.68) 0 7rem, transparent 16rem),
+    linear-gradient(112deg, transparent 0 46%, rgba(255, 255, 255, 0.2) 46.2% 46.8%, transparent 47%) !important;
+  background-size: 100% 100% !important;
+  opacity: 0.64 !important;
+}
+
+.live-detail-shell--into-the-mirror :deep([class*='font-serif']) {
+  font-family:
+    'Iowan Old Style', 'Palatino Linotype', 'Yu Mincho', 'Hiragino Mincho ProN',
+    'Songti SC', serif !important;
+}
+
+.live-detail-shell--into-the-mirror :deep(h1) {
+  font-weight: 500;
+  letter-spacing: 0.015em;
+  text-transform: uppercase;
+  text-shadow:
+    1.5px 0 0 rgba(91, 197, 228, 0.42),
+    -1.5px 0 0 rgba(247, 186, 163, 0.38);
+}
+
+.live-detail-shell--into-the-mirror :deep(section[class*='rounded-lg']),
+.live-detail-shell--into-the-mirror :deep(div[class*='rounded-lg']) {
+  border-radius: 0.2rem !important;
+}
+
+.live-detail-shell--into-the-mirror :deep(section[class*='border'][class*='rounded-lg']) {
+  border-color: rgba(255, 255, 255, 0.82) !important;
+  box-shadow:
+    inset 0 0 0 1px rgba(54, 113, 143, 0.2),
+    6px 7px 0 rgba(80, 141, 169, 0.12) !important;
+}
+
+.live-detail-shell--into-the-mirror :deep([class*='rounded-md']),
+.live-detail-shell--into-the-mirror :deep(img[class*='rounded']),
+.live-detail-shell--into-the-mirror :deep(.live-venue-line-art-frame) {
+  border-radius: 0.2rem !important;
+}
+
+.live-detail-shell--into-the-mirror :deep([class*='rounded-full'][class*='px-3']) {
+  border-radius: 0 !important;
+  border: 1px solid rgba(35, 70, 88, 0.62);
+  background: rgba(246, 210, 58, 0.9);
+  color: #263743 !important;
+  box-shadow: 2px 2px 0 rgba(255, 255, 255, 0.72);
+}
+
+.live-detail-shell--into-the-mirror :deep([class~='text-white']) {
+  color: var(--live-detail-title) !important;
+}
+
+.live-detail-shell--into-the-mirror :deep(a),
+.live-detail-shell--into-the-mirror :deep(button) {
+  transition-duration: 170ms;
+}
+
+.live-detail-shell--into-the-mirror :deep(a:focus-visible),
+.live-detail-shell--into-the-mirror :deep(button:focus-visible) {
+  outline: 2px solid var(--live-detail-title);
+  outline-offset: 3px;
+  box-shadow: 3px 3px 0 rgba(240, 201, 47, 0.76);
+}
+
+.live-detail-shell--visions2022 {
+  font-family:
+    'Montserrat', 'Avenir Next', 'Yu Gothic UI', 'Hiragino Kaku Gothic ProN',
+    'PingFang SC', sans-serif;
+}
+
+.live-detail-shell--visions2022 header {
+  box-shadow:
+    inset 0 -1px 0 rgba(240, 107, 215, 0.12),
+    0 14px 42px -32px rgba(78, 229, 255, 0.58);
+}
+
+.live-detail-shell--visions2022 main::before {
+  content: '';
+  position: absolute;
+  top: 2.75rem;
+  left: 50%;
+  z-index: 0;
+  width: min(62vw, 48rem);
+  aspect-ratio: 1.45;
+  pointer-events: none;
+  transform: translateX(-50%);
+  background:
+    linear-gradient(61deg, transparent 0 48.8%, rgba(72, 240, 255, 0.94) 49.25% 49.65%, transparent 50.1%),
+    linear-gradient(-61deg, transparent 0 48.8%, rgba(242, 91, 211, 0.9) 49.25% 49.65%, transparent 50.1%),
+    linear-gradient(90deg, transparent 0 10%, rgba(78, 229, 255, 0.86) 25%, rgba(182, 255, 120, 0.82) 43%, rgba(240, 107, 215, 0.88) 72%, transparent 90%) top center / 72% 4px no-repeat;
+  filter: drop-shadow(0 0 6px rgba(78, 229, 255, 0.72)) drop-shadow(0 0 20px rgba(96, 82, 255, 0.48));
+  opacity: 0.64;
+}
+
+.live-detail-shell--visions2022 main::after {
+  content: '';
+  position: absolute;
+  top: min(37vw, 27rem);
+  left: 50%;
+  z-index: 0;
+  width: min(46vw, 34rem);
+  height: 22rem;
+  pointer-events: none;
+  transform: translateX(-50%);
+  background: conic-gradient(from 198deg at 50% 0%, transparent 0 39%, rgba(69, 154, 255, 0.3) 42%, rgba(240, 107, 215, 0.22) 48%, transparent 53% 100%);
+  filter: blur(12px);
+  opacity: 0.58;
+}
+
+.live-detail-shell--visions2022 main > [aria-hidden='true'] {
+  background-image:
+    radial-gradient(circle at 50% 15%, rgba(78, 229, 255, 0.15), transparent 18rem),
+    radial-gradient(circle at 34% 28%, rgba(58, 79, 220, 0.2), transparent 24rem),
+    radial-gradient(circle at 70% 34%, rgba(240, 107, 215, 0.13), transparent 24rem) !important;
+  background-size: 100% 100% !important;
+  opacity: 0.86 !important;
+}
+
+.live-detail-shell--visions2022 :deep([class*='font-serif']) {
+  font-family:
+    'Montserrat', 'Avenir Next', 'Yu Gothic UI', 'Hiragino Kaku Gothic ProN',
+    'PingFang SC', sans-serif !important;
+}
+
+.live-detail-shell--visions2022 :deep(h1) {
+  font-weight: 300;
+  letter-spacing: 0.12em;
+  text-shadow:
+    0 0 18px rgba(78, 229, 255, 0.2),
+    0 0 34px rgba(240, 107, 215, 0.12);
+}
+
+.live-detail-shell--visions2022 :deep(section[class*='rounded-lg']),
+.live-detail-shell--visions2022 :deep(div[class*='rounded-lg']),
+.live-detail-shell--visions2022 :deep([class*='rounded-md']),
+.live-detail-shell--visions2022 :deep(img[class*='rounded']),
+.live-detail-shell--visions2022 :deep(.live-venue-line-art-frame) {
+  border-radius: 0.125rem !important;
+}
+
+.live-detail-shell--visions2022 :deep(section[class*='border'][class*='rounded-lg']) {
+  box-shadow:
+    inset 0 0 0 1px rgba(240, 107, 215, 0.06),
+    0 18px 54px -40px rgba(78, 229, 255, 0.74) !important;
+}
+
+.live-detail-shell--visions2022 :deep([class*='rounded-full'][class*='px-3']) {
+  border-color: rgba(78, 229, 255, 0.38) !important;
+  background: rgba(8, 15, 43, 0.76);
+  box-shadow: inset 0 0 12px rgba(78, 229, 255, 0.08);
+}
+
+.live-detail-shell--visions2022 :deep(a),
+.live-detail-shell--visions2022 :deep(button) {
+  transition-duration: 180ms;
+}
+
+.live-detail-shell--visions2022 :deep(a:focus-visible),
+.live-detail-shell--visions2022 :deep(button:focus-visible) {
+  outline: 2px solid var(--live-detail-accent);
+  outline-offset: 3px;
+  box-shadow: 0 0 18px rgba(78, 229, 255, 0.42);
+}
+
 .live-detail-shell--green-lights header {
   box-shadow:
     inset 0 -1px 0 rgba(230, 255, 114, 0.035),
@@ -559,6 +764,54 @@ const jaRoute = computed(() => ({
   outline-offset: 3px;
 }
 
+.live-detail-shell--madaOfGlass main > [aria-hidden='true'] {
+  background: url('/images/live/glass-bloom.svg') right -3rem top 1rem / min(76vw, 62rem) auto no-repeat !important;
+  opacity: 0.82 !important;
+}
+
+.live-detail-shell--madaOfGlass main::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(112deg, transparent 32%, rgba(255,255,250,0.28) 32.1%, transparent 32.4% 66%, rgba(58,72,64,0.07) 66.1%, transparent 66.3%);
+}
+
+.live-detail-shell--madaOfGlass :deep(h1) {
+  font-family: 'Iowan Old Style', 'Palatino Linotype', 'Yu Mincho', 'Songti SC', serif;
+  font-weight: 400;
+  letter-spacing: -0.035em;
+  text-shadow: 0 1px 0 rgba(255,255,255,0.9), 1px 2px 0 rgba(42,56,48,0.09);
+}
+
+.live-detail-shell--madaOfGlass :deep(section[class*='border'][class*='rounded-lg']),
+.live-detail-shell--madaOfGlass :deep(.live-venue-line-art-frame) {
+  border-color: rgba(255,255,250,0.72) !important;
+  border-radius: 0.35rem !important;
+  background-image: linear-gradient(128deg, rgba(255,255,255,0.32), transparent 36%, rgba(83,101,91,0.05) 74%, rgba(255,255,255,0.2));
+  -webkit-backdrop-filter: blur(14px) saturate(0.65);
+  backdrop-filter: blur(14px) saturate(0.65);
+  box-shadow: inset 1px 1px 0 rgba(255,255,255,0.8), inset -1px -1px 0 rgba(50,66,56,0.1), 0 18px 42px -30px rgba(34,47,39,0.45) !important;
+}
+
+.live-detail-shell--madaOfGlass :deep([class~='text-white']) {
+  color: var(--live-detail-title) !important;
+}
+
+.live-detail-shell--madaOfGlass :deep(a:focus-visible),
+.live-detail-shell--madaOfGlass :deep(button:focus-visible) {
+  outline: 2px solid var(--live-detail-accent-strong);
+  outline-offset: 4px;
+}
+
+@media (max-width: 639px) {
+  .live-detail-shell--madaOfGlass main > [aria-hidden='true'] {
+    background-position: right -8rem top 4rem !important;
+    background-size: 40rem auto !important;
+    opacity: 0.58 !important;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .live-detail-shell--miles301 :deep(*),
   .live-detail-shell--miles301 :deep(*::before),
@@ -569,6 +822,12 @@ const jaRoute = computed(() => ({
   .live-detail-shell--unzepp2022 :deep(*),
   .live-detail-shell--unzepp2022 :deep(*::before),
   .live-detail-shell--unzepp2022 :deep(*::after),
+  .live-detail-shell--into-the-mirror :deep(*),
+  .live-detail-shell--into-the-mirror :deep(*::before),
+  .live-detail-shell--into-the-mirror :deep(*::after),
+  .live-detail-shell--visions2022 :deep(*),
+  .live-detail-shell--visions2022 :deep(*::before),
+  .live-detail-shell--visions2022 :deep(*::after),
   .live-detail-shell--green-lights :deep(*),
   .live-detail-shell--green-lights :deep(*::before),
   .live-detail-shell--green-lights :deep(*::after) {
@@ -595,12 +854,43 @@ const jaRoute = computed(() => ({
   }
 
   .live-detail-shell--5am2023 main::before,
-  .live-detail-shell--unzepp2022 main::before {
+  .live-detail-shell--unzepp2022 main::before,
+  .live-detail-shell--into-the-mirror main::before {
     inset: 0.45rem;
   }
 
   .live-detail-shell--unzepp2022 :deep(h1) {
     text-shadow: 1.5px 1.5px 0 rgba(255, 248, 244, 0.52);
+  }
+
+  .live-detail-shell--into-the-mirror main::after {
+    top: 7rem;
+    right: -12vw;
+    width: 72vw;
+    opacity: 0.28;
+  }
+
+  .live-detail-shell--into-the-mirror :deep(h1) {
+    letter-spacing: -0.015em;
+    text-shadow:
+      1px 0 0 rgba(91, 197, 228, 0.4),
+      -1px 0 0 rgba(247, 186, 163, 0.36);
+  }
+
+  .live-detail-shell--visions2022 main::before {
+    top: 5rem;
+    width: 96vw;
+    opacity: 0.46;
+  }
+
+  .live-detail-shell--visions2022 main::after {
+    top: 18rem;
+    width: 88vw;
+    opacity: 0.38;
+  }
+
+  .live-detail-shell--visions2022 :deep(h1) {
+    letter-spacing: 0.055em;
   }
 }
 </style>

@@ -16,6 +16,9 @@ export type LiveDetailThemePreset =
   | 'miles301'
   | '5am2023'
   | 'unzepp2022'
+  | 'into-the-mirror'
+  | 'visions2022'
+  | 'madaOfGlass'
 
 export type LiveDetailThemeTokens = {
   colorScheme: 'dark' | 'light'
@@ -329,6 +332,107 @@ export const liveDetailThemes: Record<LiveDetailThemePreset, {
       venueLineArtBlendMode: 'multiply',
     },
   },
+  'into-the-mirror': {
+    label: 'INTO THE MIRROR',
+    description: '参考 INTO THE MIRROR 周边目录的粉蓝天空、蜜桃云层、镜像双门、珠点边框与黄色标签。',
+    tokens: {
+      colorScheme: 'light',
+      shell: '#ddecf3',
+      headerBg: 'rgba(227, 242, 248, 0.94)',
+      headerBorder: 'rgba(255, 255, 255, 0.86)',
+      pageBg:
+        'radial-gradient(ellipse at 16% 18%, rgba(255, 246, 231, 0.96), transparent 19rem), radial-gradient(ellipse at 84% 32%, rgba(250, 206, 185, 0.64), transparent 24rem), radial-gradient(ellipse at 42% 76%, rgba(255, 239, 220, 0.84), transparent 27rem), linear-gradient(145deg, #bfe8f7 0%, #d8eef5 38%, #f3c9b8 72%, #b9e3f2 100%)',
+      title: '#182735',
+      titleSoft: '#315d78',
+      text: '#2d4050',
+      muted: '#627887',
+      subtle: '#8298a6',
+      accent: '#269bc8',
+      accentStrong: '#f0c92f',
+      accentBorder: 'rgba(38, 122, 158, 0.4)',
+      panelBg: 'rgba(255, 252, 246, 0.9)',
+      surfaceBg: 'rgba(218, 239, 247, 0.84)',
+      linkHover: '#176f9b',
+      line: 'rgba(67, 121, 148, 0.3)',
+      glow: 'rgba(255, 238, 193, 0.58)',
+      route: '#e9bd20',
+      venueLineArtBg:
+        'linear-gradient(145deg, rgba(255, 250, 242, 0.9), rgba(187, 229, 244, 0.74))',
+      venueLineArtBorder: 'rgba(255, 255, 255, 0.86)',
+      venueLineArtFilter:
+        'brightness(0) saturate(100%) invert(36%) sepia(24%) saturate(1048%) hue-rotate(158deg) brightness(91%) contrast(88%)',
+      venueLineArtOpacity: '0.72',
+      venueLineArtShadow:
+        'inset 0 0 0 3px rgba(255, 255, 255, 0.5), 6px 7px 0 rgba(80, 141, 169, 0.14)',
+      venueLineArtBlendMode: 'multiply',
+    },
+  },
+  madaOfGlass: {
+    label: 'Made of Glass',
+    description: '烟灰玻璃、银白裂痕与裂隙之花，表达脆弱之中生长的坚强。',
+    tokens: {
+      colorScheme: 'light',
+      shell: '#d9dcda',
+      headerBg: 'rgba(232, 235, 232, 0.82)',
+      headerBorder: 'rgba(255, 255, 255, 0.76)',
+      pageBg: 'radial-gradient(ellipse at 78% 18%, rgba(255,255,249,0.88), transparent 36rem), linear-gradient(128deg, #c5ccc9 0%, #e6e8e3 42%, #b5bebb 100%)',
+      title: '#252d2c',
+      titleSoft: '#394745',
+      text: '#35423f',
+      muted: '#53635d',
+      subtle: '#64736e',
+      accent: '#4f6860',
+      accentStrong: '#354f46',
+      accentBorder: 'rgba(66, 84, 76, 0.38)',
+      panelBg: 'rgba(244, 246, 240, 0.66)',
+      surfaceBg: 'rgba(224, 231, 225, 0.62)',
+      linkHover: '#294d3e',
+      line: 'rgba(65, 82, 74, 0.28)',
+      glow: 'rgba(255, 255, 242, 0.66)',
+      route: '#587669',
+      venueLineArtBg: 'linear-gradient(135deg, rgba(255,255,250,0.65), rgba(154,171,161,0.2))',
+      venueLineArtBorder: 'rgba(255,255,255,0.78)',
+      venueLineArtFilter: 'grayscale(1) brightness(0.45)',
+      venueLineArtOpacity: '0.78',
+      venueLineArtShadow: 'inset 1px 1px 0 rgba(255,255,255,0.86), 0 16px 40px -28px rgba(30,43,38,0.4)',
+      venueLineArtBlendMode: 'multiply',
+    },
+  },
+  visions2022: {
+    label: 'visions 2022',
+    description: '参考 visions tour 官方页面的深海军蓝舞台、倒三角 V 结构、青紫棱镜光与极细宽字距排版。',
+    tokens: {
+      colorScheme: 'dark',
+      shell: '#050a1c',
+      headerBg: 'rgba(5, 10, 28, 0.9)',
+      headerBorder: 'rgba(90, 224, 255, 0.28)',
+      pageBg:
+        'radial-gradient(circle at 50% 10%, rgba(53, 77, 199, 0.48), transparent 28rem), radial-gradient(circle at 22% 42%, rgba(0, 214, 255, 0.16), transparent 24rem), radial-gradient(circle at 82% 38%, rgba(245, 69, 197, 0.14), transparent 24rem), linear-gradient(180deg, #05091a 0%, #0b1230 48%, #040817 100%)',
+      title: '#f4f6ff',
+      titleSoft: '#d8e4ff',
+      text: '#d9e1f4',
+      muted: '#aab6d3',
+      subtle: '#7583a8',
+      accent: '#4ee5ff',
+      accentStrong: '#f06bd7',
+      accentBorder: 'rgba(78, 229, 255, 0.42)',
+      panelBg: 'rgba(8, 15, 43, 0.86)',
+      surfaceBg: 'rgba(13, 24, 63, 0.68)',
+      linkHover: '#b6ff78',
+      line: 'rgba(127, 151, 227, 0.28)',
+      glow: 'rgba(91, 220, 255, 0.56)',
+      route: '#b6ff78',
+      venueLineArtBg:
+        'linear-gradient(145deg, rgba(20, 31, 76, 0.76), rgba(8, 15, 43, 0.9))',
+      venueLineArtBorder: 'rgba(92, 225, 255, 0.34)',
+      venueLineArtFilter:
+        'brightness(0) saturate(100%) invert(89%) sepia(37%) saturate(1718%) hue-rotate(153deg) brightness(101%) contrast(103%) drop-shadow(0 0 12px rgba(78, 229, 255, 0.32))',
+      venueLineArtOpacity: '0.84',
+      venueLineArtShadow:
+        'inset 0 0 0 1px rgba(240, 107, 215, 0.1), 0 18px 52px -34px rgba(78, 229, 255, 0.68)',
+      venueLineArtBlendMode: 'screen',
+    },
+  },
 }
 
 export function isTourEventType(type?: string | null) {
@@ -358,7 +462,10 @@ export function normalizeLiveDetailTheme(themePreset?: string | null): LiveDetai
     themePreset === 'green-lights' ||
     themePreset === 'miles301' ||
     themePreset === '5am2023' ||
-    themePreset === 'unzepp2022'
+    themePreset === 'unzepp2022' ||
+    themePreset === 'into-the-mirror' ||
+    themePreset === 'visions2022' ||
+    themePreset === 'madaOfGlass'
   ) {
     return themePreset
   }
