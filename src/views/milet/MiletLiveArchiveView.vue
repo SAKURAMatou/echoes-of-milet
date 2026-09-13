@@ -64,8 +64,9 @@
     </header>
 
     <section class="border-b border-[#c9ddea]/70 bg-white/48 px-4 py-4 sm:px-7">
-      <div
+      <form
         class="grid gap-3 rounded-lg border border-sky-100/80 bg-white/52 p-3 shadow-[0_18px_45px_-38px_rgba(15,23,42,0.54)] backdrop-blur lg:grid-cols-[minmax(0,1fr)_14rem_10rem_auto]"
+        @submit.prevent="applyFilters"
       >
         <label class="grid gap-1">
           <span class="text-xs font-semibold uppercase tracking-[0.14em] text-[#317f8d]">
@@ -76,7 +77,6 @@
             type="search"
             class="h-11 rounded-lg border border-[#b7d6e2] bg-white/82 px-3 text-sm text-[#24323a] outline-none transition placeholder:text-slate-400 focus:border-[#317f8d] focus:ring-4 focus:ring-sky-100"
             :placeholder="routeLang === 'ja' ? 'title / venue / city' : '标题 / 场馆 / 城市'"
-            @keydown.enter="applyFilters"
           />
         </label>
 
@@ -87,7 +87,6 @@
           <select
             v-model="selectedType"
             class="h-11 rounded-lg border border-[#b7d6e2] bg-white/82 px-3 text-sm text-[#24323a] outline-none transition focus:border-[#317f8d] focus:ring-4 focus:ring-sky-100"
-            @change="applyFilters"
           >
             <option v-for="option in liveTypeOptions" :key="option.value" :value="option.value">
               {{ option.label }}
@@ -107,19 +106,17 @@
             :max="currentYear + 1"
             class="h-11 rounded-lg border border-[#b7d6e2] bg-white/82 px-3 text-sm text-[#24323a] outline-none transition placeholder:text-slate-400 focus:border-[#317f8d] focus:ring-4 focus:ring-sky-100"
             placeholder="ALL"
-            @keydown.enter="applyFilters"
           />
         </label>
 
         <button
           v-echo-press
-          type="button"
+          type="submit"
           class="mt-auto h-11 rounded-lg border border-[#317f8d]/40 bg-[#317f8d] px-5 text-sm font-bold text-white shadow-[0_16px_28px_-22px_rgba(20,61,99,0.85)] transition hover:bg-[#246d7c]"
-          @click="applyFilters"
         >
           {{ routeLang === 'ja' ? 'Search' : '搜索' }}
         </button>
-      </div>
+      </form>
     </section>
 
     <section class="grid gap-4 px-4 py-6 sm:px-7">
@@ -127,7 +124,13 @@
         v-if="error && items.length"
         class="flex flex-col gap-3 rounded-lg border border-amber-200/80 bg-amber-50/78 px-4 py-3 text-sm text-amber-950 sm:flex-row sm:items-center sm:justify-between"
       >
-        <p>{{ routeLang === 'ja' ? '最新の条件を読み込めませんでした。現在の一覧を表示しています。' : '最新筛选结果加载失败，当前仍显示原有列表。' }}</p>
+        <p>
+          {{
+            routeLang === 'ja'
+              ? '最新の条件を読み込めませんでした。現在の一覧を表示しています。'
+              : '最新筛选结果加载失败，当前仍显示原有列表。'
+          }}
+        </p>
         <button
           v-echo-press
           type="button"
@@ -156,7 +159,11 @@
         v-else-if="!items.length"
         state="empty"
         :title="routeLang === 'ja' ? 'Live archive はまだありません。' : '暂无 Live Archive。'"
-        :description="routeLang === 'ja' ? '条件を変えて、もう一度検索できます。' : '可以调整筛选条件后重新搜索。'"
+        :description="
+          routeLang === 'ja'
+            ? '条件を変えて、もう一度検索できます。'
+            : '可以调整筛选条件后重新搜索。'
+        "
       />
 
       <div v-else class="grid gap-4 lg:grid-cols-2">
@@ -165,7 +172,7 @@
           v-for="item in items"
           :key="item.id"
           :to="{ name: 'miletLiveDetail', params: { lang: routeLang, slug: item.slug } }"
-          class="group grid overflow-hidden rounded-lg border border-[#c9ddea]/80 bg-white/78 shadow-[0_18px_54px_-44px_rgba(49,82,103,0.62)] backdrop-blur transition hover:-translate-y-0.5 hover:border-[#8bc7de] hover:bg-white/88 hover:shadow-[0_26px_70px_-46px_rgba(49,82,103,0.72)]"
+          class="group grid min-w-0 overflow-hidden rounded-lg border border-[#c9ddea]/80 bg-white/78 shadow-[0_18px_54px_-44px_rgba(49,82,103,0.62)] backdrop-blur transition hover:-translate-y-0.5 hover:border-[#8bc7de] hover:bg-white/88 hover:shadow-[0_26px_70px_-46px_rgba(49,82,103,0.72)]"
         >
           <div class="relative aspect-[16/9] overflow-hidden bg-[#edf7fb]">
             <img
@@ -181,19 +188,21 @@
               class="pointer-events-none absolute inset-x-0 bottom-0 h-20 bg-[linear-gradient(0deg,rgba(3,19,34,0.4),transparent)]"
             ></div>
             <span
-              class="absolute left-3 top-3 rounded-full border border-white/70 bg-white/82 px-3 py-1 text-[11px] font-bold uppercase tracking-[0.12em] text-[#143d63] backdrop-blur"
+              class="absolute left-3 top-3 max-w-[calc(100%-1.5rem)] truncate rounded-full border border-white/70 bg-white/82 px-3 py-1 text-[11px] font-bold uppercase tracking-[0.12em] text-[#143d63] backdrop-blur"
+              :title="formatLiveType(item.type)"
             >
               {{ formatLiveType(item.type) }}
             </span>
           </div>
 
-          <div class="grid gap-3 p-4">
-            <div>
+          <div class="grid min-w-0 gap-3 p-4">
+            <div class="min-w-0">
               <p class="text-xs font-semibold uppercase tracking-[0.16em] text-[#317f8d]">
                 {{ item.year || formatLiveDateRange(item).slice(0, 4) || 'LIVE' }}
               </p>
               <h2
-                class="mt-1 font-serif text-3xl leading-tight text-[#143d63] transition group-hover:text-[#317f8d]"
+                class="mt-1 line-clamp-2 break-words font-serif text-3xl leading-tight text-[#143d63] transition [overflow-wrap:anywhere] group-hover:text-[#317f8d]"
+                :title="item.title"
               >
                 {{ item.title }}
               </h2>
@@ -201,18 +210,20 @@
             <p v-if="item.summary" class="line-clamp-2 text-sm leading-6 text-[#5f7178]">
               {{ item.summary }}
             </p>
-            <div class="flex flex-wrap items-center gap-2 text-xs text-[#546e7a]">
+            <div class="flex min-w-0 flex-wrap items-center gap-2 text-xs text-[#546e7a]">
               <span
                 v-if="formatLiveDateRange(item)"
-                class="inline-flex h-8 max-w-full items-center rounded-full bg-sky-50 px-3 leading-none"
+                class="inline-flex h-8 min-w-0 max-w-full items-center overflow-hidden rounded-full bg-sky-50 px-3 leading-none"
+                :title="formatLiveDateRange(item)"
               >
-                {{ formatLiveDateRange(item) }}
+                <span class="truncate">{{ formatLiveDateRange(item) }}</span>
               </span>
               <span
                 v-if="item.venueSummary"
-                class="inline-flex h-8 min-w-0 max-w-full items-center rounded-full bg-teal-50 px-3 leading-none"
+                class="inline-flex h-8 min-w-0 max-w-full items-center overflow-hidden rounded-full bg-teal-50 px-3 leading-none"
+                :title="item.venueSummary"
               >
-                <span class="truncate">{{ item.venueSummary }}</span>
+                <span class="min-w-0 truncate">{{ item.venueSummary }}</span>
               </span>
               <span
                 v-if="item.performanceCount"
@@ -240,7 +251,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, onServerPrefetch, ref, watch } from 'vue'
+import { computed, onBeforeUnmount, onMounted, onServerPrefetch, ref, watch } from 'vue'
 import { RouterLink, useRoute } from 'vue-router'
 
 import {
@@ -270,6 +281,8 @@ const loading = ref(false)
 const error = ref('')
 const pageSize = 12
 const currentYear = new Date().getFullYear()
+let filterTimer: ReturnType<typeof setTimeout> | undefined
+let listRequestGeneration = 0
 const normalizedYear = computed(() => {
   const value = String(selectedYear.value ?? '').trim()
   return /^\d{4}$/.test(value) ? value : ''
@@ -291,6 +304,7 @@ const items = computed(() => data.value?.items || [])
 const hasMore = computed(() => (data.value?.page || 1) < (data.value?.totalPages || 1))
 
 async function loadList(page = 1, append = false) {
+  const generation = ++listRequestGeneration
   const key = liveEventListCacheKey({
     lang: lang.value,
     type: selectedType.value,
@@ -302,6 +316,8 @@ async function loadList(page = 1, append = false) {
 
   if (!append && appState.miletLiveListData?.key === key) {
     data.value = appState.miletLiveListData.payload
+    loading.value = false
+    error.value = ''
     return
   }
 
@@ -316,6 +332,7 @@ async function loadList(page = 1, append = false) {
       page,
       pageSize,
     })
+    if (generation !== listRequestGeneration) return
     data.value =
       append && data.value
         ? { ...payload, items: [...data.value.items, ...payload.items] }
@@ -329,15 +346,28 @@ async function loadList(page = 1, append = false) {
         : `当前显示 ${data.value.items.length} 条 Live Archive`,
     )
   } catch (err) {
+    if (generation !== listRequestGeneration) return
     error.value = err instanceof Error ? err.message : 'Live archive load failed.'
     interaction.announce(routeLang.value === 'ja' ? '読み込みに失敗しました' : '加载失败，可以重试')
   } finally {
-    loading.value = false
+    if (generation === listRequestGeneration) loading.value = false
   }
 }
 
 function applyFilters() {
+  if (filterTimer) {
+    clearTimeout(filterTimer)
+    filterTimer = undefined
+  }
   void loadList(1)
+}
+
+function scheduleFilters(delay = 300) {
+  if (filterTimer) clearTimeout(filterTimer)
+  filterTimer = setTimeout(() => {
+    filterTimer = undefined
+    void loadList(1)
+  }, delay)
 }
 
 function loadMore() {
@@ -354,6 +384,22 @@ onMounted(() => {
 
 watch(routeLang, () => {
   void loadList(1)
+})
+
+watch(selectedType, applyFilters)
+
+watch(selectedYear, (value) => {
+  const normalized = String(value ?? '').trim()
+  if (!normalized || /^\d{4}$/.test(normalized)) scheduleFilters(180)
+})
+
+watch(keywordDraft, () => {
+  scheduleFilters(320)
+})
+
+onBeforeUnmount(() => {
+  if (filterTimer) clearTimeout(filterTimer)
+  listRequestGeneration += 1
 })
 </script>
 
