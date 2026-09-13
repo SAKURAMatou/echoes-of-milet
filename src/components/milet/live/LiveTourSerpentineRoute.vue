@@ -1,8 +1,6 @@
 <template>
   <article class="grid gap-7">
-    <section
-      class="grid gap-8 pt-2 lg:grid-cols-[minmax(0,1fr)_minmax(16rem,22rem)_minmax(18rem,0.82fr)] lg:items-center"
-    >
+    <section class="pt-2">
       <div class="min-w-0">
         <p
           class="font-['Montserrat','sans-serif'] text-xs font-semibold uppercase tracking-[0.18em] text-[var(--live-detail-accent)]"
@@ -14,93 +12,100 @@
         >
           {{ event.title }}
         </h1>
-        <p class="mt-2 font-serif text-2xl text-[var(--live-detail-title-soft)]">
-          {{ event.artist || 'milet' }}
-        </p>
-        <div
-          class="mt-5 flex flex-wrap gap-2 text-xs font-semibold text-[var(--live-detail-accent)]"
-        >
-          <span class="rounded-full border border-[var(--live-detail-accent-border)] px-3 py-1">
-            {{ formatLiveType(event.type) }}
-          </span>
-          <span
-            v-if="event.year"
-            class="rounded-full border border-[var(--live-detail-accent-border)] px-3 py-1"
-          >
-            {{ event.year }}
-          </span>
-          <span class="rounded-full border border-[var(--live-detail-accent-border)] px-3 py-1">
-            {{ performances.length }} {{ lang === 'ja' ? 'Performances' : '场次' }}
-          </span>
-          <span
-            v-if="cityCount"
-            class="rounded-full border border-[var(--live-detail-accent-border)] px-3 py-1"
-          >
-            {{ cityCount }} {{ lang === 'ja' ? 'Cities' : '城市' }}
-          </span>
-        </div>
-        <p
-          class="mt-6 max-w-2xl whitespace-pre-line text-base leading-8 text-[var(--live-detail-text)]"
-        >
-          {{ event.summary || fallbackSummary }}
-        </p>
       </div>
 
-      <LiveMainVisualPanel :event="event" class="mx-auto w-full max-w-sm" />
-      <dl
-        class="grid grid-cols-3 gap-0 overflow-hidden rounded-lg border border-[var(--live-detail-accent-border)] bg-[var(--live-detail-surface-bg)] lg:grid-cols-1"
+      <div
+        class="mt-2 grid gap-8 lg:grid-cols-[minmax(0,1fr)_minmax(16rem,22rem)_minmax(18rem,0.82fr)] lg:items-center"
       >
-        <div
-          v-for="stat in tourStats"
-          :key="stat.label"
-          class="grid md:grid-cols-[auto_1fr] max-md:grid-rows-[auto_1fr] gap-1 min-h-28 md:place-items-center border-[var(--live-detail-line)] px-4 py-4 text-center lg:border-t first:lg:border-t-0"
-        >
-          <dt
-            class="md:grid gap-2 text-xs font-semibold uppercase tracking-[0.12em] text-[var(--live-detail-muted)]"
+        <div class="min-w-0">
+          <p class="mt-2 font-serif text-2xl text-[var(--live-detail-title-soft)]">
+            {{ event.artist || 'milet' }}
+          </p>
+          <div
+            class="mt-5 flex flex-wrap gap-2 text-xs font-semibold text-[var(--live-detail-accent)]"
           >
-            <span
-              class="mx-auto grid size-9 place-items-center text-[var(--live-detail-accent)]"
-              aria-hidden="true"
-            >
-              <svg
-                class="size-6"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="1.7"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-              >
-                <path v-if="stat.icon === 'calendar'" d="M8 2v4" />
-                <path v-if="stat.icon === 'calendar'" d="M16 2v4" />
-                <rect v-if="stat.icon === 'calendar'" width="18" height="18" x="3" y="4" rx="2" />
-                <path v-if="stat.icon === 'calendar'" d="M3 10h18" />
-                <path
-                  v-if="stat.icon === 'ticket'"
-                  d="M4 7a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v2a3 3 0 0 0 0 6v2a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-2a3 3 0 0 0 0-6V7Z"
-                />
-                <path v-if="stat.icon === 'ticket'" d="M9 8h.01" />
-                <path v-if="stat.icon === 'ticket'" d="M9 12h.01" />
-                <path v-if="stat.icon === 'ticket'" d="M9 16h.01" />
-                <path v-if="stat.icon === 'city'" d="M4 21h16" />
-                <path v-if="stat.icon === 'city'" d="M6 21V8l5-4 5 4v13" />
-                <path v-if="stat.icon === 'city'" d="M9 21v-6h4v6" />
-                <path v-if="stat.icon === 'city'" d="M8.5 10h.01" />
-                <path v-if="stat.icon === 'city'" d="M13.5 10h.01" />
-              </svg>
+            <span class="rounded-full border border-[var(--live-detail-accent-border)] px-3 py-1">
+              {{ formatLiveType(event.type) }}
             </span>
-            <span>{{ stat.label }}</span>
-          </dt>
-          <div class="grid gap-1 place-items-center">
-            <dd class="mt-2 font-serif text-2xl leading-tight text-[var(--live-detail-title)]">
-              {{ stat.value }}
-            </dd>
-            <p v-if="stat.sub" class="mt-1 text-xs text-[var(--live-detail-muted)]">
-              {{ stat.sub }}
-            </p>
+            <span
+              v-if="event.year"
+              class="rounded-full border border-[var(--live-detail-accent-border)] px-3 py-1"
+            >
+              {{ event.year }}
+            </span>
+            <span class="rounded-full border border-[var(--live-detail-accent-border)] px-3 py-1">
+              {{ performances.length }} {{ lang === 'ja' ? 'Performances' : '场次' }}
+            </span>
+            <span
+              v-if="cityCount"
+              class="rounded-full border border-[var(--live-detail-accent-border)] px-3 py-1"
+            >
+              {{ cityCount }} {{ lang === 'ja' ? 'Cities' : '城市' }}
+            </span>
           </div>
+          <p
+            class="mt-6 max-w-2xl whitespace-pre-line text-base leading-8 text-[var(--live-detail-text)]"
+          >
+            {{ event.summary || fallbackSummary }}
+          </p>
         </div>
-      </dl>
+
+        <LiveMainVisualPanel :event="event" class="mx-auto w-full max-w-sm" />
+        <dl
+          class="grid grid-cols-3 gap-0 overflow-hidden rounded-lg border border-[var(--live-detail-accent-border)] bg-[var(--live-detail-surface-bg)] lg:grid-cols-1"
+        >
+          <div
+            v-for="stat in tourStats"
+            :key="stat.label"
+            class="grid md:grid-cols-[auto_1fr] max-md:grid-rows-[auto_1fr] gap-1 min-h-28 md:place-items-center border-[var(--live-detail-line)] px-4 py-4 text-center lg:border-t first:lg:border-t-0"
+          >
+            <dt
+              class="md:grid gap-2 text-xs font-semibold uppercase tracking-[0.12em] text-[var(--live-detail-muted)]"
+            >
+              <span
+                class="mx-auto grid size-9 place-items-center text-[var(--live-detail-accent)]"
+                aria-hidden="true"
+              >
+                <svg
+                  class="size-6"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="1.7"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                >
+                  <path v-if="stat.icon === 'calendar'" d="M8 2v4" />
+                  <path v-if="stat.icon === 'calendar'" d="M16 2v4" />
+                  <rect v-if="stat.icon === 'calendar'" width="18" height="18" x="3" y="4" rx="2" />
+                  <path v-if="stat.icon === 'calendar'" d="M3 10h18" />
+                  <path
+                    v-if="stat.icon === 'ticket'"
+                    d="M4 7a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v2a3 3 0 0 0 0 6v2a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-2a3 3 0 0 0 0-6V7Z"
+                  />
+                  <path v-if="stat.icon === 'ticket'" d="M9 8h.01" />
+                  <path v-if="stat.icon === 'ticket'" d="M9 12h.01" />
+                  <path v-if="stat.icon === 'ticket'" d="M9 16h.01" />
+                  <path v-if="stat.icon === 'city'" d="M4 21h16" />
+                  <path v-if="stat.icon === 'city'" d="M6 21V8l5-4 5 4v13" />
+                  <path v-if="stat.icon === 'city'" d="M9 21v-6h4v6" />
+                  <path v-if="stat.icon === 'city'" d="M8.5 10h.01" />
+                  <path v-if="stat.icon === 'city'" d="M13.5 10h.01" />
+                </svg>
+              </span>
+              <span>{{ stat.label }}</span>
+            </dt>
+            <div class="grid gap-1 place-items-center">
+              <dd class="mt-2 font-serif text-2xl leading-tight text-[var(--live-detail-title)]">
+                {{ stat.value }}
+              </dd>
+              <p v-if="stat.sub" class="mt-1 text-xs text-[var(--live-detail-muted)]">
+                {{ stat.sub }}
+              </p>
+            </div>
+          </div>
+        </dl>
+      </div>
     </section>
 
     <section class="live-tour-route-panel relative overflow-hidden rounded-lg border border-transparent py-2">

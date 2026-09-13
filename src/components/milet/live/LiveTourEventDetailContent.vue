@@ -1,16 +1,19 @@
 <template>
   <article class="grid gap-6">
     <section class="relative overflow-hidden border-b border-[#d9b77c]/18 pb-5 pt-2">
-      <div class="grid gap-6 lg:grid-cols-[minmax(0,1.18fr)_minmax(23rem,0.82fr)] lg:items-end">
+      <div class="min-w-0">
+        <p class="font-['Montserrat','sans-serif'] text-xs font-semibold uppercase text-[#d9b77c]">
+          {{ formatLiveType(event.type) }}
+        </p>
+        <h1 class="mt-3 font-serif text-5xl leading-none text-[#f3eadf] sm:text-6xl xl:text-7xl">
+          {{ event.title }}
+        </h1>
+      </div>
+
+      <div
+        class="mt-2 grid gap-6 lg:grid-cols-[minmax(0,1.18fr)_minmax(23rem,0.82fr)] lg:items-end"
+      >
         <div class="min-w-0">
-          <p
-            class="font-['Montserrat','sans-serif'] text-xs font-semibold uppercase text-[#d9b77c]"
-          >
-            {{ formatLiveType(event.type) }}
-          </p>
-          <h1 class="mt-3 font-serif text-5xl leading-none text-[#f3eadf] sm:text-6xl xl:text-7xl">
-            {{ event.title }}
-          </h1>
           <p class="mt-2 font-serif text-2xl leading-tight text-[#f3eadf]/82">
             {{ artistLine }}
           </p>
