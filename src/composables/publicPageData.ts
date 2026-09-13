@@ -13,7 +13,20 @@ export interface GalleryImage {
   comment?: string
 }
 
+export interface GalleryAlbumDescription {
+  lang: string
+  title: string
+  description: string
+}
+
+export interface GalleryAlbumMetadata {
+  galleryId: string
+  imgCount: number
+  description: GalleryAlbumDescription[]
+}
+
 export interface GalleryPageData {
+  album?: GalleryAlbumMetadata | null
   error?: string
   images: GalleryImage[]
   maxPage: number

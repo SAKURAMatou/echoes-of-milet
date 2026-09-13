@@ -65,7 +65,7 @@ export function pageSeoOptions(path: string, state: AppState): RenderSeoOptions 
       : null
   const list = state.miletGalleryListData?.payload
   const album = gallery
-    ? [...(list?.topAlbums || []), ...(list?.normalAlbums || [])].find(
+    ? gallery.album || [...(list?.topAlbums || []), ...(list?.normalAlbums || [])].find(
         (item) => item.galleryId === slug,
       )
     : null

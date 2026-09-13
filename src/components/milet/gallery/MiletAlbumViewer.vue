@@ -79,9 +79,8 @@
 
 <script setup lang="ts">
 import { computed, nextTick, onMounted, onServerPrefetch, onUnmounted, ref, watch } from 'vue'
-import axiosInstance from '@/AxiosUtil'
-import { apiRoutes, buildStaticAssetPreviewUrl, buildStaticAssetUrl } from '@/config/api'
 import { MILET_PIC_TEXT } from '@/composables/lang/miletPic'
+import { fetchMiletGalleryPage } from '@/composables/miletGalleryPage'
 import { usePetFancyboxPhotoLifecycle } from '@/composables/pet'
 import '@fancyapps/ui/dist/fancybox/fancybox.css'
 
@@ -197,25 +196,19 @@ async function loadPage() {
   loading.value = true
   error.value = ''
   try {
-    const resData = await axiosInstance.get<{ code: number; data?: GalleryImage[]; maxPage?: number }>(
-      `${apiRoutes.miletPiclist}/${requestedPage}/${requestedGalleryId}`,
-    )
+    const pageData = await fetchMiletGalleryPage(requestedGalleryId, requestedPage)
     if (generation !== pageRequestGeneration || requestedGalleryId !== props.galleryId) return
-    if (resData.code === 200) {
-      const resImgList = Array.isArray(resData.data) ? resData.data : []
-      totalPages.value = resData.maxPage || 1
-      imgList.value.push(
-        ...resImgList.map((img) => ({
-          ...img,
-          link: buildStaticAssetUrl(img.url_original || img.link),
-          previewLink: buildStaticAssetPreviewUrl(img.url_original || img.link),
-          prelink: buildStaticAssetUrl(img.url_webp || img.prelink || img.link),
-        })),
-      )
-    }
-    if (resData.code !== 200) throw new Error('Album load failed.')
+    totalPages.value = pageData.maxPage
+    imgList.value.push(...pageData.images)
     if (currentPage.value === 1 && !props.embedded) {
-      appState.miletGalleryPageData = { key: props.galleryId, payload: { images: [...imgList.value], maxPage: totalPages.value } }
+      appState.miletGalleryPageData = {
+        key: props.galleryId,
+        payload: {
+          album: pageData.album,
+          images: [...imgList.value],
+          maxPage: totalPages.value,
+        },
+      }
     }
     isLastPage.value = currentPage.value >= totalPages.value
     await nextTick()
@@ -231,11 +224,21 @@ async function loadPage() {
   }
 }
 
-function lightboxOptions(startIndex: number) {
+function lightboxOptions(
+  startIndex: number,
+  clickAction: import('@fancyapps/ui').PanzoomAction,
+) {
   return {
     startIndex,
     Hash: false as const,
+    wheel: 'slide' as const,
     Carousel: {
+      Zoomable: {
+        Panzoom: {
+          clickAction,
+          wheelAction: false as const,
+        },
+      },
       Toolbar: {
         display: {
           left: ['counter'],
@@ -259,7 +262,7 @@ async function openLightbox(event: MouseEvent, startIndex: number) {
   const requestId = ++lightboxRequestId
 
   try {
-    const { Fancybox } = await import('@fancyapps/ui')
+    const { Fancybox, PanzoomAction } = await import('@fancyapps/ui')
     if (!componentMounted || requestId !== lightboxRequestId) return
 
     fancyboxApi = Fancybox
@@ -272,7 +275,10 @@ async function openLightbox(event: MouseEvent, startIndex: number) {
       height: img.h || img.height,
       downloadSrc: img.link,
     }))
-    Fancybox.show(slides, withPetPhotoOptions(lightboxOptions(startIndex)))
+    Fancybox.show(
+      slides,
+      withPetPhotoOptions(lightboxOptions(startIndex, PanzoomAction.ToggleFull)),
+    )
   } catch {
     if (componentMounted && requestId === lightboxRequestId && fallbackHref) {
       window.location.assign(fallbackHref)
@@ -329,7 +335,7 @@ function resetAndLoad() {
   loadPage()
 }
 
-onServerPrefetch(() => props.embedded ? Promise.resolve() : loadPage())
+onServerPrefetch(() => props.embedded || cachedPage ? Promise.resolve() : loadPage())
 
 onMounted(() => {
   componentMounted = true

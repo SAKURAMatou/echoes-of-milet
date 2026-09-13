@@ -44,10 +44,11 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, onServerPrefetch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import MiletAlbumViewer from '@/components/milet/gallery/MiletAlbumViewer.vue'
 import { MILET_PIC_TEXT } from '@/composables/lang/miletPic'
+import { fetchMiletGalleryPage } from '@/composables/miletGalleryPage'
 import { useAppState } from '@/composables/useAppState'
 import { pageSeoOptions } from '@/server/page-seo'
 
@@ -62,6 +63,35 @@ const albumTitle = computed(
     pageSeoOptions(route.fullPath, appState).galleryTitle ||
     `${routeLang.value === 'ja' ? 'milet フォトアルバム' : 'milet 照片相册'} ${galleryId.value}`,
 )
+
+async function prefetchAlbumPage() {
+  const requestedGalleryId = galleryId.value
+  if (
+    !requestedGalleryId ||
+    (appState.miletGalleryPageData?.key === requestedGalleryId &&
+      appState.miletGalleryPageData.payload.album)
+  ) {
+    return
+  }
+
+  try {
+    const payload = await fetchMiletGalleryPage(requestedGalleryId, 1)
+    if (requestedGalleryId !== galleryId.value) return
+    appState.miletGalleryPageData = { key: requestedGalleryId, payload }
+  } catch (error) {
+    if (requestedGalleryId !== galleryId.value) return
+    appState.miletGalleryPageData = {
+      key: requestedGalleryId,
+      payload: {
+        error: error instanceof Error ? error.message : 'Album load failed.',
+        images: [],
+        maxPage: 1,
+      },
+    }
+  }
+}
+
+onServerPrefetch(prefetchAlbumPage)
 
 function returnToAlbumList() {
   const previousLocation = router.options.history.state.back
