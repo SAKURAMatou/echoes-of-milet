@@ -58,84 +58,124 @@
 
     <article v-else-if="payload" class="grid gap-6">
       <section
-        class="grid gap-7 rounded-lg border border-white/10 bg-[#031322]/38 p-4 shadow-[0_32px_120px_-80px_rgba(125,211,252,0.65)] sm:p-6 lg:grid-cols-[minmax(0,1fr)_minmax(20rem,28rem)_minmax(14rem,20rem)] lg:items-center"
+        class="rounded-lg border border-white/10 bg-[#031322]/38 p-4 shadow-[0_32px_120px_-80px_rgba(125,211,252,0.65)] sm:p-6"
       >
         <div class="min-w-0">
-          <p class="font-['Montserrat','sans-serif'] text-xs font-semibold uppercase tracking-[0.18em] text-[#d9b77c]">
+          <p
+            class="font-['Montserrat','sans-serif'] text-xs font-semibold uppercase tracking-[0.18em] text-[#d9b77c]"
+          >
             {{ formatLiveType(event.type) }}
           </p>
           <h1 class="mt-4 font-serif text-[clamp(3rem,7vw,5.8rem)] leading-[0.92] text-[#f3eadf]">
             {{ event.title }}
           </h1>
-          <div class="mt-5 flex flex-wrap gap-2 text-xs font-semibold text-[#d9b77c]">
-            <span class="rounded-full border border-[#d9b77c]/38 px-3 py-1">
-              {{ formatLiveType(event.type) }}
-            </span>
-            <span v-if="venueSummary" class="rounded-full border border-[#d9b77c]/38 px-3 py-1">
-              {{ venueSummary }}
-            </span>
-            <span v-if="event.year" class="rounded-full border border-[#d9b77c]/38 px-3 py-1">
-              {{ event.year }}
-            </span>
-          </div>
-          <p class="mt-7 max-w-2xl text-base leading-8 text-[#d8e8f3]">
-            {{ event.summary || fallbackSummary }}
-          </p>
         </div>
 
-        <LiveMainVisualPanel :event="event" class="lg:mx-auto lg:w-full" />
+        <div
+          class="mt-2 grid gap-7 lg:grid-cols-[minmax(0,1fr)_minmax(20rem,28rem)_minmax(14rem,20rem)] lg:items-center"
+        >
+          <div class="min-w-0">
+            <div class="mt-5 flex flex-wrap gap-2 text-xs font-semibold text-[#d9b77c]">
+              <span class="rounded-full border border-[#d9b77c]/38 px-3 py-1">
+                {{ formatLiveType(event.type) }}
+              </span>
+              <span v-if="venueSummary" class="rounded-full border border-[#d9b77c]/38 px-3 py-1">
+                {{ venueSummary }}
+              </span>
+              <span v-if="event.year" class="rounded-full border border-[#d9b77c]/38 px-3 py-1">
+                {{ event.year }}
+              </span>
+            </div>
+            <p class="mt-7 max-w-2xl text-base leading-8 text-[#d8e8f3]">
+              {{ event.summary || fallbackSummary }}
+            </p>
+          </div>
 
-        <aside class="hidden text-[#d8e8f3] lg:block">
-          <p class="font-['Montserrat','sans-serif'] text-xs font-semibold uppercase tracking-[0.18em] text-[#d9b77c]/80">
-            {{ formatLiveType(event.type) }}
-          </p>
-          <p class="mt-6 font-serif text-2xl leading-tight text-[#f3eadf]">{{ event.title }}</p>
-          <dl class="mt-6 grid gap-4 text-sm">
-            <div v-if="formatLiveDateRange(event)" class="grid grid-cols-[2rem_minmax(0,1fr)] gap-3">
-              <span class="grid size-8 place-items-center text-[#d9b77c]" aria-hidden="true">
-                <svg class="size-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
-                  <path d="M8 2v4" />
-                  <path d="M16 2v4" />
-                  <rect width="18" height="18" x="3" y="4" rx="2" />
-                  <path d="M3 10h18" />
-                </svg>
-              </span>
-              <div>
-                <dt class="text-[#d9b77c]/70">Period</dt>
-                <dd class="mt-1">{{ formatLiveDateRange(event) }}</dd>
+          <LiveMainVisualPanel :event="event" class="lg:mx-auto lg:w-full" />
+
+          <aside class="hidden text-[#d8e8f3] lg:block">
+            <p
+              class="font-['Montserrat','sans-serif'] text-xs font-semibold uppercase tracking-[0.18em] text-[#d9b77c]/80"
+            >
+              {{ formatLiveType(event.type) }}
+            </p>
+            <p class="mt-6 font-serif text-2xl leading-tight text-[#f3eadf]">{{ event.title }}</p>
+            <dl class="mt-6 grid gap-4 text-sm">
+              <div
+                v-if="formatLiveDateRange(event)"
+                class="grid grid-cols-[2rem_minmax(0,1fr)] gap-3"
+              >
+                <span class="grid size-8 place-items-center text-[#d9b77c]" aria-hidden="true">
+                  <svg
+                    class="size-5"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="1.7"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  >
+                    <path d="M8 2v4" />
+                    <path d="M16 2v4" />
+                    <rect width="18" height="18" x="3" y="4" rx="2" />
+                    <path d="M3 10h18" />
+                  </svg>
+                </span>
+                <div>
+                  <dt class="text-[#d9b77c]/70">Period</dt>
+                  <dd class="mt-1">{{ formatLiveDateRange(event) }}</dd>
+                </div>
               </div>
-            </div>
-            <div class="grid grid-cols-[2rem_minmax(0,1fr)] gap-3">
-              <span class="grid size-8 place-items-center text-[#d9b77c]" aria-hidden="true">
-                <svg class="size-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
-                  <path d="M4 7a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v2a3 3 0 0 0 0 6v2a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-2a3 3 0 0 0 0-6V7Z" />
-                  <path d="M9 8h.01" />
-                  <path d="M9 12h.01" />
-                  <path d="M9 16h.01" />
-                </svg>
-              </span>
-              <div>
-                <dt class="text-[#d9b77c]/70">Performances</dt>
-                <dd class="mt-1">{{ performances.length }}</dd>
+              <div class="grid grid-cols-[2rem_minmax(0,1fr)] gap-3">
+                <span class="grid size-8 place-items-center text-[#d9b77c]" aria-hidden="true">
+                  <svg
+                    class="size-5"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="1.7"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  >
+                    <path
+                      d="M4 7a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v2a3 3 0 0 0 0 6v2a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-2a3 3 0 0 0 0-6V7Z"
+                    />
+                    <path d="M9 8h.01" />
+                    <path d="M9 12h.01" />
+                    <path d="M9 16h.01" />
+                  </svg>
+                </span>
+                <div>
+                  <dt class="text-[#d9b77c]/70">Performances</dt>
+                  <dd class="mt-1">{{ performances.length }}</dd>
+                </div>
               </div>
-            </div>
-            <div v-if="cityCount" class="grid grid-cols-[2rem_minmax(0,1fr)] gap-3">
-              <span class="grid size-8 place-items-center text-[#d9b77c]" aria-hidden="true">
-                <svg class="size-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
-                  <path d="M4 21h16" />
-                  <path d="M6 21V8l5-4 5 4v13" />
-                  <path d="M9 21v-6h4v6" />
-                  <path d="M8.5 10h.01" />
-                  <path d="M13.5 10h.01" />
-                </svg>
-              </span>
-              <div>
-                <dt class="text-[#d9b77c]/70">Cities</dt>
-                <dd class="mt-1">{{ cityCount }}</dd>
+              <div v-if="cityCount" class="grid grid-cols-[2rem_minmax(0,1fr)] gap-3">
+                <span class="grid size-8 place-items-center text-[#d9b77c]" aria-hidden="true">
+                  <svg
+                    class="size-5"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="1.7"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  >
+                    <path d="M4 21h16" />
+                    <path d="M6 21V8l5-4 5 4v13" />
+                    <path d="M9 21v-6h4v6" />
+                    <path d="M8.5 10h.01" />
+                    <path d="M13.5 10h.01" />
+                  </svg>
+                </span>
+                <div>
+                  <dt class="text-[#d9b77c]/70">Cities</dt>
+                  <dd class="mt-1">{{ cityCount }}</dd>
+                </div>
               </div>
-            </div>
-          </dl>
-        </aside>
+            </dl>
+          </aside>
+        </div>
       </section>
 
       <LivePerformanceTabs

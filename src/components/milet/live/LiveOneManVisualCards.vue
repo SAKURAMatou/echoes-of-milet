@@ -1,8 +1,6 @@
 <template>
   <article class="grid gap-6">
-    <section
-      class="grid gap-8 pt-3 lg:grid-cols-[minmax(0,1fr)_minmax(20rem,29rem)] lg:items-center"
-    >
+    <section class="pt-3">
       <div class="min-w-0">
         <p
           class="font-['Montserrat','sans-serif'] text-xs font-semibold uppercase tracking-[0.18em] text-[var(--live-detail-accent)]"
@@ -14,48 +12,55 @@
         >
           {{ event.title }}
         </h1>
-        <p class="mt-2 font-serif text-3xl leading-tight text-[var(--live-detail-title-soft)]">
-          {{ event.artist || 'milet' }}
-        </p>
-        <div
-          class="mt-6 flex flex-wrap gap-2 text-xs font-semibold text-[var(--live-detail-accent)]"
-        >
-          <span class="rounded-full border border-[var(--live-detail-accent-border)] px-3 py-1">
-            {{ formatLiveType(event.type) }}
-          </span>
-          <span
-            v-if="selectedPerformance?.venueName"
-            class="rounded-full border border-[var(--live-detail-accent-border)] px-3 py-1"
-          >
-            {{ selectedPerformance.venueName }}
-          </span>
-          <span
-            v-if="event.year"
-            class="rounded-full border border-[var(--live-detail-accent-border)] px-3 py-1"
-          >
-            {{ event.year }}
-          </span>
-        </div>
-        <p class="mt-7 max-w-2xl text-base leading-8 text-[var(--live-detail-text)]">
-          {{ event.summary || fallbackSummary }}
-        </p>
-        <div class="mt-7 flex flex-wrap gap-3">
-          <a
-            href="#live-performances"
-            class="inline-flex min-h-11 items-center rounded-md border border-[var(--live-detail-accent-border)] bg-[var(--live-detail-surface-bg)] px-5 text-sm font-semibold text-[var(--live-detail-title)] shadow-[0_0_34px_-20px_var(--live-detail-glow)] transition hover:border-[var(--live-detail-accent-strong)]"
-          >
-            {{ lang === 'ja' ? '公演を見る' : '查看场次' }}
-          </a>
-          <a
-            href="#live-related"
-            class="inline-flex min-h-11 items-center rounded-md border border-[var(--live-detail-accent-border)] px-5 text-sm font-semibold text-[var(--live-detail-accent-strong)] transition hover:bg-white/5"
-          >
-            {{ lang === 'ja' ? '関連コンテンツ' : '关联内容' }}
-          </a>
-        </div>
       </div>
 
-      <LiveMainVisualPanel :event="event" class="lg:mx-auto lg:w-full" />
+      <div
+        class="mt-2 grid gap-8 lg:grid-cols-[minmax(0,1fr)_minmax(20rem,29rem)] lg:items-center"
+      >
+        <div class="min-w-0">
+          <p class="mt-2 font-serif text-3xl leading-tight text-[var(--live-detail-title-soft)]">
+            {{ event.artist || 'milet' }}
+          </p>
+          <div
+            class="mt-6 flex flex-wrap gap-2 text-xs font-semibold text-[var(--live-detail-accent)]"
+          >
+            <span class="rounded-full border border-[var(--live-detail-accent-border)] px-3 py-1">
+              {{ formatLiveType(event.type) }}
+            </span>
+            <span
+              v-if="selectedPerformance?.venueName"
+              class="rounded-full border border-[var(--live-detail-accent-border)] px-3 py-1"
+            >
+              {{ selectedPerformance.venueName }}
+            </span>
+            <span
+              v-if="event.year"
+              class="rounded-full border border-[var(--live-detail-accent-border)] px-3 py-1"
+            >
+              {{ event.year }}
+            </span>
+          </div>
+          <p class="mt-7 max-w-2xl text-base leading-8 text-[var(--live-detail-text)]">
+            {{ event.summary || fallbackSummary }}
+          </p>
+          <div class="mt-7 flex flex-wrap gap-3">
+            <a
+              href="#live-performances"
+              class="inline-flex min-h-11 items-center rounded-md border border-[var(--live-detail-accent-border)] bg-[var(--live-detail-surface-bg)] px-5 text-sm font-semibold text-[var(--live-detail-title)] shadow-[0_0_34px_-20px_var(--live-detail-glow)] transition hover:border-[var(--live-detail-accent-strong)]"
+            >
+              {{ lang === 'ja' ? '公演を見る' : '查看场次' }}
+            </a>
+            <a
+              href="#live-related"
+              class="inline-flex min-h-11 items-center rounded-md border border-[var(--live-detail-accent-border)] px-5 text-sm font-semibold text-[var(--live-detail-accent-strong)] transition hover:bg-white/5"
+            >
+              {{ lang === 'ja' ? '関連コンテンツ' : '关联内容' }}
+            </a>
+          </div>
+        </div>
+
+        <LiveMainVisualPanel :event="event" class="lg:mx-auto lg:w-full" />
+      </div>
     </section>
 
     <section
