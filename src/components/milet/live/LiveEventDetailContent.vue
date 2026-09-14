@@ -86,7 +86,7 @@
                 {{ event.year }}
               </span>
             </div>
-            <p class="mt-7 max-w-2xl text-base leading-8 text-[#d8e8f3]">
+            <p class="mt-7 max-w-2xl whitespace-pre-line text-base leading-8 text-[#d8e8f3]">
               {{ event.summary || fallbackSummary }}
             </p>
           </div>

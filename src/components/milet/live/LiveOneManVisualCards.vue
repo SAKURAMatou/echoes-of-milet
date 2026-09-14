@@ -40,7 +40,7 @@
               {{ event.year }}
             </span>
           </div>
-          <p class="mt-7 max-w-2xl text-base leading-8 text-[var(--live-detail-text)]">
+          <p class="mt-7 max-w-2xl whitespace-pre-line text-base leading-8 text-[var(--live-detail-text)]">
             {{ event.summary || fallbackSummary }}
           </p>
           <div class="mt-7 flex flex-wrap gap-3">
