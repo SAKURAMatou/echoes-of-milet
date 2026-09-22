@@ -1,6 +1,7 @@
 <template>
   <div
     v-if="shouldRender"
+    data-pet-avoid
     class="echo-async-state"
     :class="`is-${state}`"
     :aria-busy="state === 'loading'"
@@ -14,7 +15,7 @@
     <button
       v-if="state !== 'loading' && actionLabel"
       type="button"
-      class="echo-focus min-h-11 rounded-full border border-sky-200 bg-white px-4 text-sm font-medium text-slate-700 transition-colors hover:border-sky-400 hover:bg-sky-50 disabled:cursor-not-allowed disabled:opacity-50"
+      class="echo-focus min-h-11 shrink-0 whitespace-nowrap rounded-full border border-sky-200 bg-white px-4 text-sm font-medium text-slate-700 transition-colors hover:border-sky-400 hover:bg-sky-50 disabled:cursor-not-allowed disabled:opacity-50"
       :disabled="disabled"
       @click="$emit('action')"
     >

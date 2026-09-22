@@ -45,10 +45,7 @@ export const RELEASE_PAGE_TEXT = {
       resultsSuffix: '件',
     },
     pagination: {
-      loadMoreAlbum: 'アルバムをもっと見る',
-      loadMoreEp: 'EP / シングルをもっと見る',
-      loadMoreLive: 'ライブ作品をもっと見る',
-      nextBatch: 'Next 5 discography',
+      loadMore: '続きを読み込む',
       loading: '読み込み中...',
       allAlbum: 'すべてのアルバムを表示しました',
       allEp: 'すべてのEP / シングルを表示しました',
@@ -110,10 +107,7 @@ export const RELEASE_PAGE_TEXT = {
       resultsSuffix: '个发布物',
     },
     pagination: {
-      loadMoreAlbum: '加载更多专辑',
-      loadMoreEp: '加载更多 EP / 单曲',
-      loadMoreLive: '加载更多演唱会作品',
-      nextBatch: '继续 5 个发布物',
+      loadMore: '继续加载更多',
       loading: '加载中...',
       allAlbum: '已展示全部专辑',
       allEp: '已展示全部 EP / 单曲',

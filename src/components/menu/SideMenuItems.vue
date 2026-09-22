@@ -1,6 +1,6 @@
 <template>
   <div>
-    <div class="mb-5 md:hidden">
+    <div class="mb-5 lg:hidden">
       <LanguageSelect variant="menu" @beforeNavigate="onLanguageNavigate" />
     </div>
 
@@ -23,14 +23,14 @@
           v-for="(item, index) in menu"
           :key="item.key"
           class="group"
-        :style="{ '--d': `${Math.min(index, 5) * 30}ms` }"
+          :style="{ '--d': `${Math.min(index, 5) * 30}ms` }"
         >
           <!-- Sticker -->
 
           <router-link
             v-if="item.shown"
             :to="buildMenuRoute(item)"
-            class="menu-link relative block focus-visible:outline-none"
+            class="menu-link relative block rounded-lg focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#317f8d]"
             :aria-current="isActiveRoute(item) ? 'page' : false"
             :class="{ 'is-active': isActiveRoute(item) }"
             @click="onMenuItemClick"
@@ -162,10 +162,29 @@ const getColor = (c: MenuItem['color']) => colorMap[c]
 
 const route = useRoute()
 const { scrollToPageAnchor } = usePageAnchorScroll()
-const menu = computed(() => getMenu())
+const menuLabels: Record<string, [string, string]> = {
+  home: ['网站首页', 'サイトトップ'],
+  milet: ['关于 milet', 'milet について'],
+  timeline: ['活动时间线', '活動の記録'],
+  release: ['音乐作品', 'ディスコグラフィー'],
+  'live-archive': ['演出档案', 'ライブの記録'],
+  news: ['新闻与采访', 'ニュース・インタビュー'],
+  pilgrimage: ['巡礼地图', '聖地巡礼マップ'],
+  'echo-room': ['听歌挑战', '楽曲クイズ'],
+  anniversary: ['周年纪念', 'アニバーサリー'],
+  about: ['关于本站与反馈', 'このサイト・お問い合わせ'],
+}
+const menu = computed(() =>
+  getMenu().map((item) => ({
+    ...item,
+    sub: menuLabels[item.key]?.[route.params.lang === 'ja' ? 1 : 0] || item.sub,
+  })),
+)
 
 function isActiveRoute(item: MenuItem) {
-  return route.name === item.routerName || item.activeRouteNames?.includes(String(route.name)) === true
+  return (
+    route.name === item.routerName || item.activeRouteNames?.includes(String(route.name)) === true
+  )
 }
 
 function buildMenuRoute(item: MenuItem) {
@@ -267,9 +286,15 @@ function onSubmenuClick(event: MouseEvent, href?: string) {
   .menu-stagger-enter-active,
   .menu-stagger-appear-active,
   .menu-stagger-leave-active,
-  .menu-stagger-move { transition: none; transition-delay: 0ms !important; }
+  .menu-stagger-move {
+    transition: none;
+    transition-delay: 0ms !important;
+  }
   .menu-stagger-enter-from,
   .menu-stagger-appear-from,
-  .menu-stagger-leave-to { opacity: 1; transform: none; }
+  .menu-stagger-leave-to {
+    opacity: 1;
+    transform: none;
+  }
 }
 </style>

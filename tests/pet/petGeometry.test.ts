@@ -2,6 +2,7 @@ import test from 'node:test'
 import assert from 'node:assert/strict'
 
 import {
+  resolvePetContentPosition,
   clampPetPosition,
   defaultPetPosition,
   isPetDragStarted,
@@ -213,4 +214,33 @@ test('speech bubble remains inside a safe-area constrained mobile viewport', () 
   assert.ok(bubble.left + 190 <= 4 + 320 - 16)
   assert.ok(bubble.top >= 26)
   assert.ok(bubble.top + 82 <= 6 + 480 - 14)
+})
+
+test('content avoidance keeps a safe user position and the full mobile avatar size', () => {
+  const box = { left: 0, top: 0, width: 390, height: 844 }
+  const current = { x: 220, y: 600 }
+  assert.deepEqual(resolvePetContentPosition(current, 140, box, []), current)
+  const next = resolvePetContentPosition(current, 140, box, [
+    { left: 200, right: 390, top: 580, bottom: 780 },
+  ])
+  assert.deepEqual(next, { x: 12, y: 600 })
+})
+
+test('content avoidance yields when the full avatar cannot fit, then resumes when clear', () => {
+  const box = { left: 0, top: 0, width: 390, height: 844 }
+  const current = { x: 220, y: 600 }
+  assert.equal(
+    resolvePetContentPosition(current, 140, box, [{ left: 0, right: 390, top: 64, bottom: 844 }]),
+    undefined,
+  )
+  assert.deepEqual(resolvePetContentPosition(current, 140, box, []), current)
+  assert.equal(resolvePetContentPosition(current, 140, { ...box, height: 180 }, []), undefined)
+})
+
+test('content avoidance respects a shifted visual viewport', () => {
+  const box = { left: 10, top: 40, width: 390, height: 600 }
+  const next = resolvePetContentPosition({ x: -20, y: 700 }, 140, box, [])
+  assert.ok(next)
+  assert.ok(next.x >= box.left && next.x + 140 <= box.left + box.width)
+  assert.ok(next.y >= box.top + 80 && next.y + 140 <= box.top + box.height - 20)
 })

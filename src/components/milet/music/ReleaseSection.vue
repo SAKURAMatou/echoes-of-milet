@@ -80,7 +80,7 @@
 
       <div
         v-else-if="works.length > 0"
-        class="flex min-h-16 flex-col items-center gap-3 py-2 font-montserrat tabular-nums md:grid md:grid-cols-[1fr_auto_1fr]"
+        class="flex min-h-16 flex-col items-center gap-3 py-2 font-montserrat tabular-nums md:flex-row md:justify-between"
       >
         <div class="text-sm text-[#143d63] md:text-right">
           {{ loadedCount }} / {{ totalCount }} {{ pageText.chapter.archived }}
@@ -98,9 +98,6 @@
         </button>
         <div v-else class="flex min-h-11 items-center text-sm font-semibold text-[#317f8d]">
           {{ completeText }}
-        </div>
-        <div class="text-sm text-[#317f8d] md:text-left">
-          {{ hasMore ? pageText.pagination.nextBatch : completeText }}
         </div>
       </div>
 
@@ -224,12 +221,7 @@ const sectionStyle = computed(() => ({
 
 const loadButtonText = computed(() => {
   if (props.loading || paginationBusy.value) return pageText.value.pagination.loading
-  if (!props.hasMore) return completeText.value
-  return {
-    album: pageText.value.pagination.loadMoreAlbum,
-    ep: pageText.value.pagination.loadMoreEp,
-    live: pageText.value.pagination.loadMoreLive,
-  }[props.sectionKey]
+  return pageText.value.pagination.loadMore
 })
 
 const completeText = computed(

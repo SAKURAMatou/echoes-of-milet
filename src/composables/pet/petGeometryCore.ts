@@ -301,3 +301,37 @@ export function resolvePetRadialMenuLayout(
     }
   })
 }
+
+/** Finds space for the full-size avatar; undefined means yield until space is available. */
+export function resolvePetContentPosition(
+  current: PetPoint,
+  size: number,
+  viewport: PetViewportBox,
+  obstacles: ReadonlyArray<{ left: number; right: number; top: number; bottom: number }>,
+): PetPoint | undefined {
+  const left = viewport.left + 12
+  const right = viewport.left + viewport.width - size - 12
+  const top = viewport.top + 80
+  const bottom = viewport.top + viewport.height - size - 20
+  const fits = ({ x, y }: { x: number; y: number }) =>
+    x >= left &&
+    x <= right &&
+    y >= top &&
+    y <= bottom &&
+    obstacles.every(
+      (rect) =>
+        x + size + 8 <= rect.left ||
+        x - 8 >= rect.right ||
+        y + size + 8 <= rect.top ||
+        y - 8 >= rect.bottom,
+    )
+  const candidates = [current, { x: left, y: current.y }, { x: right, y: current.y }]
+  for (const y of [
+    bottom,
+    top,
+    ...obstacles.flatMap((rect) => [rect.top - size - 12, rect.bottom + 12]),
+  ]) {
+    candidates.push({ x: right, y }, { x: left, y })
+  }
+  return candidates.find(fits)
+}

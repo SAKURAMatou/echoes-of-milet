@@ -21,7 +21,7 @@
         ref="menuButtonRef"
         v-if="showHanbor"
         type="button"
-        class="echo-focus md:hidden flex min-h-11 min-w-11 items-center justify-center rounded-full border border-white px-2 py-2 text-[#546e7a] transition-colors hover:border-sky-200 hover:bg-white/80"
+        class="echo-focus lg:hidden flex min-h-11 min-w-11 items-center justify-center rounded-full border border-white px-2 py-2 text-[#546e7a] transition-colors hover:border-sky-200 hover:bg-white/80"
         @click="toggleMenu"
         :aria-label="menuOpen ? closeLabel : openLabel"
         :aria-expanded="menuOpen"

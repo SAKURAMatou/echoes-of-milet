@@ -113,18 +113,18 @@
           </div>
 
           <nav
-            class="release-archive-map__nav relative mt-5 grid gap-[1.02rem]"
+            class="release-archive-map__nav relative mt-3 flex flex-wrap gap-2 lg:grid lg:gap-3"
             :aria-label="pageText.page.archiveTitle"
           >
             <a
               v-for="chapter in chapters"
               :key="chapter.key"
               :href="`#${chapter.anchorId}`"
-              class="relative grid w-full grid-cols-[1.45rem_minmax(0,1fr)_auto] items-center gap-3 rounded-[0.35rem] py-0.5 pl-px text-left transition hover:translate-x-0.5 hover:text-[#317f8d]"
+              class="relative grid w-auto grid-cols-[minmax(0,1fr)_auto] lg:w-full lg:grid-cols-[1.45rem_minmax(0,1fr)_auto] items-center gap-3 rounded-[0.35rem] py-0.5 pl-px text-left transition hover:translate-x-0.5 hover:text-[#317f8d]"
               @click="onChapterAnchorClick($event, chapter.anchorId)"
             >
               <span
-                class="relative z-[1] flex h-[0.78rem] w-[0.78rem] justify-self-center rounded-full border border-[#317f8d] bg-white/85"
+                class="relative z-[1] hidden lg:flex h-[0.78rem] w-[0.78rem] justify-self-center rounded-full border border-[#317f8d] bg-white/85"
               >
                 <span class="m-auto block h-[0.34rem] w-[0.34rem] rounded-full bg-[#317f8d]"></span>
               </span>
@@ -132,7 +132,7 @@
                 <span class="block text-base font-semibold text-[#143d63]">{{
                   chapter.title
                 }}</span>
-                <span class="text-xs text-slate-500">{{ chapter.subtitle }}</span>
+                <span class="hidden lg:block text-xs text-slate-500">{{ chapter.subtitle }}</span>
               </span>
               <span class="font-montserrat text-[0.86rem] tabular-nums text-slate-600/80">
                 {{ chapter.countLabel }}
@@ -145,6 +145,7 @@
 
     <section
       class="mx-4 rounded-xl border border-sky-100/90 bg-white/82 p-4 shadow-[0_18px_50px_-38px_rgba(15,61,99,0.5)] backdrop-blur sm:mx-6 md:mx-8 md:p-5"
+      data-pet-avoid
       :aria-label="pageText.filters.title"
     >
       <div class="flex flex-wrap items-start justify-between gap-3">
@@ -158,47 +159,59 @@
         </p>
       </div>
 
-      <div class="mt-4 grid gap-3 lg:grid-cols-[10rem_minmax(13rem,1fr)_auto]">
-        <div class="lg:col-span-3">
-          <span class="mb-1.5 block text-xs font-medium text-slate-600">{{
-            pageText.filters.type
-          }}</span>
-          <div
-            class="grid grid-cols-2 gap-1.5 sm:grid-cols-4"
-            role="group"
-            :aria-label="pageText.filters.type"
-          >
-            <button
-              v-echo-press
-              v-for="option in releaseTypeOptions"
-              :key="option.value"
-              type="button"
-              class="min-h-11 rounded-md border px-3 py-2 text-sm font-semibold transition"
-              :class="
-                releaseTypeFilter === option.value
-                  ? 'border-[#317f8d] bg-[#317f8d] text-white'
-                  : 'border-slate-200 bg-white/80 text-slate-600 hover:border-sky-200 hover:bg-sky-50'
-              "
-              @click="releaseTypeFilter = option.value"
+      <button
+        type="button"
+        class="mt-3 min-h-11 rounded-lg border border-sky-200 px-3 text-sm text-[#317f8d]"
+        :aria-expanded="moreFiltersOpen"
+        aria-controls="release-extra-filters"
+        @click="moreFiltersOpen = !moreFiltersOpen"
+      >
+        {{ currentLang === 'jp' ? '種類・年で絞り込む' : '更多筛选：类型与年份' }}
+        {{ moreFiltersOpen ? '−' : '+' }}
+      </button>
+      <div class="mt-3 grid gap-3 sm:grid-cols-[minmax(0,1fr)_auto]">
+        <div v-show="moreFiltersOpen" id="release-extra-filters" class="grid gap-3 sm:col-span-2">
+          <div class="min-w-0">
+            <span class="mb-1.5 block text-xs font-medium text-slate-600">{{
+              pageText.filters.type
+            }}</span>
+            <div
+              class="grid grid-cols-2 gap-1.5 sm:grid-cols-4"
+              role="group"
+              :aria-label="pageText.filters.type"
             >
-              {{ option.label }}
-            </button>
+              <button
+                v-echo-press
+                v-for="option in releaseTypeOptions"
+                :key="option.value"
+                type="button"
+                class="min-h-11 rounded-md border px-3 py-2 text-sm font-semibold transition"
+                :class="
+                  releaseTypeFilter === option.value
+                    ? 'border-[#317f8d] bg-[#317f8d] text-white'
+                    : 'border-slate-200 bg-white/80 text-slate-600 hover:border-sky-200 hover:bg-sky-50'
+                "
+                :aria-pressed="releaseTypeFilter === option.value"
+                @click="releaseTypeFilter = option.value"
+              >
+                {{ option.label }}
+              </button>
+            </div>
           </div>
+
+          <label class="block">
+            <span class="mb-1.5 block text-xs font-medium text-slate-600">{{
+              pageText.filters.year
+            }}</span>
+            <select
+              v-model="yearFilter"
+              class="h-11 w-full rounded-md border border-slate-200 bg-white/90 px-3 text-sm text-slate-700 outline-none transition focus:border-[#317f8d] focus:ring-2 focus:ring-sky-100"
+            >
+              <option value="">{{ pageText.filters.allYears }}</option>
+              <option v-for="year in yearOptions" :key="year" :value="year">{{ year }}</option>
+            </select>
+          </label>
         </div>
-
-        <label class="block">
-          <span class="mb-1.5 block text-xs font-medium text-slate-600">{{
-            pageText.filters.year
-          }}</span>
-          <select
-            v-model="yearFilter"
-            class="h-11 w-full rounded-md border border-slate-200 bg-white/90 px-3 text-sm text-slate-700 outline-none transition focus:border-[#317f8d] focus:ring-2 focus:ring-sky-100"
-          >
-            <option value="">{{ pageText.filters.allYears }}</option>
-            <option v-for="year in yearOptions" :key="year" :value="year">{{ year }}</option>
-          </select>
-        </label>
-
         <label class="block">
           <span class="mb-1.5 block text-xs font-medium text-slate-600">{{
             pageText.filters.name
@@ -341,6 +354,7 @@ const albums = computed(() => albumsData.data.value)
 const epsSingles = computed(() => epsSinglesData.data.value)
 const lives = computed(() => livesData.data.value)
 const drawerOpen = ref(false)
+const moreFiltersOpen = ref(false)
 const viewMode = ref<'list' | 'shelf'>('list')
 type ReleaseTypeFilter = 'all' | 'album' | 'ep' | 'live'
 const releaseTypeFilter = ref<ReleaseTypeFilter>('all')
@@ -393,7 +407,9 @@ const visibleReleaseTotal = computed(() => {
 
 watch(visibleReleaseTotal, (count) => {
   interaction.announce(
-    currentLang.value === 'jp' ? `${count} 件のリリースを表示しています` : `当前显示 ${count} 条发行记录`,
+    currentLang.value === 'jp'
+      ? `${count} 件のリリースを表示しています`
+      : `当前显示 ${count} 条发行记录`,
   )
 })
 

@@ -1,5 +1,6 @@
 <template>
   <div
+    data-pet-avoid
     class="pilgrimage-area-controls relative z-30 mx-auto w-full rounded-lg border border-[#d2e5ef]/90 bg-white/78 p-2 shadow-[0_18px_54px_-42px_rgba(58,91,119,0.72)] backdrop-blur"
   >
     <button

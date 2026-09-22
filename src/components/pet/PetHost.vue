@@ -59,6 +59,7 @@
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, useId, watch } from 'vue'
 import { useRoute } from 'vue-router'
 
+import { usePetContentAvoidance } from '@/composables/pet/usePetContentAvoidance'
 import PetAvatar from './PetAvatar.vue'
 import PetQuickMenu from './PetQuickMenu.vue'
 import PetSpeechBubble from './PetSpeechBubble.vue'
@@ -142,6 +143,7 @@ const hostSizePx = computed(() =>
 )
 const hostSize = computed(() => ({ width: hostSizePx.value, height: hostSizePx.value }))
 const petPosition = computed(() => state.position)
+usePetContentAvoidance(pet, () => ({ mobile: isMobileViewport.value, size: hostSizePx.value, viewport: viewportBox.value }))
 const spotStyle = computed(() => ({
   transform: `translate3d(${petPosition.value.x}px, ${petPosition.value.y}px, 0)`,
   width: `${hostSizePx.value}px`,

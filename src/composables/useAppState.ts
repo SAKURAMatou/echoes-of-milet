@@ -2,7 +2,7 @@ import { inject, type InjectionKey } from 'vue'
 import type { GalleryPageData, NewsPageData, ReleasePageData } from './publicPageData'
 
 import type { AnniversaryApiPayload } from '@/composables/miletAnniversary'
-import type { PublicArticleDetail } from '@/composables/articleType'
+import type { PublicArticleDetail, RelatedArticleSummary } from '@/composables/articleType'
 import type { PilgrimageSsrPayload } from '@/composables/miletPilgrimage'
 import type { LiveEventDetailPayload, LiveEventListResponse } from '@/composables/liveArchive'
 
@@ -17,7 +17,9 @@ export interface AppState {
   miletReleasePageData: Record<string, ReleasePageData>
   lang: SupportedLang
   miletHomeData: Record<string, any> | null
+  miletArticleError: CachedPayload<string> | null
   miletArticleData: PublicArticleDetail | null
+  miletArticleListData: CachedPayload<{ items: RelatedArticleSummary[]; error?: string }> | null
   miletAnniversaryData: CachedPayload<AnniversaryApiPayload> | null
   miletPilgrimageData: PilgrimageSsrPayload | null
   miletLiveListData: CachedPayload<LiveEventListResponse> | null
@@ -36,6 +38,8 @@ export function createInitialState(initialState?: Partial<AppState>): AppState {
     lang: initialState?.lang === 'jp' ? 'jp' : 'zh',
     miletHomeData: initialState?.miletHomeData ?? null,
     miletArticleData: initialState?.miletArticleData ?? null,
+    miletArticleError: initialState?.miletArticleError ?? null,
+    miletArticleListData: initialState?.miletArticleListData ?? null,
     miletAnniversaryData: initialState?.miletAnniversaryData ?? null,
     miletPilgrimageData: initialState?.miletPilgrimageData ?? null,
     miletLiveListData: initialState?.miletLiveListData ?? null,

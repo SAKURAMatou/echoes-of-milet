@@ -1,7 +1,7 @@
 <template>
   <section
     ref="newsRoot"
-    class="news-collection mx-auto min-h-[calc(100svh-5rem)] w-full max-w-5xl rounded-lg bg-[linear-gradient(to_bottom_right,white,#ebf8ff,#bee3f8)] px-4 py-8 sm:px-6 sm:py-10"
+    class="news-collection @container mx-auto min-h-[calc(100svh-5rem)] w-full max-w-5xl rounded-lg bg-[linear-gradient(to_bottom_right,white,#ebf8ff,#bee3f8)] px-4 py-8 sm:px-6 sm:py-10"
   >
     <header
       class="news-hero relative isolate -mx-4 -mt-8 mb-8 overflow-hidden rounded-t-lg px-4 py-8 sm:-mx-6 sm:-mt-10 sm:px-6 sm:py-10"
@@ -61,7 +61,38 @@
     </header>
 
     <div
+      data-pet-avoid
+      class="mb-4 flex flex-wrap items-center gap-2"
+      role="group"
+      :aria-label="route.params.lang === 'ja' ? '表示順' : '浏览方式'"
+    >
+      <button
+        v-for="mode in ['latest', 'topic'] as const"
+        :key="mode"
+        type="button"
+        class="min-h-11 rounded-full border px-4 text-sm font-semibold"
+        :class="
+          viewMode === mode
+            ? 'border-[#317f8d] bg-[#317f8d] text-white'
+            : 'border-sky-200 bg-white text-[#317f8d]'
+        "
+        :aria-pressed="viewMode === mode"
+        @click="setViewMode(mode)"
+      >
+        {{
+          mode === 'latest'
+            ? route.params.lang === 'ja'
+              ? '新着順'
+              : '最新发布'
+            : route.params.lang === 'ja'
+              ? 'テーマ別'
+              : '按主题'
+        }}
+      </button>
+    </div>
+    <div
       v-if="topicTags.length > 0"
+      data-pet-avoid
       class="topic-filter mb-8"
       :class="{
         'is-expanded': showAllTags,
@@ -74,6 +105,7 @@
           v-echo-press
           type="button"
           class="news-tag news-tag-all"
+          :aria-pressed="!selectedTag"
           :class="!selectedTag ? 'is-active' : ''"
           :style="topicTagStyle(-1)"
           @click="selectTag('')"
@@ -86,6 +118,7 @@
           :key="tag.topic"
           type="button"
           class="news-tag"
+          :aria-pressed="selectedTag === tag.topic"
           :class="selectedTag === tag.topic ? 'is-active' : ''"
           :style="topicTagStyle(index)"
           :title="tag.topic"
@@ -201,7 +234,7 @@
         :key="group.topic"
         class="scroll-mt-24"
       >
-        <div class="mb-4 flex items-center gap-4">
+        <div v-if="viewMode === 'topic'" class="mb-4 flex items-center gap-4">
           <button
             type="button"
             class="shrink-0 font-['Montserrat','sans-serif'] text-[15px] font-semibold uppercase text-[#546e7a] transition hover:text-sky-700"
@@ -214,13 +247,13 @@
           <span class="text-xs text-slate-400">{{ group.items.length }}</span>
         </div>
 
-        <div class="grid gap-4 md:grid-cols-2">
+        <div class="grid gap-4 @min-[700px]:grid-cols-2">
           <article
             v-echo-press
             v-for="item in group.items"
             :key="item.id"
             :data-page-scroll-anchor="`news-${item.id}`"
-            class="news-card group grid min-h-[164px] grid-cols-[104px_1fr] overflow-hidden rounded-lg border bg-white/72 text-left shadow-sm backdrop-blur transition hover:-translate-y-0.5 hover:shadow-md sm:grid-cols-[132px_1fr]"
+            class="news-card group grid min-h-[164px] grid-cols-[96px_minmax(0,1fr)] overflow-hidden rounded-lg border bg-white/72 text-left shadow-sm backdrop-blur transition hover:-translate-y-0.5 hover:shadow-md @min-[700px]:grid-cols-[112px_minmax(0,1fr)]"
             :class="topicCardClass(groupIndex)"
           >
             <a
@@ -272,6 +305,9 @@
               >
                 {{ item.title }}
               </a>
+              <p class="mt-2 truncate text-xs text-[#317f8d]" :title="sourceHost(item.url)">
+                {{ sourceHost(item.url) }}
+              </p>
               <p class="mt-2 line-clamp-3 text-[13px] leading-6 text-slate-500">
                 {{ item.summary || pageText.noSummary }}
               </p>
@@ -315,8 +351,17 @@
 </template>
 
 <script setup lang="ts">
-import { computed, getCurrentInstance, nextTick, onBeforeUnmount, onMounted, onServerPrefetch, ref } from 'vue'
-import { useRoute } from 'vue-router'
+import {
+  computed,
+  getCurrentInstance,
+  nextTick,
+  onBeforeUnmount,
+  onMounted,
+  onServerPrefetch,
+  ref,
+  watch,
+} from 'vue'
+import { useRoute, useRouter } from 'vue-router'
 
 import axiosInstance from '@/AxiosUtil'
 import EchoAsyncState from '@/components/interaction/EchoAsyncState.vue'
@@ -348,6 +393,25 @@ type PublicNewsTopicsResponse = {
 }
 
 const route = useRoute()
+const router = useRouter()
+const selectedTag = ref(typeof route.query.tag === 'string' ? route.query.tag : '')
+const newsCacheKey = computed(() =>
+  selectedTag.value ? `${appState.lang}:${selectedTag.value}` : appState.lang,
+)
+const viewMode = computed(() => (route.query.view === 'topic' ? 'topic' : 'latest'))
+function setViewMode(mode: 'latest' | 'topic') {
+  void router.replace({
+    query: { ...route.query, view: mode === 'topic' ? 'topic' : undefined },
+    hash: route.hash,
+  })
+}
+function sourceHost(url: string) {
+  try {
+    return new URL(url).hostname.replace(/^www\./, '')
+  } catch {
+    return ''
+  }
+}
 const pageScroll = usePageScroll()
 const interaction = useSiteInteraction()
 const { markScrollContentPending } = usePageScrollPage()
@@ -356,8 +420,8 @@ const instance = getCurrentInstance()
 const global = instance?.appContext.config.globalProperties as any
 
 const appState = useAppState()
-const cachedNews = appState.miletNewsPageData?.key === appState.lang
-  ? appState.miletNewsPageData.payload : null
+const cachedNews =
+  appState.miletNewsPageData?.key === newsCacheKey.value ? appState.miletNewsPageData.payload : null
 const items = ref<PublicNewsItem[]>(cachedNews?.items || [])
 const topicTags = ref<PublicNewsTopic[]>(cachedNews?.topics || [])
 const page = ref(cachedNews && !cachedNews.error ? 2 : 1)
@@ -368,7 +432,6 @@ const hasLoadedOnce = ref(Boolean(cachedNews))
 const loadError = ref(cachedNews?.error || '')
 const loadMoreEl = ref<HTMLElement | null>(null)
 const topicRailEl = ref<HTMLElement | null>(null)
-const selectedTag = ref('')
 const showAllTags = ref(false)
 const hasTopicRailPrev = ref(false)
 const hasTopicRailNext = ref(false)
@@ -383,11 +446,11 @@ const pageText = computed(() => {
       lead: '公開ニュースからインタビュー、ライブ、リリース情報をテーマごとに整理しています。',
       empty: '公開中のニュースはまだありません。',
       filteredEmpty: 'この topic のニュースはまだありません。',
-      loading: 'Loading more news...',
-      end: 'no more news',
+      loading: 'ニュースを読み込んでいます…',
+      end: 'すべてのニュースを表示しました',
       noSummary: 'No summary yet.',
-      open: 'Open article',
-      allTags: 'All',
+      open: '記事を開く',
+      allTags: 'すべて',
       filterByTopic: 'Filter by this topic',
       error: 'ニュースを表示できませんでした。',
       retry: '再試行',
@@ -418,6 +481,14 @@ const pageText = computed(() => {
 })
 
 const groupedNews = computed(() => {
+  if (viewMode.value === 'latest')
+    return [
+      {
+        topic: 'latest',
+        items: [...items.value].sort((a, b) => comparePublishDate(b.publishDate, a.publishDate)),
+      },
+    ]
+
   const groups = new Map<string, PublicNewsItem[]>()
 
   for (const item of items.value) {
@@ -495,7 +566,12 @@ function formatDate(value: string) {
   return date.toISOString().slice(0, 10)
 }
 
+let newsGeneration = 0
+let newsRequest: Promise<void> | null = null
 function resetNewsList() {
+  newsGeneration += 1
+  newsRequest = null
+  loading.value = false
   items.value = []
   page.value = 1
   hasMore.value = true
@@ -504,12 +580,21 @@ function resetNewsList() {
 }
 
 async function selectTag(tag: string) {
-  selectedTag.value = selectedTag.value === tag ? '' : tag
-  resetNewsList()
-  await loadNews()
-  await nextTick()
-  updateTopicRailHint()
+  const nextTag = selectedTag.value === tag ? '' : tag
+  await router.replace({ query: { ...route.query, tag: nextTag || undefined }, hash: route.hash })
 }
+watch(
+  () => route.query.tag,
+  async (tag) => {
+    const nextTag = typeof tag === 'string' ? tag : ''
+    if (nextTag === selectedTag.value) return
+    selectedTag.value = nextTag
+    resetNewsList()
+    await loadNews()
+    await nextTick()
+    updateTopicRailHint()
+  },
+)
 
 async function loadNewsTopics() {
   try {
@@ -572,9 +657,15 @@ function setupTopicRailObserver() {
   topicResizeObserver.observe(topicRailEl.value)
 }
 
-async function loadNews(signal?: AbortSignal) {
-  if (loading.value || !hasMore.value) return
+function loadNews(signal?: AbortSignal): Promise<void> {
+  if (loading.value && newsRequest) return newsRequest
+  if (!hasMore.value) return Promise.resolve()
+  newsRequest = fetchNews(signal)
+  return newsRequest
+}
 
+async function fetchNews(signal?: AbortSignal) {
+  const generation = newsGeneration
   loading.value = true
   loadError.value = ''
   try {
@@ -590,7 +681,7 @@ async function loadNews(signal?: AbortSignal) {
       params,
       signal,
     })
-    if (signal?.aborted) return
+    if (signal?.aborted || generation !== newsGeneration) return
 
     if (response.success === false) {
       throw new Error(response.message || 'Failed to load news')
@@ -606,12 +697,13 @@ async function loadNews(signal?: AbortSignal) {
         : `当前显示 ${items.value.length} 条新闻`,
     )
   } catch (error) {
-    if (signal?.aborted) return
+    if (signal?.aborted || generation !== newsGeneration) return
     console.error('Failed to load public news:', error)
     loadError.value = error instanceof Error ? error.message : pageText.value.error
     hasMore.value = false
     interaction.announce(pageText.value.error)
   } finally {
+    if (generation !== newsGeneration) return
     loading.value = false
     hasLoadedOnce.value = true
   }
@@ -635,7 +727,7 @@ useBusinessAnchorScrollRestoration({
     const targetTag = pageState?.selectedTag || ''
     const targetPage = Number(pageState?.loadedPage)
 
-    if (targetTag !== selectedTag.value) {
+    if (targetTag !== selectedTag.value && targetTag === String(route.query.tag || '')) {
       selectedTag.value = targetTag
       resetNewsList()
     }
@@ -670,8 +762,13 @@ function setupObserver() {
 async function initializeNews() {
   await Promise.all([loadNewsTopics(), loadNews()])
   appState.miletNewsPageData = {
-    key: appState.lang,
-    payload: { items: [...items.value], topics: [...topicTags.value], hasMore: hasMore.value, error: loadError.value },
+    key: newsCacheKey.value,
+    payload: {
+      items: [...items.value],
+      topics: [...topicTags.value],
+      hasMore: hasMore.value,
+      error: loadError.value,
+    },
   }
 }
 

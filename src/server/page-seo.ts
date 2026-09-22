@@ -65,7 +65,8 @@ export function pageSeoOptions(path: string, state: AppState): RenderSeoOptions 
       : null
   const list = state.miletGalleryListData?.payload
   const album = gallery
-    ? gallery.album || [...(list?.topAlbums || []), ...(list?.normalAlbums || [])].find(
+    ? gallery.album ||
+      [...(list?.topAlbums || []), ...(list?.normalAlbums || [])].find(
         (item) => item.galleryId === slug,
       )
     : null
@@ -88,6 +89,7 @@ export function pageSeoOptions(path: string, state: AppState): RenderSeoOptions 
 export function pageDataUnavailable(path: string, state: AppState) {
   const pathname = stripLangPrefix(path.split('?')[0] || '/').replace(/\/$/, '')
   const lang = path.startsWith('/ja/') ? 'jp' : 'zh'
+  if (pathname === '/milet/articles') return Boolean(state.miletArticleListData?.payload.error)
   if (pathname === '/milet/news') {
     return state.miletNewsPageData?.key === lang && Boolean(state.miletNewsPageData.payload.error)
   }

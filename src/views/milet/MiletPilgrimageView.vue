@@ -13,12 +13,27 @@
             >
               {{ pageText.title }}
             </h1>
-            <LinkedText
-              class="mt-2 max-w-4xl text-sm leading-6 text-[#5f7178] lg:text-[15px]"
-              :text="pageText.subtitle"
-              :links="pageText.subtitleLink"
-            >
-            </LinkedText>
+            <p class="mt-3 text-sm leading-6 text-[#5f7178]">
+              {{
+                currentLang === 'jp'
+                  ? 'エリアを選んで、写真と地図から milet の足跡をたどる。'
+                  : '选择城市，从照片与地图中寻找 milet 留下的足迹。'
+              }}
+            </p>
+            <details class="relative z-10 mt-2 text-sm text-[#5f7178]">
+              <summary class="min-h-11 cursor-pointer py-3 font-medium text-[#317f8d]">
+                {{ currentLang === 'jp' ? 'このマップについて・謝辞' : '地图介绍与致谢' }}
+              </summary>
+              <LinkedText
+                class="mt-2 max-w-4xl text-sm leading-6 text-[#5f7178] lg:text-[15px]"
+                :text="pageText.subtitle"
+                :links="pageText.subtitleLink"
+              >
+              </LinkedText>
+              <p class="mt-3 border-t border-sky-100 pt-3 text-sm leading-6">
+                {{ pageText.dataCreditLabel }} · {{ pageText.dataCredit }}
+              </p>
+            </details>
           </div>
         </div>
         <div
@@ -31,20 +46,10 @@
       </header>
 
       <div
-        class="grid gap-3 border-b border-[#c9ddea]/70 px-4 py-3 sm:grid-cols-[minmax(0,1fr)_220px] sm:px-5 lg:col-start-1 lg:row-start-2 lg:grid-cols-[minmax(0,1fr)_240px] lg:px-7"
+        class="grid gap-3 border-b border-[#c9ddea]/70 px-4 py-3 sm:px-5 lg:col-start-1 lg:row-start-2 lg:px-7"
       >
         <div
-          class="rounded-lg border border-[#99e6d6]/70 bg-[#f0fdfa]/58 px-3 py-2 shadow-[0_14px_34px_-30px_rgba(47,143,131,0.34)] backdrop-blur"
-        >
-          <div class="text-[10px] font-semibold uppercase tracking-[0.18em] text-[#2f8f83]">
-            {{ pageText.dataCreditLabel }}
-          </div>
-          <p class="mt-1 text-[13px] leading-5 text-[#45646b]">
-            {{ pageText.dataCredit }}
-          </p>
-        </div>
-
-        <div
+          data-pet-avoid
           class="min-w-0 rounded-lg border border-[#fcd34d]/50 bg-[#fffbeb]/58 p-1.5 text-sm text-[#526670] shadow-[0_16px_36px_-34px_rgba(182,138,47,0.38)] backdrop-blur"
         >
           <span
@@ -53,6 +58,7 @@
             <button
               type="button"
               class="relative z-[1] rounded-md px-3 py-2 transition"
+              :aria-pressed="displayMode === 'map'"
               :class="displayMode === 'map' ? 'text-[#1d6564]' : 'text-[#7c9197]'"
               @click="setDisplayMode('map')"
             >
@@ -61,6 +67,7 @@
             <button
               type="button"
               class="relative z-[1] rounded-md px-3 py-2 transition"
+              :aria-pressed="displayMode === 'collection'"
               :class="displayMode === 'collection' ? 'text-[#614990]' : 'text-[#7c9197]'"
               @click="setDisplayMode('collection')"
             >
@@ -397,11 +404,7 @@ async function selectSpotInternal(spotId: string, origin: 'user' | 'auto') {
       String(detail?.id) === spotId &&
       !spotDetailLoading.value &&
       !spotDetailError.value
-    if (
-      origin === 'user' &&
-      succeeded &&
-      pet.state.route.mode !== 'hidden'
-    ) {
+    if (origin === 'user' && succeeded && pet.state.route.mode !== 'hidden') {
       pet.react('location.open', {
         contentId: String(spotId),
         routeGeneration: requestedRouteGeneration,
@@ -860,7 +863,6 @@ watch(
     setupFancybox()
   },
 )
-
 
 onServerPrefetch(loadInitialPilgrimageData)
 

@@ -70,10 +70,11 @@
       >
         <label class="grid gap-1">
           <span class="text-xs font-semibold uppercase tracking-[0.14em] text-[#317f8d]">
-            {{ routeLang === 'ja' ? 'Keyword' : '关键词' }}
+            {{ routeLang === 'ja' ? 'キーワード' : '关键词' }}
           </span>
           <input
             v-model.trim="keywordDraft"
+            @input="scheduleFilters(320)"
             type="search"
             class="h-11 rounded-lg border border-[#b7d6e2] bg-white/82 px-3 text-sm text-[#24323a] outline-none transition placeholder:text-slate-400 focus:border-[#317f8d] focus:ring-4 focus:ring-sky-100"
             :placeholder="routeLang === 'ja' ? 'title / venue / city' : '标题 / 场馆 / 城市'"
@@ -82,31 +83,39 @@
 
         <label class="grid gap-1">
           <span class="text-xs font-semibold uppercase tracking-[0.14em] text-[#317f8d]">
-            {{ routeLang === 'ja' ? 'Type' : '类型' }}
+            {{ routeLang === 'ja' ? '種類' : '类型' }}
           </span>
           <select
             v-model="selectedType"
+            @change="applyFilters"
             class="h-11 rounded-lg border border-[#b7d6e2] bg-white/82 px-3 text-sm text-[#24323a] outline-none transition focus:border-[#317f8d] focus:ring-4 focus:ring-sky-100"
           >
             <option v-for="option in liveTypeOptions" :key="option.value" :value="option.value">
-              {{ option.label }}
+              {{
+                option.value === 'all'
+                  ? routeLang === 'ja'
+                    ? 'すべての種類'
+                    : '全部类型'
+                  : option.label
+              }}
             </option>
           </select>
         </label>
 
         <label class="grid gap-1">
           <span class="text-xs font-semibold uppercase tracking-[0.14em] text-[#317f8d]">
-            {{ routeLang === 'ja' ? 'Year' : '年份' }}
+            {{ routeLang === 'ja' ? '年' : '年份' }}
           </span>
-          <input
-            v-model.trim="selectedYear"
-            type="number"
-            inputmode="numeric"
-            min="2019"
-            :max="currentYear + 1"
-            class="h-11 rounded-lg border border-[#b7d6e2] bg-white/82 px-3 text-sm text-[#24323a] outline-none transition placeholder:text-slate-400 focus:border-[#317f8d] focus:ring-4 focus:ring-sky-100"
-            placeholder="ALL"
-          />
+          <select
+            v-model="selectedYear"
+            @change="applyFilters"
+            class="h-11 rounded-lg border border-[#b7d6e2] bg-white/82 px-3 text-sm text-[#24323a]"
+          >
+            <option value="">{{ routeLang === 'ja' ? 'すべての年' : '全部年份' }}</option>
+            <option v-for="year in yearOptions" :key="year" :value="String(year)">
+              {{ year }}
+            </option>
+          </select>
         </label>
 
         <button
@@ -114,9 +123,23 @@
           type="submit"
           class="mt-auto h-11 rounded-lg border border-[#317f8d]/40 bg-[#317f8d] px-5 text-sm font-bold text-white shadow-[0_16px_28px_-22px_rgba(20,61,99,0.85)] transition hover:bg-[#246d7c]"
         >
-          {{ routeLang === 'ja' ? 'Search' : '搜索' }}
+          {{ routeLang === 'ja' ? '検索' : '搜索' }}
         </button>
       </form>
+      <div
+        v-if="hasFilters"
+        data-pet-avoid
+        class="mt-3 flex flex-wrap items-center justify-between gap-2 text-sm text-[#317f8d]"
+      >
+        <p class="break-words">{{ filterSummary }}</p>
+        <button
+          type="button"
+          class="min-h-11 shrink-0 rounded-lg border border-sky-200 bg-white px-3"
+          @click="clearFilters"
+        >
+          {{ routeLang === 'ja' ? '条件をクリア' : '清除筛选' }}
+        </button>
+      </div>
     </section>
 
     <section class="grid gap-4 px-4 py-6 sm:px-7">
@@ -158,7 +181,17 @@
       <EchoAsyncState
         v-else-if="!items.length"
         state="empty"
-        :title="routeLang === 'ja' ? 'Live archive はまだありません。' : '暂无 Live Archive。'"
+        :title="
+          hasFilters
+            ? routeLang === 'ja'
+              ? '条件に一致する公演はありません。'
+              : '没有找到符合条件的演出'
+            : routeLang === 'ja'
+              ? 'Live archive はまだありません。'
+              : '暂无演出档案'
+        "
+        :action-label="hasFilters ? (routeLang === 'ja' ? '条件をクリア' : '清除筛选') : ''"
+        @action="clearFilters"
         :description="
           routeLang === 'ja'
             ? '条件を変えて、もう一度検索できます。'
@@ -252,7 +285,7 @@
 
 <script setup lang="ts">
 import { computed, onBeforeUnmount, onMounted, onServerPrefetch, ref, watch } from 'vue'
-import { RouterLink, useRoute } from 'vue-router'
+import { RouterLink, useRoute, useRouter } from 'vue-router'
 
 import {
   fetchLiveEventList,
@@ -270,6 +303,7 @@ import EchoAsyncState from '@/components/interaction/EchoAsyncState.vue'
 import { useSiteInteraction } from '@/composables/site-interaction'
 
 const route = useRoute()
+const router = useRouter()
 const appState = useAppState()
 const interaction = useSiteInteraction()
 const routeLang = computed(() => (String(route.params.lang) === 'ja' ? 'ja' : 'zh'))
@@ -280,7 +314,14 @@ const keywordDraft = ref(String(route.query.keyword || ''))
 const loading = ref(false)
 const error = ref('')
 const pageSize = 12
-const currentYear = new Date().getFullYear()
+const hasFilters = computed(() =>
+  Boolean(selectedType.value !== 'all' || selectedYear.value || keywordDraft.value),
+)
+const filterSummary = computed(() =>
+  [keywordDraft.value, selectedType.value === 'all' ? '' : selectedType.value, selectedYear.value]
+    .filter(Boolean)
+    .join(' · '),
+)
 let filterTimer: ReturnType<typeof setTimeout> | undefined
 let listRequestGeneration = 0
 const normalizedYear = computed(() => {
@@ -301,6 +342,25 @@ const data = ref<LiveEventListResponse | null>(
   appState.miletLiveListData?.key === queryKey.value ? appState.miletLiveListData.payload : null,
 )
 const items = computed(() => data.value?.items || [])
+const latestKnownYear = ref(
+  Math.max(
+    2019,
+    ...items.value.map((item) => Number(item.year) || 2019),
+    Number(selectedYear.value) || 2019,
+  ),
+)
+const yearOptions = computed(() =>
+  Array.from(
+    { length: Math.min(200, Math.max(0, latestKnownYear.value - 2019)) + 1 },
+    (_, index) => latestKnownYear.value - index,
+  ),
+)
+watch(items, (list) => {
+  latestKnownYear.value = Math.max(
+    latestKnownYear.value,
+    ...list.map((item) => Number(item.year) || 2019),
+  )
+})
 const hasMore = computed(() => (data.value?.page || 1) < (data.value?.totalPages || 1))
 
 async function loadList(page = 1, append = false) {
@@ -354,19 +414,31 @@ async function loadList(page = 1, append = false) {
   }
 }
 
-function applyFilters() {
-  if (filterTimer) {
-    clearTimeout(filterTimer)
-    filterTimer = undefined
+function clearFilters() {
+  selectedType.value = 'all'
+  selectedYear.value = ''
+  keywordDraft.value = ''
+  applyFilters()
+}
+
+async function applyFilters() {
+  if (filterTimer) clearTimeout(filterTimer)
+  filterTimer = undefined
+  const query = {
+    ...route.query,
+    type: selectedType.value === 'all' ? undefined : selectedType.value,
+    year: normalizedYear.value || undefined,
+    keyword: keywordDraft.value || undefined,
   }
-  void loadList(1)
+  const target = router.resolve({ query, hash: route.hash })
+  if (target.fullPath !== route.fullPath) await router.replace({ query, hash: route.hash })
+  else await loadList(1)
 }
 
 function scheduleFilters(delay = 300) {
   if (filterTimer) clearTimeout(filterTimer)
   filterTimer = setTimeout(() => {
-    filterTimer = undefined
-    void loadList(1)
+    void applyFilters()
   }, delay)
 }
 
@@ -377,25 +449,22 @@ function loadMore() {
 onServerPrefetch(() => loadList(1))
 
 onMounted(() => {
+  latestKnownYear.value = Math.max(latestKnownYear.value, new Date().getFullYear())
   if (!data.value || appState.miletLiveListData?.key !== queryKey.value) {
     void loadList(1)
   }
 })
 
-watch(routeLang, () => {
-  void loadList(1)
-})
-
-watch(selectedType, applyFilters)
-
-watch(selectedYear, (value) => {
-  const normalized = String(value ?? '').trim()
-  if (!normalized || /^\d{4}$/.test(normalized)) scheduleFilters(180)
-})
-
-watch(keywordDraft, () => {
-  scheduleFilters(320)
-})
+watch(
+  () => [route.params.lang, route.query.type, route.query.year, route.query.keyword],
+  () => {
+    if (filterTimer) clearTimeout(filterTimer)
+    selectedType.value = normalizeLiveEventListType(route.query.type)
+    selectedYear.value = String(route.query.year || '')
+    keywordDraft.value = String(route.query.keyword || '')
+    void loadList(1)
+  },
+)
 
 onBeforeUnmount(() => {
   if (filterTimer) clearTimeout(filterTimer)

@@ -14,7 +14,7 @@
     <div
       class="fixed inset-0 min-h-screen bg-[url(/background/bg-milet-home-pre.webp)] bg-cover pointer-events-none bg-[position:8%_50%] opacity-45"
     ></div>
-    <LanguageSelect data-menu-inert class="max-md:hidden" />
+    <LanguageSelect data-menu-inert class="max-lg:hidden" />
     <div data-menu-inert class="relative w-full max-w-[100vw] overflow-x-clip md:h-full md:overflow-x-hidden">
       <!-- 整体容器：页面居中布局 -->
       <div
@@ -34,7 +34,7 @@
             :class="
               route.meta.widePage
                 ? 'md:pl-4 md:pr-8 lg:pl-6 lg:pr-12 xl:pl-8 xl:pr-16 2xl:pl-10 2xl:pr-24'
-                : 'md:pl-6 lg:pl-10 xl:pl-14'
+                : 'md:px-6 lg:pl-10 lg:pr-6 xl:pl-14'
             "
           >
             <main
@@ -43,7 +43,7 @@
               class="w-full max-w-full rounded-lg border border-white/70 bg-white/78 shadow-[18px_24px_70px_-52px_rgba(31,41,55,0.55)]"
               :class="
                 route.meta.widePage
-                  ? 'md:max-w-[calc(100vw-380px)] lg:max-w-[calc(100vw-460px)] xl:max-w-[1120px] 2xl:max-w-[1200px]'
+                  ? 'lg:max-w-[calc(100vw-380px)] xl:max-w-[1120px] 2xl:max-w-[1200px]'
                   : 'md:max-w-[700px] lg:max-w-[760px] xl:max-w-[820px] 2xl:max-w-[900px]'
               "
             >

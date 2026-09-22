@@ -72,6 +72,7 @@
             class="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_76%_12%,rgba(186,230,253,0.52),transparent_30%),linear-gradient(135deg,rgba(255,255,255,0.9),rgba(240,249,255,0.5))]"
           ></div>
           <div class="relative mx-auto max-w-4xl">
+            <div class="mb-5 w-40 md:hidden"><LanguageSelect variant="menu" /></div>
             <RouterLink
               :to="{ name: 'milet', params: { lang: routeLang } }"
               class="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.16em] text-[#317f8d] transition hover:text-[#143d63]"
@@ -91,11 +92,20 @@
                 <span class="font-semibold text-[#143d63]">{{ article.createdBy }}</span>
               </span>
               <span
-                v-if="article?.fallbackLang"
+                v-if="article && article.lang !== routeLang"
                 class="rounded-full border border-sky-100 bg-sky-50 px-2.5 py-1 text-[#317f8d]"
               >
-                fallback: {{ article.fallbackLang }}
+                {{
+                  routeLang === 'ja'
+                    ? '日本語訳は未公開のため、中文を表示しています'
+                    : '中文译文尚未发布，当前显示日文原文'
+                }}
               </span>
+              <RouterLink
+                :to="{ name: 'miletArticles', params: { lang: routeLang } }"
+                class="inline-flex min-h-11 items-center text-[#317f8d] underline underline-offset-4 hover:text-[#143d63]"
+                >{{ routeLang === 'ja' ? 'すべての記事' : '全部文章' }}</RouterLink
+              >
               <ArticleShareMenu
                 v-if="article"
                 :title="article.title || fallbackTitle"
@@ -156,16 +166,7 @@
 </template>
 
 <script setup lang="ts">
-import {
-  computed,
-  getCurrentInstance,
-  nextTick,
-  onBeforeUnmount,
-  onMounted,
-  onServerPrefetch,
-  ref,
-  watch,
-} from 'vue'
+import { computed, nextTick, onBeforeUnmount, onMounted, onServerPrefetch, ref, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import axiosInstance from '@/AxiosUtil'
 import Header from '@/components/TWHeader.vue'
@@ -191,17 +192,19 @@ const { scrollToPageAnchor } = usePageAnchorScroll()
 const pageScroll = usePageScroll()
 const interaction = useSiteInteraction()
 const state = useAppState()
-const { appContext } = getCurrentInstance()!
-const global = appContext.config.globalProperties
 
 const loading = ref(false)
-const error = ref('')
+const articleKey = () => `${route.params.lang}:${route.params.slug}`
+const error = ref(
+  state.miletArticleError?.key === articleKey() ? state.miletArticleError.payload : '',
+)
 const article = ref<PublicArticleDetail | null>(state.miletArticleData)
 const articleContentRef = ref<HTMLElement | null>(null)
 const mobileTocRoot = ref<HTMLElement | null>(null)
 const mobileTocButton = ref<HTMLButtonElement | null>(null)
 const mobileTocPanel = ref<HTMLElement | null>(null)
 const mobileTocOpen = ref(false)
+let articleRequestId = 0
 let releaseMobileTocLock: (() => void) | null = null
 const albumEmbeds = useArticleAlbumEmbeds()
 const imageEnhancements = useArticleImageEnhancements()
@@ -236,6 +239,7 @@ function cleanupArticleEnhancements() {
 }
 
 async function fetchArticle() {
+  const requestId = ++articleRequestId
   cleanupArticleEnhancements()
   const slug = String(route.params.slug || '').trim()
   if (!slug) {
@@ -244,6 +248,7 @@ async function fetchArticle() {
   }
   loading.value = true
   error.value = ''
+  state.miletArticleError = null
   let shouldSetupEnhancements = false
   try {
     const response = await axiosInstance.get<{
@@ -251,6 +256,7 @@ async function fetchArticle() {
       item?: PublicArticleDetail
       message?: string
     }>(`/api/articles/${routeLang.value}/${slug}`)
+    if (requestId !== articleRequestId) return
     if (!response.success || !response.item) {
       throw new Error(response.message || 'Article not found.')
     }
@@ -259,12 +265,14 @@ async function fetchArticle() {
     shouldSetupEnhancements = true
     interaction.announce(routeLang.value === 'ja' ? '記事を読み込みました' : '文章已加载')
   } catch (err) {
+    if (requestId !== articleRequestId) return
     error.value = err instanceof Error ? err.message : 'Article load failed.'
+    state.miletArticleError = { key: articleKey(), payload: error.value }
     article.value = null
     state.miletArticleData = null
     interaction.announce(routeLang.value === 'ja' ? '記事の読み込みに失敗しました' : '文章加载失败')
   } finally {
-    loading.value = false
+    if (requestId === articleRequestId) loading.value = false
   }
   if (shouldSetupEnhancements) {
     await setupArticleEnhancements()
@@ -274,7 +282,7 @@ async function fetchArticle() {
 function formatDate(value: string) {
   const date = new Date(value)
   if (Number.isNaN(date.getTime())) return value
-  return `${date.getFullYear()}.${String(date.getMonth() + 1).padStart(2, '0')}.${String(date.getDate()).padStart(2, '0')}`
+  return `${date.getUTCFullYear()}.${String(date.getUTCMonth() + 1).padStart(2, '0')}.${String(date.getUTCDate()).padStart(2, '0')}`
 }
 
 function handleMobileTocClick(event: MouseEvent) {
@@ -320,11 +328,10 @@ onServerPrefetch(fetchArticle)
 
 onMounted(() => {
   document.addEventListener('pointerdown', handleMobileTocOutsidePointer, true)
-  const currentLang = global.$lang?.lang === 'jp' ? 'ja' : 'zh'
   if (
     !article.value ||
     article.value.slug !== route.params.slug ||
-    article.value.requestedLang !== currentLang
+    article.value.requestedLang !== routeLang.value
   ) {
     fetchArticle()
   } else {
@@ -350,6 +357,7 @@ watch(mobileTocOpen, async (open) => {
 })
 
 onBeforeUnmount(() => {
+  articleRequestId++
   document.removeEventListener('pointerdown', handleMobileTocOutsidePointer, true)
   releaseMobileTocLock?.()
   releaseMobileTocLock = null

@@ -1,5 +1,5 @@
 <template>
-  <aside class="max-md:hidden w-[310px] pl-5 lg:pl-6 h-full overflow-hidden">
+  <aside class="max-lg:hidden w-[310px] pl-5 lg:pl-6 h-full overflow-hidden">
     <div
       class="relative h-full overflow-hidden rounded-xl border border-white/40 bg-[linear-gradient(to_bottom_right,white,#ebf8ff,#bee3f8)]"
     >
@@ -38,7 +38,7 @@
   <teleport v-if="isClient && menuOpen" to="body">
     <button
       type="button"
-      class="fixed inset-x-0 bottom-0 top-16 z-40 cursor-default md:hidden"
+      class="fixed inset-x-0 bottom-0 top-16 z-40 cursor-default lg:hidden"
       aria-label="Close menu"
       tabindex="-1"
       @click="requestClose"
@@ -49,7 +49,7 @@
     <aside
       id="mobile-site-menu"
       ref="mobileDialogRef"
-      class="fixed left-0 top-16 z-50 h-[calc(100dvh-4rem)] w-[min(310px,100vw)] max-w-[100vw] md:hidden"
+      class="fixed left-0 top-16 z-50 h-[calc(100dvh-4rem)] w-[min(310px,100vw)] max-w-[100vw] lg:hidden"
       role="dialog"
       aria-modal="true"
       aria-label="Mobile menu"
@@ -205,7 +205,7 @@ function updatePetMenuOverlayVisibility() {
     return
   }
   petMenuOverlayVisible.value =
-    props.menuOpen && window.matchMedia('(max-width: 767px)').matches
+    props.menuOpen && window.matchMedia('(max-width: 1023px)').matches
 }
 
 function handleViewportChange() {

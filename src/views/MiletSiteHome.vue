@@ -21,7 +21,7 @@
       ></div>
 
       <div
-        class="hero-content-frame mx-auto flex min-h-[calc(92svh-5rem)] w-full max-w-[1180px] items-start px-3 pb-8 pt-[34vh] sm:px-7 md:h-full md:min-h-0 md:items-center md:px-10 md:pb-0 md:pt-20 lg:px-8 [@media(min-width:768px)_and_(max-height:760px)]:h-auto [@media(min-width:768px)_and_(max-height:760px)]:min-h-0 [@media(min-width:768px)_and_(max-height:760px)]:items-start [@media(min-width:768px)_and_(max-height:760px)]:pb-12 [@media(min-width:768px)_and_(max-height:760px)]:pt-[8.5rem]"
+        class="hero-content-frame mx-auto flex min-h-[calc(92svh-5rem)] w-full max-w-[1180px] items-start px-3 pb-8 pt-[20vh] sm:px-7 md:h-full md:min-h-0 md:items-center md:px-10 md:pb-0 md:pt-20 lg:px-8 [@media(min-width:768px)_and_(max-height:760px)]:h-auto [@media(min-width:768px)_and_(max-height:760px)]:min-h-0 [@media(min-width:768px)_and_(max-height:760px)]:items-start [@media(min-width:768px)_and_(max-height:760px)]:pb-12 [@media(min-width:768px)_and_(max-height:760px)]:pt-[8.5rem]"
       >
         <div class="hero-copy-wash hero-arrival relative isolate w-full max-w-[640px]">
           <p
@@ -38,12 +38,16 @@
           <div
             class="hero-paragraphs mt-6 max-w-[590px] space-y-4 text-[0.95rem] leading-7 text-[#344b63] md:mt-5 md:space-y-3 md:text-base md:leading-8"
           >
-            <p v-for="paragraph in homeCopy.paragraphs" :key="paragraph">
+            <p
+              v-for="(paragraph, index) in homeCopy.paragraphs"
+              :key="paragraph"
+              :class="index > 0 ? 'hidden md:block' : ''"
+            >
               {{ paragraph }}
             </p>
           </div>
 
-          <div class="hero-actions mt-7 flex flex-wrap items-center gap-3 md:mt-6">
+          <div data-pet-avoid class="hero-actions mt-7 flex flex-wrap items-center gap-3 md:mt-6">
             <router-link
               v-echo-press
               :to="miletLink"
@@ -110,7 +114,9 @@ const releaseLink = computed(() => withLangParam({ name: 'miletRelease' }, curre
 const aboutLink = computed(() => withLangParam({ name: 'aboutMe' }, currentLang.value))
 const pilgrimageLink = computed(() => withLangParam({ name: 'miletPilgrimage' }, currentLang.value))
 const timelineLink = computed(() => withLangParam({ name: 'miletTimeLine' }, currentLang.value))
-const liveArchiveLink = computed(() => withLangParam({ name: 'miletLiveArchive' }, currentLang.value))
+const liveArchiveLink = computed(() =>
+  withLangParam({ name: 'miletLiveArchive' }, currentLang.value),
+)
 
 const copy = computed(() => ({
   zh: {
@@ -120,7 +126,7 @@ const copy = computed(() => ({
       '这里记录的，不只是发生过的事情本身。也包括那些尚未成形的情绪，以及沿着时间延伸的声音。即使是微弱的回声，也会不断向前延续。而这个地方，只是那段流动中的一部分。',
     ],
     primaryCta: '进入',
-    secondaryCta: '解释网站',
+    secondaryCta: '关于本站',
     highlights: [
       {
         label: 'MUSIC',
@@ -190,7 +196,8 @@ const copy = computed(() => ({
       {
         label: 'PILGRIMAGE',
         title: '巡礼マップ',
-        description: '都市ごとに MV ロケ地、街並みの spot、ルートを整理し、写真、座標、ナビを確認できます。',
+        description:
+          '都市ごとに MV ロケ地、街並みの spot、ルートを整理し、写真、座標、ナビを確認できます。',
         to: pilgrimageLink.value,
       },
     ],
@@ -198,7 +205,6 @@ const copy = computed(() => ({
 }))
 
 const homeCopy = computed(() => (global?.$lang?.lang === 'jp' ? copy.value.jp : copy.value.zh))
-
 </script>
 
 <style>
@@ -218,13 +224,19 @@ const homeCopy = computed(() => (global?.$lang?.lang === 'jp' ? copy.value.jp : 
 .hero-arrival > .hero-actions {
   animation: home-copy-arrival var(--echo-duration-hero) var(--echo-ease-out) both;
 }
-.hero-arrival > h1 { animation-delay: 45ms; }
-.hero-arrival > .hero-actions { animation-delay: 110ms; }
+.hero-arrival > h1 {
+  animation-delay: 45ms;
+}
+.hero-arrival > .hero-actions {
+  animation-delay: 110ms;
+}
 
 @media (prefers-reduced-motion: reduce) {
   .hero-arrival > p:first-child,
   .hero-arrival > h1,
-  .hero-arrival > .hero-actions { animation: none; }
+  .hero-arrival > .hero-actions {
+    animation: none;
+  }
 }
 
 @media (max-width: 767px) {
@@ -257,7 +269,7 @@ const homeCopy = computed(() => (global?.$lang?.lang === 'jp' ? copy.value.jp : 
 
 @media (max-width: 767px) and (max-height: 740px) {
   .hero-content-frame {
-    padding-top: 28vh;
+    padding-top: 16vh;
     padding-bottom: 1.75rem;
   }
 
@@ -282,7 +294,7 @@ const homeCopy = computed(() => (global?.$lang?.lang === 'jp' ? copy.value.jp : 
 
 @media (max-width: 767px) and (max-height: 650px) {
   .hero-content-frame {
-    padding-top: 24vh;
+    padding-top: 12vh;
   }
 }
 

@@ -14,6 +14,7 @@ export type SeoKey =
   | 'anniversary'
   | 'pilgrimage'
   | 'gallery'
+  | 'articles'
   | 'article'
   | 'liveArchive'
   | 'liveEvent'
@@ -197,6 +198,16 @@ const seoMap: Record<SeoKey, SeoMeta> = {
     canonicalPath: '/milet/live',
     type: 'website',
     schemaType: 'CollectionPage',
+  },
+  articles: {
+    ...collectionMeta(
+      '/milet/articles',
+      'milet 文章档案',
+      'milet 記事アーカイブ',
+      '阅读关于 milet 的公开文章，重温音乐、现场与一路走来的珍贵记忆。',
+      'milet の音楽やライブ、歩んできた日々の記憶を綴る記事アーカイブ。',
+    ),
+    image: '/background/article-hero-bg.png',
   },
   article: {
     content: {

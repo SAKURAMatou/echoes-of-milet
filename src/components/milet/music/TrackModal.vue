@@ -11,6 +11,9 @@
           <div class="flex min-h-full items-start justify-center p-3 md:items-center md:p-6">
             <div
               class="modal-panel relative flex h-[calc(100dvh-24px)] w-full max-w-6xl flex-col overflow-hidden rounded-lg border border-sky-100/80 bg-[linear-gradient(180deg,#fcfdff_0%,#f8fbff_58%,#f1f6fb_100%)] shadow-[0_44px_120px_-42px_rgba(15,23,42,0.74)] ring-1 ring-white/80 md:h-[calc(100dvh-48px)]"
+              ref="dialogRef"
+              tabindex="-1"
+              @keydown="onDialogKeydown"
               role="dialog"
               aria-modal="true"
               :aria-label="title || modalText.detailLabel"
@@ -69,7 +72,7 @@
                   <button
                     class="flex h-9 w-9 items-center justify-center rounded-md border border-slate-200 bg-white/90 text-slate-500 transition hover:bg-slate-100 hover:text-slate-900 md:h-10 md:w-10"
                     @click="closeAll"
-                    aria-label="Close"
+                    :aria-label="currentLang === 'jp' ? '閉じる' : '关闭'"
                   >
                     <svg
                       viewBox="0 0 16 16"
@@ -372,7 +375,7 @@
                           <button
                             class="flex h-10 w-10 items-center justify-center rounded-md border border-white/10 bg-white/5 text-white/70 transition hover:bg-white/10 hover:text-white"
                             @click="listenDrawerOpen = false"
-                            aria-label="Close"
+                            :aria-label="currentLang === 'jp' ? '閉じる' : '关闭'"
                           >
                             <svg
                               viewBox="0 0 16 16"
@@ -484,7 +487,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, getCurrentInstance, onBeforeUnmount, ref, watch } from 'vue'
+import { computed, getCurrentInstance, nextTick, onBeforeUnmount, ref, watch } from 'vue'
 import type { Track, TrackListenData } from '@/composables/releaseType'
 import { usePageScroll } from '@/composables/page-scroll'
 import { usePetOverlay } from '@/composables/pet'
@@ -534,6 +537,67 @@ const { appContext } = getCurrentInstance()!
 const global = appContext.config.globalProperties
 const pageScroll = usePageScroll()
 let releasePageLock: (() => void) | null = null
+const dialogRef = ref<HTMLElement | null>(null)
+let returnFocus: HTMLElement | null = null
+let inertElements: Array<{ element: HTMLElement; inert: boolean }> = []
+function releaseDialogBackground() {
+  inertElements.forEach(({ element, inert }) => {
+    element.inert = inert
+  })
+  inertElements = []
+}
+function onDialogKeydown(event: KeyboardEvent) {
+  if (event.key === 'Escape') {
+    event.preventDefault()
+    if (listenDrawerOpen.value) listenDrawerOpen.value = false
+    else closeAll()
+  }
+  if (event.key !== 'Tab' || !dialogRef.value) return
+  const controls = Array.from(
+    dialogRef.value.querySelectorAll<HTMLElement>(
+      'a[href],button:not([disabled]),input,select,textarea,[tabindex="0"]',
+    ),
+  ).filter((element) => element.getClientRects().length > 0)
+  const first = controls[0]
+  const last = controls[controls.length - 1]
+  if (!first) {
+    event.preventDefault()
+    dialogRef.value.focus()
+    return
+  }
+  if (
+    event.shiftKey &&
+    (document.activeElement === first || document.activeElement === dialogRef.value)
+  ) {
+    event.preventDefault()
+    last.focus()
+  } else if (!event.shiftKey && document.activeElement === last) {
+    event.preventDefault()
+    first.focus()
+  }
+}
+watch(
+  () => props.open,
+  async (open) => {
+    if (typeof document === 'undefined') return
+    if (open) {
+      returnFocus = document.activeElement instanceof HTMLElement ? document.activeElement : null
+      await nextTick()
+      if (!props.open || !dialogRef.value) return
+      const app = document.getElementById('app')
+      if (app) {
+        inertElements.push({ element: app, inert: app.inert })
+        app.inert = true
+      }
+      dialogRef.value.focus({ preventScroll: true })
+    } else {
+      releaseDialogBackground()
+      if (returnFocus?.isConnected) returnFocus.focus({ preventScroll: true })
+      returnFocus = null
+    }
+  },
+  { immediate: true, flush: 'post' },
+)
 
 const emptyListenData = (): TrackListenData => ({ jp: [], zh: [] })
 
@@ -590,6 +654,8 @@ watch(
 )
 
 onBeforeUnmount(() => {
+  releaseDialogBackground()
+  if (returnFocus?.isConnected) returnFocus.focus({ preventScroll: true })
   releasePageLock?.()
   releasePageLock = null
 })

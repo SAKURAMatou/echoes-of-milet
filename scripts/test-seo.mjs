@@ -24,6 +24,7 @@ try {
   for (const lang of ['zh', 'ja']) {
     for (const [key, route] of [
       ['news', 'news'],
+      ['articles', 'articles'],
       ['release', 'release'],
       ['galleryDetail', 'galleryDetail/gallery_38'],
       ['timeline', 'timeline'],
@@ -73,6 +74,39 @@ try {
   let fail = false
   axios.get = async (url) => {
     if (fail) throw new Error('fixture unavailable')
+    if (url.endsWith('/public-fixture')) {
+      const lang = url.includes('/ja/') ? 'ja' : 'zh'
+      return {
+        success: true,
+        item: {
+          ...article,
+          id: 1,
+          slug: 'public-fixture',
+          title: 'SSR detail ' + lang,
+          requestedLang: lang,
+          lang,
+          fallbackLang: null,
+          publishedAt: '2026-09-22',
+          updatedAt: '2026-09-22',
+          toc: [],
+          imageIds: [],
+        },
+      }
+    }
+    if (url === '/api/articles/zh' || url === '/api/articles/ja')
+      return {
+        success: true,
+        items: [
+          {
+            id: 1,
+            slug: 'public-fixture',
+            title: 'SSR article fixture',
+            summary: '公開記事の要約',
+            lang: 'zh',
+            publishedAt: '2026-09-22',
+          },
+        ],
+      }
     if (url.includes('/news/topics')) return { success: true, items: [] }
     if (url.includes('/news'))
       return {
@@ -122,6 +156,7 @@ try {
   const { render } = await server.ssrLoadModule('/src/server/render.ts')
   for (const [route, text] of [
     ['news', 'SSR news fixture'],
+    ['articles', 'SSR article fixture'],
     ['release', 'SSR release fixture'],
     ['galleryDetail/gallery_38', 'SSR photo fixture'],
     ['live/fixture', 'SSR live fixture'],
@@ -135,7 +170,31 @@ try {
     )
     assert.doesNotThrow(() => JSON.stringify(result.initialState))
   }
+  for (const lang of ['zh', 'ja']) {
+    const result = await render('/' + lang + '/milet/articles')
+    assert.ok(result.appHtml.includes('href="/' + lang + '/milet/articles/public-fixture"'))
+    assert.equal(result.initialState.miletArticleListData.key, lang)
+    assert.ok(result.headTags.includes('CollectionPage'))
+    assert.ok(
+      result.headTags.includes('property="og:image" content="') &&
+        result.headTags.includes('/background/article-hero-bg.png'),
+    )
+    assert.ok(
+      result.headTags.includes('name="twitter:image" content="') &&
+        result.headTags.includes('/background/article-hero-bg.png'),
+    )
+    assert.ok(result.appHtml.includes('/background/article-hero-bg.png'))
+    const detail = await render('/' + lang + '/milet/articles/public-fixture')
+    assert.ok(detail.appHtml.includes('SSR detail ' + lang))
+    assert.equal(detail.initialState.miletArticleData.requestedLang, lang)
+  }
   fail = true
+  const failedDetail = await render('/zh/milet/articles/public-fixture')
+  assert.equal(failedDetail.initialState.miletArticleError.key, 'zh:public-fixture')
+  assert.ok(failedDetail.appHtml.includes('fixture unavailable'))
+  const failedArticles = await render('/zh/milet/articles')
+  assert.equal(failedArticles.status, 503)
+  assert.ok(failedArticles.initialState.miletArticleListData.payload.error)
   const originalError = console.error
   console.error = () => {}
   try {

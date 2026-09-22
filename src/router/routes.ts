@@ -173,6 +173,18 @@ export const routes: RouteRecordRaw[] = [
             component: () => import('@/views/milet/MiletNewsCollectionView.vue'),
           },
           {
+            path: 'articles',
+            name: 'miletArticles',
+            meta: {
+              renderMode: getConfiguredRenderMode('/milet/articles'),
+              seoKey: 'articles',
+              scrollPolicy: 'restore',
+              interactionPreset: 'archive',
+              showEchoProgress: true,
+            },
+            component: () => import('@/views/milet/MiletArticlesView.vue'),
+          },
+          {
             path: 'release',
             name: 'miletRelease',
             meta: {

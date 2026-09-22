@@ -8,6 +8,7 @@
     "/milet/galleryList": "ssr",
     "/milet/live": "ssr",
     "/milet/news": "ssr",
+    "/milet/articles": "ssr",
     "/milet/release": "ssr",
     "/milet/pilgrimage": "ssr"
   }
