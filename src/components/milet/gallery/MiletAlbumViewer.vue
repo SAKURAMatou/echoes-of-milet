@@ -101,6 +101,9 @@ const props = withDefaults(
     layout?: 'detail' | 'compact'
     showTip?: boolean
     lang?: GalleryLang
+    articleSlug?: string
+    articlePreviewId?: string
+    articlePreviewSession?: string
   }>(),
   {
     embedded: false,
@@ -196,7 +199,15 @@ async function loadPage() {
   loading.value = true
   error.value = ''
   try {
-    const pageData = await fetchMiletGalleryPage(requestedGalleryId, requestedPage)
+    const pageData = await fetchMiletGalleryPage(
+      requestedGalleryId,
+      requestedPage,
+      props.articlePreviewId && props.articlePreviewSession
+        ? { previewId: props.articlePreviewId, previewSession: props.articlePreviewSession }
+        : props.articleSlug
+          ? { articleSlug: props.articleSlug, lang: props.lang === 'ja' ? 'ja' : 'zh' }
+        : undefined,
+    )
     if (generation !== pageRequestGeneration || requestedGalleryId !== props.galleryId) return
     totalPages.value = pageData.maxPage
     imgList.value.push(...pageData.images)

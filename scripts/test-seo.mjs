@@ -62,6 +62,10 @@ try {
     renderSeoTags(undefined, 'zh', { path: '/zh/milet/interactive/song-guess' }),
     /noindex/,
   )
+  assert.match(
+    renderSeoTags('article', 'zh', { path: '/zh/milet/article-preview/preview-fixture' }),
+    /noindex,nofollow,noarchive/,
+  )
   state.miletNewsPageData = {
     key: 'zh',
     payload: { items: [], topics: [], hasMore: false, error: 'temporary failure' },

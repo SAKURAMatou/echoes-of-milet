@@ -37,7 +37,11 @@ export function useArticleAlbumEmbeds() {
 
   onScopeDispose(cleanup)
 
-  async function mount(container: HTMLElement | null, lang: 'zh' | 'ja') {
+  async function mount(
+    container: HTMLElement | null,
+    lang: 'zh' | 'ja',
+    scope: { articleSlug: string } | { previewId: string; previewSession: string },
+  ) {
     cleanup()
     const mountGeneration = generation
     if (!container) return
@@ -61,7 +65,7 @@ export function useArticleAlbumEmbeds() {
       if (!host.isConnected || !container.contains(host)) continue
 
       const galleryId = host.dataset.galleryId || ''
-      if (!/^gallery_(ALL|\d+)$/.test(galleryId)) continue
+      if (!/^gallery_\d+$/.test(galleryId)) continue
 
       host.innerHTML = ''
       const app = createApp(MiletAlbumViewer, {
@@ -70,6 +74,9 @@ export function useArticleAlbumEmbeds() {
         layout: normalizeLayout(host.dataset.layout || null),
         showTip: normalizeBoolean(host.dataset.showTip || null, false),
         lang,
+        articleSlug: 'articleSlug' in scope ? scope.articleSlug : undefined,
+        articlePreviewId: 'previewId' in scope ? scope.previewId : undefined,
+        articlePreviewSession: 'previewSession' in scope ? scope.previewSession : undefined,
       })
       if (parentAppState) {
         app.provide(AppStateKey, parentAppState)

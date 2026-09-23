@@ -740,6 +740,7 @@ export function renderSeoTags(
   const robots =
     !seoKey ||
     options.noindex ||
+    options.path?.includes('/milet/article-preview/') ||
     (seoKey === 'liveEvent' && options.path?.includes('/milet/live-preview/'))
       ? 'noindex,nofollow,noarchive'
       : 'index,follow,max-image-preview:large'

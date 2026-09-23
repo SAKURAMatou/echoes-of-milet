@@ -80,6 +80,17 @@ export const routes: RouteRecordRaw[] = [
         component: () => import('@/views/milet/MiletArticleView.vue'),
       },
       {
+        path: 'milet/article-preview/:previewId',
+        name: 'miletArticlePreview',
+        meta: {
+          renderMode: 'csr',
+          seoKey: 'article',
+          interactionPreset: 'quiet',
+          showEchoProgress: true,
+        },
+        component: () => import('@/views/milet/MiletArticleView.vue'),
+      },
+      {
         path: 'milet/live/:slug',
         name: 'miletLiveDetail',
         meta: {

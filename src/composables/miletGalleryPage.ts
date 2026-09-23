@@ -13,12 +13,25 @@ interface GalleryPageResponse {
   album?: GalleryAlbumMetadata | null
 }
 
+type GalleryRequestScope =
+  | { articleSlug: string; lang: 'zh' | 'ja' }
+  | { previewId: string; previewSession: string }
+
 export async function fetchMiletGalleryPage(
   galleryId: string,
   page: number,
+  scope?: GalleryRequestScope,
 ): Promise<GalleryPageData> {
+  const requestPath = scope && 'previewId' in scope
+    ? `/api/articles/preview/${encodeURIComponent(scope.previewId)}/albums/${encodeURIComponent(galleryId)}/${page}`
+    : scope && 'articleSlug' in scope
+      ? `/api/articles/${scope.lang}/${encodeURIComponent(scope.articleSlug)}/albums/${encodeURIComponent(galleryId)}/${page}`
+    : `${apiRoutes.miletPiclist}/${page}/${galleryId}`
   const response = await axiosInstance.get<GalleryPageResponse>(
-    `${apiRoutes.miletPiclist}/${page}/${galleryId}`,
+    requestPath,
+    scope && 'previewId' in scope
+      ? { headers: { 'X-Milet-Article-Preview-Session': scope.previewSession } }
+      : undefined,
   )
   if (response.code !== 200) throw new Error('Album load failed.')
 

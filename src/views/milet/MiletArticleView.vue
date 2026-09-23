@@ -1,7 +1,7 @@
 <template>
   <div class="min-h-svh">
     <Header :showHanbor="false" />
-    <LanguageSelect class="max-md:hidden" />
+    <LanguageSelect v-if="!isPreview" class="max-md:hidden" />
 
     <div
       v-if="article?.toc?.length"
@@ -66,13 +66,19 @@
         class="min-h-[calc(100svh-5rem)] w-[min(100%,70.25rem)] min-w-0 overflow-hidden rounded-lg bg-[linear-gradient(180deg,rgba(255,255,255,0.82),rgba(248,253,255,0.9))] text-[#1e2a35] shadow-[0_28px_90px_-66px_rgba(15,23,42,0.65)]"
       >
         <div
+          v-if="isPreview"
+          class="border-b border-amber-200/80 bg-amber-50/90 px-4 py-3 text-center text-sm font-medium text-amber-900"
+        >
+          {{ routeLang === 'ja' ? '一回限りの記事プレビュー' : '一次性文章预览' }}
+        </div>
+        <div
           class="relative overflow-hidden border-b border-slate-200/80 px-4 py-8 sm:px-6 md:px-8 md:py-10"
         >
           <div
             class="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_76%_12%,rgba(186,230,253,0.52),transparent_30%),linear-gradient(135deg,rgba(255,255,255,0.9),rgba(240,249,255,0.5))]"
           ></div>
           <div class="relative mx-auto max-w-4xl">
-            <div class="mb-5 w-40 md:hidden"><LanguageSelect variant="menu" /></div>
+            <div v-if="!isPreview" class="mb-5 w-40 md:hidden"><LanguageSelect variant="menu" /></div>
             <RouterLink
               :to="{ name: 'milet', params: { lang: routeLang } }"
               class="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.16em] text-[#317f8d] transition hover:text-[#143d63]"
@@ -107,7 +113,7 @@
                 >{{ routeLang === 'ja' ? 'すべての記事' : '全部文章' }}</RouterLink
               >
               <ArticleShareMenu
-                v-if="article"
+                v-if="article && !isPreview"
                 :title="article.title || fallbackTitle"
                 :summary="article.summary"
                 :url="articleShareUrl"
@@ -194,11 +200,18 @@ const interaction = useSiteInteraction()
 const state = useAppState()
 
 const loading = ref(false)
-const articleKey = () => `${route.params.lang}:${route.params.slug}`
+const isPreview = computed(() => route.name === 'miletArticlePreview')
+const previewId = computed(() => String(route.params.previewId || '').trim())
+const previewToken = computed(() => String(route.query.token || '').trim())
+const previewSession = ref('')
+const articleKey = () =>
+  isPreview.value
+    ? `preview:${previewId.value}:${previewToken.value}`
+    : `${route.params.lang}:${route.params.slug}`
 const error = ref(
   state.miletArticleError?.key === articleKey() ? state.miletArticleError.payload : '',
 )
-const article = ref<PublicArticleDetail | null>(state.miletArticleData)
+const article = ref<PublicArticleDetail | null>(isPreview.value ? null : state.miletArticleData)
 const articleContentRef = ref<HTMLElement | null>(null)
 const mobileTocRoot = ref<HTMLElement | null>(null)
 const mobileTocButton = ref<HTMLButtonElement | null>(null)
@@ -229,7 +242,9 @@ function articleEnhancementKey() {
 async function setupArticleEnhancements() {
   if (import.meta.env.SSR || !article.value?.html) return
   await nextTick()
-  await albumEmbeds.mount(articleContentRef.value, routeLang.value)
+  await albumEmbeds.mount(articleContentRef.value, routeLang.value, isPreview.value
+    ? { previewId: previewId.value, previewSession: previewSession.value }
+    : { articleSlug: article.value.slug || String(route.params.slug || '') })
   await imageEnhancements.enhance(articleContentRef.value, articleEnhancementKey())
 }
 
@@ -242,7 +257,7 @@ async function fetchArticle() {
   const requestId = ++articleRequestId
   cleanupArticleEnhancements()
   const slug = String(route.params.slug || '').trim()
-  if (!slug) {
+  if ((!isPreview.value && !slug) || (isPreview.value && (!previewId.value || !previewToken.value))) {
     error.value = 'Missing article slug.'
     return
   }
@@ -254,14 +269,20 @@ async function fetchArticle() {
     const response = await axiosInstance.get<{
       success: boolean
       item?: PublicArticleDetail
+      previewSession?: string
       message?: string
-    }>(`/api/articles/${routeLang.value}/${slug}`)
+    }>(
+      isPreview.value
+        ? `/api/articles/preview/${encodeURIComponent(previewId.value)}?token=${encodeURIComponent(previewToken.value)}`
+        : `/api/articles/${routeLang.value}/${slug}`,
+    )
     if (requestId !== articleRequestId) return
     if (!response.success || !response.item) {
       throw new Error(response.message || 'Article not found.')
     }
     article.value = response.item
-    state.miletArticleData = response.item
+    previewSession.value = response.previewSession || ''
+    if (!isPreview.value) state.miletArticleData = response.item
     shouldSetupEnhancements = true
     interaction.announce(routeLang.value === 'ja' ? '記事を読み込みました' : '文章已加载')
   } catch (err) {
@@ -269,7 +290,7 @@ async function fetchArticle() {
     error.value = err instanceof Error ? err.message : 'Article load failed.'
     state.miletArticleError = { key: articleKey(), payload: error.value }
     article.value = null
-    state.miletArticleData = null
+    if (!isPreview.value) state.miletArticleData = null
     interaction.announce(routeLang.value === 'ja' ? '記事の読み込みに失敗しました' : '文章加载失败')
   } finally {
     if (requestId === articleRequestId) loading.value = false
@@ -329,6 +350,7 @@ onServerPrefetch(fetchArticle)
 onMounted(() => {
   document.addEventListener('pointerdown', handleMobileTocOutsidePointer, true)
   if (
+    isPreview.value ||
     !article.value ||
     article.value.slug !== route.params.slug ||
     article.value.requestedLang !== routeLang.value
@@ -340,7 +362,7 @@ onMounted(() => {
 })
 
 watch(
-  () => [route.params.slug, route.params.lang],
+  () => [route.params.slug, route.params.previewId, route.params.lang, route.query.token],
   () => {
     closeMobileToc(false)
     if (!import.meta.env.SSR) fetchArticle()
