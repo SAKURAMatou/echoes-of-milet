@@ -152,7 +152,7 @@ Worker 查询 metadata 时不要在渲染每个节点时逐个查库。推荐流
 
 渲染前必须校验：
 
-- `galleryId` 只允许 `gallery_ALL` 或 `gallery_\d+`。
+- `galleryId` 只允许具体相册编号 `gallery_\d+`，不再支持直接访问全部照片。
 - `layout` 只允许 `detail`、`compact`。
 - `showTip`、`showTitle` 统一转成字符串布尔值。
 - 所有输出属性都必须经过 attribute escape。

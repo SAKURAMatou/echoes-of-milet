@@ -17,6 +17,18 @@ type GalleryRequestScope =
   | { articleSlug: string; lang: 'zh' | 'ja' }
   | { previewId: string; previewSession: string }
 
+export function normalizeGalleryImageSources(image: GalleryImage): GalleryImage {
+  const originalUrl = buildStaticAssetUrl(image.url_original || image.link)
+  const thumbnailUrl = buildStaticAssetUrl(image.url_webp || image.prelink || originalUrl)
+
+  return {
+    ...image,
+    link: originalUrl,
+    previewLink: buildStaticAssetPreviewUrl(originalUrl),
+    prelink: thumbnailUrl || originalUrl,
+  }
+}
+
 export async function fetchMiletGalleryPage(
   galleryId: string,
   page: number,
@@ -35,12 +47,9 @@ export async function fetchMiletGalleryPage(
   )
   if (response.code !== 200) throw new Error('Album load failed.')
 
-  const images = (Array.isArray(response.data) ? response.data : []).map((image) => ({
-    ...image,
-    link: buildStaticAssetUrl(image.url_original || image.link),
-    previewLink: buildStaticAssetPreviewUrl(image.url_original || image.link),
-    prelink: buildStaticAssetUrl(image.url_webp || image.prelink || image.link),
-  }))
+  const images = (Array.isArray(response.data) ? response.data : []).map(
+    normalizeGalleryImageSources,
+  )
 
   return {
     album: response.album,

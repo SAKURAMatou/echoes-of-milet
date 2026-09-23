@@ -19,6 +19,9 @@ try {
   const { pageSeoOptions, pageDataUnavailable } =
     await server.ssrLoadModule('/src/server/page-seo.ts')
   const { createInitialState } = await server.ssrLoadModule('/src/composables/useAppState.ts')
+  const { normalizeGalleryImageSources } = await server.ssrLoadModule(
+    '/src/composables/miletGalleryPage.ts',
+  )
   const canonical = (html) => html.match(/rel="canonical" href="([^"]+)"/)?.[1]
   const title = (html) => html.match(/<title[^>]*>(.*?)<\/title>/)?.[1]
   for (const lang of ['zh', 'ja']) {
@@ -66,6 +69,24 @@ try {
     renderSeoTags('article', 'zh', { path: '/zh/milet/article-preview/preview-fixture' }),
     /noindex,nofollow,noarchive/,
   )
+  const imageWithPreview = normalizeGalleryImageSources({
+    link: 'photos/original.jpg',
+    prelink: 'preview/photo.webp',
+    url_original: '/static/milet/img/photos/original.jpg',
+    url_webp: '/static/milet/img/preview/photo.webp',
+  })
+  assert.equal(imageWithPreview.link, '/static/milet/img/photos/original.jpg')
+  assert.equal(imageWithPreview.prelink, '/static/milet/img/preview/photo.webp')
+  assert.equal(imageWithPreview.previewLink, '/static/milet/img-preview/photos/original.jpg')
+  const imageWithoutPreview = normalizeGalleryImageSources({
+    link: 'photos/original.jpg',
+    prelink: '',
+    url_original: '/static/milet/img/photos/original.jpg',
+    url_webp: '',
+  })
+  assert.equal(imageWithoutPreview.link, '/static/milet/img/photos/original.jpg')
+  assert.equal(imageWithoutPreview.prelink, imageWithoutPreview.link)
+  assert.equal(imageWithoutPreview.previewLink, '/static/milet/img-preview/photos/original.jpg')
   state.miletNewsPageData = {
     key: 'zh',
     payload: { items: [], topics: [], hasMore: false, error: 'temporary failure' },

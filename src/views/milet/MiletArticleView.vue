@@ -41,7 +41,7 @@
           id="article-mobile-toc-panel"
           ref="mobileTocPanel"
           class="pointer-events-auto mx-auto mt-2 w-full max-w-md rounded-lg border border-[rgba(171,209,223,0.72)] bg-[linear-gradient(180deg,rgba(255,255,255,0.94),rgba(241,250,255,0.9)),radial-gradient(circle_at_100%_0,rgba(186,230,253,0.28),transparent_10rem)] shadow-[0_24px_58px_-34px_rgba(20,61,99,0.72)] backdrop-blur-[18px]"
-          @click="handleMobileTocClick"
+          @click.capture="handleMobileTocClick"
           @keydown="handleMobileTocKeydown"
         >
           <ArticleToc
@@ -78,14 +78,18 @@
             class="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_76%_12%,rgba(186,230,253,0.52),transparent_30%),linear-gradient(135deg,rgba(255,255,255,0.9),rgba(240,249,255,0.5))]"
           ></div>
           <div class="relative mx-auto max-w-4xl">
-            <div v-if="!isPreview" class="mb-5 w-40 md:hidden"><LanguageSelect variant="menu" /></div>
-            <RouterLink
-              :to="{ name: 'milet', params: { lang: routeLang } }"
-              class="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.16em] text-[#317f8d] transition hover:text-[#143d63]"
-            >
-              ← Echoes of milet
-            </RouterLink>
-            <h1 class="mt-5 font-serif text-4xl leading-tight text-[#143d63] md:text-5xl">
+            <div class="mb-5 flex items-center justify-between gap-4">
+              <RouterLink
+                :to="{ name: 'milet', params: { lang: routeLang } }"
+                class="inline-flex min-w-0 items-center gap-2 text-xs font-semibold uppercase tracking-[0.16em] text-[#317f8d] transition hover:text-[#143d63]"
+              >
+                ← Echoes of milet
+              </RouterLink>
+              <div v-if="!isPreview" class="w-36 shrink-0 sm:w-40 md:hidden">
+                <LanguageSelect variant="menu" />
+              </div>
+            </div>
+            <h1 class="font-serif text-4xl leading-tight text-[#143d63] md:text-5xl">
               {{ article?.title || fallbackTitle }}
             </h1>
             <p v-if="article?.summary" class="mt-4 max-w-3xl text-sm leading-7 text-slate-600">
@@ -203,6 +207,15 @@ const loading = ref(false)
 const isPreview = computed(() => route.name === 'miletArticlePreview')
 const previewId = computed(() => String(route.params.previewId || '').trim())
 const previewToken = computed(() => String(route.query.token || '').trim())
+const articleRouteIdentity = computed(() =>
+  JSON.stringify([
+    String(route.name || ''),
+    String(route.params.slug || ''),
+    String(route.params.previewId || ''),
+    String(route.params.lang || ''),
+    String(route.query.token || ''),
+  ]),
+)
 const previewSession = ref('')
 const articleKey = () =>
   isPreview.value
@@ -315,6 +328,8 @@ function handleMobileTocClick(event: MouseEvent) {
 
 function closeMobileToc(restoreFocus = true) {
   mobileTocOpen.value = false
+  releaseMobileTocLock?.()
+  releaseMobileTocLock = null
   if (restoreFocus) mobileTocButton.value?.focus({ preventScroll: true })
 }
 
@@ -361,13 +376,10 @@ onMounted(() => {
   }
 })
 
-watch(
-  () => [route.params.slug, route.params.previewId, route.params.lang, route.query.token],
-  () => {
-    closeMobileToc(false)
-    if (!import.meta.env.SSR) fetchArticle()
-  },
-)
+watch(articleRouteIdentity, () => {
+  closeMobileToc(false)
+  if (!import.meta.env.SSR) fetchArticle()
+})
 
 watch(mobileTocOpen, async (open) => {
   releaseMobileTocLock?.()
