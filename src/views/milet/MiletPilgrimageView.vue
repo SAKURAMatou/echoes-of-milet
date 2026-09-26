@@ -6,31 +6,32 @@
       <header
         class="relative border-b border-[#c9ddea]/70 px-4 py-4 sm:px-5 lg:col-span-2 lg:px-7 lg:py-5"
       >
-        <div class="grid gap-4 pr-0 lg:pr-48">
+        <div class="relative z-[1] grid gap-4 pr-0 lg:pr-48">
           <div class="min-w-0">
             <h1
               class="milet-page-title-font text-[clamp(2.4rem,4.3vw,4.1rem)] leading-none text-[#26313a]"
             >
               {{ pageText.title }}
             </h1>
-            <p class="mt-3 text-sm leading-6 text-[#5f7178]">
-              {{
-                currentLang === 'jp'
-                  ? 'エリアを選んで、写真と地図から milet の足跡をたどる。'
-                  : '选择城市，从照片与地图中寻找 milet 留下的足迹。'
-              }}
-            </p>
-            <div class="mt-3 flex flex-wrap gap-2">
+            <div class="mt-3 flex min-w-0 items-center gap-3 sm:gap-4">
+              <p class="min-w-0 flex-1 text-sm leading-6 text-[#5f7178]">
+                {{
+                  currentLang === 'jp'
+                    ? 'エリアを選んで、写真と地図から milet の足跡をたどる。'
+                    : '选择城市，从照片与地图中寻找 milet 留下的足迹。'
+                }}
+              </p>
               <button
                 v-if="submissionConfig?.enabled"
                 type="button"
-                class="min-h-11 rounded-lg border border-[#8bbddd] bg-[#eaf6fb] px-4 text-sm text-[#356f98] hover:bg-white"
+                class="min-h-11 shrink-0 whitespace-nowrap rounded-lg border border-[#8bbddd] bg-[#eaf6fb] px-3 text-sm text-[#356f98] hover:bg-white sm:px-4"
                 @click="openSubmission()"
               >
                 {{ currentLang === 'jp' ? '＋ 新しいスポットを投稿' : '＋ 提供新地点' }}
               </button>
+            </div>
+            <div v-if="savedReceipt" class="mt-3 flex flex-wrap gap-2">
               <button
-                v-if="savedReceipt"
                 type="button"
                 class="min-h-11 rounded-lg border border-[#d3e5ef] bg-white/80 px-4 text-sm text-[#60717a]"
                 @click="saveSubmissionReceipt()"

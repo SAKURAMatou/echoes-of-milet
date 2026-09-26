@@ -136,7 +136,7 @@ sealed/{submissionId}/{imageId}/{generation}/{thumbHash}/thumb.webp
 
 只对 incoming 签 PUT；key 由服务端决定。续签沿槽位计数，不无限创建新对象。删除旧 incoming 必须兼顾旧签名到期后重建，生命周期与对账兜底。
 
-complete 先条件占用该图片处理租约，再执行有界读取。使用一次 R2 get 返回的对象及字节验证实际长度、MIME、RIFF 长度、块边界/padding、VP8/VP8L/VP8X 尺寸和标志、动画/EXIF/XMP，计算 SHA-256；多变体逐个处理，超过上限立即停止读取。不能先 head 检查后无界 arrayBuffer，因为两次读取之间可能被覆盖。
+complete 先条件占用该图片处理租约，再执行有界读取。使用一次 R2 get 返回的对象及字节验证实际长度、MIME、RIFF 长度、块边界/padding、VP8/VP8L/VP8X 尺寸和标志、动画/EXIF/XMP，计算 SHA-256；多变体逐个处理，超过上限立即停止读取。允许 Chrome/Skia 画布编码器生成的 ICCP 色彩配置，但要求 VP8X 标志一致、位于图像数据前、配置长度不超过 128 KiB，并校验 ICC 声明长度与 `acsp` 签名；仍拒绝 EXIF、XMP、动画及未知分块。不能先 head 检查后无界 arrayBuffer，因为两次读取之间可能被覆盖。
 
 同一份验证通过的字节写 sealed，禁止重新 get incoming 后复制。sealed key 必须包含处理 attempt/fence 与内容 hash，不复用不同字节的目标 key；同 key 的重试只接受完全相同 hash，并采用 R2 条件写入防覆盖。数据库租约只能保护 DB，不能阻止旧任务写 R2，必须同时隔离对象 key。DB 只在同一有效代数的两个变体均确认后标记 sealed；旧代对象不进入审核，作为孤儿清理。
 
@@ -579,21 +579,21 @@ About Me 与投稿共用 widget 密钥，但投稿每次单独生成 token，仍
 每轮现有处理上限继续保留：20 条过期投稿、2 个待恢复合并任务、50 个对账对象、30 条维护任务。超出上限会留待后续日执行，因此有积压时可能超过 24 小时；上线观察积压后再调整批次。R2 生命周期继续独立兜底，不随 Cron 修改而自动配置。
 
 
-### 16.7 投稿整体限流（2026-09-25）
+### 16.7 投稿流程入口限流（2026-09-26 修订）
 
-Worker 新增 `PILGRIMAGE_SUBMISSION_RATE_LIMITER` Rate Limiting Binding，配置 limit=2、period=60。同一访客所有 `/api/milet/pilgrimage/submissions` 请求共用额度（包含 config、创建、申请上传、完成校验、移除、提交及状态查询），不把一次完整投稿视为一次操作。普通地点浏览和管理端审核不在范围内，OPTIONS 不计入。测试模式不豁免。
+Worker 使用 `PILGRIMAGE_SUBMISSION_RATE_LIMITER` Rate Limiting Binding，配置 limit=2、period=60。只在 `POST /api/milet/pilgrimage/submissions` 创建投稿会话时消耗额度，一次创建代表启动一次完整投稿流程。config、申请上传、完成校验、移除、最终提交及状态查询不消耗该短窗口额度；普通地点浏览和管理端审核也不在范围内，OPTIONS 不计入。测试模式下创建投稿仍计入。
 
-限流 middleware 位于来源校验之后、路由业务处理之前，超限返回 HTTP 429、errorCode=RATE_LIMITED、Retry-After: 60、Cache-Control: no-store，提示“图片处理中，请稍后重试。”；绑定缺失/异常返回 503，不默默放行。继续保留 D1 累计配额和创建会话时的 Turnstile。
+限流 middleware 位于路由业务处理之前。所有投稿子接口仍校验 Pages 来源身份和可信代理转发的访客 IP；只有创建接口调用 Binding。创建时超限返回 HTTP 429、errorCode=RATE_LIMITED、Retry-After: 60、Cache-Control: no-store，提示“图片处理中，请稍后重试。”；创建时绑定缺失/异常返回 503，不默默放行。图片流程不依赖 Binding 可用性，继续由会话权限、D1 配额和状态机保护。
 
 生产 Pages 代理覆盖 X-Milet-Client-IP，取 Cloudflare 提供的 CF-Connecting-IP；Worker 仅接受现有来源密钥校验通过的代理传入该标识，并用其哈希作为限流 key。开发 Vite 和 SSR 验证代理从实际 socket 地址生成标识，不信任用户自带的同名头或 X-Forwarded-For。匿名访客以 IP 区分，共用出口网络的访客会共用额度；该限制适合当前低流量测试，后续可按误限情况调整。
 
-公开端提交链路遇到 RATE_LIMITED 时展示等待提示并依 Retry-After 自动重试同一请求，单次 API 调用最多自动重试 3 次；关闭弹窗/组件卸载取消等待。D1 QUOTA_EXCEEDED 不自动重试。GET 配置/状态查询及手动移除操作直接反馈限流，不启动后台轮询。图片主图和缩略图 PUT 仍直达 R2，不占用 Binding 次数，也无法被 Binding 拦截。6 张图片至少涉及创建、12 次申请/完成和最终提交，加上配置查询可能等待数分钟，这是当前每分钟 2 次规则的预期行为。
+公开端创建请求遇到 RATE_LIMITED 时展示等待提示并依 Retry-After 自动重试同一请求，单次 API 调用最多自动重试 3 次；关闭弹窗/组件卸载取消等待。D1 QUOTA_EXCEEDED 不自动重试。每张逻辑照片只占一个 `pilgrimage_submission_images` 名额，同时生成 main/thumb 两个 R2 对象；申请、两个签名 PUT、complete 和移除都不调用 Binding。D1 对单稿最多 6 张有效图片、单会话最多 20 次累计签发及 32 MiB 累计预占做原子校验，删除图片不返还累计签发额度。
 
-wrangler 默认和 production 均声明绑定，分别使用不同 namespace_id 避免共用计数；部署前核对这些 namespace_id 不与账户其他 Worker 的用途冲突。应先部署支持身份转发的公开端代理，再部署启用限流的 Worker。生产验证依次访问配置、创建或状态接口等，确认第三次返回 429，等待后可继续；同时核查共用网络和真实代理链路。
+wrangler 默认和 production 均声明绑定，分别使用不同 namespace_id 避免共用计数；部署前核对这些 namespace_id 不与账户其他 Worker 的用途冲突。应先部署支持身份转发的公开端代理，再部署启用限流的 Worker。生产验证应确认同一访客第三次创建在窗口内返回 429，同时用前两次创建得到的会话完成多张图片的申请、main/thumb PUT、complete、移除和最终提交，确认这些内部请求不会消耗或触发 Binding 配额。
 
 Binding 是 Cloudflare 节点内最终一致的短窗口防刷，不保证全球严格每 60 秒恰好 2 次；不能替代 D1 全局累计额度。官方文档：https://developers.cloudflare.com/workers/runtime-apis/bindings/rate-limit/
 
-验证：新增 5 项 middleware 测试覆盖共享额度/提前拒绝/身份校验/绑定失效/业务范围，投稿专项合计 27 项通过；公开端 `node --test tests/submission-request.test.ts` 的 3 项重试行为测试通过。真实多节点限流和生产代理 IP 仍需正式环境验收。
+验证重点：middleware 测试覆盖创建额度、图片流程豁免、来源身份校验、Binding 缺失/异常和不同访客 key；投稿集成测试覆盖 6 张逻辑图片上限及累计签发/字节配额。真实多节点限流和生产代理 IP 仍需正式环境验收。
 
 
 ### 16.8 多人审核：第一版版本校验，临时占用为后续可选升级（2026-09-26）
