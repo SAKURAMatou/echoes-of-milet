@@ -73,6 +73,10 @@ export function submissionErrorMessage(error: unknown, ja: boolean) {
       '图片上传时间已过，请移除该图片后重新选择。',
       '画像のアップロード期限が切れました。画像を選び直してください。',
     ],
+    UPLOAD_FAILED: [
+      '图片没有上传成功，请稍后重试。填写内容仍保留在本页。',
+      '画像をアップロードできませんでした。しばらくして再試行してください。入力内容は保持されています。',
+    ],
     SUBMISSIONS_DISABLED: ['投稿暂未开放，请稍后再试。', '現在、投稿の受付を停止しています。'],
     UPLOADS_DISABLED: [
       '照片上传暂不可用，你可以移除照片后提交文字。',

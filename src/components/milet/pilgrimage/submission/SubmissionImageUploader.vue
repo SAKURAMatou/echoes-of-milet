@@ -155,7 +155,12 @@ async function upload(
             credentials: 'omit',
             referrerPolicy: 'no-referrer',
           })
-          if (!response.ok) throw new Error('UPLOAD_FAILED')
+          if (!response.ok) {
+            const responseBody = await response.text().catch(() => ''),
+              r2Code = responseBody.match(/<Code>([^<]+)<\/Code>/)?.[1] || 'UNKNOWN'
+            console.warn('Pilgrimage R2 upload failed', { status: response.status, code: r2Code })
+            throw new Error(r2Code === 'ExpiredRequest' ? 'UPLOAD_EXPIRED' : 'UPLOAD_FAILED')
+          }
         }
         await submissionApi(
           `/${submissionId}/images/${prepared.imageId}/complete`,
