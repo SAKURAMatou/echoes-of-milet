@@ -40,7 +40,7 @@ export async function submissionApi<T>(
 }
 
 export function randomCredential() {
-  return Array.from(crypto.getRandomValues(new Uint8Array(32)), (n) =>
+  return Array.from(crypto.getRandomValues(new Uint8Array(8)), (n) =>
     n.toString(16).padStart(2, '0'),
   ).join('')
 }
