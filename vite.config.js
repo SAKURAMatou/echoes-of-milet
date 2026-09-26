@@ -65,6 +65,7 @@ export default defineConfig(({ mode }) => {
                 method: req.method,
                 headers: {
                   ...req.headers,
+                  'x-milet-client-ip': req.socket.remoteAddress || '',
                   host: targetUrl.host,
                   origin: publicSiteOrigin,
                   referer: `${publicSiteOrigin}/`,

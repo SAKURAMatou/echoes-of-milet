@@ -241,6 +241,8 @@ function getRequestOrigin() {
 function buildProxyHeaders(req, targetUrl) {
   const requestOrigin = getRequestOrigin()
   const headers = new Headers(headerEntries(req.headers))
+  headers.delete('X-Milet-Client-IP')
+  if (req.socket.remoteAddress) headers.set('X-Milet-Client-IP', req.socket.remoteAddress)
   headers.set('host', targetUrl.host)
   headers.set('origin', requestOrigin || headers.get('origin') || '')
   headers.set('referer', headers.get('referer') || `${requestOrigin}/`)

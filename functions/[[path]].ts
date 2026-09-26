@@ -159,6 +159,9 @@ function getRequestOrigin(request: Request) {
 function buildProxyHeaders(request: Request, env?: PagesFunctionEnv | null) {
   const requestOrigin = getRequestOrigin(request)
   const headers = new Headers(request.headers)
+  headers.delete('X-Milet-Client-IP')
+  const clientIp = request.headers.get('CF-Connecting-IP')
+  if (clientIp) headers.set('X-Milet-Client-IP', clientIp)
   headers.set('origin', requestOrigin || headers.get('origin'))
   headers.set('referer', headers.get('referer') || `${requestOrigin}/`)
   headers.set('accept-encoding', 'identity')

@@ -55,6 +55,7 @@
             class="h-48 w-full object-cover"
           />
           <div class="p-4">
+            <button v-if="submissionEnabled" type="button" class="mb-4 min-h-11 rounded-lg border border-[#d3e5ef] bg-[#f5fbfe] px-3 text-sm text-[#60717a] hover:bg-white" @click="$emit('correct')">{{ lang === 'jp' ? '情報の補足・修正 ↗' : '补充 / 纠正信息 ↗' }}</button>
             <div>
               <p class="text-xs font-semibold uppercase tracking-[0.16em] text-[#789096]">
                 {{ selectedSpotDetail.category }}
@@ -273,10 +274,12 @@ const props = defineProps<{
   spotsLoading: boolean
   spotDetailLoading: boolean
   spotDetailError: boolean
+  submissionEnabled?: boolean
   lang: PilgrimageLang
 }>()
 
 defineEmits<{
+  correct: []
   close: []
 }>()
 

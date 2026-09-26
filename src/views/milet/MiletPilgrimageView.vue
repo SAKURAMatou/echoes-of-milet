@@ -20,6 +20,17 @@
                   : '选择城市，从照片与地图中寻找 milet 留下的足迹。'
               }}
             </p>
+            <div class="mt-3 flex flex-wrap gap-2">
+              <button v-if="submissionConfig?.enabled" type="button" class="min-h-11 rounded-lg border border-[#8bbddd] bg-[#eaf6fb] px-4 text-sm text-[#356f98] hover:bg-white" @click="openSubmission()">{{ currentLang === 'jp' ? '＋ 新しいスポットを投稿' : '＋ 提供新地点' }}</button>
+              <button v-if="savedReceipt" type="button" class="min-h-11 rounded-lg border border-[#d3e5ef] bg-white/80 px-4 text-sm text-[#60717a]" @click="activeReceipt=savedReceipt; submissionTarget=undefined; submissionOpen=true">{{ currentLang === 'jp' ? '投稿状況' : '我的投稿记录' }}</button>
+            </div>
+            <form v-if="submissionTestVisible" class="mt-3 flex flex-wrap items-center gap-2 rounded-lg border border-[#c9dfea] bg-white/70 p-3 text-sm" @submit.prevent="unlockSubmissionTest">
+              <label for="submission-test-code">{{ currentLang === 'jp' ? '投稿テスト' : '投稿测试' }}</label>
+              <input id="submission-test-code" v-model="submissionTestCode" type="password" autocomplete="off" maxlength="64" class="min-h-11 min-w-0 rounded-lg border border-[#c9dfea] bg-white px-3" :placeholder="currentLang === 'jp' ? 'アクセスコード' : '测试访问码'" />
+              <button class="min-h-11 rounded-lg bg-[#eaf6fb] px-3 text-[#356f98]" :disabled="submissionTestBusy">{{ currentLang === 'jp' ? '確認' : '验证' }}</button>
+              <button type="button" class="min-h-11 px-3" @click="exitSubmissionTest">{{ currentLang === 'jp' ? '終了' : '退出测试' }}</button>
+              <span role="status">{{ submissionTestMessage }}</span>
+            </form>
             <details class="relative z-10 mt-2 text-sm text-[#5f7178]">
               <summary class="min-h-11 cursor-pointer py-3 font-medium text-[#317f8d]">
                 {{ currentLang === 'jp' ? 'このマップについて・謝辞' : '地图介绍与致谢' }}
@@ -170,6 +181,8 @@
       <PilgrimageSpotDetailPanel
         class="lg:col-start-2 lg:row-span-2 lg:row-start-2"
         :page-text="pageText"
+        :submission-enabled="!!submissionConfig?.enabled"
+        @correct="selectedSpotDetail && openSubmission({id:selectedSpotDetail.id,title:selectedSpotDetail.title})"
         :selected-spot-detail="selectedSpotDetail"
         :navigation-url="navigationUrl"
         :gallery-name="galleryName"
@@ -181,6 +194,7 @@
       />
     </section>
 
+    <PilgrimageSubmissionDialog v-if="submissionOpen && (submissionConfig || activeReceipt)" :config="submissionConfig || {enabled:false,siteKey:'',rightsVersion:'',maxImages:6}" :target="submissionTarget" :lang="currentLang" :receipt="activeReceipt" @close="submissionOpen=false" />
     <PilgrimageSeoSpotList :cities="seoSpotListCities" :lang="currentLang" />
   </article>
 </template>
@@ -192,6 +206,7 @@ import '@/components/milet/pilgrimage/pilgrimageMapStyles.css'
 
 import {
   computed,
+  defineAsyncComponent,
   nextTick,
   onBeforeUnmount,
   onMounted,
@@ -202,6 +217,44 @@ import {
 } from 'vue'
 import { useRoute } from 'vue-router'
 
+import { getSubmissionConfig, type SubmissionConfig, type SubmissionReceipt } from '@/composables/pilgrimageSubmissions'
+const PilgrimageSubmissionDialog = defineAsyncComponent(() => import('@/components/milet/pilgrimage/submission/PilgrimageSubmissionDialog.vue'))
+const submissionConfig = ref<SubmissionConfig>()
+const submissionTestVisible = ref(false)
+const submissionTestCode = ref('')
+const submissionTestBusy = ref(false)
+const submissionTestMessage = ref('')
+async function unlockSubmissionTest() {
+ submissionTestBusy.value = true
+ try {
+  if (!/^[a-f0-9]{64}$/.test(submissionTestCode.value)) throw new Error('invalid')
+  sessionStorage.setItem('pilgrimage-submission-test-token', submissionTestCode.value)
+  submissionConfig.value = await getSubmissionConfig()
+  if (!submissionConfig.value.enabled) throw new Error('disabled')
+  submissionTestCode.value = ''
+  submissionTestMessage.value = currentLang.value === 'jp' ? 'テスト投稿が有効です。承認後も下書きとして保存されます。' : '测试投稿已开放，审核后仍保存为草稿。'
+ } catch {
+  try { sessionStorage.removeItem('pilgrimage-submission-test-token') } catch {}
+  submissionConfig.value = undefined
+  submissionTestMessage.value = currentLang.value === 'jp' ? 'コードが無効か、テスト受付が停止しています。' : '访问码无效，或服务端尚未开放测试。'
+ } finally { submissionTestBusy.value = false }
+}
+async function exitSubmissionTest() {
+ try { sessionStorage.removeItem('pilgrimage-submission-test-token') } catch {}
+ submissionTestCode.value = ''; submissionTestMessage.value = ''; submissionOpen.value = false
+ submissionConfig.value = undefined
+ try { submissionConfig.value = await getSubmissionConfig() } catch {}
+}
+const submissionOpen = ref(false)
+const submissionTarget = ref<{id:string;title:string}>()
+const savedReceipt = ref<SubmissionReceipt>()
+const activeReceipt = ref<SubmissionReceipt>()
+function openSubmission(target?: {id:string;title:string}) { submissionTarget.value = target ? {...target} : undefined; activeReceipt.value = undefined; submissionOpen.value = true }
+onMounted(async () => {
+ submissionTestVisible.value = new URLSearchParams(window.location.search).get('submissionTest') === '1'
+ try { const saved=JSON.parse(localStorage.getItem('pilgrimage-submission-receipt') || 'null'); if (/^[a-f0-9-]{36}$/.test(saved?.id) && /^[a-f0-9]{64}$/.test(saved?.token)) savedReceipt.value=saved } catch {}
+ try { submissionConfig.value=await getSubmissionConfig() } catch {}
+})
 import PilgrimageAreaControls from '@/components/milet/pilgrimage/PilgrimageAreaControls.vue'
 import PilgrimageCollectionPanel from '@/components/milet/pilgrimage/PilgrimageCollectionPanel.vue'
 import PilgrimageMapPane from '@/components/milet/pilgrimage/PilgrimageMapPane.vue'
