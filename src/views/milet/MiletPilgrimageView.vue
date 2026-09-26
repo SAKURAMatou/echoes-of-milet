@@ -33,11 +33,7 @@
                 v-if="savedReceipt"
                 type="button"
                 class="min-h-11 rounded-lg border border-[#d3e5ef] bg-white/80 px-4 text-sm text-[#60717a]"
-                @click="
-                  activeReceipt = savedReceipt
-                  submissionTarget = undefined
-                  submissionOpen = true
-                "
+                @click="saveSubmissionReceipt()"
               >
                 {{ currentLang === 'jp' ? '投稿状況' : '我的投稿记录' }}
               </button>
@@ -323,6 +319,12 @@ const activeReceipt = ref<SubmissionReceipt>()
 function openSubmission(target?: { id: string; title: string }) {
   submissionTarget.value = target ? { ...target } : undefined
   activeReceipt.value = undefined
+  submissionOpen.value = true
+}
+
+function saveSubmissionReceipt() {
+  activeReceipt.value = savedReceipt.value
+  submissionTarget.value = undefined
   submissionOpen.value = true
 }
 onMounted(async () => {
