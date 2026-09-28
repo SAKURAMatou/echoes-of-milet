@@ -19,7 +19,7 @@ SOURCE = ASSETS / 'source'
 FRAME = 256
 ANCHOR_X = 128
 BASELINE_Y = 232
-ASSET_VERSION = 8
+ASSET_VERSION = 9
 
 ACTION_SPECS = {
     'idle': {
@@ -52,7 +52,7 @@ ACTION_SPECS = {
     },
     'lookLeft': {
         'slug': 'look-left', 'columns': 3, 'rows': 2, 'fps': 11, 'loop': False,
-        'durations': [90, 70, 70, 80, 90, 110], 'staticFrame': -1,
+        'durations': [110, 120, 140, 160, 180, 220], 'staticFrame': -1,
     },
     'lookLeftUp': {
         'slug': 'look-left-up', 'columns': 3, 'rows': 2, 'fps': 11, 'loop': False,
@@ -226,6 +226,34 @@ def extract_frames(image, columns, rows, frame_count, top_overscan=None, matte=N
 def normalize_frames(name, records):
     """Give each clip a stable apparent scale, torso x position and ground line."""
     reference = records[0]
+    if name == 'lookLeft':
+        # The bow moves the shirt forward/down. Keep the planted rear paw
+        # fixed instead of cancelling that movement with the garment anchor.
+        def rear_paw_x(crop):
+            alpha = np.asarray(crop.getchannel('A'))
+            ys, xs = np.where((alpha > 100) & (np.indices(alpha.shape)[0] >= crop.height - 20))
+            return float(np.percentile(xs, 95))
+
+        idle = Image.open(ASSETS / 'idle.static.webp').convert('RGBA')
+        idle_box = idle.getchannel('A').getbbox()
+        target_x = rear_paw_x(idle.crop(idle_box)) + idle_box[0]
+        paw_positions = [rear_paw_x(record['image']) for record in records]
+        scale = min(
+            (idle_box[3] - idle_box[1]) / reference['image'].height,
+            (target_x - 8) / max(paw_positions),
+            (FRAME - 8 - target_x) / max(record['image'].width - paw for record, paw in zip(records, paw_positions)),
+        )
+        result = []
+        for record, paw in zip(records, paw_positions):
+            crop = record['image']
+            width, height = round(crop.width * scale), round(crop.height * scale)
+            x, y = round(target_x - paw * scale), BASELINE_Y - height
+            if min(x, y) < 0 or x + width > FRAME or y + height > FRAME:
+                raise ValueError('Left stretch exceeds runtime cell')
+            frame = Image.new('RGBA', (FRAME, FRAME))
+            frame.alpha_composite(crop.resize((width, height), Image.Resampling.LANCZOS), (x, y))
+            result.append(frame)
+        return result
     max_left = max(record['anchor_x'] for record in records)
     max_right = max(record['image'].width - record['anchor_x'] for record in records)
     max_height = max(record['image'].height for record in records)

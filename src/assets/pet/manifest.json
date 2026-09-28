@@ -282,19 +282,19 @@
       "frameHeight": 256,
       "fps": 11,
       "durations": [
-        90,
-        70,
-        70,
-        80,
-        90,
-        110
+        110,
+        120,
+        140,
+        160,
+        180,
+        220
       ],
       "loop": false,
       "anchor": {
         "x": 128,
         "y": 232
       },
-      "bytes": 72058
+      "bytes": 71058
     },
     "lookLeftUp": {
       "src": "look-left-up.sheet.webp",

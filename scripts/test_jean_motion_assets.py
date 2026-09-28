@@ -99,12 +99,18 @@ class AssetsTest(unittest.TestCase):
                 frame_image = sheet.crop((x, y, x + 256, y + 256)).convert('RGBA')
                 frame = np.asarray(frame_image)
                 anchor = garment_anchor(frame_image)
-                self.assertLessEqual(abs(anchor[0] - idle_anchor[0]), 3, f'{action} shirt x')
-                self.assertLessEqual(abs(anchor[1] - idle_anchor[1]), 7, f'{action} shirt y')
+                if action != 'lookLeft':
+                    self.assertLessEqual(abs(anchor[0] - idle_anchor[0]), 3, f'{action} shirt x')
+                    self.assertLessEqual(abs(anchor[1] - idle_anchor[1]), 7, f'{action} shirt y')
+                else:
+                    # Stretching intentionally lowers the torso and clothing;
+                    # the rear paw, rather than the shirt, must stay planted.
+                    rear = (frame[:, :, 3] > 100) & (yy >= 220) & (xx > 170)
+                    self.assertGreater(int(rear.sum()), 20, 'stretch rear paw lost ground contact')
                 dark_face = (
                     (frame[:, :, 3] > 96)
                     & (frame[:, :, :3].max(axis=2) < 100)
-                    & (yy < 125)
+                    & (yy < (210 if action == 'lookLeft' else 125))
                     & (xx < 175)
                 )
                 self.assertGreaterEqual(

@@ -273,8 +273,8 @@ window.JEAN_MANIFEST = {
       "bytes": 157170
     },
     "lookLeft": {
-      "src": "assets/look-left.sheet.webp?v=8",
-      "staticSrc": "assets/look-left.static.webp?v=8",
+      "src": "assets/look-left.sheet.webp?v=9",
+      "staticSrc": "assets/look-left.static.webp?v=9",
       "frameCount": 6,
       "columns": 3,
       "rows": 2,
@@ -282,19 +282,19 @@ window.JEAN_MANIFEST = {
       "frameHeight": 256,
       "fps": 11,
       "durations": [
-        90,
-        70,
-        70,
-        80,
-        90,
-        110
+        110,
+        120,
+        140,
+        160,
+        180,
+        220
       ],
       "loop": false,
       "anchor": {
         "x": 128,
         "y": 232
       },
-      "bytes": 72058
+      "bytes": 71058
     },
     "lookLeftUp": {
       "src": "assets/look-left-up.sheet.webp?v=8",
