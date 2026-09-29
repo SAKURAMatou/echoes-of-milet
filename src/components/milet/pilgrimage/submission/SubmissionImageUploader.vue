@@ -42,31 +42,33 @@ function convert(photo: Photo) {
         photo.converted = result
         photo.preview = URL.createObjectURL(result.thumb)
         photo.state = 'ready'
-      } catch {
+      } catch (e) {
         if (!photo.controller.signal.aborted) {
           photo.state = 'failed'
-          photo.error = t(
-            '转换失败，请重试或选择较小的照片。',
-            '変換できません。再試行するか、小さい写真を選んでください。',
-          )
+          photo.error = submissionErrorMessage(e, props.ja)
         }
       }
     })
 }
 function add(files: FileList | null) {
   if (!files || props.disabled) return
+  error.value = ''
   for (const file of files) {
     if (photos.value.length >= 6) {
       error.value = t('最多 6 张照片。', '写真は6枚までです。')
       break
     }
-    if (
-      !['image/jpeg', 'image/png', 'image/webp'].includes(file.type) ||
-      file.size > 20 * 1024 * 1024
-    ) {
+    if (!['image/jpeg', 'image/png', 'image/webp'].includes(file.type)) {
       error.value = t(
-        '请选择 20 MiB 以内的 JPG、PNG 或 WebP。',
-        '20 MiB 以下の JPG・PNG・WebP を選んでください。',
+        '无法识别这张照片的格式，仅支持 JPG、PNG 或 WebP。',
+        'この写真の形式を認識できません。JPG・PNG・WebP のみ対応しています。',
+      )
+      continue
+    }
+    if (file.size > 20 * 1024 * 1024) {
+      error.value = t(
+        '原图超过 20 MiB，请选择文件更小的照片。',
+        '元画像が 20 MiB を超えています。ファイルサイズの小さい写真を選んでください。',
       )
       continue
     }
@@ -147,19 +149,44 @@ async function upload(
       photo.remoteId = prepared.imageId
       if (!prepared.sealed) {
         for (const variant of ['main', 'thumb'] as const) {
-          const response = await fetch(prepared.urls[variant], {
-            method: 'PUT',
-            headers: { 'Content-Type': 'image/webp' },
-            body: photo.converted[variant],
-            signal,
-            credentials: 'omit',
-            referrerPolicy: 'no-referrer',
-          })
+          let response: Response
+          try {
+            response = await fetch(prepared.urls[variant], {
+              method: 'PUT',
+              headers: { 'Content-Type': 'image/webp' },
+              body: photo.converted[variant],
+              signal,
+              credentials: 'omit',
+              referrerPolicy: 'no-referrer',
+            })
+          } catch (uploadError) {
+            if (signal.aborted) throw uploadError
+            console.warn('Pilgrimage R2 upload request failed', {
+              variant,
+              error: uploadError instanceof Error ? uploadError.message : String(uploadError),
+            })
+            throw new Error(variant === 'main' ? 'UPLOAD_NETWORK_MAIN' : 'UPLOAD_NETWORK_THUMB')
+          }
           if (!response.ok) {
             const responseBody = await response.text().catch(() => ''),
               r2Code = responseBody.match(/<Code>([^<]+)<\/Code>/)?.[1] || 'UNKNOWN'
-            console.warn('Pilgrimage R2 upload failed', { status: response.status, code: r2Code })
-            throw new Error(r2Code === 'ExpiredRequest' ? 'UPLOAD_EXPIRED' : 'UPLOAD_FAILED')
+            console.warn('Pilgrimage R2 upload failed', {
+              variant,
+              status: response.status,
+              code: r2Code,
+            })
+            if (r2Code === 'ExpiredRequest') throw new Error('UPLOAD_EXPIRED')
+            if (response.status === 413 || r2Code === 'EntityTooLarge')
+              throw new Error('UPLOAD_SIZE_REJECTED')
+            if (
+              response.status === 401 ||
+              response.status === 403 ||
+              ['AccessDenied', 'SignatureDoesNotMatch', 'InvalidAccessKeyId'].includes(r2Code)
+            )
+              throw new Error('UPLOAD_AUTH_REJECTED')
+            if (response.status >= 500 || ['RequestTimeout', 'SlowDown'].includes(r2Code))
+              throw new Error('UPLOAD_SERVICE_UNAVAILABLE')
+            throw new Error('UPLOAD_REJECTED')
           }
         }
         await submissionApi(

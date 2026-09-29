@@ -5,7 +5,13 @@ export async function requestSubmission<T>(
   onRateLimit?: (waiting: boolean) => void,
 ): Promise<T> {
   for (let attempt = 0; ; attempt++) {
-    const response = await fetch(url, { ...options, signal })
+    let response: Response
+    try {
+      response = await fetch(url, { ...options, signal })
+    } catch (error) {
+      if (signal?.aborted) throw error
+      throw new Error('API_NETWORK_ERROR')
+    }
     const data = await response.json().catch(() => null)
     if (response.status === 429 && data?.errorCode === 'RATE_LIMITED' && signal && attempt < 3) {
       const rawDelay = response.headers.get('Retry-After')
@@ -24,7 +30,7 @@ export async function requestSubmission<T>(
     }
     if (!response.ok || data?.code !== 200)
       throw new Error(
-        data?.errorCode || (response.status === 429 ? 'QUOTA_EXCEEDED' : 'NETWORK_ERROR'),
+        data?.errorCode || (response.status === 429 ? 'QUOTA_EXCEEDED' : 'API_RESPONSE_ERROR'),
       )
     return data.data as T
   }
