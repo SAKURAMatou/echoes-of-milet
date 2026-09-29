@@ -72,11 +72,20 @@
           {{ routeLang === 'ja' ? '一回限りの記事プレビュー' : '一次性文章预览' }}
         </div>
         <div
-          class="relative overflow-hidden border-b border-slate-200/80 px-4 py-8 sm:px-6 md:px-8 md:py-10"
+          class="article-story-hero relative overflow-hidden border-b border-slate-200/80 px-4 py-8 sm:px-6 md:px-8 md:py-10"
+          :class="{ 'article-story-hero--with-cover': articleCoverShareUrl }"
         >
           <div
             class="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_76%_12%,rgba(186,230,253,0.52),transparent_30%),linear-gradient(135deg,rgba(255,255,255,0.9),rgba(240,249,255,0.5))]"
           ></div>
+          <div v-if="articleCoverShareUrl" class="article-story-cover" aria-hidden="true">
+            <img
+              :src="articleCoverShareUrl"
+              alt=""
+              decoding="async"
+              fetchpriority="high"
+            />
+          </div>
           <div class="relative mx-auto max-w-4xl">
             <div class="mb-5 flex items-center justify-between gap-4">
               <RouterLink
@@ -89,13 +98,19 @@
                 <LanguageSelect variant="menu" />
               </div>
             </div>
-            <h1 class="font-serif text-4xl leading-tight text-[#143d63] md:text-5xl">
-              {{ article?.title || fallbackTitle }}
-            </h1>
-            <p v-if="article?.summary" class="mt-4 max-w-3xl text-sm leading-7 text-slate-600">
-              {{ article.summary }}
-            </p>
-            <div class="mt-5 flex flex-wrap items-center gap-3 text-xs font-medium text-slate-500">
+            <div class="article-story-copy" :class="{ 'article-story-copy--with-cover': articleCoverShareUrl }">
+              <div class="article-story-signature" aria-hidden="true">
+                <span>Echoes journal</span>
+                <i v-for="index in 7" :key="index"></i>
+              </div>
+              <h1 class="font-serif text-4xl leading-tight text-[#143d63] md:text-5xl">
+                {{ article?.title || fallbackTitle }}
+              </h1>
+              <p v-if="article?.summary" class="mt-4 max-w-3xl text-sm leading-7 text-slate-600">
+                {{ article.summary }}
+              </p>
+            </div>
+            <div class="relative z-[2] mt-5 flex flex-wrap items-center gap-3 text-xs font-medium text-slate-500">
               <span v-if="article?.publishedAt">{{ formatDate(article.publishedAt) }}</span>
               <span v-if="article?.createdBy" class="inline-flex items-center gap-1">
                 <span>{{ routeLang === 'ja' ? 'Author' : '创建人' }}</span>
@@ -196,6 +211,7 @@ import EchoAsyncState from '@/components/interaction/EchoAsyncState.vue'
 
 import '../../assets/article-content.css'
 import '../../assets/mixed-media.css'
+import '../../assets/article-editor-content.css'
 
 const route = useRoute()
 const { scrollToPageAnchor } = usePageAnchorScroll()
@@ -398,3 +414,140 @@ onBeforeUnmount(() => {
   cleanupArticleEnhancements()
 })
 </script>
+
+<style scoped>
+.article-story-hero {
+  isolation: isolate;
+}
+
+.article-story-hero::after {
+  position: absolute;
+  right: clamp(1.25rem, 5vw, 4.5rem);
+  bottom: -5.5rem;
+  width: 13rem;
+  height: 13rem;
+  border: 1px solid rgba(49, 127, 141, 0.11);
+  border-radius: 999px;
+  box-shadow:
+    0 0 0 1.75rem rgba(49, 127, 141, 0.035),
+    0 0 0 3.5rem rgba(49, 127, 141, 0.025);
+  content: '';
+  pointer-events: none;
+}
+
+.article-story-cover {
+  position: absolute;
+  z-index: 1;
+  inset: 0 0 0 auto;
+  width: min(48%, 34rem);
+  overflow: hidden;
+  pointer-events: none;
+  -webkit-mask-image: linear-gradient(90deg, transparent 0%, rgba(0, 0, 0, 0.5) 24%, #000 58%);
+  mask-image: linear-gradient(90deg, transparent 0%, rgba(0, 0, 0, 0.5) 24%, #000 58%);
+}
+
+.article-story-cover::after {
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(180deg, rgba(240, 249, 255, 0.2), rgba(248, 253, 255, 0.48)),
+    linear-gradient(90deg, transparent 54%, rgba(20, 61, 99, 0.08));
+  content: '';
+}
+
+.article-story-cover img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  filter: saturate(0.78) contrast(0.92) brightness(1.04);
+  transform: scale(1.035);
+}
+
+.article-story-copy {
+  position: relative;
+  z-index: 2;
+}
+
+.article-story-copy--with-cover {
+  max-width: 61%;
+  text-shadow: 0 1px 18px rgba(255, 255, 255, 0.9);
+}
+
+.article-story-signature {
+  display: flex;
+  min-height: 1rem;
+  align-items: center;
+  gap: 0.18rem;
+  margin-bottom: 0.85rem;
+  color: #317f8d;
+  font-size: 0.62rem;
+  font-weight: 750;
+  letter-spacing: 0.19em;
+  line-height: 1;
+  text-transform: uppercase;
+}
+
+.article-story-signature span {
+  margin-right: 0.35rem;
+}
+
+.article-story-signature i {
+  display: block;
+  width: 1.5px;
+  height: 0.38rem;
+  border-radius: 999px;
+  background: currentColor;
+  opacity: 0.38;
+  transform-origin: center;
+  animation: article-echo-wave 2.8s ease-in-out infinite;
+}
+
+.article-story-signature i:nth-of-type(2),
+.article-story-signature i:nth-of-type(6) {
+  height: 0.62rem;
+  animation-delay: -0.35s;
+}
+
+.article-story-signature i:nth-of-type(3),
+.article-story-signature i:nth-of-type(5) {
+  height: 0.88rem;
+  animation-delay: -0.7s;
+}
+
+.article-story-signature i:nth-of-type(4) {
+  height: 1rem;
+  animation-delay: -1.05s;
+}
+
+@keyframes article-echo-wave {
+  0%,
+  100% {
+    opacity: 0.3;
+    transform: scaleY(0.72);
+  }
+  50% {
+    opacity: 0.72;
+    transform: scaleY(1);
+  }
+}
+
+@media (max-width: 767px) {
+  .article-story-cover {
+    inset: 0;
+    width: 100%;
+    opacity: 0.18;
+    -webkit-mask-image: linear-gradient(180deg, rgba(0, 0, 0, 0.8), transparent 90%);
+    mask-image: linear-gradient(180deg, rgba(0, 0, 0, 0.8), transparent 90%);
+  }
+
+  .article-story-copy--with-cover {
+    max-width: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .article-story-signature i {
+    animation: none;
+  }
+}
+</style>
