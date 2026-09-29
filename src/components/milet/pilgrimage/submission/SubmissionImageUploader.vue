@@ -306,8 +306,8 @@ onBeforeUnmount(() => {
             ><label class="flex gap-2 text-xs"
               ><input v-model="photo.rightsAccepted" type="checkbox" />{{
                 t(
-                  '我拥有照片权利，允许本站展示。',
-                  '写真の権利を保有し、当サイトでの掲載を許諾します。',
+                  '我拥有照片权利，或该公开照片的使用规则允许本站使用和展示。',
+                  '写真の権利を保有している、または公開写真の利用条件により当サイトでの使用・掲載が認められていることを確認します。',
                 )
               }}</label
             ></template
