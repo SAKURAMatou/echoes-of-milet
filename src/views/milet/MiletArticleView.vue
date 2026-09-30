@@ -144,7 +144,7 @@
         </div>
 
         <div
-          class="mx-auto w-[min(100%,var(--article-readable-max-width,56rem))] max-w-[var(--article-readable-max-width,56rem)] px-4 py-8 sm:px-6 md:px-8 md:py-10"
+          class="mx-auto w-full px-4 py-10 sm:px-6 md:px-8 md:py-14"
         >
           <EchoAsyncState
             v-if="loading"
@@ -163,7 +163,7 @@
           <div
             v-else-if="article?.html"
             ref="articleContentRef"
-            class="article-content"
+            class="article-content article-magazine"
             v-html="article.html"
             @click="handleArticleContentClick"
           ></div>
@@ -212,6 +212,7 @@ import EchoAsyncState from '@/components/interaction/EchoAsyncState.vue'
 import '../../assets/article-content.css'
 import '../../assets/mixed-media.css'
 import '../../assets/article-editor-content.css'
+import '../../assets/article-magazine.css'
 
 const route = useRoute()
 const { scrollToPageAnchor } = usePageAnchorScroll()

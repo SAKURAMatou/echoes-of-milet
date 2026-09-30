@@ -23,12 +23,14 @@ const dialog = ref<HTMLDialogElement>(),
   closeDialog = ref<HTMLDialogElement>(),
   form = ref<HTMLFormElement>(),
   body = ref<HTMLElement>(),
+  emailInput = ref<HTMLInputElement>(),
   uploader = ref<InstanceType<typeof SubmissionImageUploader>>(),
   verification = ref<InstanceType<typeof SubmissionVerification>>()
 const step = ref(1),
   busy = ref(false),
   rateLimited = ref(false),
   error = ref(''),
+  emailError = ref(''),
   token = ref(''),
   receipt = ref<SubmissionReceipt | undefined>(props.receipt)
 const fields = reactive({
@@ -76,6 +78,26 @@ function toggle(key: string) {
     ? selected.value.filter((k) => k !== key)
     : [...selected.value, key]
 }
+function validateSubmitterEmail() {
+  fields.submitterEmail = fields.submitterEmail.trim()
+  if (!fields.submitterEmail) {
+    emailError.value = ''
+    return true
+  }
+  if (
+    fields.submitterEmail.length > 254 ||
+    !/^[^\s@<>]+@[^\s@<>]+\.[^\s@<>]+$/.test(fields.submitterEmail)
+  ) {
+    emailError.value = t(
+      '邮箱格式不正确，请检查后重试；不需要回复时可以留空。',
+      'メールアドレスの形式を確認してください。返信が不要な場合は空欄にできます。',
+    )
+    emailInput.value?.focus()
+    return false
+  }
+  emailError.value = ''
+  return true
+}
 async function move(value: number) {
   step.value = value
   error.value = ''
@@ -84,6 +106,7 @@ async function move(value: number) {
   body.value?.focus()
 }
 async function next() {
+  if (step.value === 2 && !validateSubmitterEmail()) return
   if (!form.value?.reportValidity()) return
   if (step.value === 1 && !props.target && !fields.mapUrl && !fields.address) {
     error.value = t('请填写地图链接或位置说明。', '地図リンクまたは場所の説明を入力してください。')
@@ -355,11 +378,28 @@ onBeforeUnmount(() => {
               ><label class="submission-field"
                 >{{
                   t(
-                    '邮箱（选填，用于回复处理结果，不公开）',
-                    'メール（任意・審査結果の返信用・非公開）',
+                    '邮箱（选填，用于接收审核结果，不公开）',
+                    'メール（任意・審査結果の通知用・非公開）',
                   )
-                }}<input v-model="fields.submitterEmail" type="email" maxlength="254"
-              /></label>
+                }}<input
+                  ref="emailInput"
+                  v-model.trim="fields.submitterEmail"
+                  type="email"
+                  maxlength="254"
+                  autocomplete="email"
+                  :aria-invalid="Boolean(emailError)"
+                  :aria-describedby="emailError ? 'pilgrimage-submission-email-error' : undefined"
+                  :class="emailError ? '!border-rose-300' : ''"
+                  @input="emailError = ''"
+                  @blur="validateSubmitterEmail"
+                />
+                <span
+                  v-if="emailError"
+                  id="pilgrimage-submission-email-error"
+                  class="text-xs text-rose-600"
+                  role="alert"
+                  >{{ emailError }}</span
+                ></label>
             </div>
           </div>
           <div v-if="step === 3" class="space-y-5">
@@ -407,8 +447,8 @@ onBeforeUnmount(() => {
             <p class="text-xs text-[#657b88]">
               {{
                 t(
-                  '待审核资料最长保留 90 天；处理后清理临时照片，邮箱 90 天后清除。填写邮箱时，仅用于必要沟通和回复处理结果。',
-                  '審査資料は最長90日間保持します。処理後に一時画像を削除し、メールは90日後に消去します。入力したメールアドレスは必要な連絡と審査結果の返信にのみ使用します。',
+                  '待审核资料最长保留 90 天；处理后清理临时照片，邮箱 90 天后清除。填写邮箱时，仅用于发送审核结果和必要沟通。',
+                  '審査資料は最長90日間保持します。処理後に一時画像を削除し、メールは90日後に消去します。入力したメールアドレスは審査結果の通知と必要な連絡にのみ使用します。',
                 )
               }}
             </p>

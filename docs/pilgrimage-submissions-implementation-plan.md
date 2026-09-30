@@ -14,7 +14,7 @@
 
 阶段顺序：数据库与协议 → 投稿上传 API → 审核合并服务 → 管理端 → 公开端 → Cloudflare 配置与联合验收。默认关闭公开功能，先完成可恢复的审核闭环再开放投稿。
 
-首版使用弹层/移动端全屏投稿组件，不新增公开路由；地图链接为位置输入，不要求经纬度。匿名状态查询和最小照片署名按需求草案纳入设计，数值限制保留为配置，仍可在开发前调整。不实现短链接联网展开、账号、提交者自动结果通知或自动翻译；可选邮箱仅用于管理员必要沟通和回复处理结果，不公开展示。
+首版使用弹层/移动端全屏投稿组件，不新增公开路由；地图链接为位置输入，不要求经纬度。匿名状态查询和最小照片署名按需求草案纳入设计，数值限制保留为配置，仍可在开发前调整。不实现短链接联网展开、账号或自动翻译；可选邮箱不公开展示，在审核完成后用于发送结果通知及必要沟通。
 
 ## 2. 与当前实现的衔接
 
@@ -691,3 +691,16 @@ CREATE TABLE pilgrimage_submission_review_leases (
 | `UPLOAD_FAILED` | 兼容旧调用或旧部署的通用上传失败码 | 图片没有上传成功，请稍后重试。填写内容仍保留在本页。 | 画像をアップロードできませんでした。しばらくして再試行してください。入力内容は保持されています。 |
 
 R2 非成功响应在浏览器控制台只记录变体、HTTP 状态和 R2 `<Code>`，不记录签名 URL、投稿凭证或图片内容。若浏览器因 CORS 或网络策略不允许读取响应，前端只能归类为对应变体的 `UPLOAD_NETWORK_*`，不能把它断言为 R2 鉴权失败。排查顺序为：没有 `/images` 请求表示选择或转换失败；`/images` 成功但 PUT 失败且没有 complete 表示直传问题；两个 PUT 均成功而 complete 失败表示服务端对象校验问题。
+
+
+### 16.11 外部邮件与审核结果通知（2026-09-29）
+
+Worker 的外部邮件能力放在 `src/component/shared/external-email`，调用方依赖统一的 `ExternalEmailService`，由 `ExternalEmailServiceFactory` 根据 `EXTERNAL_EMAIL_PROVIDER` 创建实现。第一版只支持 `resend`，具体 HTTP 调用封装在 `ResendEmailService`；以后增加服务商时新增实现并扩展工厂分支，不在业务 service 中判断服务商或拼接请求。邮件主题、HTML 和纯文本正文放在独立 `templates` 目录，通过稳定模板 key 与类型化 payload 渲染，使其他业务可以选择自己的模板。
+
+所有发往外部地址的邮件统一使用发件人 `echoes of milet <noreply@mail.miles-dml.org>`，回复地址固定为 `pil-contact@miles-dml.org`。Resend API key 只通过 Worker secret `RESEND_API_KEY` 注入；普通变量 `EXTERNAL_EMAIL_PROVIDER=resend` 用于选择服务商。代码、公开端、管理端和日志均不得保存或输出 API key。部署时分别为目标环境执行 `wrangler secret put RESEND_API_KEY --env production`，再部署包含变量与迁移的 Worker；非 production 环境按实际使用的 Wrangler 环境单独配置 secret。
+
+审核结果邮件使用 `pilgrimage_review_result` 模板。只有投稿保存了格式有效的联系邮箱时才创建通知；邮件包括投稿编号、类型、简要标题/说明、采纳或拒绝结果、公开审核说明，以及采纳后的创建/更新和公开状态。模板按投稿语言选择中文或日文，所有投稿文本在 HTML 输出前转义并限制长度。公开端在资料步骤即时校验可选邮箱，服务端再次校验，空值不创建通知。
+
+审核决定与邮件发送解耦。拒绝时在保存审核决定的同一 D1 batch 中写入通知 outbox；采纳时在正式地点、审核结果和任务完成的同一原子提交中写入 outbox。事务提交后尝试立即发送，失败不会回滚已完成的审核。`external_email_outbox` 使用唯一幂等 key、状态、attempt count、lease/fence 和 next_run_at 防止并发重复发送；Resend 请求携带相同 `Idempotency-Key`。失败按服务商 `Retry-After` 或指数退避重试，最多 8 次；每日维护任务补发到期邮件，已发送记录保留 90 天，最终放弃记录保留 180 天后删除。日志只包含 outbox ID、模板、次数和稳定错误码，不包含收件人、正文或密钥。
+
+数据库结构由 `migrations/0033_external_email_outbox.sql` 创建。上线顺序是先应用 D1 migration，再配置 secret 和 provider 变量，最后部署 Worker。若外部服务或配置暂时不可用，审核仍可正常完成，通知留在 outbox 等待维护任务重试；审核接口不把第三方错误或敏感信息返回管理端。
