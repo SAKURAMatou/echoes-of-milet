@@ -47,6 +47,9 @@ const fields = reactive({
   website: '',
 })
 const selected = ref(['location'])
+const photosOnly = computed(
+  () => Boolean(props.target) && selected.value.length === 1 && selected.value[0] === 'photos',
+)
 const choices = computed(() => [
   { key: 'location', label: t('位置 / 地址', '位置・住所') },
   { key: 'title', label: t('地点名称', 'スポット名') },
@@ -318,6 +321,14 @@ onBeforeUnmount(() => {
                   {{ selected.includes(choice.key) ? '✓' : '＋' }} {{ choice.label }}
                 </button>
               </div>
+              <p class="mt-3 text-sm leading-relaxed text-[#718793]">
+                {{
+                  t(
+                    '只补充照片时，仅选择“补充照片”即可。照片将关联上方地点；请填写简短说明，并在下一步添加照片。',
+                    '写真のみ追加する場合は「写真の追加」だけを選んでください。上記スポットに関連付けられます。簡単な説明を入力し、次のステップで写真を追加してください。',
+                  )
+                }}
+              </p>
             </div>
             <label v-if="!target || selected.includes('title')" class="submission-field"
               >{{ t('地点名称', 'スポット名')
@@ -352,17 +363,32 @@ onBeforeUnmount(() => {
             <label class="submission-field"
               >{{
                 target
-                  ? t('补充 / 纠正说明（必填）', '補足・修正の説明（必須）')
+                  ? photosOnly
+                    ? t('照片补充说明（必填）', '追加写真の説明（必須）')
+                    : t('补充 / 纠正说明（必填）', '補足・修正の説明（必須）')
                   : t('你发现了什么？（必填）', '見つけた情報を教えてください（必須）')
               }}<textarea
                 v-model="fields.description"
                 maxlength="4000"
                 rows="4"
                 :required="step === 1"
+                :placeholder="
+                  photosOnly
+                    ? t('例如：补充本人拍摄的地点外观照片。', '例：自分で撮影したスポットの外観写真を追加します。')
+                    : undefined
+                "
               />
             </label>
           </div>
           <div v-show="step === 2" class="space-y-5">
+            <p v-if="target" class="text-sm leading-relaxed text-[#718793]">
+              {{
+                t(
+                  '照片将提交给当前地点审核。希望加入地点相册的照片请选择“现场照片，可公开”；仅供参考的图片不会公开。',
+                  '写真は対象スポットの審査資料として送信されます。スポットのアルバムへの掲載を希望する写真は「現地写真・公開可」を選んでください。参考資料のみの画像は公開されません。',
+                )
+              }}
+            </p>
             <SubmissionImageUploader ref="uploader" :ja="ja" :disabled="busy" />
             <label class="submission-field"
               >{{ t('来源链接（选填）', '出典リンク（任意）')
