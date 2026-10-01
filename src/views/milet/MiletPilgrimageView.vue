@@ -59,22 +59,39 @@
               </button>
               <span role="status">{{ submissionTestMessage }}</span>
             </form>
-            <button
-              type="button"
-              class="mt-2 min-h-11 rounded-lg px-3 text-sm font-medium text-[#317f8d] underline decoration-[#b8d9de] underline-offset-4 hover:bg-white/60"
-              @click="usageGuideOpen = true"
-            >
-              {{ currentLang === 'jp' ? '使い方を見る' : '查看使用说明' }}
-            </button>
-            <details
-              ref="aboutDetailsRef"
-              class="relative z-10 text-sm text-[#5f7178]"
-              @toggle="updateAboutHeight"
-            >
-              <summary class="min-h-11 cursor-pointer py-3 font-medium text-[#317f8d]">
-                {{ currentLang === 'jp' ? 'このマップについて・謝辞' : '地图介绍与致谢' }}
-              </summary>
-              <div ref="aboutContentRef" class="flow-root pt-2">
+            <div class="@container mt-2">
+              <div
+                class="grid grid-cols-1 items-start gap-x-2 @min-[28rem]:grid-cols-[auto_minmax(0,1fr)]"
+              >
+                <button
+                  type="button"
+                  class="min-h-11 justify-self-start whitespace-nowrap rounded-lg px-3 text-sm font-medium text-[#317f8d] underline decoration-[#b8d9de] underline-offset-4 hover:bg-white/60"
+                  @click="usageGuideOpen = true"
+                >
+                  {{ currentLang === 'jp' ? '使い方を見る' : '查看使用说明' }}
+                </button>
+                <button
+                  type="button"
+                  class="min-h-11 justify-self-start whitespace-nowrap rounded-lg px-3 text-sm font-medium text-[#317f8d] hover:bg-white/60"
+                  :aria-expanded="aboutOpen"
+                  aria-controls="pilgrimage-map-about"
+                  @click="aboutOpen = !aboutOpen"
+                >
+                  <span
+                    class="inline-block"
+                    :class="aboutOpen ? 'rotate-90' : ''"
+                    aria-hidden="true"
+                    >▸</span
+                  >
+                  {{ currentLang === 'jp' ? 'このマップについて・謝辞' : '地图介绍与致谢' }}
+                </button>
+              </div>
+              <div
+                id="pilgrimage-map-about"
+                v-show="aboutOpen"
+                ref="aboutContentRef"
+                class="relative z-10 flow-root pt-2 text-sm text-[#5f7178]"
+              >
                 <LinkedText
                   class="max-w-4xl text-sm leading-6 text-[#5f7178] lg:text-[15px]"
                   :text="pageText.subtitle"
@@ -84,7 +101,7 @@
                   {{ pageText.dataCreditLabel }} · {{ pageText.dataCredit }}
                 </p>
               </div>
-            </details>
+            </div>
           </div>
         </div>
         <div
@@ -280,15 +297,19 @@ const PilgrimageUsageGuide = defineAsyncComponent(
 )
 const USAGE_GUIDE_STORAGE_KEY = 'pilgrimage-usage-guide-v1'
 const usageGuideOpen = ref(false)
-const aboutDetailsRef = ref<HTMLDetailsElement>()
+const aboutOpen = ref(false)
 const aboutContentRef = ref<HTMLElement>()
 const aboutExpandedHeight = ref(0)
 let aboutResizeObserver: ResizeObserver | undefined
 function updateAboutHeight() {
-  aboutExpandedHeight.value = aboutDetailsRef.value?.open
+  aboutExpandedHeight.value = aboutOpen.value
     ? aboutContentRef.value?.getBoundingClientRect().height || 0
     : 0
 }
+watch(aboutOpen, async () => {
+  await nextTick()
+  updateAboutHeight()
+})
 function closeUsageGuide() {
   usageGuideOpen.value = false
   try {

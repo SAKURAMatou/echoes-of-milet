@@ -1,6 +1,6 @@
 # 投稿 R2 上传加固与部署验收（2026-10-01）
 
-本次保留浏览器直传 WebP 到 milet-pilgrimage-submissions。上传大小限制由 Worker 签名实现；CORS 只允许浏览器发送所需头部，不能作为文件大小或身份限制。真实 R2/浏览器验收尚未执行，在验收完成前保留 MODE=test/off。
+本次保留浏览器直传 WebP 到 milet-pilgrimage-submissions。上传大小限制由 Worker 签名实现；CORS 只允许浏览器发送所需头部，不能作为文件大小或身份限制。同日已完成正常浏览器投稿及真实 R2 长度篡改、防覆盖、CORS、过期签名验收，结果见 [生产验收记录](./pilgrimage-submissions-production-validation-2026-10-01.md)。随后已在真实临时桶添加 incoming/ 的 1 天生命周期，并补充 job 的独立年龄清理条件；job 新代码需要重新部署，每日维护仍待实际运行验收，当前保持 MODE=test。
 
 ## 签名与期限
 
@@ -31,6 +31,8 @@
 
 保持该桶 private，关闭 r2.dev/public custom domain；签名用的 API token 只授予该临时桶的 Object Read & Write，不授予整个账户所有桶。转移到正式桶由现有 Worker 的两个 R2 binding 完成，签名 token 不需要正式桶权限。生命周期继续沿既有 incoming/sealed 分区保留策略配置；不能给待审 sealed 设置过短的统一过期规则。本次代码修改不会自动变更控制台 CORS、生命周期或访问权限。
 
+一天 incoming 生命周期参考：规则 ID 为 pilgrimage-incoming-expire-after-1-day，prefix 为 incoming/，开启「删除对象」，年龄设为 1 天。Cloudflare REST 表达为 deleteObjectsTransition.condition={type:"Age",maxAge:86400}，单位为秒。Worker 的 config/r2/pilgrimage-submissions-lifecycle.json 保存包含原有 7 天 multipart abort 的基线；更新时先读取、合并全部现有规则，避免覆盖其他配置。每日 job 另对满一天的登记对象排持久删除任务，负责 D1 对账与失败重试；生命周期负责没有登记的 incoming 孤儿，两者互为兜底，不能用 multipart abort 替代普通对象过期。
+
 R2 没有在这里通过 CORS JSON 设置“单文件最大 4 MiB”的选项，也不能将本站 WAF 当作 R2 S3 endpoint 的上传拦截器。若真实验收发现长度签名没有得到执行，保持上传关闭并改为受控上传网关，不退回仅在 complete 校验大小的方案。即使长度与防覆盖生效，泄露的短期 URL 仍可被反复发起请求；拒绝覆盖限制存储增量，不能保证阻止所有网络请求成本。
 
 ## 发布顺序与验收
@@ -44,6 +46,8 @@ R2 没有在这里通过 CORS JSON 设置“单文件最大 4 MiB”的选项，
 7. 每日 cron 不变（日本时间 04:00）。检查日志的 expiredScanned、objectsScanned、tasksAttempted 与 backlog；达到两分钟/数量预算后剩余记录次日继续，持续积压时扩容到持久队列。真实清理吞吐受套餐与 I/O 影响。
 
 本地已通过隔离 D1/R2 的 47 项投稿/限流/路由测试、45 项相关 unit 测试及公开端 3 项请求重试测试；这些不能证明 R2 S3 endpoint 的线上签名执行行为。当前无 schema 变更，处理次数复用现有 quota 表。管理端没有 API 或显示结构变化，无需同步修改。
+
+同日真实验收补充：多 1 字节返回 403 且未生成对象，重复或同长度修改后 PUT 返回带 CORS 的 412，原内容未改变；正常页面 main/thumb 上传、complete 和最终提交成功。固定 2 分钟期限由 D1 实际记录确认；过期拒绝另用 1 秒签名探针验证。未模拟浏览器中途失败重试，未等待应用链接和 10 分钟名额到期。创建两种路径均观察到 429，但 Binding 的最终一致计数不保证第 3 次请求严格拒绝。桶保持 private；同日后续已添加 incoming/ 的 1 天过期兜底，GET 回读确认启用并保留 multipart abort。需部署本次 job 修改后，再检查下一次每日 cron 的实际清理结果。
 
 ## 官方依据
 

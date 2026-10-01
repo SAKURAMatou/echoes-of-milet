@@ -134,7 +134,7 @@ sealed/{submissionId}/{imageId}/{generation}/{mainHash}/main.webp
 sealed/{submissionId}/{imageId}/{generation}/{thumbHash}/thumb.webp
 ```
 
-只对 incoming 签 PUT；key 由服务端决定。图片处理名额自首次预留起有效 10 分钟，PUT 链接自首次预留起有效 2 分钟；重复申请不延长期限，不另建对象。签名绑定 Content-Type、准确 Content-Length 和 If-None-Match: *；浏览器由 Blob 自动生成 Content-Length，只显式发送 Content-Type 与 If-None-Match。删除旧 incoming 必须等签名到期加 60 秒，生命周期与对账兜底。实际 R2 长度约束须按第 16.14 节链接的配置文档在线验收。
+只对 incoming 签 PUT；key 由服务端决定。图片处理名额自首次预留起有效 10 分钟，PUT 链接自首次预留起有效 2 分钟；重复申请不延长期限，不另建对象。签名绑定 Content-Type、准确 Content-Length 和 If-None-Match: *；浏览器由 Blob 自动生成 Content-Length，只显式发送 Content-Type 与 If-None-Match。删除旧 incoming 必须等签名到期加 60 秒，生命周期与对账兜底。2026-10-01 已取得真实 R2 长度篡改拒绝及正常浏览器投稿证据，具体范围见第 16.14 节链接的生产验收记录。
 
 complete 在 D1 同批原子取得图片租约并扣减处理额度，每图最多 5 次、单稿累计最多 60 次，之后执行有界读取。主图和缩略图全部验证成功后才开始写 sealed；两份缓冲合计不超过 4.25 MiB。使用一次 R2 get 返回的对象及字节验证实际长度、MIME、RIFF 长度、块边界/padding、VP8/VP8L/VP8X 尺寸和标志、动画/EXIF/XMP，计算 SHA-256；超过上限立即停止读取。允许 Chrome/Skia 画布编码器生成的 ICCP 色彩配置，但要求 VP8X 标志一致、位于图像数据前、配置长度不超过 128 KiB，并校验 ICC 声明长度与 `acsp` 签名；仍拒绝 EXIF、XMP、动画及未知分块。不能先 head 检查后无界 arrayBuffer，因为两次读取之间可能被覆盖。写入失败排清理本代副本，成功冻结两变体后才排 incoming 清理，保留失败重试所需原材料；已 sealed 的 complete 幂等返回，不重复扣额度或读 R2。超出累计尝试额度返回 IMAGE_PROCESSING_LIMIT（409）。
 
@@ -262,7 +262,7 @@ job 的每一步可重复执行，正式 key 与 image→formal mapping 唯一�
 | 必须 | 管理员权限撤销后持久任务可能继续执行 | 最终提交前重新确认操作者可执行；撤权则暂停任务等待有权限者接管，接管留审计，不静默沿用旧授权 |
 | 兼容 | 投稿 Bearer 可能被管理员认证中间件误识别 | 当前 adminAuth 路径保护需端到端测试；匿名凭证只能由投稿 handler 识别，不能作为管理 JWT 使用 |
 | 兼容 | 前端 CSP/代理/缓存可能阻断 R2、验证码、Worker | 检查实际响应策略允许必要 connect-src/worker-src/frame-src/script-src，不能直接放宽为 *；敏感响应 no-store，所有来源含预览不能绕过保护 |
-| 已知剩余风险 | 短期签名被反复请求、线上长度签名尚待验收、畸形编码无法靠头部证明可解码 | 已签准确长度及防覆盖条件，需真实 R2 验收；仍保留有限预占、结构验证、人工审核、隔离和清理；硬网络流量预算/完整解码需要受控网关/可信图像处理 |
+| 已知剩余风险 | 短期签名被反复请求、畸形编码无法靠头部证明可解码 | 准确长度及防覆盖条件已通过 2026-10-01 真实 R2 小文件验收；仍保留有限预占、结构验证、人工审核、隔离和清理；硬网络流量预算/完整解码需要受控网关/可信图像处理 |
 
 ### 14.3 实施阻塞的分类
 
@@ -721,10 +721,36 @@ Worker 的外部邮件能力放在 `src/component/shared/external-email`，调�
 
 使用说明由独立 `PilgrimageUsageGuide` 弹窗管理四步内容、前后切换、步骤跳转和关闭，页面仅协调开启/关闭。首次显示在客户端挂载后判断，关闭、稍后再看或完成时仅保存 `pilgrimage-usage-guide-v1=seen` 标记；同一浏览器后续访问不自动弹出，页面「查看使用说明」可随时重开。存储不可用时仍允许查看和关闭，首次判断不进入 SSR，避免 hydration 不一致。中日文共用同一个已读标记。
 
-地图介绍展开时，通过原生 details 的 toggle 和 ResizeObserver 测量说明内容高度，将该高度加到桌面工作区的原有高度及最小高度上，保持地图与详情区域原有可用高度。手机保持页面自然文档流；监听器在页面卸载时清理。
+「查看使用说明」与「地图介绍与致谢」放在同一个响应式入口区域，按容器实际宽度判断：达到 28rem 时同行，否则分为两行；中文、日文各入口保持完整文字与至少 44px 点击高度。地图介绍使用带 aria-expanded / aria-controls 的独立按钮控制内容显示，正文单独占满入口区域宽度，展开后不会改变两按钮所在位置。
+
+地图介绍展开时，通过 nextTick 和 ResizeObserver 测量说明内容高度，将该高度加到桌面工作区的原有高度及最小高度上，保持地图与详情区域原有可用高度。手机保持页面自然文档流；监听器在页面卸载时清理，初始状态为关闭且不依赖视口读取，保持 SSR 首屏一致。
 
 ### 16.14 开放前安全加固（2026-10-01）
 
 修复创建路径末尾斜杠绕过限流、失败 complete 无上限复制和每日单批清理积压。补充全流程独立 120 次/60 秒防刷、处理累计额度、完整配对校验后再复制及失败副本清理。图片名额 10 分钟、PUT 链接 2 分钟，不因重试续期。复用既有 quota/object/task 表，没有新增 migration；管理端没有协议改动。
 
 直传签名已加 Content-Length 与 If-None-Match，公开端支持服务器返回的 uploadHeaders，以及条件重试的 412 响应。控制台必须在临时桶 CORS 中加入 If-None-Match，否则新上传会被浏览器拦截。发布顺序、可粘贴的 CORS JSON、小文件长度篡改与重放测试见 [R2 上传加固与部署验收](./pilgrimage-submissions-r2-upload-hardening.md)。本地测试不能替代真实 R2 执行验证；完成验收前继续 test/off。P2-2 测试访问码轮换不在本次修改范围。
+
+同日部署后的 [生产验收记录](./pilgrimage-submissions-production-validation-2026-10-01.md) 已确认正常页面异步 WebP 上传、complete、最终提交，以及真实 R2 长度篡改 403、防覆盖 412、过期签名 403；标准路径及末尾斜杠创建均观察到 429 / Retry-After: 60。Binding 最终一致且按 location 限流，不能承诺第 3 次请求严格拒绝；D1 保持累计额度职责。CORS 正确、临时桶非公开，初次发现缺少 incoming/ 对象生命周期，同日后续已补配 1 天兜底，详见 16.15；2026-10-02 04:00 JST 起可检查每日维护实际运行。本次 job 补充仍需重新部署。此次只新增待审测试稿，没有执行审核或合并正式地点。
+
+### 16.15 incoming 一天保留与清理对账（2026-10-01）
+
+原有每日维护只按投稿终态、图片移除、冻结成功和旧 generation 选择对象。新增独立的一天条件：临时桶中 stage=incoming 的已登记对象，created_at 距本轮维护开始满 86400000ms 后，即使所属投稿仍为 draft、图片仍为 reserved/failed，也进入对账候选。未满一天的对象仍可按冻结成功、移除或投稿终态等既有原因提前清理。
+
+| 材料与状态 | 清理方式 | 保护与结果 |
+| --- | --- | --- |
+| 满一天的已登记 incoming | 每日 job 选择候选，创建唯一 delete_object 持久任务 | 保留 10 分钟更新时间宽限、有效图片处理租约与审核任务租约保护；删除时点不早于 signed_until + 60 秒 |
+| 已冻结成功的 incoming | complete 后排队，或每日对账补排 | 不必等一天；原签名到期及宽限结束后即可删除 |
+| R2 已先删除的 incoming | 同一持久任务再次执行幂等 delete | 文件缺失也视为删除完成，D1 对象置 deleted、任务置 done |
+| R2 删除失败 | 保留对象记录，任务置 failed 并设置 next_run_at | 指数退避，下一次每日维护继续；不提前确认删除 |
+| 未登记、写入中断的 incoming 孤儿 | R2 incoming/ 前缀生命周期 | 按 R2 对象上传年龄 1 天过期，不依赖 D1 记录或 job 是否正常运行 |
+| 待审的当前 sealed | 不受 incoming 年龄条件和生命周期影响 | 继续按投稿状态、generation 和任务清理，覆盖原定 90 天待审期限 |
+| 正式桶 milet-img | 沿用正式引用和活跃任务检查 | 没有新增按年龄批量过期规则 |
+
+Worker 沿用现有对象表、任务表、fence/lease、批量 R2 delete 和 D1 原子确认，不增加 migration，也不把 Cloudflare 管理 API/token 放入 cron。维护 backlog 的 objects 统计同步计入满一天的 incoming。每日调度仍为 UTC `0 19 * * *`（日本时间 04:00），扫描/处理预算仍为 2 分钟、1000 条过期投稿、5000 个对象、10000 次任务尝试。
+
+R2 生命周期是独立的基础设施配置。参考基线保存于 Worker `config/r2/pilgrimage-submissions-lifecycle.json`：保留原有 7 天 multipart abort，仅给 incoming/ 添加 deleteObjectsTransition，Age / maxAge=86400（Cloudflare REST 单位为秒）。配置更新前读取并合并当前规则，不能用基线文件覆盖未来新增的其他规则；不得把 prefix 改为空串或 sealed/。R2 到期删除异步执行，1 天是过期条件，不是文件恰好在第 24 小时消失的保证。[官方说明](https://developers.cloudflare.com/r2/buckets/object-lifecycles/)
+
+每天运行一次意味着错过本轮年龄门槛的对象需等次日；运行失败或达到预算后也会延后，所以应用任务的目标清理时间与 R2 生命周期兜底都不是严格 24 小时 SLA。业务代码需要重新部署后生效；R2 规则单独配置，不随 Worker 部署自动更新。验收时查看 expiredScanned、objectsScanned、tasksAttempted 和 backlog，核对对象 deleted、任务 done，并确认待审 sealed 与正式引用图片仍在。
+
+新增隔离测试覆盖：满一天但投稿未过期的 incoming 清理、未满一天与 sealed 保留、有效处理租约与 PUT 签名宽限、生命周期先删后的 D1 对账；连同既有删除失败重试等回归，共 50 项投稿/限流/路由测试通过。具体云端配置读取状态和页面截图更新于 [生产验收记录](./pilgrimage-submissions-production-validation-2026-10-01.md)。
