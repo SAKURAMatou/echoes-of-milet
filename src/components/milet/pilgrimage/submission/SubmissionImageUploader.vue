@@ -124,6 +124,7 @@ async function upload(
         imageId: string
         sealed?: boolean
         urls: { main: string; thumb: string }
+        uploadHeaders?: { 'Content-Type': string; 'If-None-Match': string }
       }>(
         `/${submissionId}/images`,
         {
@@ -153,7 +154,7 @@ async function upload(
           try {
             response = await fetch(prepared.urls[variant], {
               method: 'PUT',
-              headers: { 'Content-Type': 'image/webp' },
+              headers: prepared.uploadHeaders || { 'Content-Type': 'image/webp' },
               body: photo.converted[variant],
               signal,
               credentials: 'omit',
@@ -167,7 +168,8 @@ async function upload(
             })
             throw new Error(variant === 'main' ? 'UPLOAD_NETWORK_MAIN' : 'UPLOAD_NETWORK_THUMB')
           }
-          if (!response.ok) {
+          // A lost success response can cause a retry. Existing bytes are verified by complete.
+          if (!response.ok && !(prepared.uploadHeaders && response.status === 412)) {
             const responseBody = await response.text().catch(() => ''),
               r2Code = responseBody.match(/<Code>([^<]+)<\/Code>/)?.[1] || 'UNKNOWN'
             console.warn('Pilgrimage R2 upload failed', {

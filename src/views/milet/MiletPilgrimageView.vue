@@ -1,7 +1,8 @@
 <template>
   <article class="pilgrimage-page overflow-hidden rounded-lg text-[#24323a] lg:mb-6">
     <section
-      class="pilgrimage-workspace relative z-[1] grid min-h-0 grid-rows-[auto_auto_auto] overflow-visible lg:h-[calc(100vh+2rem)] lg:min-h-[1000px] lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)] lg:grid-rows-[auto_auto_minmax(0,1fr)] lg:overflow-hidden 2xl:overflow-visible"
+      class="pilgrimage-workspace relative z-[1] grid min-h-0 grid-rows-[auto_auto_auto] overflow-visible lg:h-[calc(100vh+2rem+var(--pilgrimage-about-height))] lg:min-h-[calc(1000px+var(--pilgrimage-about-height))] lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)] lg:grid-rows-[auto_auto_minmax(0,1fr)] lg:overflow-hidden 2xl:overflow-visible"
+      :style="{ '--pilgrimage-about-height': `${aboutExpandedHeight}px` }"
     >
       <header
         class="relative border-b border-[#c9ddea]/70 px-4 py-4 sm:px-5 lg:col-span-2 lg:px-7 lg:py-5"
@@ -28,15 +29,6 @@
                 @click="openSubmission()"
               >
                 {{ currentLang === 'jp' ? '＋ 新しいスポットを投稿' : '＋ 提供新地点' }}
-              </button>
-            </div>
-            <div v-if="savedReceipt" class="mt-3 flex flex-wrap gap-2">
-              <button
-                type="button"
-                class="min-h-11 rounded-lg border border-[#d3e5ef] bg-white/80 px-4 text-sm text-[#60717a]"
-                @click="saveSubmissionReceipt()"
-              >
-                {{ currentLang === 'jp' ? '投稿状況' : '我的投稿记录' }}
               </button>
             </div>
             <form
@@ -67,19 +59,31 @@
               </button>
               <span role="status">{{ submissionTestMessage }}</span>
             </form>
-            <details class="relative z-10 mt-2 text-sm text-[#5f7178]">
+            <button
+              type="button"
+              class="mt-2 min-h-11 rounded-lg px-3 text-sm font-medium text-[#317f8d] underline decoration-[#b8d9de] underline-offset-4 hover:bg-white/60"
+              @click="usageGuideOpen = true"
+            >
+              {{ currentLang === 'jp' ? '使い方を見る' : '查看使用说明' }}
+            </button>
+            <details
+              ref="aboutDetailsRef"
+              class="relative z-10 text-sm text-[#5f7178]"
+              @toggle="updateAboutHeight"
+            >
               <summary class="min-h-11 cursor-pointer py-3 font-medium text-[#317f8d]">
                 {{ currentLang === 'jp' ? 'このマップについて・謝辞' : '地图介绍与致谢' }}
               </summary>
-              <LinkedText
-                class="mt-2 max-w-4xl text-sm leading-6 text-[#5f7178] lg:text-[15px]"
-                :text="pageText.subtitle"
-                :links="pageText.subtitleLink"
-              >
-              </LinkedText>
-              <p class="mt-3 border-t border-sky-100 pt-3 text-sm leading-6">
-                {{ pageText.dataCreditLabel }} · {{ pageText.dataCredit }}
-              </p>
+              <div ref="aboutContentRef" class="flow-root pt-2">
+                <LinkedText
+                  class="max-w-4xl text-sm leading-6 text-[#5f7178] lg:text-[15px]"
+                  :text="pageText.subtitle"
+                  :links="pageText.subtitleLink"
+                />
+                <p class="mt-3 border-t border-sky-100 pt-3 text-sm leading-6">
+                  {{ pageText.dataCreditLabel }} · {{ pageText.dataCredit }}
+                </p>
+              </div>
             </details>
           </div>
         </div>
@@ -234,12 +238,16 @@
     </section>
 
     <PilgrimageSubmissionDialog
-      v-if="submissionOpen && (submissionConfig || activeReceipt)"
-      :config="submissionConfig || { enabled: false, siteKey: '', rightsVersion: '', maxImages: 6 }"
+      v-if="submissionOpen && submissionConfig"
+      :config="submissionConfig"
       :target="submissionTarget"
       :lang="currentLang"
-      :receipt="activeReceipt"
       @close="submissionOpen = false"
+    />
+    <PilgrimageUsageGuide
+      v-if="usageGuideOpen"
+      :ja="currentLang === 'jp'"
+      @close="closeUsageGuide"
     />
     <PilgrimageSeoSpotList :cities="seoSpotListCities" :lang="currentLang" />
   </article>
@@ -263,14 +271,30 @@ import {
 } from 'vue'
 import { useRoute } from 'vue-router'
 
-import {
-  getSubmissionConfig,
-  type SubmissionConfig,
-  type SubmissionReceipt,
-} from '@/composables/pilgrimageSubmissions'
+import { getSubmissionConfig, type SubmissionConfig } from '@/composables/pilgrimageSubmissions'
 const PilgrimageSubmissionDialog = defineAsyncComponent(
   () => import('@/components/milet/pilgrimage/submission/PilgrimageSubmissionDialog.vue'),
 )
+const PilgrimageUsageGuide = defineAsyncComponent(
+  () => import('@/components/milet/pilgrimage/PilgrimageUsageGuide.vue'),
+)
+const USAGE_GUIDE_STORAGE_KEY = 'pilgrimage-usage-guide-v1'
+const usageGuideOpen = ref(false)
+const aboutDetailsRef = ref<HTMLDetailsElement>()
+const aboutContentRef = ref<HTMLElement>()
+const aboutExpandedHeight = ref(0)
+let aboutResizeObserver: ResizeObserver | undefined
+function updateAboutHeight() {
+  aboutExpandedHeight.value = aboutDetailsRef.value?.open
+    ? aboutContentRef.value?.getBoundingClientRect().height || 0
+    : 0
+}
+function closeUsageGuide() {
+  usageGuideOpen.value = false
+  try {
+    localStorage.setItem(USAGE_GUIDE_STORAGE_KEY, 'seen')
+  } catch {}
+}
 const submissionConfig = ref<SubmissionConfig>()
 const submissionTestVisible = ref(false)
 const submissionTestCode = ref('')
@@ -315,27 +339,22 @@ async function exitSubmissionTest() {
 }
 const submissionOpen = ref(false)
 const submissionTarget = ref<{ id: string; title: string }>()
-const savedReceipt = ref<SubmissionReceipt>()
-const activeReceipt = ref<SubmissionReceipt>()
 function openSubmission(target?: { id: string; title: string }) {
   submissionTarget.value = target ? { ...target } : undefined
-  activeReceipt.value = undefined
   submissionOpen.value = true
 }
 
-function saveSubmissionReceipt() {
-  activeReceipt.value = savedReceipt.value
-  submissionTarget.value = undefined
-  submissionOpen.value = true
-}
 onMounted(async () => {
   submissionTestVisible.value =
     new URLSearchParams(window.location.search).get('submissionTest') === '1'
   try {
-    const saved = JSON.parse(localStorage.getItem('pilgrimage-submission-receipt') || 'null')
-    if (/^[a-f0-9-]{36}$/.test(saved?.id) && /^[a-f0-9]{64}$/.test(saved?.token))
-      savedReceipt.value = saved
-  } catch {}
+    usageGuideOpen.value = localStorage.getItem(USAGE_GUIDE_STORAGE_KEY) !== 'seen'
+    localStorage.removeItem('pilgrimage-submission-receipt')
+  } catch {
+    usageGuideOpen.value = true
+  }
+  aboutResizeObserver = new ResizeObserver(updateAboutHeight)
+  if (aboutContentRef.value) aboutResizeObserver.observe(aboutContentRef.value)
   try {
     submissionConfig.value = await getSubmissionConfig()
   } catch {}
@@ -1017,6 +1036,7 @@ onMounted(async () => {
 })
 
 onBeforeUnmount(() => {
+  aboutResizeObserver?.disconnect()
   componentMounted = false
   spotSelectionToken += 1
   fancyboxSetupToken += 1

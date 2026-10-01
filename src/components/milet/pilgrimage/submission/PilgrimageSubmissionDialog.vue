@@ -8,13 +8,11 @@ import {
   submissionApi,
   submissionErrorMessage,
   type SubmissionConfig,
-  type SubmissionReceipt,
 } from '@/composables/pilgrimageSubmissions'
 const props = defineProps<{
   target?: { id: string; title: string }
   lang: string
   config: SubmissionConfig
-  receipt?: SubmissionReceipt
 }>()
 const emit = defineEmits<{ close: [] }>()
 const ja = computed(() => props.lang === 'jp' || props.lang === 'ja'),
@@ -32,7 +30,7 @@ const step = ref(1),
   error = ref(''),
   emailError = ref(''),
   token = ref(''),
-  receipt = ref<SubmissionReceipt | undefined>(props.receipt)
+  receipt = ref<{ id: string }>()
 const fields = reactive({
   title: '',
   mapUrl: '',
@@ -178,7 +176,7 @@ async function next() {
         rateLimited.value = waiting
       },
     )
-    receipt.value = { id: session.value.id, token: session.value.statusToken }
+    receipt.value = { id: session.value.id }
   } catch (e) {
     error.value = submissionErrorMessage(e, ja.value)
     if (!session.value) verification.value?.reset()
@@ -228,7 +226,7 @@ onBeforeUnmount(() => {
       <header
         class="flex shrink-0 justify-between gap-4 bg-gradient-to-r from-[#f1faff] via-white to-[#faf6fc] px-8 pb-5 pt-6 max-sm:px-5"
       >
-        <div>
+        <div class="min-w-0">
           <p class="text-[10px] tracking-[.2em] text-[#87729e]">PILGRIMAGE · WITH MILET</p>
           <h2
             id="submission-title"
@@ -236,7 +234,7 @@ onBeforeUnmount(() => {
           >
             {{
               receipt
-                ? t('投稿记录', '投稿状況')
+                ? t('投稿已提交', '投稿完了')
                 : target
                   ? t('补充 / 纠正地点信息', 'スポット情報の補足・修正')
                   : t('提供新的巡礼地点', '新しい巡礼スポットを投稿')
@@ -249,6 +247,22 @@ onBeforeUnmount(() => {
                 '使い慣れた言葉で。情報の整理と確認は私たちにお任せください。',
               )
             }}
+          </p>
+          <p
+            v-if="!receipt"
+            class="mt-3 rounded-lg bg-[#f7fcff] px-3 py-2 text-xs leading-6 text-[#60717a]"
+          >
+            {{
+              t(
+                '如因网络等原因无法上传照片，也可以将地点信息、照片及说明发送至管理邮箱：',
+                '通信環境などの理由で写真をアップロードできない場合は、スポット情報・写真・説明を管理者宛てにメールでお送りいただけます：',
+              )
+            }}
+            <a
+              href="mailto:dml4015@miles-dml.org"
+              class="break-all text-[#356f98] underline decoration-[#8bbddd] underline-offset-4"
+              >dml4015@miles-dml.org</a
+            >
           </p>
         </div>
         <button
@@ -290,7 +304,12 @@ onBeforeUnmount(() => {
         tabindex="-1"
         class="min-h-0 overflow-y-auto overscroll-contain px-8 py-6 outline-none max-sm:flex-1 max-sm:px-5"
       >
-        <SubmissionResultPanel v-if="receipt" :receipt="receipt" :ja="ja" />
+        <SubmissionResultPanel
+          v-if="receipt"
+          :submission-id="receipt.id"
+          :ja="ja"
+          :has-email="!!fields.submitterEmail.trim()"
+        />
         <fieldset v-else :disabled="busy" class="min-w-0">
           <div v-show="step === 1" class="space-y-5">
             <div
@@ -374,7 +393,10 @@ onBeforeUnmount(() => {
                 :required="step === 1"
                 :placeholder="
                   photosOnly
-                    ? t('例如：补充本人拍摄的地点外观照片。', '例：自分で撮影したスポットの外観写真を追加します。')
+                    ? t(
+                        '例如：补充本人拍摄的地点外观照片。',
+                        '例：自分で撮影したスポットの外観写真を追加します。',
+                      )
                     : undefined
                 "
               />
@@ -425,7 +447,8 @@ onBeforeUnmount(() => {
                   class="text-xs text-rose-600"
                   role="alert"
                   >{{ emailError }}</span
-                ></label>
+                ></label
+              >
             </div>
           </div>
           <div v-if="step === 3" class="space-y-5">
