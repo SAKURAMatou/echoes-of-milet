@@ -2,37 +2,37 @@ export const pilgrimageMapConfig = {
   personalizedMarkers: {
     defaultSkinId: 'pilgrimage-marker-1',
     skins: {
-      // anchor is the pixel in the marker image that should point to the map coordinate.
-      // Tune x per asset when the visual arrow tip is not horizontally centered.
+      // Fan-made keepsake stamps. The bottom tip is the exact map coordinate.
+      // Keep existing IDs so saved spot assignments continue to work.
       'pilgrimage-marker-1': {
         id: 'pilgrimage-marker-1',
-        imageUrl: '/pilgrimage/markers/pilgrimage-marker-1.webp',
-        size: [96, 96] as [number, number],
-        anchor: [38, 94] as [number, number],
+        imageUrl: '/pilgrimage/markers/milet-stamp-voice.svg',
+        size: [64, 80] as [number, number],
+        anchor: [32, 78] as [number, number],
       },
       'pilgrimage-marker-2': {
         id: 'pilgrimage-marker-2',
-        imageUrl: '/pilgrimage/markers/pilgrimage-marker-2.webp',
-        size: [96, 96] as [number, number],
-        anchor: [38, 94] as [number, number],
+        imageUrl: '/pilgrimage/markers/milet-stamp-scene.svg',
+        size: [64, 80] as [number, number],
+        anchor: [32, 78] as [number, number],
       },
       'pilgrimage-marker-3': {
         id: 'pilgrimage-marker-3',
-        imageUrl: '/pilgrimage/markers/pilgrimage-marker-3.webp',
-        size: [96, 96] as [number, number],
-        anchor: [38, 94] as [number, number],
+        imageUrl: '/pilgrimage/markers/milet-stamp-journey.svg',
+        size: [64, 80] as [number, number],
+        anchor: [32, 78] as [number, number],
       },
       'pilgrimage-marker-4': {
         id: 'pilgrimage-marker-4',
-        imageUrl: '/pilgrimage/markers/pilgrimage-marker-4.webp',
-        size: [96, 96] as [number, number],
-        anchor: [38, 94] as [number, number],
+        imageUrl: '/pilgrimage/markers/milet-stamp-letter.svg',
+        size: [64, 80] as [number, number],
+        anchor: [32, 78] as [number, number],
       },
       'pilgrimage-marker-5': {
         id: 'pilgrimage-marker-5',
-        imageUrl: '/pilgrimage/markers/pilgrimage-marker-5.webp',
-        size: [96, 96] as [number, number],
-        anchor: [38, 94] as [number, number],
+        imageUrl: '/pilgrimage/markers/milet-stamp-echo.svg',
+        size: [64, 80] as [number, number],
+        anchor: [32, 78] as [number, number],
       },
     },
   },
@@ -78,16 +78,9 @@ export const pilgrimageMapConfig = {
     },
     replayDelayMs: 3000,
     actor: {
-      imageUrl: '/pilgrimage/route/walker-dog-sprite.png',
-      frameSize: [128, 72] as [number, number],
-      frameCount: 8,
-      fps: 8,
-      syncFrameRateWithMovement: true,
-      walkCycleDistanceMeters: 10,
-      minCycleDurationMs: 450,
-      maxCycleDurationMs: 1200,
-      anchor: [64, 36] as [number, number],
-      rotateWithRoute: true,
+      frameSize: [148, 148] as [number, number],
+      anchor: [74, 143] as [number, number],
+      cycleDurationMs: 1100,
     },
   },
   routeLine: {

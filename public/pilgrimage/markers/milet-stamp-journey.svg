@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="64" height="80" viewBox="0 0 64 80" fill="none">
+  <path d="M23 60h18L32 78Z" fill="#A07A3E" stroke="#fffdf6" stroke-width="2" stroke-linejoin="round"/>
+  <path d="M10 3h44v4a4 4 0 0 0 4 4v6a4 4 0 0 0 0 8v6a4 4 0 0 0 0 8v6a4 4 0 0 0 0 8v6a4 4 0 0 0-4 4H10a4 4 0 0 0-4-4v-6a4 4 0 0 0 0-8v-6a4 4 0 0 0 0-8v-6a4 4 0 0 0 0-8v-6a4 4 0 0 0 4-4Z" fill="#FFFDF6" stroke="#C4AD81" stroke-width="1.4"/>
+  <path d="M12 10h40v47H12z" fill="#F5EDD9" stroke="#C4AD81" stroke-dasharray="1 3"/>
+  <circle cx="32" cy="29" r="14" fill="#FFF9EA"/>
+  <g stroke="#A07A3E" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M25 27c-5 1-5 10-1 11 4 1 7-12 1-11ZM37 16c-5-1-7 11-3 12 4 2 9-10 3-12Z"/>
+    <path d="m23 42 2-1m8-8 2 1M18 25c-1-6 4-10 9-10m12 27c5 0 8-4 7-9" stroke-dasharray="1 3"/>
+    <path d="m43 18 1.5 3.5L48 23l-3.5 1.5L43 28l-1.5-3.5L38 23l3.5-1.5Z" fill="#E7C882" stroke-width="1"/>
+  </g>
+  <text x="32" y="55" fill="#82602C" font-family="Georgia,serif" font-size="14" font-style="italic" text-anchor="middle">milet</text>
+  <path d="m43 7 6 2m-7 1 6 2M16 61h9" stroke="#B8955F" stroke-linecap="round"/>
+</svg>

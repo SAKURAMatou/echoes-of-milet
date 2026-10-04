@@ -1,6 +1,7 @@
 import type { ComputedRef, Ref, ShallowRef } from 'vue'
 
 import { pilgrimageMapConfig } from '@/components/milet/pilgrimage/pilgrimageMapConfig'
+import { createRouteActor, routeClockDelta } from '@/components/milet/pilgrimage/pilgrimageRouteActor'
 import { buildStaticAssetUrl } from '@/config/api'
 import type {
   PilgrimageMarkerSkin,
@@ -20,6 +21,8 @@ type RoutePathPoint = {
 type SpotMarkerDisplayMode = 'full' | 'dot' | 'hidden'
 type MarkerSkin = PilgrimageMarkerSkin & {
   fallbackImageUrl?: string
+  legacyAnchorOffset?: number
+  keepsake?: boolean
 }
 type MarkerIconLayout = {
   iconSize: [number, number]
@@ -98,17 +101,9 @@ function markerTitleMetrics(title: string, layout: MarkerIconLayout) {
   const fontSize = Math.max(9, Math.min(12, 11.5 / Math.max(1, overflowRatio * 0.9)))
   return { fontSize, lineHeight: 1.08, maxLines }
 }
-/**
- * marker皮肤位置布局计算，
- * 管理端选定的锚点位置可能和实际效果在x轴有12的偏差，可能是管理端的预览图大小导致的
- * @param skin
- * @param labelWidth
- * @param photoWidth
- * @returns
- */
 function horizontalAnchorLayout(skin: MarkerSkin, labelWidth: number, photoWidth = 0) {
-  const skinArchorx = skin.anchor[0] - 12
-  const anchorX = Math.max(0, Math.min(skin.size[0], skinArchorx))
+  // Preserve the existing placement of custom artwork; built-in stamps use exact anchors.
+  const anchorX = clamp(skin.anchor[0] - (skin.legacyAnchorOffset || 0), 0, skin.size[0])
   const leftExtent = Math.max(anchorX, labelWidth / 2, photoWidth / 2)
   const rightExtent = Math.max(skin.size[0] - anchorX, labelWidth / 2, photoWidth / 2)
   const markerPointerX = Math.round(leftExtent)
@@ -230,6 +225,7 @@ function buildPersonalizedMarkerHtml(options: {
   const classes = [
     'pilgrimage-marker',
     'pilgrimage-marker--personalized',
+    options.skin.keepsake ? 'pilgrimage-marker--keepsake' : '',
     options.active ? 'is-active' : '',
     options.inRoute ? 'is-route' : '',
     isStart ? 'is-route-start' : '',
@@ -262,7 +258,10 @@ export function usePilgrimageMapRendering(options: UsePilgrimageMapRenderingOpti
   let passedRouteOrders = new Set<number>()
 
   function localMarkerSkins() {
-    return Object.values(pilgrimageMapConfig.personalizedMarkers.skins) as MarkerSkin[]
+    return Object.values(pilgrimageMapConfig.personalizedMarkers.skins).map((skin) => ({
+      ...skin,
+      keepsake: true,
+    })) as MarkerSkin[]
   }
 
   function resolveMarkerImageUrl(imageUrl: string) {
@@ -286,12 +285,26 @@ export function usePilgrimageMapRendering(options: UsePilgrimageMapRenderingOpti
       )
       .map((skin) => {
         const fallback = markerSkinFallback(skin.id)
+        const imageUrl = resolveMarkerImageUrl(skin.imageUrl)
+        // Upgrade only the original seeded assets, never an administrator's replacement URL.
+        const builtIn = localMarkerSkins().find((item) => item.id === skin.id)
+        if (
+          builtIn &&
+          (imageUrl === `/static/milet/img/pilgrimage/markers/${skin.id}.webp` ||
+            imageUrl === `/pilgrimage/markers/${skin.id}.webp`)
+        ) {
+          return { ...skin, ...builtIn }
+        }
         return {
           ...skin,
-          imageUrl: resolveMarkerImageUrl(skin.imageUrl),
+          imageUrl,
           size: [Number(skin.size[0]) || 96, Number(skin.size[1]) || 96] as [number, number],
-          anchor: [Number(skin.anchor[0]) || 48, Number(skin.anchor[1]) || 94] as [number, number],
-          fallbackImageUrl: fallback.imageUrl,
+          anchor: [Number(skin.anchor[0] ?? 48), Number(skin.anchor[1] ?? 94)] as [number, number],
+          keepsake: localMarkerSkins().some((item) => item.imageUrl === imageUrl),
+          // New SVG artwork follows the editor's exact anchor, including zero coordinates.
+          legacyAnchorOffset: /\.svg(?:[?#]|$)/i.test(imageUrl) ? 0 : 12,
+          // The legacy fallback retains the square canvas expected by custom artwork.
+          fallbackImageUrl: `/pilgrimage/markers/${fallback.id}.webp`,
         }
       })
   }
@@ -684,52 +697,9 @@ export function usePilgrimageMapRendering(options: UsePilgrimageMapRenderingOpti
     })
   }
 
-  function routeActorTransform(angle: number) {
-    if (angle > 90) {
-      return { angle: angle - 180, scaleX: -1 }
-    }
-    if (angle < -90) {
-      return { angle: angle + 180, scaleX: -1 }
-    }
-    return { angle, scaleX: 1 }
-  }
-
-  function routeActorCycleDurationSeconds(frameCount: number) {
-    const routeAnimation = pilgrimageMapConfig.routeAnimation
-    const actor = routeAnimation.actor
-    const fixedDuration = frameCount / Math.max(1, actor.fps)
-    if (!actor.syncFrameRateWithMovement) return fixedDuration
-
-    const metersPerSecond = Math.max(1, routeAnimation.movementSpeed.metersPerSecond)
-    const cycleDistanceMeters = Math.max(1, actor.walkCycleDistanceMeters)
-    const minDuration = Math.min(actor.minCycleDurationMs, actor.maxCycleDurationMs) / 1000
-    const maxDuration = Math.max(actor.minCycleDurationMs, actor.maxCycleDurationMs) / 1000
-    const linkedDuration = cycleDistanceMeters / metersPerSecond
-    return Math.min(maxDuration, Math.max(minDuration, linkedDuration))
-  }
-
-  function actorIconHtml(angle = 0) {
+  function actorIconHtml() {
     const actor = pilgrimageMapConfig.routeAnimation.actor
-    const frameCount = Math.max(1, actor.frameCount)
-    const duration = routeActorCycleDurationSeconds(frameCount)
-    const runDistance = frameCount * actor.frameSize[0]
-    const transform = actor.rotateWithRoute ? routeActorTransform(angle) : { angle: 0, scaleX: 1 }
-    return `<span class="pilgrimage-route-actor" style="--route-actor-image:url('${escapeMapHtml(actor.imageUrl)}'); --route-actor-width:${actor.frameSize[0]}px; --route-actor-height:${actor.frameSize[1]}px; --route-actor-frame-count:${frameCount}; --route-actor-duration:${duration}s; --route-actor-run-distance:-${runDistance}px; --route-actor-angle:${transform.angle}deg; --route-actor-scale-x:${transform.scaleX};"><span class="pilgrimage-route-actor-sprite" aria-hidden="true"></span></span>`
-  }
-
-  function setActorAngle(angle: number) {
-    const actor =
-      actorElement ||
-      (actorMarker
-        ?.getElement?.()
-        ?.querySelector?.('.pilgrimage-route-actor') as HTMLElement | null)
-    if (!actor) return
-    actorElement = actor
-    const transform = pilgrimageMapConfig.routeAnimation.actor.rotateWithRoute
-      ? routeActorTransform(angle)
-      : { angle: 0, scaleX: 1 }
-    actor.style.setProperty('--route-actor-angle', `${transform.angle}deg`)
-    actor.style.setProperty('--route-actor-scale-x', String(transform.scaleX))
+    return `<span class="pilgrimage-route-actor" style="--route-actor-width:${actor.frameSize[0]}px; --route-actor-height:${actor.frameSize[1]}px;"><canvas width="384" height="384" aria-hidden="true"></canvas></span>`
   }
 
   function routeSegmentAngle(fromPoint: LatLngTuple, toPoint: LatLngTuple) {
@@ -833,7 +803,7 @@ export function usePilgrimageMapRendering(options: UsePilgrimageMapRenderingOpti
     }
   }
 
-  function startRouteAnimation() {
+  async function startRouteAnimation() {
     const L = options.leafletRef.value
     const map = options.mapRef.value
     const animationLayer = options.animationLayerRef.value
@@ -865,7 +835,7 @@ export function usePilgrimageMapRendering(options: UsePilgrimageMapRenderingOpti
       zIndexOffset: 1200,
       icon: L.divIcon({
         className: '',
-        html: actorIconHtml(firstSegmentAngle),
+        html: actorIconHtml(),
         iconSize: actor.frameSize,
         iconAnchor: actor.anchor,
       }),
@@ -874,21 +844,33 @@ export function usePilgrimageMapRendering(options: UsePilgrimageMapRenderingOpti
       ?.getElement?.()
       ?.querySelector?.('.pilgrimage-route-actor') as HTMLElement | null
 
+    const pose = actorElement ? createRouteActor(actorElement) : null
+    if (!pose || !(await pose.ready) || token !== animationToken) return
+    const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)')
+    pose?.render(0, firstSegmentAngle, 0)
+
     const playCycle = () => {
       if (token !== animationToken || options.selectedRoute.value?.id !== activeAnimationRouteId)
         return
-      const startedAt = window.performance.now()
+      let previousTime = window.performance.now()
+      let elapsed = 0
       let segmentIndex = 0
-      let lastAngleLegIndex = -1
       actorMarker?.setLatLng(startPoint)
-      setActorAngle(firstSegmentAngle)
+      pose?.render(0, firstSegmentAngle, 0)
       updateRouteAnimationState(1, new Set([1]))
 
       const tick = (now: number) => {
         if (token !== animationToken || options.selectedRoute.value?.id !== activeAnimationRouteId)
           return
 
-        const elapsed = totalDuration > 0 ? Math.min(now - startedAt, totalDuration) : 0
+        const delta = routeClockDelta(now, previousTime, document.hidden || reducedMotion.matches)
+        previousTime = now
+        if (document.hidden || reducedMotion.matches) {
+          if (reducedMotion.matches) pose.render(elapsed, timeline.segments[segmentIndex].angle, 0)
+          animationFrame = window.requestAnimationFrame(tick)
+          return
+        }
+        elapsed = Math.min(elapsed + delta, totalDuration)
         while (
           segmentIndex < timeline.segments.length - 1 &&
           elapsed >= timeline.segments[segmentIndex + 1].startedAt
@@ -920,10 +902,8 @@ export function usePilgrimageMapRendering(options: UsePilgrimageMapRenderingOpti
         }
 
         actorMarker?.setLatLng(nextPosition)
-        if (segment.legIndex !== lastAngleLegIndex) {
-          setActorAngle(segment.angle)
-          lastAngleLegIndex = segment.legIndex
-        }
+        const activity = Math.min(1, elapsed / 300, (totalDuration - elapsed) / 350)
+        pose?.render(elapsed, segment.angle, activity, actor.cycleDurationMs)
         updateRouteAnimationState(currentOrder, passed)
 
         if (elapsed >= totalDuration) {
