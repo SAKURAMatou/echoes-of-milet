@@ -57,7 +57,8 @@
             <!-- 封面图片作为背景 -->
             <div class="relative w-full h-80 overflow-hidden bg-gray-200">
               <img
-                :src="getImageUrl(album.coverUrlAccess || album.coverUrl)"
+                v-if="album.coverUrlAccess || album.coverUrl"
+                :src="getImageUrl(album)"
                 :alt="getAlbumTitle(album.description)"
                 class="h-full w-full object-cover transition-transform duration-300 group-hover:scale-[1.015]"
                 :style="galleryTransitionStyle(album.galleryId)"
@@ -135,7 +136,8 @@
             <!-- 封面图片作为背景 -->
             <div class="relative w-full h-80 overflow-hidden bg-gray-200">
               <img
-                :src="getImageUrl(album.coverUrlAccess || album.coverUrl)"
+                v-if="album.coverUrlAccess || album.coverUrl"
+                :src="getImageUrl(album)"
                 :alt="getAlbumTitle(album.description)"
                 class="h-full w-full object-cover transition-transform duration-300 group-hover:scale-[1.015]"
                 :style="galleryTransitionStyle(album.galleryId)"
@@ -306,7 +308,7 @@ import EchoAsyncState from '@/components/interaction/EchoAsyncState.vue'
 import MiletImageSearchPanel from '@/components/milet/gallery/MiletImageSearchPanel.vue'
 import axiosInstance from '@/AxiosUtil'
 import { withLangParam } from '@/composables/useLangRoute'
-import { apiRoutes, buildStaticAssetUrl } from '@/config/api'
+import { apiRoutes, buildStaticAssetUrl, resolveStaticImageStorage } from '@/config/api'
 import { MILET_GALLERY_TEXT } from '@/composables/lang/miletGallery'
 import { useAppState } from '@/composables/useAppState'
 import { usePetOverlay } from '@/composables/pet'
@@ -500,9 +502,8 @@ const initLoad = async () => {
 /**
  * 获取图片完整URL
  */
-const getImageUrl = (coverUrl) => {
-  if (!coverUrl) return ''
-  return buildStaticAssetUrl(coverUrl)
+const getImageUrl = (album) => {
+  return buildStaticAssetUrl(album.coverUrlAccess || album.coverUrl, resolveStaticImageStorage(album))
 }
 
 /**

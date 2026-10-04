@@ -175,6 +175,7 @@ export interface PilgrimagePageText {
   emptyDistrict: string
   emptySpot: string
   photoLabel: string
+  emptyPhotos: string
   navigation: string
   extraInformation: string
   currentArea: string
@@ -238,6 +239,7 @@ export const PILGRIMAGE_TEXT: Record<PilgrimageLang, PilgrimagePageText> = {
     emptyDistrict: '请选择一个区划查看点位。',
     emptySpot: '选择地图上的标记，查看照片和地点说明。',
     photoLabel: '照片',
+    emptyPhotos: '这个地点暂时还没有照片，先跟随文字与坐标去巡礼吧。',
     navigation: '导航',
     extraInformation: '查看额外信息',
     currentArea: '当前区域',
@@ -273,6 +275,7 @@ export const PILGRIMAGE_TEXT: Record<PilgrimageLang, PilgrimagePageText> = {
     emptyDistrict: 'エリアを選んでスポットを表示します。',
     emptySpot: '地図上のマーカーを選ぶと、写真と説明を表示します。',
     photoLabel: '写真',
+    emptyPhotos: 'このスポットの写真はまだありません。場所の記録と座標をたよりに、巡礼を楽しんでください。',
     navigation: 'ナビ',
     extraInformation: '関連情報を見る',
     currentArea: '現在のエリア',

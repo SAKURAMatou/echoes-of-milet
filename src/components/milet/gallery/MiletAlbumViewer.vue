@@ -32,7 +32,7 @@
             :data-height="img.h || img.height"
             class="image-item group relative block overflow-hidden rounded-lg"
             :data-caption="img.comment || `Image ${img.originalIndex + 1}`"
-            :data-download-src="img.link"
+            :data-download-src="buildStaticAssetDownloadUrl(img.link)"
             @click="openLightbox($event, img.originalIndex)"
           >
             <img
@@ -81,6 +81,7 @@
 import { computed, nextTick, onMounted, onServerPrefetch, onUnmounted, ref, watch } from 'vue'
 import { MILET_PIC_TEXT } from '@/composables/lang/miletPic'
 import { fetchMiletGalleryPage } from '@/composables/miletGalleryPage'
+import { buildStaticAssetDownloadUrl } from '@/config/api'
 import { usePetFancyboxPhotoLifecycle } from '@/composables/pet'
 import '@fancyapps/ui/dist/fancybox/fancybox.css'
 
@@ -284,7 +285,7 @@ async function openLightbox(event: MouseEvent, startIndex: number) {
       caption: img.comment || `Image ${index + 1}`,
       width: img.w || img.weight,
       height: img.h || img.height,
-      downloadSrc: img.link,
+      downloadSrc: buildStaticAssetDownloadUrl(img.link),
     }))
     Fancybox.show(
       slides,
@@ -329,7 +330,7 @@ function downloadImage(event: MouseEvent, src: string) {
   event.stopPropagation()
   event.preventDefault()
   const a = document.createElement('a')
-  a.href = `${src}?download=true`
+  a.href = buildStaticAssetDownloadUrl(src)
   a.download = ''
   document.body.appendChild(a)
   a.click()

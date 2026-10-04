@@ -21,8 +21,24 @@ export function getSiteOrigin() {
   return getRuntimeConfig().site
 }
 
-export function buildStaticAssetUrl(assetPath: string, baseType = 'milet') {
-  const value = assetPath.trim()
+export function resolveStaticImageStorage(image: {
+  storage?: string | null
+  img_type?: string | null
+  imgType?: string | null
+  access_route?: string | null
+  accessRoute?: string | null
+  coverAccessRoute?: string | null
+}) {
+  if (image.storage === 'blog' || image.storage === 'milet') return image.storage
+  const type = (image.img_type || image.imgType || '').trim().toLowerCase()
+  if (['b', 'blog', 'article', 'article-img'].includes(type)) return 'blog'
+  if (['m', 's', 'milet', 'spot'].includes(type)) return 'milet'
+  const route = image.access_route || image.accessRoute || image.coverAccessRoute || ''
+  return route.includes(staticRoutes.blogImage) ? 'blog' : 'milet'
+}
+
+export function buildStaticAssetUrl(assetPath: string | null | undefined, baseType = 'milet') {
+  const value = (assetPath || '').trim()
   if (!value) return ''
   if (/^https?:\/\//i.test(value) || value.startsWith('/')) return value
   const baseRoute = baseType === 'milet' ? staticRoutes.miletImage : staticRoutes.blogImage
@@ -61,17 +77,25 @@ export function buildStaticAssetPreviewUrl(assetPath: string, baseType = 'milet'
   const rawUrl = buildStaticAssetUrl(assetPath, baseType)
   if (!rawUrl) return ''
 
-  const imageRoute = baseType === 'milet' ? staticRoutes.miletImage : staticRoutes.blogImage
-  const previewRoute =
-    baseType === 'milet' ? staticRoutes.miletImagePreview : staticRoutes.blogImagePreview
-
   try {
     const isAbsolute = /^https?:\/\//i.test(rawUrl)
     const url = new URL(rawUrl, getSiteOrigin())
-    if (!url.pathname.startsWith(imageRoute)) return rawUrl
-    url.pathname = `${previewRoute}${url.pathname.slice(imageRoute.length)}`
+    const route = [
+      [staticRoutes.miletImage, staticRoutes.miletImagePreview],
+      [staticRoutes.blogImage, staticRoutes.blogImagePreview],
+    ].find(([imageRoute]) => url.pathname.startsWith(imageRoute))
+    if (!route) return rawUrl
+    url.pathname = `${route[1]}${url.pathname.slice(route[0].length)}`
     return isAbsolute ? url.toString() : `${url.pathname}${url.search}${url.hash}`
   } catch {
     return rawUrl
   }
+}
+
+export function buildStaticAssetDownloadUrl(assetPath: string | null | undefined, baseType = 'milet') {
+  const rawUrl = buildStaticAssetUrl(assetPath, baseType)
+  if (!rawUrl) return ''
+  const url = new URL(rawUrl, getSiteOrigin())
+  url.searchParams.set('download', 'true')
+  return /^https?:\/\//i.test(rawUrl) ? url.href : `${url.pathname}${url.search}${url.hash}`
 }

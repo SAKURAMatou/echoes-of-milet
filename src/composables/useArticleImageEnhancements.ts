@@ -1,4 +1,5 @@
 import { nextTick } from 'vue'
+import { buildStaticAssetDownloadUrl } from '@/config/api'
 import { usePetFancyboxPhotoLifecycle } from '@/composables/pet'
 import '@fancyapps/ui/dist/fancybox/fancybox.css'
 
@@ -6,6 +7,7 @@ type EnhancedAnchorRecord = {
   anchor: HTMLAnchorElement
   previousFancybox: string | null
   previousCaption: string | null
+  previousDownloadSrc: string | null
 }
 
 type WrappedImageRecord = {
@@ -43,6 +45,8 @@ export function useArticleImageEnhancements() {
 
       if (item.previousCaption === null) item.anchor.removeAttribute('data-caption')
       else item.anchor.setAttribute('data-caption', item.previousCaption)
+      if (item.previousDownloadSrc === null) item.anchor.removeAttribute('data-download-src')
+      else item.anchor.setAttribute('data-download-src', item.previousDownloadSrc)
     }
 
     for (const item of wrappedImages.splice(0)) {
@@ -98,9 +102,11 @@ export function useArticleImageEnhancements() {
           anchor: parentAnchor,
           previousFancybox: parentAnchor.getAttribute('data-fancybox'),
           previousCaption: parentAnchor.getAttribute('data-caption'),
+          previousDownloadSrc: parentAnchor.getAttribute('data-download-src'),
         })
         parentAnchor.setAttribute('data-fancybox', groupName)
         parentAnchor.setAttribute('data-caption', imageCaption(img))
+        parentAnchor.setAttribute('data-download-src', buildStaticAssetDownloadUrl(imageSources.originalSrc))
         continue
       }
 
@@ -110,6 +116,7 @@ export function useArticleImageEnhancements() {
       wrapper.href = href
       wrapper.setAttribute('data-fancybox', groupName)
       wrapper.setAttribute('data-caption', imageCaption(img))
+      wrapper.setAttribute('data-download-src', buildStaticAssetDownloadUrl(href))
       wrapper.className = 'article-image-lightbox-link'
       img.replaceWith(wrapper)
       wrapper.appendChild(img)

@@ -1,7 +1,7 @@
 import { computed, ref } from 'vue'
 
 import axiosInstance from '@/AxiosUtil'
-import { apiRoutes, buildStaticAssetUrl } from '@/config/api'
+import { apiRoutes, buildStaticAssetUrl, resolveStaticImageStorage } from '@/config/api'
 
 export type LiveLang = 'zh' | 'ja'
 export type LiveEventType = 'one_man' | 'tour' | 'special_live' | 'festival' | string
@@ -12,6 +12,8 @@ export type LiveSetlistOverrideOperation = 'add' | 'remove' | 'replace' | 'move'
 export type LiveSetlistState = 'upcoming_hidden' | 'not_announced' | 'not_recorded' | 'published'
 
 export interface LiveImage {
+  storage?: 'milet' | 'blog'
+  imgType?: string
   url?: string
   src?: string
   link?: string
@@ -418,11 +420,10 @@ export function resolveLiveImageUrl(image?: LiveImage | string | null) {
     image.urlPreview ||
     image.prelink ||
     image.link ||
-    image.accessRoute ||
     ''
   if (!raw) return ''
   if (raw.startsWith('/') && !raw.startsWith('/static/')) return raw
-  return buildStaticAssetUrl(raw)
+  return buildStaticAssetUrl(raw, resolveStaticImageStorage(image))
 }
 
 export function normalizeExternalUrl(value?: string | null) {

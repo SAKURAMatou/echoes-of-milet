@@ -1,6 +1,9 @@
 import type { Work } from './releaseType'
 
 export interface GalleryImage {
+  storage?: 'milet' | 'blog'
+  img_type?: string
+  access_route?: string
   link: string
   previewLink?: string
   prelink: string

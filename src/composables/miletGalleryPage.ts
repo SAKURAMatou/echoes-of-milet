@@ -1,5 +1,5 @@
 import axiosInstance from '@/AxiosUtil'
-import { apiRoutes, buildStaticAssetPreviewUrl, buildStaticAssetUrl } from '@/config/api'
+import { apiRoutes, buildStaticAssetPreviewUrl, buildStaticAssetUrl, resolveStaticImageStorage } from '@/config/api'
 import type {
   GalleryAlbumMetadata,
   GalleryImage,
@@ -18,13 +18,14 @@ type GalleryRequestScope =
   | { previewId: string; previewSession: string }
 
 export function normalizeGalleryImageSources(image: GalleryImage): GalleryImage {
-  const originalUrl = buildStaticAssetUrl(image.url_original || image.link)
-  const thumbnailUrl = buildStaticAssetUrl(image.url_webp || image.prelink || originalUrl)
+  const storage = resolveStaticImageStorage(image)
+  const originalUrl = buildStaticAssetUrl(image.url_original || image.link, storage)
+  const thumbnailUrl = buildStaticAssetUrl(image.url_webp || image.prelink || originalUrl, storage)
 
   return {
     ...image,
     link: originalUrl,
-    previewLink: buildStaticAssetPreviewUrl(originalUrl),
+    previewLink: buildStaticAssetPreviewUrl(originalUrl, storage),
     prelink: thumbnailUrl || originalUrl,
   }
 }

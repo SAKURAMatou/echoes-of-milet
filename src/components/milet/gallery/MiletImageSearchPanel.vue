@@ -300,7 +300,7 @@ import {
   type MiletImageSearchItem,
 } from '@/composables/miletImageSearch'
 import { MILET_GALLERY_TEXT } from '@/composables/lang/miletGallery'
-import { buildStaticAssetPreviewUrl, buildStaticAssetUrl } from '@/config/api'
+import { buildStaticAssetPreviewUrl, buildStaticAssetUrl, buildStaticAssetDownloadUrl } from '@/config/api'
 import { usePageScroll } from '@/composables/page-scroll'
 import { usePetFancyboxPhotoLifecycle } from '@/composables/pet'
 import '@fancyapps/ui/dist/fancybox/fancybox.css'
@@ -651,7 +651,7 @@ async function openLightbox(event: MouseEvent, startIndex: number) {
       caption: imageDescription(image, index),
       width: positiveDimension(image.width) || undefined,
       height: positiveDimension(image.height) || undefined,
-      downloadSrc: imageOriginalLink(image),
+      downloadSrc: buildStaticAssetDownloadUrl(imageOriginalLink(image)),
     }))
     Fancybox.show(slides, withPetPhotoOptions(lightboxOptions(startIndex)))
   } catch {
@@ -665,7 +665,7 @@ function downloadImage(event: MouseEvent, src: string) {
   event.stopPropagation()
   event.preventDefault()
   const anchor = document.createElement('a')
-  anchor.href = `${src}?download=true`
+  anchor.href = buildStaticAssetDownloadUrl(src)
   anchor.download = ''
   document.body.appendChild(anchor)
   anchor.click()

@@ -33,6 +33,7 @@
 </template>
 
 <script setup>
+import { buildStaticAssetDownloadUrl } from '@/config/api'
 const props = defineProps({
   src: String,
   alt: {
@@ -47,8 +48,9 @@ function downloadEvent(e) {
   e.stopPropagation() //阻止外层的点击事件，
   e.preventDefault() //阻止外层a标签的跳转
 
+  if (!props.downloadSrc) return
   const a = document.createElement('a')
-  a.href = props.downloadSrc + '?download=true'
+  a.href = buildStaticAssetDownloadUrl(props.downloadSrc)
   a.download = ''
   document.body.appendChild(a)
   a.click()

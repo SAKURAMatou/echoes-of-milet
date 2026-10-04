@@ -154,12 +154,16 @@
                   {{ index + 1 }}
                 </span>
                 <img
+                  v-if="spot.coverImageUrl"
                   :src="buildStaticAssetUrl(spot.coverImageUrl)"
                   :alt="spot.title"
                   class="h-20 w-full rounded-md object-cover shadow-[0_12px_28px_-20px_rgba(31,41,55,0.84)]"
                   loading="lazy"
                   decoding="async"
                 />
+                <span v-else class="flex h-20 items-center justify-center rounded-md border border-dashed border-[#cadbd7] bg-[#f5fbfe] px-2 text-center text-xs text-[#60717a]">
+                  {{ lang === 'jp' ? '写真準備中' : '暂无照片' }}
+                </span>
                 <span class="min-w-0 py-1">
                   <span class="block truncate font-serif text-xl leading-tight text-[#26313a]">
                     {{ spot.title }}

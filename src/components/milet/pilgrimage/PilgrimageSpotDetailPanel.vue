@@ -50,9 +50,12 @@
           class="pilgrimage-detail-card relative shrink-0 overflow-hidden rounded-lg border border-[#d3e5ef]/90 bg-white bg-[linear-gradient(180deg,rgba(255,255,255,0.76),rgba(246,251,253,0.82))] shadow-[0_22px_60px_-42px_rgba(58,91,119,0.72)]"
         >
           <img
-            :src="buildStaticAssetUrl(selectedSpotDetail.coverImageUrl)"
+            v-if="coverUrl && !coverFailed"
+            :key="coverUrl"
+            :src="coverUrl"
             :alt="selectedSpotDetail.title"
             class="h-48 w-full object-cover"
+            @error="coverFailed = true"
           />
           <div class="p-4">
             <button v-if="submissionEnabled" type="button" class="mb-4 min-h-11 rounded-lg border border-[#d3e5ef] bg-[#f5fbfe] px-3 text-sm text-[#60717a] hover:bg-white" @click="$emit('correct')">{{ lang === 'jp' ? '情報の補足・修正 ↗' : '补充 / 纠正信息 ↗' }}</button>
@@ -128,12 +131,12 @@
             <h3 class="text-sm font-semibold uppercase tracking-[0.14em] text-[#64777f]">
               {{ pageText.photoLabel }}
             </h3>
-            <span class="text-xs text-[#8a9ca2]">{{ selectedSpotDetail.photos.length }}</span>
+            <span class="text-xs text-[#8a9ca2]">{{ photos.length }}</span>
           </div>
 
-          <div class="grid grid-cols-2 gap-3 lg:grid-cols-[repeat(auto-fill,minmax(128px,1fr))]">
+          <div v-if="photos.length" class="grid grid-cols-2 gap-3 lg:grid-cols-[repeat(auto-fill,minmax(128px,1fr))]">
             <a
-              v-for="photo in selectedSpotDetail.photos"
+              v-for="photo in photos"
               :key="photo.id"
               :href="buildStaticAssetUrl(photo.fullUrl)"
               :data-fancybox="galleryName"
@@ -141,7 +144,7 @@
               :data-width="photo.width"
               :data-height="photo.height"
               :data-thumb-src="buildStaticAssetUrl(photo.thumbUrl || photo.fullUrl)"
-              :data-download-src="buildStaticAssetUrl(photo.downloadUrl || photo.fullUrl)"
+              :data-download-src="buildStaticAssetDownloadUrl(photo.downloadUrl || photo.fullUrl)"
               class="pilgrimage-photo group relative block overflow-hidden rounded-lg border border-[#d3e5ef]/90 bg-white/76 p-1 shadow-[0_16px_42px_-34px_rgba(58,91,119,0.72)] transition hover:-translate-y-0.5 hover:border-[#a8cde2]"
             >
               <img
@@ -183,6 +186,13 @@
               </span>
             </a>
           </div>
+          <p
+            v-else
+            class="rounded-lg border border-dashed border-[#cadbd7] bg-white/60 px-4 py-5 text-sm leading-7 text-[#60717a]"
+            role="status"
+          >
+            {{ pageText.emptyPhotos }}
+          </p>
         </section>
       </div>
 
@@ -264,7 +274,7 @@ import type {
   PilgrimagePageText,
   PilgrimageSpotDetail,
 } from '@/composables/miletPilgrimage'
-import { buildStaticAssetUrl } from '@/config/api'
+import { buildStaticAssetUrl, buildStaticAssetDownloadUrl } from '@/config/api'
 
 const props = defineProps<{
   pageText: PilgrimagePageText
@@ -285,6 +295,22 @@ defineEmits<{
 
 const panelVisible = computed(() =>
   Boolean(props.selectedSpotDetail || props.spotDetailLoading || props.spotDetailError),
+)
+const photos = computed(() =>
+  (props.selectedSpotDetail?.photos || []).filter((photo) => photo.fullUrl),
+)
+const coverUrl = computed(() =>
+  buildStaticAssetUrl(
+    props.selectedSpotDetail?.coverImageUrl ||
+      photos.value[0]?.thumbUrl ||
+      photos.value[0]?.fullUrl ||
+      '',
+  ),
+)
+const coverFailed = ref(false)
+watch(
+  () => [props.selectedSpotDetail?.id, coverUrl.value],
+  () => { coverFailed.value = false },
 )
 const detailNoteText = computed(() =>
   props.lang === 'jp' ? 'すべての場所は、記憶されるべき。' : '每一个地点都应该被记住',
@@ -324,7 +350,7 @@ function downloadPhoto(event: MouseEvent, downloadUrl: string) {
   if (typeof document === 'undefined' || !downloadUrl) return
 
   const link = document.createElement('a')
-  link.href = `${downloadUrl}?download=true`
+  link.href = buildStaticAssetDownloadUrl(downloadUrl)
   link.download = ''
   document.body.appendChild(link)
   link.click()
