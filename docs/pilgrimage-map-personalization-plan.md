@@ -1,6 +1,6 @@
 # 巡礼地图个性化实现方案
 
-本文档是巡礼地图个性化功能的实际实现依据。后续代码调整以本文档为准。
+本文档保留巡礼地图初版的结构与交互设计。路线动画现以 [巡礼路线角色动画](pilgrimage-route-animation.md) 为准，marker 皮肤现以 [巡礼纪念章](pilgrimage-marker-skins.md) 为准；下文旧版 WebP marker 规范用于兼容与兜底。
 
 ## 当前范围
 
@@ -23,7 +23,8 @@
 - `public/pilgrimage/decorations/`
 - `public/pilgrimage/route/`
 - `scripts/generate_pilgrimage_marker_assets.py`
-- `scripts/generate_pilgrimage_route_spritesheet.py`
+- `scripts/pack-pilgrimage-actor.mjs`
+- `scripts/pack-pilgrimage-dog.mjs`
 
 ## Marker 素材规范
 
@@ -232,20 +233,13 @@ layout: {
 ```ts
 routeAnimation: {
   movementSpeed: {
-    metersPerSecond: 45,
+    metersPerSecond: 15,
   },
   replayDelayMs: 3000,
   actor: {
-    imageUrl: '/pilgrimage/route/walker-dog-sprite.png',
-    frameSize: [128, 72],
-    frameCount: 8,
-    fps: 8,
-    syncFrameRateWithMovement: true,
-    walkCycleDistanceMeters: 10,
-    minCycleDurationMs: 450,
-    maxCycleDurationMs: 1200,
-    anchor: [64, 36],
-    rotateWithRoute: true,
+    frameSize: [148, 148],
+    anchor: [74, 143],
+    cycleDurationMs: 1100,
   },
 }
 ```
@@ -256,13 +250,12 @@ routeAnimation: {
 - 到达终点后等待 `3000ms`。
 - 如果没有切换路线或地区，则自动从起点重播。
 - 移动速度按经纬度地理距离计算，使用 `metersPerSecond` 配置，不受地图缩放影响。
-- 人物脚步 sprite 默认和 `metersPerSecond` 联动：`walkCycleDistanceMeters / metersPerSecond` 得到一次完整走路循环的时长，并通过 `minCycleDurationMs` / `maxCycleDurationMs` 限制极端速度。
-- 如果需要固定脚步速度，可把 `syncFrameRateWithMovement` 设为 `false`，此时使用 `frameCount / fps` 作为 sprite 循环时长。
+- 人物与 Jean 的步行帧共用路线 RAF 累计时间和固定 `1100ms` 周期，位置移动由 `metersPerSecond` 控制。
 - spot 序号 `1` 是开始点，最后一个是结束点。
 - START / END 标签固定使用英文，暂不做多语言。
-- 人物按路线方向旋转，并通过水平翻转避免头朝下。
-- 路线人物素材由 `scripts/generate_pilgrimage_route_spritesheet.py` 生成；当前使用图片生成的 8 帧横向 sheet，通过 `--sheet-split-mode components` 去绿幕并按人物+狗组件切帧，避免相邻帧残片进入输出。
-- 为了让腿部交叉走动在地图上直观可见，当前 sprite 保留人物和狗，显示尺寸使用 `128x72`，源素材按同等比例保留更高分辨率。
+- 人物保持直立，仅随路线水平朝向进行左右镜像，接近垂直时保留朝向。
+- 路线素材使用完整绘制的 16 帧人物和独立 Jean 精灵图，由两个 `pack-pilgrimage-*.mjs` 脚本打包，Canvas 播放不进行四肢网格形变。
+- 显示尺寸为 `148x148`，人物源帧 `384x384`，Jean 源帧 `256x256`；最终资源和重新打包流程见路线动画文档。
 
 ## 验证要求
 

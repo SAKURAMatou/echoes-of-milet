@@ -307,6 +307,90 @@
   object-fit: contain;
 }
 
+/* Leaflet owns this DOM, so the keepsake skin is styled here rather than in Vue markup. */
+.pilgrimage-marker--keepsake .pilgrimage-marker-skin {
+  filter: drop-shadow(0 3px 2px rgba(61, 75, 67, 0.18));
+}
+
+.pilgrimage-marker--keepsake .pilgrimage-marker-label {
+  border-color: #c6d4cd;
+  border-radius: 3px;
+  background: #fffdf6;
+  box-shadow: 0 2px 5px rgba(61, 75, 67, 0.1);
+  color: #3d5756;
+  font-weight: 600;
+  transition: border-color 160ms ease, background-color 160ms ease, box-shadow 160ms ease;
+}
+
+.pilgrimage-marker--keepsake .pilgrimage-marker-label::before {
+  left: 5px;
+  top: 5px;
+  height: 3px;
+  width: 3px;
+  border-radius: 50%;
+  background: #b8955f;
+  box-shadow: none;
+  transform: none;
+}
+
+.pilgrimage-marker--keepsake:hover .pilgrimage-marker-label,
+.pilgrimage-marker--keepsake.is-active .pilgrimage-marker-label,
+.pilgrimage-marker--keepsake.is-route-current .pilgrimage-marker-label {
+  border-color: #497d77;
+  background: #f0f7ee;
+  box-shadow: 0 0 0 2px rgba(255, 253, 246, 0.9), 0 3px 8px rgba(61, 75, 67, 0.14);
+}
+
+.pilgrimage-marker--personalized:focus-visible {
+  outline: none;
+}
+
+.pilgrimage-marker--personalized:focus-visible .pilgrimage-marker-label {
+  outline: 2px solid #365f5a;
+  outline-offset: 3px;
+}
+
+.pilgrimage-marker.is-compact:focus-visible {
+  outline: 2px solid #365f5a;
+  outline-offset: 3px;
+}
+
+.pilgrimage-marker--keepsake .pilgrimage-route-order {
+  left: calc(var(--marker-pointer-x, 50%) + 21px);
+  top: calc(var(--marker-top, 0px) + 1px);
+  height: 19px;
+  min-width: 19px;
+  border: 2px solid #fffdf6;
+  background: #497d77;
+  font-size: 10px;
+}
+
+.pilgrimage-marker--keepsake .pilgrimage-route-terminal {
+  left: var(--marker-pointer-x, 50%);
+  top: calc(var(--marker-top, 0px) + 61px);
+  border-color: #fffdf6;
+  background: #fffdf6;
+  color: #365f5a;
+  font-size: 7px;
+  letter-spacing: 0.04em;
+}
+
+.pilgrimage-marker--keepsake .pilgrimage-route-terminal.is-end {
+  color: #8e5265;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pilgrimage-marker,
+  .pilgrimage-marker-dot,
+  .pilgrimage-marker--keepsake .pilgrimage-marker-label {
+    transition: none;
+  }
+
+  .pilgrimage-marker--personalized.is-route-current::before {
+    animation: none;
+  }
+}
+
 .pilgrimage-marker-label {
   position: absolute;
   left: var(--marker-label-left, 0);
@@ -512,24 +596,15 @@
   display: block;
   height: var(--route-actor-height, 56px);
   width: var(--route-actor-width, 56px);
-  transform: rotate(var(--route-actor-angle, 0deg)) scaleX(var(--route-actor-scale-x, 1));
-  transform-origin: 50% 50%;
-  transition:
-    opacity 180ms ease,
-    transform 120ms linear;
-  filter: drop-shadow(0 14px 18px rgba(31, 41, 55, 0.22));
+  transform-origin: 50% 94%;
+  pointer-events: none;
+  filter: drop-shadow(0 2px 2px rgba(31, 41, 55, 0.12));
 }
 
-.pilgrimage-route-actor-sprite {
+.pilgrimage-route-actor canvas {
   display: block;
   height: 100%;
   width: 100%;
-  background-image: var(--route-actor-image);
-  background-position: 0 50%;
-  background-repeat: no-repeat;
-  background-size: auto 100%;
-  animation: pilgrimage-route-actor-steps var(--route-actor-duration, 1s)
-    steps(var(--route-actor-frame-count, 1)) 1 both;
 }
 
 .pilgrimage-route-arrow {
@@ -557,12 +632,6 @@
   to {
     opacity: 0;
     transform: translate(-50%, -50%) scale(1.8);
-  }
-}
-
-@keyframes pilgrimage-route-actor-steps {
-  to {
-    background-position-x: var(--route-actor-run-distance, 0);
   }
 }
 

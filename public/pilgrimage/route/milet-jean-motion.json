@@ -1,0 +1,452 @@
+{
+  "version": 2,
+  "columns": 4,
+  "rows": 4,
+  "frameCount": 16,
+  "frameWidth": 384,
+  "frameHeight": 384,
+  "ground": 372,
+  "headAnchor": 132,
+  "frames": [
+    {
+      "bounds": {
+        "x": 37,
+        "y": 44,
+        "width": 333,
+        "height": 328
+      },
+      "faceX": 132,
+      "ground": 372
+    },
+    {
+      "bounds": {
+        "x": 39,
+        "y": 44,
+        "width": 322,
+        "height": 328
+      },
+      "faceX": 132,
+      "ground": 372
+    },
+    {
+      "bounds": {
+        "x": 44,
+        "y": 44,
+        "width": 333,
+        "height": 328
+      },
+      "faceX": 132,
+      "ground": 372
+    },
+    {
+      "bounds": {
+        "x": 41,
+        "y": 44,
+        "width": 315,
+        "height": 328
+      },
+      "faceX": 132,
+      "ground": 372
+    },
+    {
+      "bounds": {
+        "x": 43,
+        "y": 44,
+        "width": 318,
+        "height": 328
+      },
+      "faceX": 132,
+      "ground": 372
+    },
+    {
+      "bounds": {
+        "x": 48,
+        "y": 44,
+        "width": 306,
+        "height": 328
+      },
+      "faceX": 132,
+      "ground": 372
+    },
+    {
+      "bounds": {
+        "x": 45,
+        "y": 44,
+        "width": 320,
+        "height": 328
+      },
+      "faceX": 132,
+      "ground": 372
+    },
+    {
+      "bounds": {
+        "x": 43,
+        "y": 44,
+        "width": 309,
+        "height": 328
+      },
+      "faceX": 132,
+      "ground": 372
+    },
+    {
+      "bounds": {
+        "x": 44,
+        "y": 44,
+        "width": 311,
+        "height": 328
+      },
+      "faceX": 132,
+      "ground": 372
+    },
+    {
+      "bounds": {
+        "x": 38,
+        "y": 44,
+        "width": 317,
+        "height": 328
+      },
+      "faceX": 132,
+      "ground": 372
+    },
+    {
+      "bounds": {
+        "x": 44,
+        "y": 44,
+        "width": 330,
+        "height": 328
+      },
+      "faceX": 132,
+      "ground": 372
+    },
+    {
+      "bounds": {
+        "x": 44,
+        "y": 44,
+        "width": 313,
+        "height": 328
+      },
+      "faceX": 132,
+      "ground": 372
+    },
+    {
+      "bounds": {
+        "x": 43,
+        "y": 44,
+        "width": 326,
+        "height": 328
+      },
+      "faceX": 132,
+      "ground": 372
+    },
+    {
+      "bounds": {
+        "x": 39,
+        "y": 44,
+        "width": 318,
+        "height": 328
+      },
+      "faceX": 132,
+      "ground": 372
+    },
+    {
+      "bounds": {
+        "x": 38,
+        "y": 44,
+        "width": 334,
+        "height": 328
+      },
+      "faceX": 132,
+      "ground": 372
+    },
+    {
+      "bounds": {
+        "x": 42,
+        "y": 44,
+        "width": 315,
+        "height": 328
+      },
+      "faceX": 132,
+      "ground": 372
+    }
+  ],
+  "idle": {
+    "x": 57,
+    "y": 44,
+    "width": 266,
+    "height": 328
+  },
+  "dog": {
+    "type": "painted-sprite",
+    "atlas": "jean-painted-walk.webp",
+    "columns": 4,
+    "rows": 4,
+    "frameCount": 16,
+    "idleFrame": 9,
+    "frameWidth": 256,
+    "frameHeight": 256,
+    "ground": 244,
+    "shoulder": 135,
+    "actorOffset": [
+      133,
+      128
+    ],
+    "frames": [
+      {
+        "sourceIndex": 0,
+        "ground": 244,
+        "shoulder": 135,
+        "actualShoulder": 135,
+        "sourceGround": 244,
+        "scale": 0.8195488721804511,
+        "transform": "uniform-whole-pose",
+        "bounds": {
+          "left": 23,
+          "top": 97,
+          "right": 218,
+          "bottom": 243
+        },
+        "forelegCenterX": 188.6081081081081
+      },
+      {
+        "sourceIndex": 3,
+        "ground": 244,
+        "shoulder": 135,
+        "actualShoulder": 135,
+        "sourceGround": 244,
+        "scale": 0.8134328358208955,
+        "transform": "uniform-whole-pose",
+        "bounds": {
+          "left": 23,
+          "top": 97,
+          "right": 218,
+          "bottom": 244
+        },
+        "forelegCenterX": 171.37217194570135
+      },
+      {
+        "sourceIndex": 15,
+        "ground": 244,
+        "shoulder": 135,
+        "actualShoulder": 136,
+        "sourceGround": 244,
+        "scale": 0.7956204379562044,
+        "transform": "uniform-whole-pose",
+        "bounds": {
+          "left": 22,
+          "top": 97,
+          "right": 219,
+          "bottom": 244
+        },
+        "forelegCenterX": 177.56601123595505
+      },
+      {
+        "sourceIndex": 7,
+        "ground": 244,
+        "shoulder": 135,
+        "actualShoulder": 135,
+        "sourceGround": 244,
+        "scale": 0.8014705882352942,
+        "transform": "uniform-whole-pose",
+        "bounds": {
+          "left": 23,
+          "top": 96,
+          "right": 214,
+          "bottom": 243
+        },
+        "forelegCenterX": 175.39556592765462
+      },
+      {
+        "sourceIndex": 14,
+        "ground": 244,
+        "shoulder": 135,
+        "actualShoulder": 136,
+        "sourceGround": 244,
+        "scale": 0.8014705882352942,
+        "transform": "uniform-whole-pose",
+        "bounds": {
+          "left": 21,
+          "top": 96,
+          "right": 219,
+          "bottom": 244
+        },
+        "forelegCenterX": 179.64697802197801
+      },
+      {
+        "sourceIndex": 8,
+        "ground": 244,
+        "shoulder": 135,
+        "actualShoulder": 135,
+        "sourceGround": 244,
+        "scale": 0.7622377622377622,
+        "transform": "uniform-whole-pose",
+        "bounds": {
+          "left": 28,
+          "top": 100,
+          "right": 214,
+          "bottom": 243
+        },
+        "forelegCenterX": 165.9837997054492
+      },
+      {
+        "sourceIndex": 10,
+        "ground": 244,
+        "shoulder": 135,
+        "actualShoulder": 135,
+        "sourceGround": 244,
+        "scale": 0.7785714285714286,
+        "transform": "uniform-whole-pose",
+        "bounds": {
+          "left": 23,
+          "top": 98,
+          "right": 213,
+          "bottom": 244
+        },
+        "forelegCenterX": 171.73323823109843
+      },
+      {
+        "sourceIndex": 4,
+        "ground": 244,
+        "shoulder": 135,
+        "actualShoulder": 135,
+        "sourceGround": 244,
+        "scale": 0.7956204379562044,
+        "transform": "uniform-whole-pose",
+        "bounds": {
+          "left": 26,
+          "top": 97,
+          "right": 215,
+          "bottom": 243
+        },
+        "forelegCenterX": 164.67117117117118
+      },
+      {
+        "sourceIndex": 5,
+        "ground": 244,
+        "shoulder": 135,
+        "actualShoulder": 135,
+        "sourceGround": 244,
+        "scale": 0.7956204379562044,
+        "transform": "uniform-whole-pose",
+        "bounds": {
+          "left": 20,
+          "top": 98,
+          "right": 215,
+          "bottom": 243
+        },
+        "forelegCenterX": 164.70440251572327
+      },
+      {
+        "sourceIndex": 6,
+        "ground": 244,
+        "shoulder": 135,
+        "actualShoulder": 135,
+        "sourceGround": 244,
+        "scale": 0.7841726618705036,
+        "transform": "uniform-whole-pose",
+        "bounds": {
+          "left": 25,
+          "top": 98,
+          "right": 216,
+          "bottom": 243
+        },
+        "forelegCenterX": 153.4991652754591
+      },
+      {
+        "sourceIndex": 2,
+        "ground": 244,
+        "shoulder": 135,
+        "actualShoulder": 134,
+        "sourceGround": 244,
+        "scale": 0.8074074074074075,
+        "transform": "uniform-whole-pose",
+        "bounds": {
+          "left": 24,
+          "top": 96,
+          "right": 219,
+          "bottom": 243
+        },
+        "forelegCenterX": 174.0532544378698
+      },
+      {
+        "sourceIndex": 11,
+        "ground": 244,
+        "shoulder": 135,
+        "actualShoulder": 135,
+        "sourceGround": 244,
+        "scale": 0.7841726618705036,
+        "transform": "uniform-whole-pose",
+        "bounds": {
+          "left": 24,
+          "top": 98,
+          "right": 216,
+          "bottom": 243
+        },
+        "forelegCenterX": 171.22137404580153
+      },
+      {
+        "sourceIndex": 12,
+        "ground": 244,
+        "shoulder": 135,
+        "actualShoulder": 135,
+        "sourceGround": 244,
+        "scale": 0.7956204379562044,
+        "transform": "uniform-whole-pose",
+        "bounds": {
+          "left": 25,
+          "top": 95,
+          "right": 218,
+          "bottom": 243
+        },
+        "forelegCenterX": 168.16143497757847
+      },
+      {
+        "sourceIndex": 13,
+        "ground": 244,
+        "shoulder": 135,
+        "actualShoulder": 136,
+        "sourceGround": 244,
+        "scale": 0.7841726618705036,
+        "transform": "uniform-whole-pose",
+        "bounds": {
+          "left": 22,
+          "top": 100,
+          "right": 218,
+          "bottom": 244
+        },
+        "forelegCenterX": 168.56540697674419
+      },
+      {
+        "sourceIndex": 1,
+        "ground": 244,
+        "shoulder": 135,
+        "actualShoulder": 134,
+        "sourceGround": 244,
+        "scale": 0.8074074074074075,
+        "transform": "uniform-whole-pose",
+        "bounds": {
+          "left": 24,
+          "top": 96,
+          "right": 215,
+          "bottom": 243
+        },
+        "forelegCenterX": 173.26362038664323
+      },
+      {
+        "sourceIndex": 9,
+        "ground": 244,
+        "shoulder": 135,
+        "actualShoulder": 136,
+        "sourceGround": 244,
+        "scale": 0.7730496453900709,
+        "transform": "uniform-whole-pose",
+        "bounds": {
+          "left": 25,
+          "top": 99,
+          "right": 214,
+          "bottom": 244
+        },
+        "forelegCenterX": 166.6578947368421
+      }
+    ]
+  }
+}
