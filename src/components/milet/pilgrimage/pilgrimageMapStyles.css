@@ -309,16 +309,16 @@
 
 /* Leaflet owns this DOM, so the keepsake skin is styled here rather than in Vue markup. */
 .pilgrimage-marker--keepsake .pilgrimage-marker-skin {
-  filter: drop-shadow(0 3px 2px rgba(61, 75, 67, 0.18));
+  filter: drop-shadow(0 3px 2px rgba(23, 49, 58, 0.3));
 }
 
 .pilgrimage-marker--keepsake .pilgrimage-marker-label {
-  border-color: #c6d4cd;
+  border-color: #44736f;
   border-radius: 3px;
   background: #fffdf6;
-  box-shadow: 0 2px 5px rgba(61, 75, 67, 0.1);
-  color: #3d5756;
-  font-weight: 600;
+  box-shadow: 0 0 0 2px #fffdf6, 0 3px 6px rgba(23, 49, 58, 0.2);
+  color: #193e3c;
+  font-weight: 700;
   transition: border-color 160ms ease, background-color 160ms ease, box-shadow 160ms ease;
 }
 
@@ -328,7 +328,8 @@
   height: 3px;
   width: 3px;
   border-radius: 50%;
-  background: #b8955f;
+  background: #c66a17;
+  opacity: 1;
   box-shadow: none;
   transform: none;
 }
@@ -336,9 +337,17 @@
 .pilgrimage-marker--keepsake:hover .pilgrimage-marker-label,
 .pilgrimage-marker--keepsake.is-active .pilgrimage-marker-label,
 .pilgrimage-marker--keepsake.is-route-current .pilgrimage-marker-label {
-  border-color: #497d77;
-  background: #f0f7ee;
-  box-shadow: 0 0 0 2px rgba(255, 253, 246, 0.9), 0 3px 8px rgba(61, 75, 67, 0.14);
+  border-color: #075650;
+  background: #075650;
+  color: #fffdf6;
+  text-shadow: none;
+  box-shadow: 0 0 0 2px #fffdf6, 0 3px 8px rgba(23, 49, 58, 0.28);
+}
+
+.pilgrimage-marker--keepsake:hover .pilgrimage-marker-label::before,
+.pilgrimage-marker--keepsake.is-active .pilgrimage-marker-label::before,
+.pilgrimage-marker--keepsake.is-route-current .pilgrimage-marker-label::before {
+  background: #f7bd43;
 }
 
 .pilgrimage-marker--personalized:focus-visible {
@@ -361,7 +370,7 @@
   height: 19px;
   min-width: 19px;
   border: 2px solid #fffdf6;
-  background: #497d77;
+  background: #075650;
   font-size: 10px;
 }
 
@@ -370,13 +379,13 @@
   top: calc(var(--marker-top, 0px) + 61px);
   border-color: #fffdf6;
   background: #fffdf6;
-  color: #365f5a;
+  color: #075650;
   font-size: 7px;
   letter-spacing: 0.04em;
 }
 
 .pilgrimage-marker--keepsake .pilgrimage-route-terminal.is-end {
-  color: #8e5265;
+  color: #8e244c;
 }
 
 @media (prefers-reduced-motion: reduce) {

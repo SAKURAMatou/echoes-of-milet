@@ -1,0 +1,23 @@
+{
+  "type": "design",
+  "designSystems": [],
+  "primaryDesignSystem": null,
+  "assets": {
+    "milet 巡礼纪念章配色": {
+      "versions": [
+        {
+          "path": "index.html",
+          "createdAt": "2026-10-04T08:34:09.573Z",
+          "status": "needs-review",
+          "subtitle": "高对比配色与原版对比",
+          "viewport": {
+            "width": 1120,
+            "height": 720
+          }
+        }
+      ]
+    }
+  },
+  "createdAt": "2026-10-04T08:34:09.580Z",
+  "updatedAt": "2026-10-04T08:34:09.580Z"
+}
