@@ -601,7 +601,6 @@ export function galleryViewSection(
     moreTo,
     items: [...homeV2.gallery.items]
       .sort((a, b) => a.priority - b.priority)
-      .slice(0, 6)
       .map((item) => ({
         id: item.id,
         title: textOf(item.title, lang),

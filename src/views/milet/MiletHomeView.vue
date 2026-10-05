@@ -130,7 +130,7 @@ function resolveMiletHomePayload(response: any) {
 }
 
 async function loadMiletHomeData() {
-  if (miletDatas.value || loading.value) {
+  if (loading.value || (miletDatas.value && Date.now() - appState.miletHomeDataFetchedAt < 5 * 60_000)) {
     return
   }
 
@@ -142,6 +142,7 @@ async function loadMiletHomeData() {
     if (payload) {
       miletDatas.value = payload
       appState.miletHomeData = payload
+      appState.miletHomeDataFetchedAt = Date.now()
     }
   } catch (error) {
     console.error('data fetch error', error)

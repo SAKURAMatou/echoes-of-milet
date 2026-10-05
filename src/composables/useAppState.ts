@@ -17,6 +17,7 @@ export interface AppState {
   miletReleasePageData: Record<string, ReleasePageData>
   lang: SupportedLang
   miletHomeData: Record<string, any> | null
+  miletHomeDataFetchedAt: number
   miletArticleError: CachedPayload<string> | null
   miletArticleData: PublicArticleDetail | null
   miletArticleListData: CachedPayload<{ items: RelatedArticleSummary[]; error?: string }> | null
@@ -37,6 +38,7 @@ export function createInitialState(initialState?: Partial<AppState>): AppState {
     miletReleasePageData: initialState?.miletReleasePageData ?? {},
     lang: initialState?.lang === 'jp' ? 'jp' : 'zh',
     miletHomeData: initialState?.miletHomeData ?? null,
+    miletHomeDataFetchedAt: initialState?.miletHomeDataFetchedAt ?? 0,
     miletArticleData: initialState?.miletArticleData ?? null,
     miletArticleError: initialState?.miletArticleError ?? null,
     miletArticleListData: initialState?.miletArticleListData ?? null,
