@@ -1,6 +1,13 @@
 export const pilgrimageMapConfig = {
   personalizedMarkers: {
     defaultSkinId: 'pilgrimage-marker-1',
+    // Add companion choices without changing automatically assigned existing stamps.
+    manualSkinIds: [
+      'pilgrimage-marker-6',
+      'pilgrimage-marker-7',
+      'pilgrimage-marker-8',
+      'pilgrimage-marker-9',
+    ],
     skins: {
       // Fan-made keepsake stamps. The bottom tip is the exact map coordinate.
       // Keep existing IDs so saved spot assignments continue to work.
@@ -31,6 +38,30 @@ export const pilgrimageMapConfig = {
       'pilgrimage-marker-5': {
         id: 'pilgrimage-marker-5',
         imageUrl: '/pilgrimage/markers/milet-stamp-echo.svg',
+        size: [64, 80] as [number, number],
+        anchor: [32, 78] as [number, number],
+      },
+      'pilgrimage-marker-6': {
+        id: 'pilgrimage-marker-6',
+        imageUrl: '/pilgrimage/markers/milet-stamp-hyena.svg',
+        size: [64, 80] as [number, number],
+        anchor: [32, 78] as [number, number],
+      },
+      'pilgrimage-marker-7': {
+        id: 'pilgrimage-marker-7',
+        imageUrl: '/pilgrimage/markers/milet-stamp-orca.svg',
+        size: [64, 80] as [number, number],
+        anchor: [32, 78] as [number, number],
+      },
+      'pilgrimage-marker-8': {
+        id: 'pilgrimage-marker-8',
+        imageUrl: '/pilgrimage/markers/milet-stamp-jean.svg',
+        size: [64, 80] as [number, number],
+        anchor: [32, 78] as [number, number],
+      },
+      'pilgrimage-marker-9': {
+        id: 'pilgrimage-marker-9',
+        imageUrl: '/pilgrimage/markers/milet-stamp-starlight.svg',
         size: [64, 80] as [number, number],
         anchor: [32, 78] as [number, number],
       },

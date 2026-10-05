@@ -14,11 +14,16 @@
     "verify:ssr:local:watch": "npm run build:ssr && node scripts/verify-ssr-local.mjs --watch",
     "type-check": "vue-tsc --noEmit -p tsconfig.json",
     "test:seo": "node scripts/test-seo.mjs",
+    "test:submission-webp": "node --test --import ./tests/pet/node-test-hooks.mjs tests/submission-webp.test.ts",
+    "verify:submission-webp:browser": "node scripts/verify-submission-webp-browser.mjs",
+    "install:submission-webkit": "node scripts/verify-submission-webp-webkit.mjs --install",
+    "test:submission-webkit": "node scripts/verify-submission-webp-webkit.mjs",
     "test:pet": "node --test --import ./tests/pet/node-test-hooks.mjs \"tests/pet/*.test.ts\"",
     "format": "prettier --write src/"
   },
   "dependencies": {
     "@fancyapps/ui": "^6.0.32",
+    "@jsquash/webp": "1.5.0",
     "@tailwindcss/vite": "^4.1.8",
     "axios": "^1.10.0",
     "leaflet": "1.9.4",
@@ -28,6 +33,7 @@
     "vue3-lazyload": "^0.3.8"
   },
   "devDependencies": {
+    "@playwright/test": "1.63.0",
     "@tailwindcss/typography": "^0.5.16",
     "@types/leaflet": "1.9.20",
     "@vitejs/plugin-vue": "^5.2.3",

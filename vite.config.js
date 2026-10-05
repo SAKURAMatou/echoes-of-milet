@@ -103,6 +103,12 @@ export default defineConfig(({ mode }) => {
     ssr: {
       noExternal: ['vue3-lazyload'],
     },
+    optimizeDeps: {
+      exclude: ['@jsquash/webp'],
+    },
+    worker: {
+      format: 'es',
+    },
     server: {
       proxy: {
         '^/static/(?:milet|blog)/(?:img|img-preview)/': {

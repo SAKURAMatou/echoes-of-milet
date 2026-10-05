@@ -16,8 +16,22 @@
           }
         }
       ]
+    },
+    "milet 巡礼纪念章随行系列": {
+      "versions": [
+        {
+          "path": "companions.html",
+          "createdAt": "2026-10-05T04:13:17.581Z",
+          "status": "needs-review",
+          "subtitle": "鬣狗、虎鲸、Jean 与星轨手记",
+          "viewport": {
+            "width": 1200,
+            "height": 900
+          }
+        }
+      ]
     }
   },
   "createdAt": "2026-10-04T08:34:09.580Z",
-  "updatedAt": "2026-10-04T08:34:09.580Z"
+  "updatedAt": "2026-10-05T04:13:17.586Z"
 }

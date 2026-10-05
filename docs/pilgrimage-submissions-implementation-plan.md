@@ -754,3 +754,9 @@ R2 生命周期是独立的基础设施配置。参考基线保存于 Worker `co
 每天运行一次意味着错过本轮年龄门槛的对象需等次日；运行失败或达到预算后也会延后，所以应用任务的目标清理时间与 R2 生命周期兜底都不是严格 24 小时 SLA。业务代码需要重新部署后生效；R2 规则单独配置，不随 Worker 部署自动更新。验收时查看 expiredScanned、objectsScanned、tasksAttempted 和 backlog，核对对象 deleted、任务 done，并确认待审 sealed 与正式引用图片仍在。
 
 新增隔离测试覆盖：满一天但投稿未过期的 incoming 清理、未满一天与 sealed 保留、有效处理租约与 PUT 签名宽限、生命周期先删后的 D1 对账；连同既有删除失败重试等回归，共 50 项投稿/限流/路由测试通过。具体云端配置读取状态和页面截图更新于 [生产验收记录](./pilgrimage-submissions-production-validation-2026-10-01.md)。
+
+### 16.16 Safari 客户端 WebP 编码兼容（2026-10-05）
+
+Canvas/OffscreenCanvas 可用不代表能原生编码 WebP。原生编码失败或返回 PNG 时，按需加载随站点部署的 libwebp WASM 进行客户端编码，支持 Worker 时保持异步编码；Worker 解码/上下文不可用时回退 HTML Image/Canvas 解码并传递缩放像素。继续仅上传真正 WebP 主图/缩略图，保留既有尺寸、大小、像素限制与服务端校验；45 秒超时和取消覆盖所有分支。新增 WEBP_ENCODER_LOAD_FAILED 中日文提示，区分转换资源加载失败与图片过大、图片上传失败。
+
+新增 `test:submission-webp` 回归与 `verify:submission-webp:browser` 独立生产构建检查页，开发工具不随普通公开端构建发布。无 Mac/iOS 时先检查本地模拟回退及生产资源，再用 WebKit 回归或真实设备/设备云验收；引擎模拟不等同 Safari 通过。具体实现、命令、验收矩阵与限制见 [Safari WebP 转换与验证](./pilgrimage-submissions-safari-webp.md)。管理端和 Worker 协议无需变更。

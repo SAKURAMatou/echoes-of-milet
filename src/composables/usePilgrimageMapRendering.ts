@@ -285,6 +285,10 @@ export function usePilgrimageMapRendering(options: UsePilgrimageMapRenderingOpti
       )
       .map((skin) => {
         const fallback = markerSkinFallback(skin.id)
+        // Only the original five skins have legacy bitmap fallback files.
+        const legacyFallbackId = /^pilgrimage-marker-[1-5]$/.test(fallback.id)
+          ? fallback.id
+          : pilgrimageMapConfig.personalizedMarkers.defaultSkinId
         const imageUrl = resolveMarkerImageUrl(skin.imageUrl)
         // Upgrade only the original seeded assets, never an administrator's replacement URL.
         const builtIn = localMarkerSkins().find((item) => item.id === skin.id)
@@ -304,7 +308,7 @@ export function usePilgrimageMapRendering(options: UsePilgrimageMapRenderingOpti
           // New SVG artwork follows the editor's exact anchor, including zero coordinates.
           legacyAnchorOffset: /\.svg(?:[?#]|$)/i.test(imageUrl) ? 0 : 12,
           // The legacy fallback retains the square canvas expected by custom artwork.
-          fallbackImageUrl: `/pilgrimage/markers/${fallback.id}.webp`,
+          fallbackImageUrl: `/pilgrimage/markers/${legacyFallbackId}.webp`,
         }
       })
   }
@@ -318,8 +322,12 @@ export function usePilgrimageMapRendering(options: UsePilgrimageMapRenderingOpti
     if (specifiedSkin) return specifiedSkin
 
     const skins = apiSkins.length > 0 ? apiSkins : localMarkerSkins()
+    const automaticSkins = skins.filter(
+      (skin) => !markerConfig.manualSkinIds.some((id) => id === skin.id),
+    )
+    const choices = automaticSkins.length > 0 ? automaticSkins : skins
     return (
-      skins[stableHash(spot.id || spot.title) % skins.length] ||
+      choices[stableHash(spot.id || spot.title) % choices.length] ||
       markerConfig.skins[markerConfig.defaultSkinId]
     )
   }

@@ -2,6 +2,25 @@
 
 五枚 SVG 皮肤沿用 `pilgrimage-marker-1` 至 `pilgrimage-marker-5`，分别为歌声、取景、足迹、来信和回声。图案是视觉变体，不是地点分类。默认显示尺寸为 64 × 80，定位尖角为 `(32, 78)`。
 
+## 无文字的随行系列
+
+新增四款保留相同的齿孔、纸面、白色外描边及定位尖角，图案内不出现 `milet` 文字：
+
+| ID | 名称 | SVG | 图案特征 |
+| --- | --- | --- | --- |
+| `pilgrimage-marker-6` | 斑点鬣狗 | `milet-stamp-hyena.svg` | 圆耳、短鬃、斑点脸颊与宽吻部，赭棕色边框 |
+| `pilgrimage-marker-7` | Bluer 虎鲸 | `milet-stamp-orca.svg` | 黑白眼斑、背鳍、胸鳍与海浪，蓝色边框 |
+| `pilgrimage-marker-8` | Jean 随行 | `milet-stamp-jean.svg` | 金色犬、垂耳、青绿项圈与金色吊牌，琥珀色边框 |
+| `pilgrimage-marker-9` | 星轨手记 | `milet-stamp-starlight.svg` | 原创连笔星轨与手记笔触，紫色边框；不是官方签名复刻 |
+
+鬣狗参考 milet 在 [J-WAVE 访谈](https://www.j-wave.co.jp/original/tokiohot100/guest_past/past_20200607.htm)中提到的喜爱，虎鲸参考 [Bluer 创作访谈](https://www.j-wave.co.jp/original/tokyounited/archives/the-hidden-story/2024/06/21-110918.html)。Jean 使用本站已有宠物形象的配色与特征，四款均为 fan site 原创纪念章。
+
+发布两端静态素材后，应用 `0035_pilgrimage_companion_marker_skins.sql`，通过已有管理端功能清理巡礼缓存并刷新皮肤列表，即可在地点编辑中选择新增皮肤。迁移只补充缺失的 ID，不改写旧皮肤、地点绑定或管理员已登记的同 ID 记录；无新增 API、权限或代理配置。
+
+新增系列优先用于管理端指定：未指定皮肤的地点继续使用原有自动分配池，避免增加皮肤后全图默认图案发生变化。若当前可用池只有新系列，则使用这些可用皮肤。新 ID 的图片异常回退使用已有的默认位图，不请求不存在的 `pilgrimage-marker-6.webp` 等文件。
+
+随行系列预览：`designs/pilgrimage-markers/companions.html`。
+
 ## 地图上的配色与对比
 
 纪念章使用饱和的彩色框、浅色纸面、深色图案及白色外描边，避免与外部地图的道路、建筑和绿地混在一起。五款主色分别为青绿 `#087F76`、蓝色 `#2868C8`、琥珀 `#C66A17`、莓红 `#C84071` 和紫色 `#8153C6`。选中、悬停及路线当前位置的名称标签使用深青绿底与白字。

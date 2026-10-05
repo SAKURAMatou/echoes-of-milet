@@ -38,6 +38,7 @@ const mimeTypes = {
   '.svg': 'image/svg+xml',
   '.txt': 'text/plain; charset=utf-8',
   '.webp': 'image/webp',
+  '.wasm': 'application/wasm',
 }
 
 const hopByHopResponseHeaders = new Set([

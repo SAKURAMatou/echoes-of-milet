@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="zh">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>投稿 WebP 转换检查</title>
+    <style>
+      body {
+        font:
+          16px/1.7 system-ui,
+          sans-serif;
+        max-width: 900px;
+        margin: 24px auto;
+        padding: 0 20px;
+        color: #253d4a;
+        background: #f6fafc;
+      }
+      button,
+      input {
+        padding: 10px;
+        margin: 8px 0;
+        max-width: 100%;
+      }
+      pre {
+        padding: 16px;
+        background: white;
+        border: 1px solid #d5e5ec;
+        border-radius: 12px;
+        white-space: pre-wrap;
+        overflow-wrap: anywhere;
+      }
+      #previews {
+        display: flex;
+        gap: 16px;
+        flex-wrap: wrap;
+      }
+      #previews img {
+        max-width: 100%;
+        width: 280px;
+        object-fit: contain;
+        border: 1px solid #d5e5ec;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>投稿 WebP 转换检查</h1>
+    <p>
+      仅在本机解码、转换并预览，不创建投稿、不上传照片。兼容性模拟用于测试回退路径，不代表真实
+      Safari 验收。
+    </p>
+    <button id="run">运行自动检查</button>
+    <p>也可选择设备照片验证方向、颜色和大小（JPG / PNG / WebP）。</p>
+    <input
+      id="photo"
+      type="file"
+      accept="image/jpeg,image/png,image/webp"
+      aria-label="选择本机测试照片"
+    />
+    <pre id="results" role="status">等待检查</pre>
+    <div id="previews"></div>
+    <script type="module" src="./submission-webp.ts"></script>
+  </body>
+</html>
