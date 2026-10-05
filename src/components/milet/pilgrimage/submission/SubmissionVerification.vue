@@ -11,6 +11,8 @@ type Api = {
 }
 const api = () => (window as unknown as { turnstile?: Api }).turnstile
 let widget: string | undefined,
+  widgetSize: 'compact' | 'flexible' | undefined,
+  sizeObserver: ResizeObserver | undefined,
   disposed = false,
   timer: ReturnType<typeof setTimeout> | undefined
 function load() {
@@ -19,8 +21,10 @@ function load() {
   const render = () => {
     if (disposed) return
     if (api() && container.value) {
+      widgetSize = container.value.clientWidth < 300 ? 'compact' : 'flexible'
       widget = api()!.render(container.value, {
         sitekey: props.siteKey,
+        size: widgetSize,
         action: 'pilgrimage_submission',
         language: props.ja ? 'ja' : 'zh-CN',
         callback: (token: string) => emit('token', token),
@@ -51,16 +55,29 @@ function reset() {
   else load()
 }
 defineExpose({ reset })
-onMounted(load)
+onMounted(() => {
+  load()
+  sizeObserver = new ResizeObserver(() => {
+    if (!widget || !container.value) return
+    const nextSize = container.value.clientWidth < 300 ? 'compact' : 'flexible'
+    if (nextSize === widgetSize) return
+    api()?.remove(widget)
+    widget = undefined
+    emit('token', '')
+    load()
+  })
+  if (container.value) sizeObserver.observe(container.value)
+})
 onBeforeUnmount(() => {
   disposed = true
   clearTimeout(timer)
+  sizeObserver?.disconnect()
   if (widget) api()?.remove(widget)
 })
 </script>
 <template>
-  <div>
-    <div ref="container" class="min-h-16" />
+  <div class="min-w-0 max-w-full">
+    <div ref="container" class="min-h-16 w-full min-w-0" />
     <p v-if="failed" class="text-xs text-rose-700">
       {{ ja ? '認証を読み込めませんでした。' : '验证加载失败。'
       }}<button type="button" class="min-h-11 px-3 underline" @click="reset">

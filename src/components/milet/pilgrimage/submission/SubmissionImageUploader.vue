@@ -239,7 +239,7 @@ onBeforeUnmount(() => {
         accept="image/jpeg,image/png,image/webp"
         multiple
         :disabled="disabled"
-        class="max-w-full text-xs"
+        class="min-w-0 w-full max-w-full text-xs"
         @change="
           add(($event.target as HTMLInputElement).files)
           ;($event.target as HTMLInputElement).value = ''
@@ -258,7 +258,7 @@ onBeforeUnmount(() => {
     <div
       v-for="photo in photos"
       :key="photo.id"
-      class="grid grid-cols-[64px_1fr] gap-4 border-b border-sky-100 pb-4"
+      class="grid min-w-0 grid-cols-[64px_minmax(0,1fr)] gap-4 border-b border-sky-100 pb-4"
     >
       <img
         v-if="photo.preview"

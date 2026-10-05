@@ -215,12 +215,12 @@ onBeforeUnmount(() => {
   <dialog
     ref="dialog"
     aria-labelledby="submission-title"
-    class="submission-dialog m-auto w-[min(790px,calc(100vw-48px))] max-h-[calc(100dvh-64px)] rounded-2xl border border-[#e4eff4] bg-white p-0 text-[#405665] shadow-[0_28px_90px_-25px_#6e9dac42] max-sm:m-0 max-sm:h-dvh max-sm:max-h-dvh max-sm:w-full max-sm:max-w-full max-sm:rounded-none max-sm:border-0"
+    class="submission-dialog m-auto min-w-0 w-[min(790px,calc(100vw-48px))] max-h-[calc(100dvh-64px)] overflow-hidden rounded-2xl border border-[#e4eff4] bg-white p-0 text-[#405665] shadow-[0_28px_90px_-25px_#6e9dac42] max-sm:m-0 max-sm:h-dvh max-sm:max-h-dvh max-sm:w-full max-sm:max-w-full max-sm:rounded-none max-sm:border-0"
     @cancel.prevent="askClose"
   >
     <form
       ref="form"
-      class="flex max-h-[calc(100dvh-66px)] flex-col max-sm:h-dvh max-sm:max-h-dvh"
+      class="flex min-w-0 w-full max-h-[calc(100dvh-66px)] flex-col overflow-hidden max-sm:h-dvh max-sm:max-h-dvh max-sm:[&_input:not([type=checkbox])]:text-[16px] max-sm:[&_textarea]:text-[16px] max-sm:[&_select]:text-[16px]"
       @submit.prevent="next"
     >
       <header
@@ -285,7 +285,7 @@ onBeforeUnmount(() => {
             t('预览确认', '確認'),
           ]"
           :key="label"
-          class="flex flex-1 items-center gap-2"
+          class="flex min-w-0 flex-1 items-center gap-2"
           :aria-current="step === index + 1 ? 'step' : undefined"
         >
           <span
@@ -302,7 +302,7 @@ onBeforeUnmount(() => {
       <div
         ref="body"
         tabindex="-1"
-        class="min-h-0 overflow-y-auto overscroll-contain px-8 py-6 outline-none max-sm:flex-1 max-sm:px-5"
+        class="min-h-0 min-w-0 max-w-full overflow-x-hidden overflow-y-auto overscroll-contain px-8 py-6 outline-none [overflow-wrap:anywhere] max-sm:flex-1 max-sm:px-5"
       >
         <SubmissionResultPanel
           v-if="receipt"
@@ -419,7 +419,7 @@ onBeforeUnmount(() => {
               >{{ t('来源说明（选填）', '出典の説明（任意）')
               }}<textarea v-model="fields.sourceDescription" maxlength="2000" rows="3" />
             </label>
-            <div class="grid gap-4 sm:grid-cols-2">
+            <div class="grid min-w-0 gap-4 sm:grid-cols-2">
               <label class="submission-field"
                 >{{ t('昵称（选填）', 'ニックネーム（任意）')
                 }}<input v-model="fields.submitterName" maxlength="80" /></label
@@ -474,10 +474,10 @@ onBeforeUnmount(() => {
                   [t('照片', '写真')]: `${uploader?.count() || 0}`,
                 }"
                 :key="key"
-                class="grid grid-cols-[80px_1fr] gap-4 py-3"
+                class="grid min-w-0 grid-cols-[80px_minmax(0,1fr)] gap-4 py-3"
               >
                 <dt class="text-[#657b88]">{{ key }}</dt>
-                <dd class="whitespace-pre-wrap break-words">{{ value || '—' }}</dd>
+                <dd class="min-w-0 whitespace-pre-wrap [overflow-wrap:anywhere]">{{ value || '—' }}</dd>
               </div>
             </dl>
             <label class="flex items-start gap-2 text-sm"
@@ -599,12 +599,15 @@ dialog::backdrop {
   display: flex;
   flex-direction: column;
   gap: 8px;
+  min-width: 0;
   font-size: 13px;
   color: #526b78;
 }
 .submission-field input,
 .submission-field textarea {
   width: 100%;
+  min-width: 0;
+  max-width: 100%;
   min-height: 44px;
   border: 1px solid #dce9ef;
   border-radius: 8px;

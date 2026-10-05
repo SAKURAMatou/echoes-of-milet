@@ -59,20 +59,18 @@
               </button>
               <span role="status">{{ submissionTestMessage }}</span>
             </form>
-            <div class="@container mt-2">
-              <div
-                class="grid grid-cols-1 items-start gap-x-2 @min-[28rem]:grid-cols-[auto_minmax(0,1fr)]"
-              >
+            <div class="mt-2 min-w-0">
+              <div class="flex min-w-0 flex-wrap items-start gap-x-2">
                 <button
                   type="button"
-                  class="min-h-11 justify-self-start whitespace-nowrap rounded-lg px-3 text-sm font-medium text-[#317f8d] underline decoration-[#b8d9de] underline-offset-4 hover:bg-white/60"
+                  class="min-h-11 shrink-0 whitespace-nowrap rounded-lg px-2 text-sm font-medium text-[#317f8d] underline decoration-[#b8d9de] underline-offset-4 hover:bg-white/60 sm:px-3"
                   @click="usageGuideOpen = true"
                 >
                   {{ currentLang === 'jp' ? '使い方を見る' : '查看使用说明' }}
                 </button>
                 <button
                   type="button"
-                  class="min-h-11 justify-self-start whitespace-nowrap rounded-lg px-3 text-sm font-medium text-[#317f8d] hover:bg-white/60"
+                  class="min-h-11 shrink-0 whitespace-nowrap rounded-lg px-2 text-sm font-medium text-[#317f8d] hover:bg-white/60 sm:px-3"
                   :aria-expanded="aboutOpen"
                   aria-controls="pilgrimage-map-about"
                   @click="aboutOpen = !aboutOpen"
