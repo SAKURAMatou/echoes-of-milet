@@ -354,7 +354,7 @@ const seoMap: Record<SeoKey, SeoMeta> = {
         imageAlt: 'Echoes of milet milet 聖地巡礼マップのプレビュー',
       },
     },
-    image: '/echoes-of-milet-OG.webp',
+    image: '/pilgrimageOMG.webp',
     canonicalPath: '/milet/pilgrimage',
     type: 'website',
     schemaType: 'CollectionPage',
