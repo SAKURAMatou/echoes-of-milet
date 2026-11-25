@@ -151,7 +151,7 @@ const seoMap: Record<SeoKey, SeoMeta> = {
         imageAlt: 'Echoes of milet Photo Albums',
       },
     },
-    image: '/echoes-of-milet-OG.webp',
+    image: '/background/milet-gallery-og.jpg',
     canonicalPath: '/milet/galleryList',
     type: 'website',
     schemaType: 'CollectionPage',
